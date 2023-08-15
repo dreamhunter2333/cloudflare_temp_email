@@ -1,0 +1,15 @@
+{
+  "name": "cloudflare_temp_email",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "start": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "postal-mime": "^1.0.16"
+  }
+}

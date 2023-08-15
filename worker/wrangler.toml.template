@@ -1,0 +1,12 @@
+name = "cloudflare_temp_email"
+main = "src/worker.js"
+compatibility_date = "2023-08-14"
+
+[vars]
+PREFIX = "tmp"
+DOMAIN = "xxx.xxx"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "xxx"
+database_id = "xxx"
