@@ -64,6 +64,16 @@ const newEmail = async () => {
 
 onMounted(async () => {
   await refresh();
+  const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
+
+  if (token) {
+    const script = document.createElement('script');
+    script.defer = true;
+    script.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    script.dataset.cfBeacon = `{ token: ${token} }`;
+    document.body.appendChild(script);
+  }
+
 });
 </script>
 
