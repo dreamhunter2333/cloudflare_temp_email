@@ -66,7 +66,8 @@ onMounted(async () => {
   await refresh();
   const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
 
-  if (token) {
+  const exist = document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]') !== null
+  if (token && !exist) {
     const script = document.createElement('script');
     script.defer = true;
     script.src = 'https://static.cloudflareinsights.com/beacon.min.js';
