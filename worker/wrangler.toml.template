@@ -5,6 +5,7 @@ compatibility_date = "2023-08-14"
 [vars]
 PREFIX = "tmp"
 DOMAIN = "xxx.xxx"
+JWT_SECRET = "xxx"
 
 [[d1_databases]]
 binding = "DB"

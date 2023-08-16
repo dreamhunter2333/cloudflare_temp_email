@@ -1,10 +1,11 @@
 <script setup>
 import { NGrid, NGi, NSpace, NAlert, NMessageProvider } from 'naive-ui'
 import { NSpin, NButton, NCard, NLayout, NPopconfirm } from 'naive-ui'
-import { onMounted, ref } from "vue";
+import { watch, onMounted, ref } from "vue";
 import { useStorage } from '@vueuse/core'
 
-const address = useStorage('address')
+const jwt = useStorage('jwt')
+const address = ref("")
 const result = ref("")
 const loading = ref(false)
 const data = ref([])
@@ -19,6 +20,7 @@ const refresh = async () => {
     const response = await fetch(`${API_BASE}/api/mails?address=${address.value}`, {
       method: "GET",
       headers: {
+        "Authorization": `Bearer ${jwt.value}`,
         "Content-Type": "application/json"
       },
     });
@@ -51,9 +53,9 @@ const newEmail = async () => {
       throw new Error(`${response.status} ${await response.text()}` || "error");
     }
     let res = await response.json();
-    address.value = res["address"];
+    jwt.value = res["jwt"];
   } catch (error) {
-    address.value = "";
+    jwt.value = "";
     console.error(error);
     result.value = error.message || "error";
   } finally {
@@ -62,7 +64,28 @@ const newEmail = async () => {
   await refresh();
 };
 
+const getSettings = async (jwt) => {
+  const response = await fetch(`${API_BASE}/api/settings`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${jwt}`,
+      "Content-Type": "application/json"
+    },
+  });
+
+  if (!response.ok) {
+    console.error(response);
+    address.value = "";
+  }
+  let res = await response.json();
+  address.value = res["address"];
+  await refresh();
+}
+
+watch(jwt, async (jwt, old) => getSettings(jwt))
+
 onMounted(async () => {
+  getSettings(jwt.value)
   await refresh();
   const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
 
@@ -115,7 +138,8 @@ onMounted(async () => {
                         <pre>{{ result }}</pre>
                       </span>
                     </n-alert>
-                    <n-alert v-for="row in data" v-bind:key="row.id" :title="`EMAIL ID: ${row.id}`" type="default">
+                    <n-alert v-for="row in data" v-bind:key="row.id" :title="`FROM: ${row.source} ID: ${row.id}`"
+                      type="default">
                       <div v-html="row.message"></div>
                     </n-alert>
                   </n-card>

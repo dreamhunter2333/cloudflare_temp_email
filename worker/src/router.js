@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { Jwt } from 'hono/utils/jwt'
 
 const api = new Hono()
 
@@ -8,9 +9,13 @@ api.get('/api/mails', async (c) => {
         return c.json({ "error": "No address" }, 400)
     }
     const { results } = await c.env.DB.prepare(
-        `SELECT id, message FROM mails where address = ? order by id desc limit 10`
+        `SELECT id, source, message FROM mails where address = ? order by id desc limit 10`
     ).bind(address).all();
     return c.json(results);
+})
+
+api.get('/api/settings', async (c) => {
+    return c.json(c.get("jwtPayload"));
 })
 
 api.get('/api/new_address', async (c) => {
@@ -22,8 +27,12 @@ api.get('/api/new_address', async (c) => {
     if (!success) {
         return c.json({ "error": "Failed to create address" }, 500)
     }
-    return c.json({
+    // create jwt
+    const jwt = await Jwt.sign({
         address: c.env.PREFIX + name + "@" + c.env.DOMAIN
+    }, c.env.JWT_SECRET)
+    return c.json({
+        jwt: jwt
     })
 })
 

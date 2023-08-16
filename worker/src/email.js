@@ -17,8 +17,8 @@ async function email(message, env, ctx) {
         const parsedEmail = await parser.parse(rawEmail);
 
         const { success } = await env.DB.prepare(
-            `INSERT INTO mails (address, message) VALUES (?, ?)`
-        ).bind(message.to, parsedEmail.html).run();
+            `INSERT INTO mails (source, address, message) VALUES (?, ?, ?)`
+        ).bind(message.from, message.to, parsedEmail.html).run();
         if (!success) {
             message.setReject(`Failed save message to ${message.to}`);
         }
