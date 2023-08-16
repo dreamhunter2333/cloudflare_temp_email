@@ -1,6 +1,6 @@
 # cloudflare_temp_email
 
-This is a temporary email service that uses Cloudflare Workers to create a temporary email address that forwards to your real email address.
+This is a temporary email service that uses Cloudflare Workers to create a temporary email address and view the received email in web browser.
 
 [Live Demo](https://temp-email.dreamhunter2333.xyz/)
 
