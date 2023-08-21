@@ -6,13 +6,17 @@ This is a temporary email service that uses Cloudflare Workers to create a tempo
 
 ## Deploy
 
+[Install/Update Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
+
 ## DB - Cloudflare D1
 
 ```bash
-# create a database, and copy the config to wrangler.toml in the next step
+# create a database, and copy the output to wrangler.toml in the next step
 wrangler d1 create dev
 wrangler d1 execute dev --file=db/schema.sql
 ```
+
+![d1](readme_assets/d1.png)
 
 ### Backend - Cloudflare workers
 
@@ -25,14 +29,20 @@ cp worker/wrangler.toml.template worker/wrangler.toml
 wrangler deploy
 ```
 
+you can find and test the api url in the  workers dashboard
+
+![worker](readme_assets/worker.png)
+
 ### Frontend - Cloudflare pages
 
 ```bash
 cd frontend
 pnpm install
-# add .env.local and modify it
+# add .env.local and modify VITE_API_BASE to your api url
 cp .env.example .env.local
 pnpm build --emptyOutDir
 cd ..
 wrangler pages deploy dist --branch production
 ```
+
+![pages](readme_assets/pages.png)
