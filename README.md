@@ -33,6 +33,10 @@ you can find and test the api url in the  workers dashboard
 
 ![worker](readme_assets/worker.png)
 
+config email forward
+
+![email](readme_assets/email.png)
+
 ### Frontend - Cloudflare pages
 
 ```bash
