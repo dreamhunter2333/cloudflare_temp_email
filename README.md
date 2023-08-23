@@ -24,7 +24,7 @@ wrangler d1 execute dev --file=db/schema.sql
 cd worker
 npm install
 # copy wrangler.toml.template to wrangler.toml and modify it
-cp worker/wrangler.toml.template worker/wrangler.toml
+cp wrangler.toml.template wrangler.toml
 # deploy
 wrangler deploy
 ```
