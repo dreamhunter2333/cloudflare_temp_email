@@ -21,7 +21,7 @@ wrangler d1 execute dev --file=db/schema.sql
 ### Backend - Cloudflare workers
 
 ```bash
-cd backend
+cd worker
 npm install
 # copy wrangler.toml.template to wrangler.toml and modify it
 cp worker/wrangler.toml.template worker/wrangler.toml
