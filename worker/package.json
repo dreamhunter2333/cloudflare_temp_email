@@ -7,7 +7,7 @@
     "start": "wrangler dev"
   },
   "devDependencies": {
-    "wrangler": "^3.0.0"
+    "wrangler": "^3.5.1"
   },
   "dependencies": {
     "hono": "^3.4.3",

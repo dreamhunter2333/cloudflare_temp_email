@@ -140,6 +140,7 @@ onMounted(async () => {
                     </n-alert>
                     <n-alert v-for="row in data" v-bind:key="row.id" :title="`FROM: ${row.source} ID: ${row.id}`"
                       type="default">
+                      <p>{{ row.subject }}</p>
                       <div v-html="row.message"></div>
                     </n-alert>
                   </n-card>

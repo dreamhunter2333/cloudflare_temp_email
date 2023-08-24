@@ -9,7 +9,7 @@ api.get('/api/mails', async (c) => {
         return c.json({ "error": "No address" }, 400)
     }
     const { results } = await c.env.DB.prepare(
-        `SELECT id, source, message FROM mails where address = ? order by id desc limit 10`
+        `SELECT id, source, subject, message FROM mails where address = ? order by id desc limit 10`
     ).bind(address).all();
     return c.json(results);
 })
