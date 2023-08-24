@@ -1,8 +1,19 @@
-# cloudflare_temp_email
+# cloudflare temp email
+
+利用 Cloudflare Workers 创建临时邮箱
+
+- 使用 Cloudflare Pages 部署前端
+- 使用 Cloudflare Workers 部署后端
+- email 转发使用 Cloudflare Email Route
+- Cloudflare D1 作为数据库。
+
+[在线演示](https://temp-email.dreamhunter2333.xyz/)
 
 This is a temporary email service that uses Cloudflare Workers to create a temporary email address and view the received email in web browser.
 
 [Live Demo](https://temp-email.dreamhunter2333.xyz/)
+
+![demo](readme_assets/demo.png)
 
 ## Deploy
 
@@ -23,17 +34,22 @@ wrangler d1 execute dev --file=db/schema.sql
 ```bash
 cd worker
 npm install
-# copy wrangler.toml.template to wrangler.toml and modify it
+# copy wrangler.toml.template to wrangler.toml
+# and add your d1 config and these config
+# PREFIX = "tmp" - the email create will be like tmp<xxxxx>@DOMAIN
+# DOMAIN = "xxx.xxx" - you domain name
+# JWT_SECRET = "xxx"
+# BLACK_LIST = ""
 cp wrangler.toml.template wrangler.toml
 # deploy
 wrangler deploy
 ```
 
-you can find and test the api url in the  workers dashboard
+you can find and test the worker's url in the  workers dashboard
 
 ![worker](readme_assets/worker.png)
 
-config email forward
+enable email route and config email forward catch-all to the worker
 
 ![email](readme_assets/email.png)
 
@@ -42,7 +58,7 @@ config email forward
 ```bash
 cd frontend
 pnpm install
-# add .env.local and modify VITE_API_BASE to your api url
+# add .env.local and modify VITE_API_BASE to your worker's url
 cp .env.example .env.local
 pnpm build --emptyOutDir
 cd ..
