@@ -10,7 +10,8 @@
   "dependencies": {
     "@vueuse/core": "^10.1.2",
     "naive-ui": "^2.34.3",
-    "vue": "^3.3.4"
+    "vue": "^3.3.4",
+    "vue-clipboard3": "^2.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.2.3",
