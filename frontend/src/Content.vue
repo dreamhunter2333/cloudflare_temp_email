@@ -1,5 +1,5 @@
 <script setup>
-import { NSpace, NAlert } from 'naive-ui'
+import { NSpace, NAlert, NSwitch } from 'naive-ui'
 import { NSpin, NButton, NLayout, NPopconfirm } from 'naive-ui'
 import { NList, NListItem, NThing, NTag, NNumberAnimation } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
@@ -13,8 +13,28 @@ const message = useMessage()
 const jwt = useStorage('jwt')
 const address = ref("")
 const loading = ref(false)
+const autoRefresh = ref(true)
 const data = ref([])
 const API_BASE = import.meta.env.VITE_API_BASE || "";
+const timer = ref(null)
+
+const setupAutoRefresh = async (autoRefresh) => {
+  console.log(autoRefresh)
+  if (autoRefresh) {
+    timer.value = setInterval(async () => {
+      await refresh();
+    }, 30000)
+  } else {
+    clearInterval(timer.value)
+    timer.value = null
+  }
+}
+
+setupAutoRefresh(autoRefresh)
+
+watch(autoRefresh, async (autoRefresh, old) => {
+  setupAutoRefresh(autoRefresh)
+})
 
 const refresh = async () => {
   if (typeof address.value != 'string' || address.value.trim() === '') {
@@ -120,7 +140,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <n-spin size="large" description="loading..." :show="loading">
+  <n-spin description="loading..." :show="loading">
     <n-layout>
       <n-alert :type='address ? "info" : "warning"' show-icon>
         <span v-if="address">
@@ -139,6 +159,13 @@ onMounted(async () => {
         </template>
         Get New Email?
       </n-popconfirm>
+      <n-switch v-model:value="autoRefresh">
+        <template #checked>
+          Auto Refresh On
+        </template>
+        <template #unchecked>
+          Auto Refresh Off
+        </template></n-switch>
       <n-button class="center button-left" @click="refresh" round type="primary">
         Refresh
       </n-button>
