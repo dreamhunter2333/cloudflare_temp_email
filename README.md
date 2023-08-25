@@ -6,6 +6,7 @@
 - 使用 Cloudflare Workers 部署后端
 - email 转发使用 Cloudflare Email Route
 - Cloudflare D1 作为数据库。
+- 免费版附件过大会造成 Exceeded CPU Limit 错误
 
 [在线演示](https://temp-email.dreamhunter2333.xyz/)
 
