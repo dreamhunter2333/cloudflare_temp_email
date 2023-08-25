@@ -1,4 +1,6 @@
 const PostalMime = require("postal-mime");
+const simpleParser = require('mailparser').simpleParser;
+global.setImmediate = (callback) => callback();
 
 async function email(message, env, ctx) {
     if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => message.from.includes(word))) {
@@ -18,12 +20,22 @@ async function email(message, env, ctx) {
             rawEmail += decoder.decode(value);
         }
 
-        const parser = new PostalMime.default();
-        const parsedEmail = await parser.parse(rawEmail);
+        let parsedEmail = {};
+        try {
+            parsedEmail = await simpleParser(rawEmail)
+        } catch (error) {
+            console.log(error)
+            const parser = new PostalMime.default();
+            parsedEmail = await parser.parse(rawEmail);
+        }
 
         const { success } = await env.DB.prepare(
             `INSERT INTO mails (source, address, subject, message) VALUES (?, ?, ?, ?)`
-        ).bind(message.from, message.to, parsedEmail.subject || "", parsedEmail.html).run();
+        ).bind(
+            message.from, message.to,
+            parsedEmail.subject || "",
+            parsedEmail.html || parsedEmail.textAsHtml || parsedEmail.text || ""
+        ).run();
         if (!success) {
             message.setReject(`Failed save message to ${message.to}`);
             console.log(`Failed save message from ${message.from} to ${message.to}`);
