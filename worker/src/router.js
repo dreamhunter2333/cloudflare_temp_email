@@ -4,7 +4,7 @@ import { Jwt } from 'hono/utils/jwt'
 const api = new Hono()
 
 api.get('/api/mails', async (c) => {
-    const { address } = c.req.query()
+    const { address } = c.get("jwtPayload")
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }

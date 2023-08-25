@@ -22,7 +22,7 @@ const refresh = async () => {
   }
   try {
     loading.value = true;
-    const response = await fetch(`${API_BASE}/api/mails?address=${address.value}`, {
+    const response = await fetch(`${API_BASE}/api/mails`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${jwt.value}`,
