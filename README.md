@@ -59,6 +59,7 @@ enable email route and config email forward catch-all to the worker
 cd frontend
 pnpm install
 # add .env.local and modify VITE_API_BASE to your worker's url
+# VITE_API_BASE=https://xxx.xxx.workers.dev - don't put / in the end
 cp .env.example .env.local
 pnpm build --emptyOutDir
 cd ..
