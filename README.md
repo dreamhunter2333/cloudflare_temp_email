@@ -34,7 +34,7 @@ wrangler d1 execute dev --file=db/schema.sql
 
 ```bash
 cd worker
-npm install
+pnpm install
 # copy wrangler.toml.template to wrangler.toml
 # and add your d1 config and these config
 # PREFIX = "tmp" - the email create will be like tmp<xxxxx>@DOMAIN
@@ -43,7 +43,7 @@ npm install
 # BLACK_LIST = ""
 cp wrangler.toml.template wrangler.toml
 # deploy
-wrangler deploy
+pnpm run deploy
 ```
 
 you can find and test the worker's url in the  workers dashboard
@@ -64,7 +64,7 @@ pnpm install
 cp .env.example .env.local
 pnpm build --emptyOutDir
 cd ..
-wrangler pages deploy dist --branch production
+pnpm run deploy
 ```
 
 ![pages](readme_assets/pages.png)
