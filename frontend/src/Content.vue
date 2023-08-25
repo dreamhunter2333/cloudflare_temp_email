@@ -30,8 +30,6 @@ const setupAutoRefresh = async (autoRefresh) => {
   }
 }
 
-setupAutoRefresh(autoRefresh)
-
 watch(autoRefresh, async (autoRefresh, old) => {
   setupAutoRefresh(autoRefresh)
 })
