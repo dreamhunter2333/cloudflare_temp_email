@@ -100,6 +100,9 @@ const newEmail = async () => {
 };
 
 const getSettings = async (jwt) => {
+  if (typeof jwt != 'string' || jwt.trim() === '') {
+    return;
+  }
   const response = await fetch(`${API_BASE}/api/settings`, {
     method: "GET",
     headers: {
@@ -112,6 +115,7 @@ const getSettings = async (jwt) => {
     message.error(`${response.status} ${await response.text()}` || "error");
     console.error(response);
     address.value = "";
+    return;
   }
   let res = await response.json();
   address.value = res["address"];
