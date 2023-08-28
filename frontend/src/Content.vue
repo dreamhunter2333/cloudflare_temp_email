@@ -19,7 +19,6 @@ const API_BASE = import.meta.env.VITE_API_BASE || "";
 const timer = ref(null)
 
 const setupAutoRefresh = async (autoRefresh) => {
-  console.log(autoRefresh)
   if (autoRefresh) {
     timer.value = setInterval(async () => {
       await refresh();
@@ -100,7 +99,7 @@ const newEmail = async () => {
 };
 
 const getSettings = async (jwt) => {
-  if (typeof jwt != 'string' || jwt.trim() === '') {
+  if (typeof jwt != 'string' || jwt.trim() === '' || jwt === 'undefined') {
     return;
   }
   const response = await fetch(`${API_BASE}/api/settings`, {
@@ -147,7 +146,7 @@ onMounted(async () => {
       <n-alert :type='address ? "info" : "warning"' show-icon>
         <span v-if="address">
           Your email address is <b>{{ address }}</b>
-          <n-button class="button-left" @click="copy" size="small" tertiary round type="primary">Copy</n-button>
+          <n-button @click="copy" size="small" tertiary round type="primary">Copy</n-button>
         </span>
         <span v-else>
           Please click <b>Get New Email</b> button to get a new email address
@@ -163,12 +162,12 @@ onMounted(async () => {
       </n-popconfirm>
       <n-switch v-model:value="autoRefresh">
         <template #checked>
-          Auto Refresh On
+          Auto Refresh
         </template>
         <template #unchecked>
-          Auto Refresh Off
+          Auto Refresh
         </template></n-switch>
-      <n-button class="center button-left" @click="refresh" round type="primary">
+      <n-button class="center" @click="refresh" round type="primary">
         Refresh
       </n-button>
       <n-list hoverable clickable>
@@ -201,9 +200,5 @@ onMounted(async () => {
 .n-list {
   margin-top: 10px;
   text-align: center;
-}
-
-.button-left {
-  margin-left: 10px;
 }
 </style>
