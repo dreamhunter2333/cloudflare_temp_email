@@ -39,6 +39,12 @@
 npm install wrangler -g
 ```
 
+克隆项目
+
+```bash
+git clone https://github.com/dreamhunter2333/cloudflare_temp_email.git
+```
+
 ---
 
 ## D1 数据库
