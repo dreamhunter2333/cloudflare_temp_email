@@ -109,6 +109,15 @@ pnpm run deploy
 
 ---
 
+## Cloudflare Email Routing
+
+配置 `Cloudflare Email Routing` catch-all 发送到 `worker`
+
+
+![email](readme_assets/email.png)
+
+---
+
 ## Cloudflare Pages 前端
 
 ```bash
