@@ -1,6 +1,6 @@
 <script setup>
-import { NSpace, NAlert, NSwitch } from 'naive-ui'
-import { NSpin, NButton, NLayout, NPopconfirm } from 'naive-ui'
+import { NSpace, NAlert, NSwitch, NCard } from 'naive-ui'
+import { NSpin, NButton, NLayout, NPopconfirm, NModal } from 'naive-ui'
 import { NList, NListItem, NThing, NTag, NNumberAnimation } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
 import { useStorage } from '@vueuse/core'
@@ -17,6 +17,7 @@ const autoRefresh = ref(false)
 const data = ref([])
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 const timer = ref(null)
+const showPassword = ref(false)
 
 const setupAutoRefresh = async (autoRefresh) => {
   if (autoRefresh) {
@@ -119,6 +120,7 @@ const getSettings = async (jwt) => {
   let res = await response.json();
   address.value = res["address"];
   await refresh();
+  showPassword.value = true;
 }
 
 watch(jwt, async (jwt, old) => getSettings(jwt))
@@ -146,12 +148,17 @@ onMounted(async () => {
       <n-alert :type='address ? "info" : "warning"' show-icon>
         <span v-if="address">
           Your email address is <b>{{ address }}</b>
-          <n-button @click="copy" size="small" tertiary round type="primary">Copy</n-button>
+          <n-button @click="copy" size="small" tertiary round type="primary">
+            Copy
+          </n-button>
         </span>
         <span v-else>
           Please click <b>Get New Email</b> button to get a new email address
         </span>
       </n-alert>
+      <n-button class="center" @click="showPassword = true" tertiary round type="primary">
+        Show Password
+      </n-button>
       <n-popconfirm @positive-click="newEmail" :show-icon="false">
         <template #trigger>
           <n-button class="center" tertiary round type="primary">
@@ -188,6 +195,19 @@ onMounted(async () => {
         </n-list-item>
       </n-list>
     </n-layout>
+    <n-modal v-model:show="showPassword" preset="dialog" title="Dialog">
+      <template #header>
+        <div>Password</div>
+      </template>
+      <span>
+        Please copy the password and you can use it to login to your email account.
+      </span>
+      <n-card>
+        <b>{{ jwt }}</b>
+      </n-card>
+      <template #action>
+      </template>
+    </n-modal>
   </n-spin>
 </template>
 
