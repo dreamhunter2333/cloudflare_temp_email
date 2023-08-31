@@ -1,17 +1,22 @@
 <script setup>
-import { NMessageProvider, NGrid, NBackTop, NLayoutHeader } from 'naive-ui'
-import { NGi, NSpace, NButton, NConfigProvider, NSelect } from 'naive-ui'
+import { NMessageProvider, NGrid, NBackTop, NLayoutHeader, NInput } from 'naive-ui'
+import { NGi, NSpace, NButton, NConfigProvider, NSelect, NModal } from 'naive-ui'
 import { darkTheme, NSwitch, NGlobalStyle } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useStorage } from '@vueuse/core'
-import { zhCN } from 'naive-ui'
 
 import Content from './Content.vue'
 
+const jwt = useStorage('jwt')
 const themeSwitch = useStorage('themeSwitch', false)
-const localeCache = useStorage('localeCache', false)
 const theme = computed(() => themeSwitch.value ? darkTheme : null)
-const locale = computed(() => localeCache.value ? zhCN : null)
+const showLogin = ref(false)
+const password = ref('')
+
+const login = () => {
+  jwt.value = password.value;
+  location.reload()
+}
 </script>
 
 <template>
@@ -36,6 +41,9 @@ const locale = computed(() => localeCache.value ? zhCN : null)
                       Light
                     </template>
                   </n-switch>
+                  <n-button tertiary @click="showLogin = true" round type="primary">
+                    Login
+                  </n-button>
                   <n-button tag="a" target="_blank" tertiary type="primary" round
                     href="https://github.com/dreamhunter2333/cloudflare_temp_email">Star on Github
                   </n-button>
@@ -48,6 +56,19 @@ const locale = computed(() => localeCache.value ? zhCN : null)
         <n-gi span="1"></n-gi>
       </n-grid>
       <n-back-top :right="100" />
+      <n-modal v-model:show="showLogin" preset="dialog" title="Dialog">
+        <template #header>
+          <div>Login</div>
+        </template>
+        <n-input v-model:value="password" type="textarea" :autosize="{
+          minRows: 3
+        }" />
+        <template #action>
+          <n-button @click="login" size="small" tertiary round type="primary">
+            Login
+          </n-button>
+        </template>
+      </n-modal>
     </n-message-provider>
   </n-config-provider>
 </template>

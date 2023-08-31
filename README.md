@@ -10,6 +10,7 @@
 - [x] 使用 Cloudflare Pages 部署前端
 - [x] 使用 Cloudflare Workers 部署后端
 - [x] email 转发使用 Cloudflare Email Routing
+- [x] 使用 password 重新登录之前的邮箱
 - [ ] 免费版附件过大会造成 Exceeded CPU Limit 错误
 
 ---
