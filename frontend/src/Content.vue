@@ -97,6 +97,7 @@ const newEmail = async () => {
     loading.value = false;
   }
   await refresh();
+  showPassword.value = true;
 };
 
 const getSettings = async (jwt) => {
@@ -120,7 +121,6 @@ const getSettings = async (jwt) => {
   let res = await response.json();
   address.value = res["address"];
   await refresh();
-  showPassword.value = true;
 }
 
 watch(jwt, async (jwt, old) => getSettings(jwt))
