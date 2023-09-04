@@ -2,6 +2,26 @@
 
 ## [English](README_EN.md)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date&theme=dark" />
+  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
+  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
+</picture>
+
+- [使用 cloudflare 免费服务，搭建临时邮箱](#使用-cloudflare-免费服务搭建临时邮箱)
+  - [English](#english)
+  - [在线演示](#在线演示)
+  - [功能/TODO](#功能todo)
+  - [什么是临时邮箱](#什么是临时邮箱)
+  - [Cloudflare 服务](#cloudflare-服务)
+  - [wrangler 的安装](#wrangler-的安装)
+  - [D1 数据库](#d1-数据库)
+  - [Cloudflare workers 后端](#cloudflare-workers-后端)
+  - [Cloudflare Workers 后端](#cloudflare-workers-后端-1)
+  - [Cloudflare Email Routing](#cloudflare-email-routing)
+  - [Cloudflare Pages 前端](#cloudflare-pages-前端)
+  - [参考资料](#参考资料)
+
 ## [在线演示](https://temp-email.dreamhunter2333.xyz/)
 
 ## 功能/TODO
