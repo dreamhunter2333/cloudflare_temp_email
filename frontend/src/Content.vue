@@ -86,8 +86,8 @@ const refresh = async () => {
   if (typeof address.value != 'string' || address.value.trim() === '') {
     return;
   }
+  loading.value = true;
   try {
-    loading.value = true;
     const response = await fetch(`${API_BASE}/api/mails`, {
       method: "GET",
       headers: {
@@ -148,53 +148,66 @@ const newEmail = async () => {
   }
 };
 
-const getOpenSettings = async (jwt) => {
-  const response = await fetch(`${API_BASE}/open_api/settings`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json"
-    },
-  });
+const getOpenSettings = async () => {
+  loading.value = true;
+  try {
+    const response = await fetch(`${API_BASE}/open_api/settings`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      },
+    });
 
-  if (!response.ok) {
-    message.error(`${response.status} ${await response.text()}` || "error");
-    console.error(response);
-    return;
+    if (!response.ok) {
+      message.error(`${response.status} ${await response.text()}` || "error");
+      return;
+    }
+    let res = await response.json();
+    openSettings.value = {
+      prefix: res["prefix"] || "",
+      domains: res["domains"].map((domain) => {
+        return {
+          label: domain,
+          value: domain
+        }
+      })
+    };
+    emailDomain.value = openSettings.value.domains[0].value;
+  } catch (error) {
+    message.error(error.message || "error");
+    console.error(error);
   }
-  let res = await response.json();
-  openSettings.value = {
-    prefix: res["prefix"] || "",
-    domains: res["domains"].map((domain) => {
-      return {
-        label: domain,
-        value: domain
-      }
-    })
-  };
-  emailDomain.value = openSettings.value.domains[0].value;
+  finally {
+    loading.value = false;
+  }
 }
 
 const getSettings = async (jwt) => {
   if (typeof jwt != 'string' || jwt.trim() === '' || jwt === 'undefined') {
     return;
   }
-  const response = await fetch(`${API_BASE}/api/settings`, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${jwt}`,
-      "Content-Type": "application/json"
-    },
-  });
+  loading.value = true;
+  try {
+    const response = await fetch(`${API_BASE}/api/settings`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${jwt}`,
+        "Content-Type": "application/json"
+      },
+    });
 
-  if (!response.ok) {
-    message.error(`${response.status} ${await response.text()}` || "error");
-    console.error(response);
-    address.value = "";
-    return;
+    if (!response.ok) {
+      message.error(`${response.status} ${await response.text()}` || "error");
+      console.error(response);
+      address.value = "";
+      return;
+    }
+    let res = await response.json();
+    address.value = res["address"];
+    await refresh();
+  } finally {
+    loading.value = false;
   }
-  let res = await response.json();
-  address.value = res["address"];
-  await refresh();
 }
 
 watch(jwt, async (jwt, old) => getSettings(jwt))
