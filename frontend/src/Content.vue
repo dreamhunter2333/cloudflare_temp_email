@@ -32,6 +32,7 @@ const { t, locale } = useI18n({
   messages: {
     en: {
       yourAddress: 'Your email address is',
+      pleaseGetNewEmail: 'Please click "Get New Email" button to get a new email address',
       getNewEmail: 'Get New Email',
       getNewEmailTip1: 'Please input the email you want to use.',
       getNewEmailTip2: 'Levaing it blank will generate a random email address.',
@@ -46,6 +47,7 @@ const { t, locale } = useI18n({
     },
     zh: {
       yourAddress: '你的邮箱地址是',
+      pleaseGetNewEmail: '请点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
       getNewEmail: '获取新邮箱',
       getNewEmailTip1: '请输入你想要使用的邮箱地址。',
       getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
@@ -214,7 +216,7 @@ onMounted(async () => {
           </n-button>
         </span>
         <span v-else>
-          Please click <b>Get New Email</b> button to get a new email address
+          {{ t('pleaseGetNewEmail') }}
         </span>
       </n-alert>
       <n-button v-if="address" class="center" @click="showPassword = true" tertiary round type="primary">
