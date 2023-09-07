@@ -6,6 +6,7 @@ import { watch, onMounted, ref } from "vue";
 import { useStorage } from '@vueuse/core'
 import useClipboard from 'vue-clipboard3'
 import { useMessage } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 
 const { toClipboard } = useClipboard()
 const message = useMessage()
@@ -24,6 +25,41 @@ const openSettings = ref({
   prefix: 'test',
   domain: 'test.com'
 })
+
+const { t, locale } = useI18n({
+  useScope: 'global',
+  locale: 'zh',
+  messages: {
+    en: {
+      yourAddress: 'Your email address is',
+      getNewEmail: 'Get New Email',
+      getNewEmailTip1: 'Please input the email you want to use.',
+      getNewEmailTip2: 'Levaing it blank will generate a random email address.',
+      cancel: 'Cancel',
+      ok: 'OK',
+      copy: 'Copy',
+      showPassword: 'Show Password',
+      autoRefresh: 'Auto Refresh',
+      refresh: 'Refresh',
+      password: 'Password',
+      passwordTip: 'Please copy the password and you can use it to login to your email account.',
+    },
+    zh: {
+      yourAddress: '你的邮箱地址是',
+      getNewEmail: '获取新邮箱',
+      getNewEmailTip1: '请输入你想要使用的邮箱地址。',
+      getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
+      cancel: '取消',
+      ok: '确定',
+      copy: '复制',
+      showPassword: '显示密码',
+      autoRefresh: '自动刷新',
+      refresh: '刷新',
+      password: '密码',
+      passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
+    }
+  }
+});
 
 const setupAutoRefresh = async (autoRefresh) => {
   if (autoRefresh) {
@@ -172,9 +208,9 @@ onMounted(async () => {
     <n-layout>
       <n-alert :type='address ? "info" : "warning"' show-icon>
         <span v-if="address">
-          Your email address is <b>{{ address }}</b>
+          {{ t('yourAddress') }} <b>{{ address }}</b>
           <n-button @click="copy" size="small" tertiary round type="primary">
-            Copy
+            {{ t('copy') }}
           </n-button>
         </span>
         <span v-else>
@@ -182,20 +218,20 @@ onMounted(async () => {
         </span>
       </n-alert>
       <n-button v-if="address" class="center" @click="showPassword = true" tertiary round type="primary">
-        Show Password
+        {{ t('showPassword') }}
       </n-button>
       <n-button v-else class="center" @click="showNewEmail = true" tertiary round type="primary">
-        Get New Email
+        {{ t('getNewEmail') }}
       </n-button>
       <n-switch v-model:value="autoRefresh">
         <template #checked>
-          Auto Refresh
+          {{ t('autoRefresh') }}
         </template>
         <template #unchecked>
-          Auto Refresh
+          {{ t('autoRefresh') }}
         </template></n-switch>
       <n-button class="center" @click="refresh" round type="primary">
-        Refresh
+        {{ t('refresh') }}
       </n-button>
       <n-list hoverable clickable>
         <n-list-item v-for="row in data" v-bind:key="row.id">
@@ -217,11 +253,11 @@ onMounted(async () => {
     </n-layout>
     <n-modal v-model:show="showNewEmail" preset="dialog" title="Dialog">
       <template #header>
-        <div>Get New Email</div>
+        <div>{{ t('getNewEmail') }}</div>
       </template>
       <span>
-        <p>Please input the email you want to use.</p>
-        <p>Levaing it blank will generate a random email address.</p>
+        <p>{{ t("getNewEmailTip1") }}</p>
+        <p>{{ t("getNewEmailTip2") }}</p>
       </span>
       <n-input-group>
         <n-input-group-label v-if="openSettings.prefix">
@@ -234,19 +270,19 @@ onMounted(async () => {
       </n-input-group>
       <template #action>
         <n-button @click="showNewEmail = false">
-          Cancel
+          {{ t('cancel') }}
         </n-button>
         <n-button @click="newEmail" type="primary">
-          OK
+          {{ t('ok') }}
         </n-button>
       </template>
     </n-modal>
     <n-modal v-model:show="showPassword" preset="dialog" title="Dialog">
       <template #header>
-        <div>Password</div>
+        <div>{{ t("password") }}</div>
       </template>
       <span>
-        Please copy the password and you can use it to login to your email account.
+        <p>{{ t("passwordTip") }}</p>
       </span>
       <n-card>
         <b>{{ jwt }}</b>
