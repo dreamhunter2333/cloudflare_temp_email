@@ -1,6 +1,6 @@
 <script setup>
-import { NSpace, NAlert, NSwitch, NCard } from 'naive-ui'
-import { NSpin, NButton, NLayout, NPopconfirm, NModal } from 'naive-ui'
+import { NSpace, NAlert, NSwitch, NCard, NInput, NInputGroupLabel } from 'naive-ui'
+import { NSpin, NButton, NLayout, NInputGroup, NModal } from 'naive-ui'
 import { NList, NListItem, NThing, NTag, NNumberAnimation } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
 import { useStorage } from '@vueuse/core'
@@ -18,6 +18,12 @@ const data = ref([])
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 const timer = ref(null)
 const showPassword = ref(false)
+const showNewEmail = ref(false)
+const emailName = ref("")
+const openSettings = ref({
+  prefix: 'test',
+  domain: 'test.com'
+})
 
 const setupAutoRefresh = async (autoRefresh) => {
   if (autoRefresh) {
@@ -74,7 +80,11 @@ const copy = async () => {
 const newEmail = async () => {
   try {
     loading.value = true;
-    const response = await fetch(`${API_BASE}/api/new_address`, {
+    let url = `${API_BASE}/api/new_address`;
+    if (emailName.value) {
+      url = `${url}?name=${emailName.value}`;
+    }
+    const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
@@ -82,23 +92,37 @@ const newEmail = async () => {
     });
 
     if (!response.ok) {
-      message.error(
-        `${response.status} ${await response.text()}` || "error",
-      );
       throw new Error(`${response.status} ${await response.text()}` || "error");
     }
     let res = await response.json();
     jwt.value = res["jwt"];
+    await refresh();
+    showNewEmail.value = false;
+    showPassword.value = true;
   } catch (error) {
-    jwt.value = "";
     message.error(error.message || "error");
     console.error(error);
   } finally {
     loading.value = false;
   }
-  await refresh();
-  showPassword.value = true;
 };
+
+const getOpenSettings = async (jwt) => {
+  const response = await fetch(`${API_BASE}/open_api/settings`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    },
+  });
+
+  if (!response.ok) {
+    message.error(`${response.status} ${await response.text()}` || "error");
+    console.error(response);
+    return;
+  }
+  let res = await response.json();
+  openSettings.value = res;
+}
 
 const getSettings = async (jwt) => {
   if (typeof jwt != 'string' || jwt.trim() === '' || jwt === 'undefined') {
@@ -126,6 +150,7 @@ const getSettings = async (jwt) => {
 watch(jwt, async (jwt, old) => getSettings(jwt))
 
 onMounted(async () => {
+  getOpenSettings()
   getSettings(jwt.value)
   await refresh();
   const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
@@ -156,17 +181,12 @@ onMounted(async () => {
           Please click <b>Get New Email</b> button to get a new email address
         </span>
       </n-alert>
-      <n-button class="center" @click="showPassword = true" tertiary round type="primary">
+      <n-button v-if="address" class="center" @click="showPassword = true" tertiary round type="primary">
         Show Password
       </n-button>
-      <n-popconfirm @positive-click="newEmail" :show-icon="false">
-        <template #trigger>
-          <n-button class="center" tertiary round type="primary">
-            Get New Email
-          </n-button>
-        </template>
-        Get New Email?
-      </n-popconfirm>
+      <n-button v-else class="center" @click="showNewEmail = true" tertiary round type="primary">
+        Get New Email
+      </n-button>
       <n-switch v-model:value="autoRefresh">
         <template #checked>
           Auto Refresh
@@ -195,6 +215,32 @@ onMounted(async () => {
         </n-list-item>
       </n-list>
     </n-layout>
+    <n-modal v-model:show="showNewEmail" preset="dialog" title="Dialog">
+      <template #header>
+        <div>Get New Email</div>
+      </template>
+      <span>
+        <p>Please input the email you want to use.</p>
+        <p>Levaing it blank will generate a random email address.</p>
+      </span>
+      <n-input-group>
+        <n-input-group-label v-if="openSettings.prefix">
+          {{ openSettings.prefix }}
+        </n-input-group-label>
+        <n-input v-model:value="emailName" />
+        <n-input-group-label>
+          @{{ openSettings.domain }}
+        </n-input-group-label>
+      </n-input-group>
+      <template #action>
+        <n-button @click="showNewEmail = false">
+          Cancel
+        </n-button>
+        <n-button @click="newEmail" type="primary">
+          OK
+        </n-button>
+      </template>
+    </n-modal>
     <n-modal v-model:show="showPassword" preset="dialog" title="Dialog">
       <template #header>
         <div>Password</div>

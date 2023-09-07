@@ -1,7 +1,7 @@
 <script setup>
 import { NMessageProvider, NGrid, NBackTop, NLayoutHeader, NInput } from 'naive-ui'
 import { NGi, NSpace, NButton, NConfigProvider, NSelect, NModal } from 'naive-ui'
-import { darkTheme, NSwitch, NGlobalStyle } from 'naive-ui'
+import { darkTheme, NSwitch, NGlobalStyle, NPopconfirm } from 'naive-ui'
 import { computed, ref } from 'vue'
 import { useStorage } from '@vueuse/core'
 
@@ -15,6 +15,10 @@ const password = ref('')
 
 const login = () => {
   jwt.value = password.value;
+  location.reload()
+}
+const logout = () => {
+  jwt.value = '';
   location.reload()
 }
 </script>
@@ -41,7 +45,17 @@ const login = () => {
                       Light
                     </template>
                   </n-switch>
-                  <n-button tertiary @click="showLogin = true" round type="primary">
+                  <n-popconfirm v-if="jwt" @positive-click="logout">
+                    <template #trigger>
+                      <n-button tertiary round type="primary">
+                        Logout
+                      </n-button>
+                    </template>
+                    <template #default>
+                      <span>Are you sure to logout?</span>
+                    </template>
+                  </n-popconfirm>
+                  <n-button v-else tertiary @click="showLogin = true" round type="primary">
                     Login
                   </n-button>
                   <n-button tag="a" target="_blank" tertiary type="primary" round
