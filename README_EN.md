@@ -14,6 +14,7 @@ This is a temporary email service that uses Cloudflare Workers to create a tempo
 - [x] Email forwarding using Cloudflare Email Routing
 - [x] Use password to login to the previous mailbox again.
 - [x] Get Custom Name Email
+- [x] Support multiple languages
 - [ ] Exceeded CPU Limit error caused by the free version of the attachment
 
 ![demo](readme_assets/demo.png)

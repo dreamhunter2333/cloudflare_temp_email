@@ -32,6 +32,7 @@
 - [x] email 转发使用 Cloudflare Email Routing
 - [x] 使用 password 重新登录之前的邮箱
 - [x] 获取自定义名字的邮箱
+- [x] 支持多语言
 - [ ] 免费版附件过大会造成 Exceeded CPU Limit 错误
 
 ---
