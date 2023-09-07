@@ -21,20 +21,26 @@ api.get('/api/settings', async (c) => {
 api.get('/open_api/settings', async (c) => {
     return c.json({
         "prefix": c.env.PREFIX,
-        "domain": c.env.DOMAIN,
+        "domains": c.env.DOMAINS,
     });
 })
 
 api.get('/api/new_address', async (c) => {
-    // insert new address
-    let { name } = await c.req.query();
+    let { name, domain } = await c.req.query();
+    // if no name, generate random name
     if (!name) {
-        name = Math.random().toString(36).substring(2, 15)
+        name = Math.random().toString(36).substring(2, 15);
     }
+    // check domain, generate random domain
+    if (!domain || !c.env.DOMAINS.includes(domain)) {
+        domain = c.env.DOMAINS[Math.floor(Math.random() * c.env.DOMAINS.length)];
+    }
+    // create address
+    const emailAddress = c.env.PREFIX + name + "@" + domain
     try {
         const { success } = await c.env.DB.prepare(
             `INSERT INTO address (name) VALUES (?)`
-        ).bind(name).run();
+        ).bind(name + "@" + domain).run();
         if (!success) {
             return c.text("Failed to create address", 500)
         }
@@ -46,7 +52,7 @@ api.get('/api/new_address', async (c) => {
     }
     // create jwt
     const jwt = await Jwt.sign({
-        address: c.env.PREFIX + name + "@" + c.env.DOMAIN
+        address: emailAddress
     }, c.env.JWT_SECRET)
     return c.json({
         jwt: jwt

@@ -1,6 +1,6 @@
 <script setup>
 import { NSpace, NAlert, NSwitch, NCard, NInput, NInputGroupLabel } from 'naive-ui'
-import { NSpin, NButton, NLayout, NInputGroup, NModal } from 'naive-ui'
+import { NSpin, NButton, NLayout, NInputGroup, NModal, NSelect } from 'naive-ui'
 import { NList, NListItem, NThing, NTag, NNumberAnimation } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
 import { useStorage } from '@vueuse/core'
@@ -21,9 +21,13 @@ const timer = ref(null)
 const showPassword = ref(false)
 const showNewEmail = ref(false)
 const emailName = ref("")
+const emailDomain = ref("")
 const openSettings = ref({
   prefix: 'test',
-  domain: 'test.com'
+  domains: [{
+    label: 'test.com',
+    value: 'test.com'
+  }]
 })
 
 const { t, locale } = useI18n({
@@ -119,9 +123,8 @@ const newEmail = async () => {
   try {
     loading.value = true;
     let url = `${API_BASE}/api/new_address`;
-    if (emailName.value) {
-      url = `${url}?name=${emailName.value}`;
-    }
+    url = `${url}?name=${emailName.value || ''}`;
+    url = `${url}&domain=${emailDomain.value || ''}`;
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -159,7 +162,16 @@ const getOpenSettings = async (jwt) => {
     return;
   }
   let res = await response.json();
-  openSettings.value = res;
+  openSettings.value = {
+    prefix: res["prefix"] || "",
+    domains: res["domains"].map((domain) => {
+      return {
+        label: domain,
+        value: domain
+      }
+    })
+  };
+  emailDomain.value = openSettings.value.domains[0].value;
 }
 
 const getSettings = async (jwt) => {
@@ -266,9 +278,8 @@ onMounted(async () => {
           {{ openSettings.prefix }}
         </n-input-group-label>
         <n-input v-model:value="emailName" />
-        <n-input-group-label>
-          @{{ openSettings.domain }}
-        </n-input-group-label>
+        <n-input-group-label>@</n-input-group-label>
+        <n-select v-model:value="emailDomain" :consistent-menu-width="false" :options="openSettings.domains" />
       </n-input-group>
       <template #action>
         <n-button @click="showNewEmail = false">

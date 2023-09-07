@@ -5,7 +5,7 @@ node_compat = true
 
 [vars]
 PREFIX = "tmp"
-DOMAIN = "xxx.xxx"
+DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
 JWT_SECRET = "xxx"
 BLACK_LIST = ""
 
