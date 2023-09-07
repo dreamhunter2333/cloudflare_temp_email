@@ -27,4 +27,4 @@ coverage
 *.sln
 *.sw?
 
-.env.local
+.env.*
