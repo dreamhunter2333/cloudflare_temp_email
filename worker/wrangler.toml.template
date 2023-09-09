@@ -5,6 +5,8 @@ node_compat = true
 
 [vars]
 PREFIX = "tmp"
+# IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
+# PASSWORDS = ["123", "456"]
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
 JWT_SECRET = "xxx"
 BLACK_LIST = ""
