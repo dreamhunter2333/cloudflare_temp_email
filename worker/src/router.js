@@ -22,6 +22,9 @@ api.get('/open_api/settings', async (c) => {
     return c.json({
         "prefix": c.env.PREFIX,
         "domains": c.env.DOMAINS,
+        "auth": (
+            c.env.PASSWORDS && c.env.PASSWORDS.length > 0
+        ) ? true : false,
     });
 })
 

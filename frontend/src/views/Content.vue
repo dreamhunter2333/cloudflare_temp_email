@@ -1,19 +1,19 @@
 <script setup>
 import { NSpace, NAlert, NSwitch, NCard, NInput, NInputGroupLabel } from 'naive-ui'
-import { NSpin, NButton, NLayout, NInputGroup, NModal, NSelect } from 'naive-ui'
-import { NList, NListItem, NThing, NTag, NNumberAnimation } from 'naive-ui'
+import { NButton, NLayout, NInputGroup, NModal, NSelect } from 'naive-ui'
+import { NList, NListItem, NThing, NTag } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
-import { useStorage } from '@vueuse/core'
 import useClipboard from 'vue-clipboard3'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
+import { useGlobalState } from '../store'
+import { api } from '../api'
 
 const { toClipboard } = useClipboard()
 const message = useMessage()
 
-const jwt = useStorage('jwt')
 const address = ref("")
-const loading = ref(false)
+const { jwt, loading, openSettings } = useGlobalState()
 const autoRefresh = ref(false)
 const data = ref([])
 const API_BASE = import.meta.env.VITE_API_BASE || "";
@@ -22,16 +22,8 @@ const showPassword = ref(false)
 const showNewEmail = ref(false)
 const emailName = ref("")
 const emailDomain = ref("")
-const openSettings = ref({
-  prefix: 'test',
-  domains: [{
-    label: 'test.com',
-    value: 'test.com'
-  }]
-})
 
-const { t, locale } = useI18n({
-  useScope: 'global',
+const { t } = useI18n({
   locale: 'zh',
   messages: {
     en: {
@@ -86,27 +78,11 @@ const refresh = async () => {
   if (typeof address.value != 'string' || address.value.trim() === '') {
     return;
   }
-  loading.value = true;
   try {
-    const response = await fetch(`${API_BASE}/api/mails`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${jwt.value}`,
-        "Content-Type": "application/json"
-      },
-    });
-
-    if (!response.ok) {
-      message.error(`${response.status} ${await response.text()}` || "error");
-      throw new Error(`${response.status} ${await response.text()}` || "error");
-    }
-    let res = await response.json();
-    data.value = res;
+    data.value = await api.fetch("/api/mails");
   } catch (error) {
     message.error(error.message || "error");
     console.error(error);
-  } finally {
-    loading.value = false;
   }
 };
 
@@ -121,117 +97,31 @@ const copy = async () => {
 
 const newEmail = async () => {
   try {
-    loading.value = true;
-    let url = `${API_BASE}/api/new_address`;
-    url = `${url}?name=${emailName.value || ''}`;
-    url = `${url}&domain=${emailDomain.value || ''}`;
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`${response.status} ${await response.text()}` || "error");
-    }
-    let res = await response.json();
+    const res = await api.fetch(
+      `/api/new_address`
+      + `?name=${emailName.value || ''}`
+      + `&domain=${emailDomain.value || ''}`
+    );
     jwt.value = res["jwt"];
+    address.value = await api.getSettings();
     await refresh();
     showNewEmail.value = false;
     showPassword.value = true;
   } catch (error) {
     message.error(error.message || "error");
-    console.error(error);
-  } finally {
-    loading.value = false;
   }
 };
 
-const getOpenSettings = async () => {
-  loading.value = true;
-  try {
-    const response = await fetch(`${API_BASE}/open_api/settings`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      },
-    });
-
-    if (!response.ok) {
-      message.error(`${response.status} ${await response.text()}` || "error");
-      return;
-    }
-    let res = await response.json();
-    openSettings.value = {
-      prefix: res["prefix"] || "",
-      domains: res["domains"].map((domain) => {
-        return {
-          label: domain,
-          value: domain
-        }
-      })
-    };
-    emailDomain.value = openSettings.value.domains[0].value;
-  } catch (error) {
-    message.error(error.message || "error");
-    console.error(error);
-  }
-  finally {
-    loading.value = false;
-  }
-}
-
-const getSettings = async (jwt) => {
-  if (typeof jwt != 'string' || jwt.trim() === '' || jwt === 'undefined') {
-    return;
-  }
-  loading.value = true;
-  try {
-    const response = await fetch(`${API_BASE}/api/settings`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${jwt}`,
-        "Content-Type": "application/json"
-      },
-    });
-
-    if (!response.ok) {
-      message.error(`${response.status} ${await response.text()}` || "error");
-      console.error(response);
-      address.value = "";
-      return;
-    }
-    let res = await response.json();
-    address.value = res["address"];
-    await refresh();
-  } finally {
-    loading.value = false;
-  }
-}
-
-watch(jwt, async (jwt, old) => getSettings(jwt))
-
 onMounted(async () => {
-  getOpenSettings()
-  getSettings(jwt.value)
+  await api.getOpenSettings(message);
+  emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
+  address.value = await api.getSettings();
   await refresh();
-  const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
-
-  const exist = document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]') !== null
-  if (token && !exist) {
-    const script = document.createElement('script');
-    script.defer = true;
-    script.src = 'https://static.cloudflareinsights.com/beacon.min.js';
-    script.dataset.cfBeacon = `{ token: ${token} }`;
-    document.body.appendChild(script);
-  }
-
 });
 </script>
 
 <template>
-  <n-spin description="loading..." :show="loading">
+  <div>
     <n-layout>
       <n-alert :type='address ? "info" : "warning"' show-icon>
         <span v-if="address">
@@ -316,7 +206,7 @@ onMounted(async () => {
       <template #action>
       </template>
     </n-modal>
-  </n-spin>
+  </div>
 </template>
 
 <style scoped>

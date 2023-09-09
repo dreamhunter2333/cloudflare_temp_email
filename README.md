@@ -106,6 +106,8 @@ node_compat = true
 
 [vars]
 PREFIX = "tmp" # 要处理的邮箱名称前缀
+# 如果你想要你的网站私有，取消下面的注释，并修改密码
+# PASSWORDS = ["123", "456"]
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名
 JWT_SECRET = "xxx" # 用于生成 jwt 的密钥
 BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔

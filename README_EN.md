@@ -41,6 +41,8 @@ pnpm install
 # copy wrangler.toml.template to wrangler.toml
 # and add your d1 config and these config
 # PREFIX = "tmp" - the email create will be like tmp<xxxxx>@DOMAIN
+# IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
+# PASSWORDS = ["123", "456"]
 # DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] you domain name
 # JWT_SECRET = "xxx"
 # BLACK_LIST = ""
