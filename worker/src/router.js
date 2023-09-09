@@ -19,12 +19,16 @@ api.get('/api/settings', async (c) => {
 })
 
 api.get('/open_api/settings', async (c) => {
+    // check header x-custom-auth
+    let needAuth = false;
+    if (c.env.PASSWORDS && c.env.PASSWORDS.length > 0) {
+        const auth = c.req.headers.get("x-custom-auth");
+        needAuth = !c.env.PASSWORDS.includes(auth);
+    }
     return c.json({
         "prefix": c.env.PREFIX,
         "domains": c.env.DOMAINS,
-        "auth": (
-            c.env.PASSWORDS && c.env.PASSWORDS.length > 0
-        ) ? true : false,
+        "needAuth": needAuth,
     });
 })
 
