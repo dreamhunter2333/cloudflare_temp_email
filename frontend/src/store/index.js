@@ -6,7 +6,7 @@ export const useGlobalState = createGlobalState(
         const loading = ref(false);
         const openSettings = ref({
             prefix: '',
-            auth: false,
+            needAuth: false,
             domains: [{
                 label: 'test.com',
                 value: 'test.com'

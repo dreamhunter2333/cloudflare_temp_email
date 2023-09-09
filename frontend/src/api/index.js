@@ -33,7 +33,7 @@ const getOpenSettings = async (message) => {
         const res = await api.fetch("/open_api/settings");
         openSettings.value = {
             prefix: res["prefix"] || "",
-            auth: res["auth"] || false,
+            needAuth: res["needAuth"] || false,
             domains: res["domains"].map((domain) => {
                 return {
                     label: domain,
@@ -41,7 +41,7 @@ const getOpenSettings = async (message) => {
                 }
             })
         };
-        if (openSettings.value.auth && !auth.value) {
+        if (openSettings.value.needAuth) {
             showAuth.value = true;
         }
     } catch (error) {
