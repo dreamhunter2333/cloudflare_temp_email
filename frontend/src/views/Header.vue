@@ -115,7 +115,8 @@ const { t } = useI18n({
                 </n-button>
             </template>
         </n-modal>
-        <n-modal v-model:show="showAuth" preset="dialog" title="Dialog">
+        <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
+            title="Dialog">
             <template #header>
                 <div>{{ t('auth') }}</div>
             </template>
