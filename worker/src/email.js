@@ -25,6 +25,10 @@ async function email(message, env, ctx) {
             parsedEmail = await simpleParser(rawEmail)
         } catch (error) {
             console.log(error)
+        }
+
+        if (!parsedEmail.html && !parsedEmail.textAsHtml && !parsedEmail.text) {
+            console.log("Failed parse email, try postal-mime");
             const parser = new PostalMime.default();
             parsedEmail = await parser.parse(rawEmail);
         }
