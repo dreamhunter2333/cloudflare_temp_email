@@ -43,10 +43,7 @@ onMounted(async () => {
           <n-gi span="1"></n-gi>
           <n-gi span="6">
             <div class="main">
-              <n-space vertical>
-                <Header />
-                <Content />
-              </n-space>
+              <router-view></router-view>
             </div>
           </n-gi>
           <n-gi span="1"></n-gi>

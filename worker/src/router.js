@@ -66,4 +66,42 @@ api.get('/api/new_address', async (c) => {
     })
 })
 
+api.get('/admin/addresss', async (c) => {
+    const { results } = await c.env.DB.prepare(
+        `SELECT * FROM address order by id desc`
+    ).all();
+    return c.json(results.map((r) => {
+        r.name = c.env.PREFIX + r.name;
+        return r;
+    }));
+})
+
+api.delete('/admin/delete_address/:id', async (c) => {
+    const { id } = c.req.param();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM address WHERE id = ?`
+    ).bind(id).run();
+    if (!success) {
+        return c.text("Failed to delete address", 500)
+    }
+    return c.json({
+        success: success
+    })
+})
+
+api.get('/admin/show_password/:id', async (c) => {
+    const { id } = c.req.param();
+    const name = await c.env.DB.prepare(
+        `SELECT name FROM address WHERE id = ?`
+    ).bind(id).first("name");
+    // compute address
+    const emailAddress = c.env.PREFIX + name
+    const jwt = await Jwt.sign({
+        address: emailAddress
+    }, c.env.JWT_SECRET)
+    return c.json({
+        password: jwt
+    })
+})
+
 export { api }

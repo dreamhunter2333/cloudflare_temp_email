@@ -1,7 +1,7 @@
 import { useGlobalState } from '../store'
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
-const { loading, auth, jwt, openSettings, showAuth } = useGlobalState();
+const { loading, auth, jwt, openSettings, showAuth, adminAuth, showAdminAuth } = useGlobalState();
 
 const apiFetch = async (path, options = {}) => {
     loading.value = true;
@@ -10,12 +10,17 @@ const apiFetch = async (path, options = {}) => {
             method: options.method || 'GET',
             headers: {
                 'x-custom-auth': auth.value,
+                'x-admin-auth': adminAuth.value,
                 'Authorization': `Bearer ${jwt.value}`,
                 'Content-Type': 'application/json',
             },
         });
         if (response.status === 401 && openSettings.value.auth) {
             showAuth.value = true;
+            throw new Error("Unauthorized");
+        }
+        if (response.status === 401 && path.startsWith("/admin")) {
+            showAdminAuth.value = true;
             throw new Error("Unauthorized");
         }
         if (!response.ok) {
@@ -58,9 +63,39 @@ const getSettings = async () => {
     return res["address"];
 }
 
+const adminShowPassword = async (id) => {
+    try {
+        const { password } = await apiFetch(`/admin/show_password/${id}`);
+        return password;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const adminDeleteAddress = async (id) => {
+    try {
+        await apiFetch(`/admin/delete_address/${id}`, {
+            method: 'DELETE'
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+const adminGetAddress = async () => {
+    try {
+        return await apiFetch("/admin/addresss");
+    } catch (error) {
+        throw error;
+    }
+}
+
 
 export const api = {
     fetch: apiFetch,
     getSettings: getSettings,
     getOpenSettings: getOpenSettings,
+    adminShowPassword: adminShowPassword,
+    adminDeleteAddress: adminDeleteAddress,
+    adminGetAddress: adminGetAddress,
 }

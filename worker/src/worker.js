@@ -22,6 +22,18 @@ app.use('/api/*', async (c, next) => {
 	return jwt({ secret: c.env.JWT_SECRET })(c, next);
 });
 
+app.use('/admin/*', async (c, next) => {
+	// check header x-admin-auth
+	if (c.env.ADMIN_PASSWORDS && c.env.ADMIN_PASSWORDS.length > 0) {
+		const adminAuth = c.req.headers.get("x-admin-auth");
+		if (adminAuth && c.env.ADMIN_PASSWORDS.includes(adminAuth)) {
+			await next();
+			return;
+		}
+	}
+	return c.text("Need Admin Password", 401)
+});
+
 
 app.route('/', api)
 
