@@ -13,10 +13,9 @@ const { toClipboard } = useClipboard()
 const message = useMessage()
 
 const address = ref("")
-const { jwt, loading, openSettings } = useGlobalState()
+const { jwt, openSettings } = useGlobalState()
 const autoRefresh = ref(false)
 const data = ref([])
-const API_BASE = import.meta.env.VITE_API_BASE || "";
 const timer = ref(null)
 const showPassword = ref(false)
 const showNewEmail = ref(false)

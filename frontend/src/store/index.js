@@ -13,7 +13,9 @@ export const useGlobalState = createGlobalState(
             }]
         })
         const showAuth = ref(false);
+        const showAdminAuth = ref(false);
         const auth = useStorage('auth', '');
+        const adminAuth = useStorage('adminAuth', '');
         const jwt = useStorage('jwt', '');
         const localeCache = useStorage('locale', 'zhCN');
         const themeSwitch = useStorage('themeSwitch', false);
@@ -24,7 +26,9 @@ export const useGlobalState = createGlobalState(
             auth,
             jwt,
             localeCache,
-            themeSwitch
+            themeSwitch,
+            adminAuth,
+            showAdminAuth,
         }
     },
 )
