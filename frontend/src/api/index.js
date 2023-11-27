@@ -1,12 +1,18 @@
 import { useGlobalState } from '../store'
+import axios from 'axios'
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 const { loading, auth, jwt, openSettings, showAuth, adminAuth, showAdminAuth } = useGlobalState();
 
+const instance = axios.create({
+    baseURL: API_BASE,
+    timeout: 10000
+});
+
 const apiFetch = async (path, options = {}) => {
     loading.value = true;
     try {
-        const response = await fetch(`${API_BASE}${path}`, {
+        const response = await instance.request(path, {
             method: options.method || 'GET',
             headers: {
                 'x-custom-auth': auth.value,
@@ -23,10 +29,10 @@ const apiFetch = async (path, options = {}) => {
             showAdminAuth.value = true;
             throw new Error("Unauthorized");
         }
-        if (!response.ok) {
-            throw new Error(`${response.status} ${await response.text()}` || "error");
+        if (response.status >= 300) {
+            throw new Error(`${response.status} ${response.data}` || "error");
         }
-        const data = await response.json();
+        const data = response.data;
         return data;
     } finally {
         loading.value = false;
