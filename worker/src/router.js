@@ -3,14 +3,34 @@ import { Jwt } from 'hono/utils/jwt'
 
 const api = new Hono()
 
+api.get('/api/mails_count', async (c) => {
+    const { address } = c.get("jwtPayload")
+    if (!address) {
+        return c.json({ "error": "No address" }, 400)
+    }
+    const { count } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM mails where address = ?`
+    ).bind(address).first();
+    return c.json({
+        count: count
+    })
+})
+
 api.get('/api/mails', async (c) => {
     const { address } = c.get("jwtPayload")
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }
+    const { limit, offset } = c.req.query();
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
     const { results } = await c.env.DB.prepare(
-        `SELECT id, source, subject, message FROM mails where address = ? order by id desc limit 100`
-    ).bind(address).all();
+        `SELECT id, source, subject, message FROM mails where address = ? order by id desc limit ? offset ?`
+    ).bind(address, limit, offset).all();
     return c.json(results);
 })
 
@@ -66,10 +86,26 @@ api.get('/api/new_address', async (c) => {
     })
 })
 
-api.get('/admin/addresss', async (c) => {
+api.get('/admin/address_count', async (c) => {
+    const { count } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM address`
+    ).first();
+    return c.json({
+        count: count
+    })
+})
+
+api.get('/admin/address', async (c) => {
+    const { limit, offset } = c.req.query();
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
     const { results } = await c.env.DB.prepare(
-        `SELECT * FROM address order by id desc`
-    ).all();
+        `SELECT * FROM address order by id desc limit ? offset ?`
+    ).bind(limit, offset).all();
     return c.json(results.map((r) => {
         r.name = c.env.PREFIX + r.name;
         return r;
@@ -102,6 +138,31 @@ api.get('/admin/show_password/:id', async (c) => {
     return c.json({
         password: jwt
     })
+})
+
+api.get('/admin/mails_count', async (c) => {
+    const { address } = c.req.query();
+    if (!address) {
+        return c.text("Invalid address", 400)
+    }
+    const { count } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM mails where address = ?`
+    ).bind(address).first();
+    return c.json({
+        count: count
+    })
+})
+
+api.get('/admin/mails', async (c) => {
+    const { address, limit, offset } = c.req.query();
+    console.log(address, limit, offset)
+    if (!address) {
+        return c.json({ "error": "No address" }, 400)
+    }
+    const { results } = await c.env.DB.prepare(
+        `SELECT id, source, subject, message FROM mails where address = ? order by id desc limit ? offset ?`
+    ).bind(address, limit, offset).all();
+    return c.json(results);
 })
 
 export { api }

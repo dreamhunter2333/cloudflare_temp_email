@@ -14,6 +14,7 @@ const apiFetch = async (path, options = {}) => {
     try {
         const response = await instance.request(path, {
             method: options.method || 'GET',
+            data: options.body || null,
             headers: {
                 'x-custom-auth': auth.value,
                 'x-admin-auth': adminAuth.value,
@@ -88,20 +89,10 @@ const adminDeleteAddress = async (id) => {
     }
 }
 
-const adminGetAddress = async () => {
-    try {
-        return await apiFetch("/admin/addresss");
-    } catch (error) {
-        throw error;
-    }
-}
-
-
 export const api = {
     fetch: apiFetch,
     getSettings: getSettings,
     getOpenSettings: getOpenSettings,
     adminShowPassword: adminShowPassword,
     adminDeleteAddress: adminDeleteAddress,
-    adminGetAddress: adminGetAddress,
 }

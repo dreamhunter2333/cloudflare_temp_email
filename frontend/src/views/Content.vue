@@ -1,6 +1,6 @@
 <script setup>
 import { NSpace, NAlert, NSwitch, NCard, NInput, NInputGroupLabel } from 'naive-ui'
-import { NButton, NLayout, NInputGroup, NModal, NSelect } from 'naive-ui'
+import { NButton, NLayout, NInputGroup, NModal, NSelect, NPagination } from 'naive-ui'
 import { NList, NListItem, NThing, NTag } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
 import useClipboard from 'vue-clipboard3'
@@ -21,6 +21,10 @@ const showPassword = ref(false)
 const showNewEmail = ref(false)
 const emailName = ref("")
 const emailDomain = ref("")
+
+const count = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
 
 const { t } = useI18n({
   locale: 'zh',
@@ -73,12 +77,20 @@ watch(autoRefresh, async (autoRefresh, old) => {
   setupAutoRefresh(autoRefresh)
 })
 
+watch([page, pageSize], async ([page, pageSize], [oldPage, oldPageSize]) => {
+  if (page !== oldPage || pageSize !== oldPageSize) {
+    await refresh();
+  }
+})
+
 const refresh = async () => {
   if (typeof address.value != 'string' || address.value.trim() === '') {
     return;
   }
   try {
-    data.value = await api.fetch("/api/mails");
+    const { count: mailsCount } = await api.fetch("/api/mails_count");
+    count.value = mailsCount;
+    data.value = await api.fetch(`/api/mails?limit=${pageSize.value}&offset=${(page.value - 1) * pageSize.value}`);
   } catch (error) {
     message.error(error.message || "error");
     console.error(error);
@@ -150,6 +162,9 @@ onMounted(async () => {
         {{ t('refresh') }}
       </n-button>
       <n-list hoverable clickable>
+        <div style="display: inline-block; margin-bottom: 10px;">
+          <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple />
+        </div>
         <n-list-item v-for="row in data" v-bind:key="row.id">
           <n-thing class="center" :title="row.subject">
             <template #description>
