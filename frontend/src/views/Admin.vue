@@ -43,6 +43,7 @@ const { t } = useI18n({
       deleteTip: 'Are you sure to delete this email?',
       refresh: 'Refresh',
       emails: 'Emails',
+      itemCount: 'itemCount',
     },
     zh: {
       title: '临时邮件 Admin',
@@ -58,6 +59,7 @@ const { t } = useI18n({
       deleteTip: '确定要删除这个邮箱吗？',
       refresh: '刷新',
       emails: '邮件',
+      itemCount: '总数',
     }
   }
 });
@@ -270,7 +272,11 @@ const fetchMailUnknowData = async () => {
       <n-tab-pane name="account" tab="account">
         <div style="display: inline-block;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" :page-sizes="[20, 50, 100]"
-            show-size-picker />
+            show-size-picker>
+            <template #prefix="{ itemCount }">
+              {{ t('itemCount') }}: {{ itemCount }}
+            </template>
+          </n-pagination>
         </div>
         <n-button tertiary @click="fetchData" type="primary">
           {{ t('refresh') }}
@@ -286,7 +292,11 @@ const fetchMailUnknowData = async () => {
         </n-input-group>
         <n-list hoverable clickable>
           <div style="display: inline-block; margin-bottom: 10px;">
-            <n-pagination v-model:page="mailPage" v-model:page-size="mailPageSize" :item-count="mailCount" simple />
+            <n-pagination v-model:page="mailPage" v-model:page-size="mailPageSize" :item-count="mailCount" simple>
+              <template #prefix="{ itemCount }">
+                {{ t('itemCount') }}: {{ itemCount }}
+              </template>
+            </n-pagination>
           </div>
           <n-list-item v-for="row in mailData" v-bind:key="row.id">
             <n-thing class="center" :title="row.subject">
@@ -312,7 +322,11 @@ const fetchMailUnknowData = async () => {
         <n-list hoverable clickable>
           <div style="display: inline-block; margin-bottom: 10px;">
             <n-pagination v-model:page="mailUnknowPage" v-model:page-size="mailUnknowPageSize"
-              :item-count="mailUnknowCount" simple />
+              :item-count="mailUnknowCount" simple>
+              <template #prefix="{ itemCount }">
+                {{ t('itemCount') }}: {{ itemCount }}
+              </template>
+            </n-pagination>
           </div>
           <n-list-item v-for="row in mailUnknowData" v-bind:key="row.id">
             <n-thing class="center" :title="row.subject">

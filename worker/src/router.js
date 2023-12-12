@@ -179,7 +179,7 @@ api.get('/admin/mails_unknow', async (c) => {
     let count = 0;
     if (offset == 0) {
         const { count: mailCount } = await c.env.DB.prepare(`
-            SELECT count(*) FROM mails
+            SELECT count(*) as count FROM mails
             where address NOT IN
             (select concat('${c.env.PREFIX}', name) from address)`
         ).first();
