@@ -44,6 +44,7 @@ const { t } = useI18n({
       refresh: 'Refresh',
       emails: 'Emails',
       itemCount: 'itemCount',
+      query: 'Query',
     },
     zh: {
       title: '临时邮件 Admin',
@@ -60,6 +61,7 @@ const { t } = useI18n({
       refresh: '刷新',
       emails: '邮件',
       itemCount: '总数',
+      query: '查询',
     }
   }
 });
@@ -317,7 +319,7 @@ const fetchMailUnknowData = async () => {
       </n-tab-pane>
       <n-tab-pane name="unknow" tab="unknown">
         <n-button @click="fetchMailUnknowData" type="primary" ghost>
-          {{ t('refresh') }}
+          {{ t('query') }}
         </n-button>
         <n-list hoverable clickable>
           <div style="display: inline-block; margin-bottom: 10px;">
