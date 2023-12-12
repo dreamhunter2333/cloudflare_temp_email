@@ -1,6 +1,7 @@
 <script setup>
 import { NSpace, NLayoutHeader, NInput, NPagination } from 'naive-ui'
-import { NButton, NModal, NTabs, NTabPane, NList, NListItem } from 'naive-ui'
+import { NButton, NModal, NTabs, NTabPane, NInputGroup } from 'naive-ui'
+import { NList, NListItem, NThing, NTag } from 'naive-ui'
 import { NDataTable, NPopconfirm } from 'naive-ui'
 import { ref, h, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n'
@@ -88,9 +89,15 @@ const deleteEmail = async (id) => {
 
 const fetchData = async () => {
   try {
-    const { count: addressCount } = await api.fetch("/admin/address_count")
-    count.value = addressCount
-    data.value = await api.fetch(`/admin/address?limit=${pageSize.value}&offset=${(page.value - 1) * pageSize.value}`);
+    const { results, count: addressCount } = await api.fetch(
+      `/admin/address`
+      + `?limit=${pageSize.value}`
+      + `&offset=${(page.value - 1) * pageSize.value}`
+    );
+    data.value = results;
+    if (addressCount > 0) {
+      count.value = addressCount;
+    }
   } catch (error) {
     console.log(error)
     message.error(error.message || "error");
@@ -175,14 +182,43 @@ const fetchMailData = async () => {
     return
   }
   try {
-    const { count } = await api.fetch(`/admin/mails_count?address=${mailAddress.value}`)
-    mailCount.value = count
-    mailData.value = await api.fetch(
+    const { results, count } = await api.fetch(
       `/admin/mails`
       + `?address=${mailAddress.value}`
       + `&limit=${mailPageSize.value}`
       + `&offset=${(mailPage.value - 1) * mailPageSize.value}`
     );
+    mailData.value = results;
+    if (count > 0) {
+      mailCount.value = count;
+    }
+  } catch (error) {
+    console.log(error)
+    message.error(error.message || "error");
+  }
+}
+
+
+const mailUnknowData = ref([])
+const mailUnknowCount = ref(0)
+const mailUnknowPage = ref(1)
+const mailUnknowPageSize = ref(20)
+
+watch([mailUnknowPage, mailUnknowPageSize], async () => {
+  await fetchMailUnknowData()
+})
+
+const fetchMailUnknowData = async () => {
+  try {
+    const { results, count } = await api.fetch(
+      `/admin/mails_unknow`
+      + `?limit=${mailPageSize.value}`
+      + `&offset=${(mailPage.value - 1) * mailPageSize.value}`
+    );
+    mailUnknowData.value = results;
+    if (count > 0) {
+      mailUnknowCount.value = count;
+    }
   } catch (error) {
     console.log(error)
     message.error(error.message || "error");
@@ -199,9 +235,6 @@ const fetchMailData = async () => {
       <div>
         <n-button tertiary @click="() => router.push('/')" type="primary">
           {{ t('home') }}
-        </n-button>
-        <n-button tertiary @click="fetchData" type="primary">
-          {{ t('refresh') }}
         </n-button>
       </div>
       <n-modal v-model:show="showAdminAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
@@ -234,20 +267,54 @@ const fetchMailData = async () => {
       </n-modal>
     </n-layout-header>
     <n-tabs type="segment" v-model:value="tab">
-      <n-tab-pane name="account" tab="账号">
+      <n-tab-pane name="account" tab="account">
         <div style="display: inline-block;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" :page-sizes="[20, 50, 100]"
             show-size-picker />
         </div>
+        <n-button tertiary @click="fetchData" type="primary">
+          {{ t('refresh') }}
+        </n-button>
         <n-data-table :columns="columns" :data="data" :bordered="false" />
       </n-tab-pane>
-      <n-tab-pane name="mails" tab="邮件">
-        <n-input v-model:value="mailAddress" />
+      <n-tab-pane name="mails" tab="mails">
+        <n-input-group>
+          <n-input v-model:value="mailAddress" />
+          <n-button @click="fetchMailData" type="primary" ghost>
+            {{ t('refresh') }}
+          </n-button>
+        </n-input-group>
         <n-list hoverable clickable>
           <div style="display: inline-block; margin-bottom: 10px;">
             <n-pagination v-model:page="mailPage" v-model:page-size="mailPageSize" :item-count="mailCount" simple />
           </div>
           <n-list-item v-for="row in mailData" v-bind:key="row.id">
+            <n-thing class="center" :title="row.subject">
+              <template #description>
+                <n-space>
+                  <n-tag type="info">
+                    FROM: {{ row.source }}
+                  </n-tag>
+                  <n-tag type="info">
+                    ID: {{ row.id }}
+                  </n-tag>
+                </n-space>
+              </template>
+              <div v-html="row.message"></div>
+            </n-thing>
+          </n-list-item>
+        </n-list>
+      </n-tab-pane>
+      <n-tab-pane name="unknow" tab="unknown">
+        <n-button @click="fetchMailUnknowData" type="primary" ghost>
+          {{ t('refresh') }}
+        </n-button>
+        <n-list hoverable clickable>
+          <div style="display: inline-block; margin-bottom: 10px;">
+            <n-pagination v-model:page="mailUnknowPage" v-model:page-size="mailUnknowPageSize"
+              :item-count="mailUnknowCount" simple />
+          </div>
+          <n-list-item v-for="row in mailUnknowData" v-bind:key="row.id">
             <n-thing class="center" :title="row.subject">
               <template #description>
                 <n-space>
@@ -276,11 +343,6 @@ const fetchMailData = async () => {
 }
 
 .n-pagination {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.n-button {
   margin-top: 10px;
   margin-bottom: 10px;
 }

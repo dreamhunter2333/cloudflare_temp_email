@@ -88,9 +88,15 @@ const refresh = async () => {
     return;
   }
   try {
-    const { count: mailsCount } = await api.fetch("/api/mails_count");
-    count.value = mailsCount;
-    data.value = await api.fetch(`/api/mails?limit=${pageSize.value}&offset=${(page.value - 1) * pageSize.value}`);
+    const { results, count: totalCount } = await api.fetch(
+      `/api/mails`
+      + `?limit=${pageSize.value}`
+      + `&offset=${(page.value - 1) * pageSize.value}`
+    );
+    data.value = results;
+    if (totalCount > 0) {
+      count.value = totalCount;
+    }
   } catch (error) {
     message.error(error.message || "error");
     console.error(error);
