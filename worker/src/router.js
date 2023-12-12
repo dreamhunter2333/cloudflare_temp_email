@@ -8,10 +8,27 @@ api.get('/api/mails', async (c) => {
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }
+    const { limit, offset } = c.req.query();
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
     const { results } = await c.env.DB.prepare(
-        `SELECT id, source, subject, message FROM mails where address = ? order by id desc limit 100`
-    ).bind(address).all();
-    return c.json(results);
+        `SELECT id, source, subject, message FROM mails where address = ? order by id desc limit ? offset ?`
+    ).bind(address, limit, offset).all();
+    let count = 0;
+    if (offset == 0) {
+        const { count: mailCount } = await c.env.DB.prepare(
+            `SELECT count(*) as count FROM mails where address = ?`
+        ).bind(address).first();
+        count = mailCount;
+    }
+    return c.json({
+        results: results,
+        count: count
+    })
 })
 
 api.get('/api/settings', async (c) => {
@@ -66,14 +83,31 @@ api.get('/api/new_address', async (c) => {
     })
 })
 
-api.get('/admin/addresss', async (c) => {
+api.get('/admin/address', async (c) => {
+    const { limit, offset } = c.req.query();
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
     const { results } = await c.env.DB.prepare(
-        `SELECT * FROM address order by id desc`
-    ).all();
-    return c.json(results.map((r) => {
-        r.name = c.env.PREFIX + r.name;
-        return r;
-    }));
+        `SELECT * FROM address order by id desc limit ? offset ?`
+    ).bind(limit, offset).all();
+    let count = 0;
+    if (offset == 0) {
+        const { count: addressCount } = await c.env.DB.prepare(
+            `SELECT count(*) as count FROM address`
+        ).first();
+        count = addressCount;
+    }
+    return c.json({
+        results: results.map((r) => {
+            r.name = c.env.PREFIX + r.name;
+            return r;
+        }),
+        count: count
+    })
 })
 
 api.delete('/admin/delete_address/:id', async (c) => {
@@ -103,5 +137,59 @@ api.get('/admin/show_password/:id', async (c) => {
         password: jwt
     })
 })
+
+
+api.get('/admin/mails', async (c) => {
+    const { address, limit, offset } = c.req.query();
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
+    const { results } = await c.env.DB.prepare(
+        `SELECT id, source, subject, message FROM mails where address = ? order by id desc limit ? offset ?`
+    ).bind(address, limit, offset).all();
+    let count = 0;
+    if (offset == 0) {
+        const { count: mailCount } = await c.env.DB.prepare(
+            `SELECT count(*) as count FROM mails where address = ?`
+        ).bind(address).first();
+        count = mailCount;
+    }
+    return c.json({
+        results: results,
+        count: count
+    })
+});
+
+api.get('/admin/mails_unknow', async (c) => {
+    const { limit, offset } = c.req.query();
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
+    const { results } = await c.env.DB.prepare(`
+        SELECT id, source, subject, message FROM mails
+        where address NOT IN (select concat('${c.env.PREFIX}', name) from address)
+        order by id desc limit ? offset ? `
+    ).bind(limit, offset).all();
+    let count = 0;
+    if (offset == 0) {
+        const { count: mailCount } = await c.env.DB.prepare(`
+            SELECT count(*) FROM mails
+            where address NOT IN
+            (select concat('${c.env.PREFIX}', name) from address)`
+        ).first();
+        count = mailCount;
+    }
+    return c.json({
+        results: results,
+        count: count
+    })
+});
+
 
 export { api }

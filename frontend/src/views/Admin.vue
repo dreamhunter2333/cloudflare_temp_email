@@ -1,8 +1,9 @@
 <script setup>
-import { NSpace, NLayoutHeader, NInput, c } from 'naive-ui'
-import { NButton, NSelect, NModal } from 'naive-ui'
+import { NSpace, NLayoutHeader, NInput, NPagination } from 'naive-ui'
+import { NButton, NModal, NTabs, NTabPane, NInputGroup } from 'naive-ui'
+import { NList, NListItem, NThing, NTag } from 'naive-ui'
 import { NDataTable, NPopconfirm } from 'naive-ui'
-import { ref, h, onMounted } from 'vue';
+import { ref, h, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
@@ -41,6 +42,7 @@ const { t } = useI18n({
       delete: 'Delete',
       deleteTip: 'Are you sure to delete this email?',
       refresh: 'Refresh',
+      emails: 'Emails',
     },
     zh: {
       title: '临时邮件 Admin',
@@ -55,10 +57,14 @@ const { t } = useI18n({
       delete: '删除',
       deleteTip: '确定要删除这个邮箱吗？',
       refresh: '刷新',
+      emails: '邮件',
     }
   }
 });
 const data = ref([])
+const count = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
 
 const showPassword = async (id) => {
   try {
@@ -83,7 +89,15 @@ const deleteEmail = async (id) => {
 
 const fetchData = async () => {
   try {
-    data.value = await api.adminGetAddress()
+    const { results, count: addressCount } = await api.fetch(
+      `/admin/address`
+      + `?limit=${pageSize.value}`
+      + `&offset=${(page.value - 1) * pageSize.value}`
+    );
+    data.value = results;
+    if (addressCount > 0) {
+      count.value = addressCount;
+    }
   } catch (error) {
     console.log(error)
     message.error(error.message || "error");
@@ -115,6 +129,16 @@ const columns = [
           },
           { default: () => t('showPass') }
         ),
+        h(NButton,
+          {
+            type: 'success',
+            onClick: () => {
+              mailAddress.value = row.name
+              tab.value = "mails"
+            }
+          },
+          { default: () => t('emails') }
+        ),
         h(NPopconfirm,
           {
             onPositiveClick: () => deleteEmail(row.id)
@@ -129,6 +153,10 @@ const columns = [
   }
 ]
 
+watch([page, pageSize], async () => {
+  await fetchData()
+})
+
 
 onMounted(async () => {
   if (!adminAuth.value) {
@@ -137,11 +165,69 @@ onMounted(async () => {
     await fetchData()
   }
 })
+
+const tab = ref("account")
+const mailAddress = ref("")
+const mailData = ref([])
+const mailCount = ref(0)
+const mailPage = ref(1)
+const mailPageSize = ref(20)
+
+watch([mailPage, mailPageSize, mailAddress], async () => {
+  await fetchMailData()
+})
+
+const fetchMailData = async () => {
+  if (!mailAddress.value) {
+    return
+  }
+  try {
+    const { results, count } = await api.fetch(
+      `/admin/mails`
+      + `?address=${mailAddress.value}`
+      + `&limit=${mailPageSize.value}`
+      + `&offset=${(mailPage.value - 1) * mailPageSize.value}`
+    );
+    mailData.value = results;
+    if (count > 0) {
+      mailCount.value = count;
+    }
+  } catch (error) {
+    console.log(error)
+    message.error(error.message || "error");
+  }
+}
+
+
+const mailUnknowData = ref([])
+const mailUnknowCount = ref(0)
+const mailUnknowPage = ref(1)
+const mailUnknowPageSize = ref(20)
+
+watch([mailUnknowPage, mailUnknowPageSize], async () => {
+  await fetchMailUnknowData()
+})
+
+const fetchMailUnknowData = async () => {
+  try {
+    const { results, count } = await api.fetch(
+      `/admin/mails_unknow`
+      + `?limit=${mailPageSize.value}`
+      + `&offset=${(mailPage.value - 1) * mailPageSize.value}`
+    );
+    mailUnknowData.value = results;
+    if (count > 0) {
+      mailUnknowCount.value = count;
+    }
+  } catch (error) {
+    console.log(error)
+    message.error(error.message || "error");
+  }
+}
 </script>
 
 <template>
   <n-space vertical>
-
     <n-layout-header>
       <div>
         <h2>{{ t('title') }}</h2>
@@ -149,9 +235,6 @@ onMounted(async () => {
       <div>
         <n-button tertiary @click="() => router.push('/')" type="primary">
           {{ t('home') }}
-        </n-button>
-        <n-button tertiary @click="fetchData" type="primary">
-          {{ t('refresh') }}
         </n-button>
       </div>
       <n-modal v-model:show="showAdminAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
@@ -183,7 +266,72 @@ onMounted(async () => {
         </template>
       </n-modal>
     </n-layout-header>
-    <n-data-table :columns="columns" :data="data" :bordered="false" />
+    <n-tabs type="segment" v-model:value="tab">
+      <n-tab-pane name="account" tab="account">
+        <div style="display: inline-block;">
+          <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" :page-sizes="[20, 50, 100]"
+            show-size-picker />
+        </div>
+        <n-button tertiary @click="fetchData" type="primary">
+          {{ t('refresh') }}
+        </n-button>
+        <n-data-table :columns="columns" :data="data" :bordered="false" />
+      </n-tab-pane>
+      <n-tab-pane name="mails" tab="mails">
+        <n-input-group>
+          <n-input v-model:value="mailAddress" />
+          <n-button @click="fetchMailData" type="primary" ghost>
+            {{ t('refresh') }}
+          </n-button>
+        </n-input-group>
+        <n-list hoverable clickable>
+          <div style="display: inline-block; margin-bottom: 10px;">
+            <n-pagination v-model:page="mailPage" v-model:page-size="mailPageSize" :item-count="mailCount" simple />
+          </div>
+          <n-list-item v-for="row in mailData" v-bind:key="row.id">
+            <n-thing class="center" :title="row.subject">
+              <template #description>
+                <n-space>
+                  <n-tag type="info">
+                    FROM: {{ row.source }}
+                  </n-tag>
+                  <n-tag type="info">
+                    ID: {{ row.id }}
+                  </n-tag>
+                </n-space>
+              </template>
+              <div v-html="row.message"></div>
+            </n-thing>
+          </n-list-item>
+        </n-list>
+      </n-tab-pane>
+      <n-tab-pane name="unknow" tab="unknown">
+        <n-button @click="fetchMailUnknowData" type="primary" ghost>
+          {{ t('refresh') }}
+        </n-button>
+        <n-list hoverable clickable>
+          <div style="display: inline-block; margin-bottom: 10px;">
+            <n-pagination v-model:page="mailUnknowPage" v-model:page-size="mailUnknowPageSize"
+              :item-count="mailUnknowCount" simple />
+          </div>
+          <n-list-item v-for="row in mailUnknowData" v-bind:key="row.id">
+            <n-thing class="center" :title="row.subject">
+              <template #description>
+                <n-space>
+                  <n-tag type="info">
+                    FROM: {{ row.source }}
+                  </n-tag>
+                  <n-tag type="info">
+                    ID: {{ row.id }}
+                  </n-tag>
+                </n-space>
+              </template>
+              <div v-html="row.message"></div>
+            </n-thing>
+          </n-list-item>
+        </n-list>
+      </n-tab-pane>
+    </n-tabs>
   </n-space>
 </template>
 
@@ -192,5 +340,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.n-pagination {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 </style>

@@ -4,11 +4,13 @@ import { NButton, NSelect, NModal } from 'naive-ui'
 import { NSwitch, NPopconfirm } from 'naive-ui'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
 
-const { jwt, localeCache, themeSwitch, showAuth, auth } = useGlobalState()
+const { jwt, localeCache, themeSwitch, showAuth, adminAuth, auth } = useGlobalState()
+const router = useRouter()
 const showLogin = ref(false)
 const password = ref('')
 
@@ -75,6 +77,9 @@ const { t } = useI18n({
         <div>
             <n-button v-if="localeCache == 'zh'" @click="changeLocale('en')">English</n-button>
             <n-button v-else @click="changeLocale('zh')">中文</n-button>
+            <n-button v-if="adminAuth" tertiary @click="() => router.push('/admin')" type="primary">
+                Admin
+            </n-button>
             <n-switch v-model:value="themeSwitch">
                 <template #checked>
                     {{ t('dark') }}
