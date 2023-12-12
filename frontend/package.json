@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build -m prod --emptyOutDir",
     "preview": "vite preview",
-    "deploy": "wrangler pages deploy ../dist --branch production"
+    "deploy": "npm run build && wrangler pages deploy ../dist --branch production"
   },
   "dependencies": {
     "@vueuse/core": "^10.7.0",
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.2",
+    "vite-plugin-pwa": "^0.17.4",
     "vite": "^4.5.1"
   }
 }
