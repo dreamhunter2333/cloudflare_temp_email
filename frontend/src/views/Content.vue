@@ -167,10 +167,12 @@ onMounted(async () => {
       <n-button class="center" @click="refresh" round type="primary">
         {{ t('refresh') }}
       </n-button>
-      <n-list hoverable clickable>
+      <div>
         <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple />
         </div>
+      </div>
+      <n-list hoverable clickable>
         <n-list-item v-for="row in data" v-bind:key="row.id">
           <n-thing class="center" :title="row.subject">
             <template #description>
@@ -232,10 +234,6 @@ onMounted(async () => {
 <style scoped>
 .n-alert {
   margin-bottom: 10px;
-  text-align: center;
-}
-
-.n-list {
   text-align: center;
 }
 </style>
