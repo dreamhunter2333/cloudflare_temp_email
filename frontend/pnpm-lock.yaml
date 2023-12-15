@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@vicons/material':
+    specifier: ^0.12.0
+    version: 0.12.0
   '@vueuse/core':
     specifier: ^10.7.0
     version: 10.7.0(vue@3.3.11)
@@ -14,6 +17,9 @@ dependencies:
   naive-ui:
     specifier: ^2.35.0
     version: 2.35.0(vue@3.3.11)
+  vooks:
+    specifier: ^0.2.12
+    version: 0.2.12(vue@3.3.11)
   vue:
     specifier: ^3.3.11
     version: 3.3.11
@@ -1620,6 +1626,10 @@ packages:
 
   /@types/web-bluetooth@0.0.20:
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
+    dev: false
+
+  /@vicons/material@0.12.0:
+    resolution: {integrity: sha512-chv1CYAl8P32P3Ycwgd5+vw/OFNc2mtkKdb1Rw4T5IJmKy6GVDsoUKV3N2l208HATn7CCQphZtuPDdsm7K2kmA==}
     dev: false
 
   /@vitejs/plugin-vue@4.5.2(vite@4.5.1)(vue@3.3.11):
