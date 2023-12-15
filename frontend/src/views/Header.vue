@@ -1,16 +1,20 @@
 <script setup>
 import { NGrid, NLayoutHeader, NInput } from 'naive-ui'
-import { NButton, NSelect, NModal } from 'naive-ui'
+import { NButton, NSelect, NModal, NIcon, NMenu } from 'naive-ui'
 import { NSwitch, NPopconfirm } from 'naive-ui'
-import { ref } from 'vue'
+import { ref, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useIsMobile } from '../utils/composables'
+import { DarkModeFilled, DarkModeOutlined, StarOutlineFilled, MenuFilled } from '@vicons/material'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
 
 const { jwt, localeCache, themeSwitch, showAuth, adminAuth, auth } = useGlobalState()
 const router = useRouter()
+const isMobile = useIsMobile()
+
 const showLogin = ref(false)
 const password = ref('')
 
@@ -67,46 +71,106 @@ const { t } = useI18n({
         }
     }
 });
+
+
+const menuOptions = [
+    {
+        label: () => h(
+            NButton,
+            {
+                tertiary: true,
+                ghost: true,
+                onClick: () => router.push('/admin')
+            },
+            { default: () => "Admin" }
+        ),
+        show: !!adminAuth.value,
+        key: "home"
+    },
+    {
+        label: () => h(
+            NButton,
+            {
+                tertiary: true,
+                ghost: true,
+                onClick: () => localeCache.value == 'zh' ? changeLocale('en') : changeLocale('zh')
+            },
+            {
+                default: () => localeCache.value == 'zh' ? "English" : "中文"
+            }
+        ),
+        key: "lang"
+    },
+    {
+        label: () => h(
+            NButton,
+            {
+                tertiary: true,
+                ghost: true,
+                onClick: () => { showLogin.value = true }
+            },
+            { default: () => t('login') }
+        ),
+        show: !jwt.value,
+        key: "login"
+    },
+    {
+        label: () => h(
+            NPopconfirm,
+            {
+                onPositiveClick: () => logout()
+            },
+            {
+                trigger: () => h(NButton, {
+                    tertiary: true,
+                    ghost: true,
+                }, () => t('logout')
+                ),
+                default: () => t('logoutConfirm')
+            }
+        ),
+        show: !!jwt.value,
+        key: "logout"
+    }
+];
+
+const menuOptionsMobile = [
+    {
+        label: () => h(
+            NIcon,
+            {
+                component: MenuFilled
+            }
+        ),
+        key: "menu",
+        children: menuOptions
+    },
+]
 </script>
 
 <template>
-    <n-layout-header>
-        <div>
-            <h2>{{ t('title') }}</h2>
-        </div>
-        <div>
-            <n-button v-if="localeCache == 'zh'" @click="changeLocale('en')">English</n-button>
-            <n-button v-else @click="changeLocale('zh')">中文</n-button>
-            <n-button v-if="adminAuth" tertiary @click="() => router.push('/admin')" type="primary">
-                Admin
-            </n-button>
-            <n-switch v-model:value="themeSwitch">
-                <template #checked>
-                    {{ t('dark') }}
-                </template>
-                <template #unchecked>
-                    {{ t('light') }}
-                </template>
-            </n-switch>
-            <n-popconfirm v-if="jwt" @positive-click="logout">
-                <template #trigger>
-                    <n-button tertiary round type="primary">
-                        {{ t('logout') }}
-                    </n-button>
-                </template>
-                <template #default>
-                    <span>
-                        {{ t('logoutConfirm') }}
-                    </span>
-                </template>
-            </n-popconfirm>
-            <n-button v-else tertiary @click="showLogin = true" round type="primary">
-                {{ t('login') }}
-            </n-button>
-            <n-button tag="a" target="_blank" tertiary type="primary" round
-                href="https://github.com/dreamhunter2333/cloudflare_temp_email">Star on Github
-            </n-button>
-        </div>
+    <div>
+        <n-layout-header>
+            <div>
+                <h2 v-if="!isMobile" style="display: inline-block; margin-left: 10px;">{{ t('title') }}</h2>
+                <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" />
+                <n-menu v-else mode="horizontal" :options="menuOptionsMobile" />
+            </div>
+            <div>
+                <n-switch v-model:value="themeSwitch" :size="isMobile ? 'small' : 'medium'">
+                    <template #checked-icon>
+                        <n-icon :component="DarkModeFilled" />
+                    </template>
+                    <template #unchecked-icon>
+                        <n-icon :component="DarkModeOutlined" />
+                    </template>
+                </n-switch>
+                <n-button tag="a" target="_blank" tertiary type="primary" round :size="isMobile ? 'small' : 'medium'"
+                    href="https://github.com/dreamhunter2333/cloudflare_temp_email">
+                    <n-icon :component="StarOutlineFilled" /> Github
+                </n-button>
+            </div>
+        </n-layout-header>
         <n-modal v-model:show="showLogin" preset="dialog" title="Dialog">
             <template #header>
                 <div>{{ t('login') }}</div>
@@ -135,7 +199,7 @@ const { t } = useI18n({
                 </n-button>
             </template>
         </n-modal>
-    </n-layout-header>
+    </div>
 </template>
 
 <style scoped>

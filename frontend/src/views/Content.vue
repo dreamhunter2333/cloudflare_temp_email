@@ -168,7 +168,7 @@ onMounted(async () => {
         {{ t('refresh') }}
       </n-button>
       <n-list hoverable clickable>
-        <div style="display: inline-block; margin-bottom: 10px;">
+        <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple />
         </div>
         <n-list-item v-for="row in data" v-bind:key="row.id">
@@ -236,7 +236,6 @@ onMounted(async () => {
 }
 
 .n-list {
-  margin-top: 10px;
   text-align: center;
 }
 </style>
