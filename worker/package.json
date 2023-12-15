@@ -10,7 +10,7 @@
     "wrangler": "^3.19.0"
   },
   "dependencies": {
-    "hono": "^3.11.4",
+    "hono": "^3.11.7",
     "mailparser": "^3.6.5",
     "postal-mime": "^1.1.0"
   },

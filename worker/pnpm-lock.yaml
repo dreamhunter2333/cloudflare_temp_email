@@ -11,8 +11,8 @@ patchedDependencies:
 
 dependencies:
   hono:
-    specifier: ^3.11.4
-    version: 3.11.4
+    specifier: ^3.11.7
+    version: 3.11.7
   mailparser:
     specifier: ^3.6.5
     version: 3.6.5(patch_hash=ykuld7ytssxm3j6t6ehwmtonk4)
@@ -532,8 +532,8 @@ packages:
     hasBin: true
     dev: false
 
-  /hono@3.11.4:
-    resolution: {integrity: sha512-lU8Et1Nkpa4RqgBvjGUGyu8/2QNdAOR9EqFzNCoP7wM+xtcq2v/DHi9CMJ/ixVxRU9Q2uAh0G3xIKTVYzzC4dg==}
+  /hono@3.11.7:
+    resolution: {integrity: sha512-TcfAq7IdipF+9coxnuzYlSSBXbm9mTyWjjagLCv/2ampboNcKJdi+XCK5G48mHQtpI5+9Rj3J4FfcGgw9vzIww==}
     engines: {node: '>=16.0.0'}
     dev: false
 
