@@ -16,6 +16,7 @@ const router = useRouter()
 const isMobile = useIsMobile()
 
 const showLogin = ref(false)
+const showLogout = ref(false)
 const password = ref('')
 
 const login = async () => {
@@ -116,18 +117,13 @@ const menuOptions = computed(() => [
     },
     {
         label: () => h(
-            NPopconfirm,
+            NButton,
             {
-                onPositiveClick: () => logout()
+                tertiary: true,
+                ghost: true,
+                onClick: () => { showLogout.value = true }
             },
-            {
-                trigger: () => h(NButton, {
-                    tertiary: true,
-                    ghost: true,
-                }, () => t('logout')
-                ),
-                default: () => t('logoutConfirm')
-            }
+            { default: () => t('logout') }
         ),
         show: !!jwt.value,
         key: "logout"
@@ -143,9 +139,9 @@ const menuOptionsMobile = [
             }
         ),
         key: "menu",
-        children: menuOptions
+        children: menuOptions.value
     },
-]
+];
 </script>
 
 <template>
@@ -181,6 +177,17 @@ const menuOptionsMobile = [
             <template #action>
                 <n-button @click="login" size="small" tertiary round type="primary">
                     {{ t('login') }}
+                </n-button>
+            </template>
+        </n-modal>
+        <n-modal v-model:show="showLogout" preset="dialog" title="Dialog">
+            <template #header>
+                <div>{{ t('logout') }}</div>
+            </template>
+            <p>{{ t('logoutConfirm') }}</p>
+            <template #action>
+                <n-button @click="login" size="small" tertiary round type="primary">
+                    {{ t('logout') }}
                 </n-button>
             </template>
         </n-modal>
