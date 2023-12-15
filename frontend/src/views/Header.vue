@@ -2,7 +2,7 @@
 import { NGrid, NLayoutHeader, NInput } from 'naive-ui'
 import { NButton, NSelect, NModal, NIcon, NMenu } from 'naive-ui'
 import { NSwitch, NPopconfirm } from 'naive-ui'
-import { ref, h } from 'vue'
+import { ref, h, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
@@ -73,7 +73,7 @@ const { t } = useI18n({
 });
 
 
-const menuOptions = [
+const menuOptions = computed(() => [
     {
         label: () => h(
             NButton,
@@ -132,7 +132,7 @@ const menuOptions = [
         show: !!jwt.value,
         key: "logout"
     }
-];
+]);
 
 const menuOptionsMobile = [
     {
