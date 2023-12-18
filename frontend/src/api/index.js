@@ -2,7 +2,8 @@ import { useGlobalState } from '../store'
 import axios from 'axios'
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
-const { loading, auth, jwt, openSettings, showAuth, adminAuth, showAdminAuth } = useGlobalState();
+const { loading, auth, jwt, settings, openSettings } = useGlobalState();
+const { showAuth, adminAuth, showAdminAuth } = useGlobalState();
 
 const instance = axios.create({
     baseURL: API_BASE,
@@ -65,9 +66,11 @@ const getSettings = async () => {
     if (typeof jwt.value != 'string' || jwt.value.trim() === '' || jwt.value === 'undefined') {
         return "";
     }
-    loading.value = true;
     const res = await apiFetch("/api/settings");;
-    return res["address"];
+    settings.value = {
+        address: res["address"],
+        auto_reply: res["auto_reply"]
+    };
 }
 
 const adminShowPassword = async (id) => {

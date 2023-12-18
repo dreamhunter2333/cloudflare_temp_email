@@ -1,3 +1,6 @@
+import { createMimeMessage } from "mimetext";
+import { EmailMessage } from "cloudflare:email";
+
 const PostalMime = require("postal-mime");
 const simpleParser = require('mailparser').simpleParser;
 global.setImmediate = (callback) => callback();
@@ -43,6 +46,34 @@ async function email(message, env, ctx) {
         if (!success) {
             message.setReject(`Failed save message to ${message.to}`);
             console.log(`Failed save message from ${message.from} to ${message.to}`);
+        }
+        try {
+            const results = await env.DB.prepare(
+                `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
+            ).bind(message.to).first();
+            if (results && results.source_prefix && message.from.startsWith(results.source_prefix)) {
+                const msg = createMimeMessage();
+                msg.setHeader("In-Reply-To", message.headers.get("Message-ID"));
+                msg.setSender({
+                    name: results.name || results.address,
+                    addr: results.address
+                });
+                msg.setRecipient(message.from);
+                msg.setSubject(results.subject || "Auto-reply");
+                msg.addMessage({
+                    contentType: 'text/plain',
+                    data: results.message || "This is an auto-reply message, please reconact later."
+                });
+
+                const replyMessage = new EmailMessage(
+                    message.to,
+                    message.from,
+                    msg.asRaw()
+                );
+                await message.reply(replyMessage);
+            }
+        } catch (error) {
+            console.log("reply email error", error);
         }
     } else {
         message.setReject(`Unknown address ${message.to}`);

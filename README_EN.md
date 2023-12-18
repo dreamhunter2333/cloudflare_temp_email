@@ -16,6 +16,7 @@ This is a temporary email service that uses Cloudflare Workers to create a tempo
 - [x] Get Custom Name Email
 - [x] Support multiple languages
 - [x] Add access authorization, which can be used as a private site
+- [x] Add auto reply feature
 - [ ] Exceeded CPU Limit error caused by the free version of the attachment
 
 ![demo](readme_assets/demo.png)
