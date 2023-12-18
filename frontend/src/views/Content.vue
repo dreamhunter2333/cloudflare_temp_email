@@ -12,8 +12,7 @@ import { api } from '../api'
 const { toClipboard } = useClipboard()
 const message = useMessage()
 
-const address = ref("")
-const { jwt, openSettings } = useGlobalState()
+const { jwt, settings, openSettings } = useGlobalState()
 const autoRefresh = ref(false)
 const data = ref([])
 const timer = ref(null)
@@ -84,7 +83,7 @@ watch([page, pageSize], async ([page, pageSize], [oldPage, oldPageSize]) => {
 })
 
 const refresh = async () => {
-  if (typeof address.value != 'string' || address.value.trim() === '') {
+  if (typeof settings.value.address != 'string' || settings.value.address.trim() === '') {
     return;
   }
   try {
@@ -105,7 +104,7 @@ const refresh = async () => {
 
 const copy = async () => {
   try {
-    await toClipboard(address.value)
+    await toClipboard(settings.value.address)
     message.success('Copied');
   } catch (e) {
     message.error(e.message || "error");
@@ -120,7 +119,7 @@ const newEmail = async () => {
       + `&domain=${emailDomain.value || ''}`
     );
     jwt.value = res["jwt"];
-    address.value = await api.getSettings();
+    await api.getSettings();
     await refresh();
     showNewEmail.value = false;
     showPassword.value = true;
@@ -132,7 +131,7 @@ const newEmail = async () => {
 onMounted(async () => {
   await api.getOpenSettings(message);
   emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
-  address.value = await api.getSettings();
+  await api.getSettings();
   await refresh();
 });
 </script>
@@ -140,9 +139,9 @@ onMounted(async () => {
 <template>
   <div>
     <n-layout>
-      <n-alert :type='address ? "info" : "warning"' show-icon>
-        <span v-if="address">
-          {{ t('yourAddress') }} <b>{{ address }}</b>
+      <n-alert :type='settings.address ? "info" : "warning"' show-icon>
+        <span v-if="settings.address">
+          {{ t('yourAddress') }} <b>{{ settings.address }}</b>
           <n-button @click="copy" size="small" tertiary round type="primary">
             {{ t('copy') }}
           </n-button>
@@ -151,7 +150,7 @@ onMounted(async () => {
           {{ t('pleaseGetNewEmail') }}
         </span>
       </n-alert>
-      <n-button v-if="address" class="center" @click="showPassword = true" tertiary round type="primary">
+      <n-button v-if="settings.address" class="center" @click="showPassword = true" tertiary round type="primary">
         {{ t('showPassword') }}
       </n-button>
       <n-button v-else class="center" @click="showNewEmail = true" tertiary round type="primary">

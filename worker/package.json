@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "start": "wrangler dev"
   },
@@ -12,6 +13,7 @@
   "dependencies": {
     "hono": "^3.11.7",
     "mailparser": "^3.6.5",
+    "mimetext": "^3.0.16",
     "postal-mime": "^1.1.0"
   },
   "pnpm": {

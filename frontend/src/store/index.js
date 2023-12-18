@@ -12,6 +12,16 @@ export const useGlobalState = createGlobalState(
                 value: 'test.com'
             }]
         })
+        const settings = ref({
+            address: '',
+            auto_reply: {
+                subject: '',
+                message: '',
+                enabled: false,
+                source_prefix: '',
+                name: '',
+            }
+        })
         const showAuth = ref(false);
         const showAdminAuth = ref(false);
         const auth = useStorage('auth', '');
@@ -21,6 +31,7 @@ export const useGlobalState = createGlobalState(
         const themeSwitch = useStorage('themeSwitch', false);
         return {
             loading,
+            settings,
             openSettings,
             showAuth,
             auth,

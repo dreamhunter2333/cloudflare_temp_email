@@ -10,7 +10,7 @@ app.use('/*', cors());
 app.use('/api/*', async (c, next) => {
 	// check header x-custom-auth
 	if (c.env.PASSWORDS && c.env.PASSWORDS.length > 0) {
-		const auth = c.req.headers.get("x-custom-auth");
+		const auth = c.req.raw.headers.get("x-custom-auth");
 		if (!auth || !c.env.PASSWORDS.includes(auth)) {
 			return c.text("Need Password", 401)
 		}
@@ -25,7 +25,7 @@ app.use('/api/*', async (c, next) => {
 app.use('/admin/*', async (c, next) => {
 	// check header x-admin-auth
 	if (c.env.ADMIN_PASSWORDS && c.env.ADMIN_PASSWORDS.length > 0) {
-		const adminAuth = c.req.headers.get("x-admin-auth");
+		const adminAuth = c.req.raw.headers.get("x-admin-auth");
 		if (adminAuth && c.env.ADMIN_PASSWORDS.includes(adminAuth)) {
 			await next();
 			return;

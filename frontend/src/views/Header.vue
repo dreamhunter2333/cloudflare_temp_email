@@ -59,6 +59,8 @@ const { t } = useI18n({
             logoutConfirm: 'Are you sure to logout?',
             auth: 'Auth',
             authTip: 'Please enter the correct auth code',
+            settings: 'Settings',
+            home: 'Home',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
@@ -69,6 +71,8 @@ const { t } = useI18n({
             logoutConfirm: '确定要登出吗？',
             auth: '授权',
             authTip: '请输入正确的授权码',
+            settings: '设置',
+            home: '主页',
         }
     }
 });
@@ -81,12 +85,24 @@ const menuOptions = computed(() => [
             {
                 tertiary: true,
                 ghost: true,
+                onClick: () => router.push('/')
+            },
+            { default: () => t('home') }
+        ),
+        key: "home"
+    },
+    {
+        label: () => h(
+            NButton,
+            {
+                tertiary: true,
+                ghost: true,
                 onClick: () => router.push('/admin')
             },
             { default: () => "Admin" }
         ),
         show: !!adminAuth.value,
-        key: "home"
+        key: "admin"
     },
     {
         label: () => h(
@@ -127,6 +143,18 @@ const menuOptions = computed(() => [
         ),
         show: !!jwt.value,
         key: "logout"
+    },
+    {
+        label: () => h(
+            NButton,
+            {
+                tertiary: true,
+                ghost: true,
+                onClick: () => { router.push('/settings') }
+            },
+            { default: () => t('settings') }
+        ),
+        key: "settings"
     }
 ]);
 
@@ -186,7 +214,7 @@ const menuOptionsMobile = [
             </template>
             <p>{{ t('logoutConfirm') }}</p>
             <template #action>
-                <n-button @click="login" size="small" tertiary round type="primary">
+                <n-button @click="logout" size="small" tertiary round type="primary">
                     {{ t('logout') }}
                 </n-button>
             </template>
