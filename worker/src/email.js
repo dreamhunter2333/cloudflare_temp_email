@@ -51,7 +51,7 @@ async function email(message, env, ctx) {
             const results = await env.DB.prepare(
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
             ).bind(message.to).first();
-            if (results) {
+            if (results && results.source_prefix && message.from.startsWith(results.source_prefix)) {
                 const msg = createMimeMessage();
                 msg.setHeader("In-Reply-To", message.headers.get("Message-ID"));
                 msg.setSender({
