@@ -48,7 +48,7 @@ async function email(message, env, ctx) {
             console.log(`Failed save message from ${message.from} to ${message.to}`);
         }
         try {
-            const results = await c.env.DB.prepare(
+            const results = await env.DB.prepare(
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
             ).bind(message.to).first();
             if (results) {
