@@ -5,14 +5,13 @@ import { darkTheme, NGlobalStyle } from 'naive-ui'
 import { zhCN } from 'naive-ui'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-import Content from './views/Content.vue'
-import Header from './views/Header.vue'
 import { useGlobalState } from './store'
+import { useIsMobile } from './utils/composables'
 
 const { localeCache, themeSwitch, loading } = useGlobalState()
 const theme = computed(() => themeSwitch.value ? darkTheme : null)
 const localeConfig = computed(() => localeCache.value == 'zh' ? zhCN : null)
+const isMobile = useIsMobile()
 
 const { locale } = useI18n({
   useScope: 'global',
@@ -39,14 +38,14 @@ onMounted(async () => {
     <n-global-style />
     <n-spin description="loading..." :show="loading">
       <n-message-provider>
-        <n-grid x-gap="12" :cols="8">
-          <n-gi span="1"></n-gi>
-          <n-gi span="6">
+        <n-grid x-gap="12" :cols="12">
+          <n-gi v-if="!isMobile" span="1"></n-gi>
+          <n-gi :span="isMobile ? 12 : 10">
             <div class="main">
               <router-view></router-view>
             </div>
           </n-gi>
-          <n-gi span="1"></n-gi>
+          <n-gi v-if="!isMobile" span="1"></n-gi>
         </n-grid>
         <n-back-top :right="100" />
       </n-message-provider>
