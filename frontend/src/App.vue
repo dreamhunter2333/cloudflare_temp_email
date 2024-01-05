@@ -5,11 +5,8 @@ import { darkTheme, NGlobalStyle } from 'naive-ui'
 import { zhCN } from 'naive-ui'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useIsMobile } from './utils/composables'
-
-import Content from './views/Content.vue'
-import Header from './views/Header.vue'
 import { useGlobalState } from './store'
+import { useIsMobile } from './utils/composables'
 
 const { localeCache, themeSwitch, loading } = useGlobalState()
 const theme = computed(() => themeSwitch.value ? darkTheme : null)
