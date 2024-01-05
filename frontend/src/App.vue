@@ -47,7 +47,7 @@ onMounted(async () => {
           </n-gi>
           <n-gi v-if="!isMobile" span="1"></n-gi>
         </n-grid>
-        <n-back-top :right="100" />
+        <n-back-top />
       </n-message-provider>
     </n-spin>
   </n-config-provider>
