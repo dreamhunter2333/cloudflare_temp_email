@@ -175,8 +175,8 @@ const menuOptionsMobile = [
 <template>
     <div>
         <n-layout-header>
+            <h2 v-if="!isMobile" style="display: inline-block; margin-left: 10px;">{{ t('title') }}</h2>
             <div>
-                <h2 v-if="!isMobile" style="display: inline-block; margin-left: 10px;">{{ t('title') }}</h2>
                 <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" />
                 <n-menu v-else mode="horizontal" :options="menuOptionsMobile" />
             </div>
