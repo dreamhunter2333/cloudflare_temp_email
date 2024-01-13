@@ -25,11 +25,11 @@ const apiFetch = async (path, options = {}) => {
         });
         if (response.status === 401 && openSettings.value.auth) {
             showAuth.value = true;
-            throw new Error("Unauthorized");
+            throw new Error("Unauthorized, you password is wrong")
         }
         if (response.status === 401 && path.startsWith("/admin")) {
             showAdminAuth.value = true;
-            throw new Error("Unauthorized");
+            throw new Error("Unauthorized, you admin password is wrong")
         }
         if (response.status >= 300) {
             throw new Error(`${response.status} ${response.data}` || "error");
