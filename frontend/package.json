@@ -10,17 +10,17 @@
   },
   "dependencies": {
     "@vicons/material": "^0.12.0",
-    "@vueuse/core": "^10.7.0",
-    "axios": "^1.6.2",
-    "naive-ui": "^2.35.0",
+    "@vueuse/core": "^10.7.1",
+    "axios": "^1.6.5",
+    "naive-ui": "^2.37.3",
     "vooks": "^0.2.12",
-    "vue": "^3.3.11",
+    "vue": "^3.4.13",
     "vue-clipboard3": "^2.0.0",
-    "vue-i18n": "^9.8.0",
+    "vue-i18n": "^9.9.0",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^4.5.2",
+    "@vitejs/plugin-vue": "^4.6.2",
     "vite": "^4.5.1",
     "vite-plugin-pwa": "^0.17.4"
   }

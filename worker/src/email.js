@@ -35,18 +35,22 @@ async function email(message, env, ctx) {
             const parser = new PostalMime.default();
             parsedEmail = await parser.parse(rawEmail);
         }
+        const message_id = message.headers.get("Message-ID");
 
+        // process email
         const { success } = await env.DB.prepare(
-            `INSERT INTO mails (source, address, subject, message) VALUES (?, ?, ?, ?)`
+            `INSERT INTO mails (source, address, subject, message, message_id) VALUES (?, ?, ?, ?, ?)`
         ).bind(
             message.from, message.to,
             parsedEmail.subject || "",
-            parsedEmail.html || parsedEmail.textAsHtml || parsedEmail.text || ""
+            parsedEmail.html || parsedEmail.textAsHtml || parsedEmail.text || "",
+            message_id
         ).run();
         if (!success) {
             message.setReject(`Failed save message to ${message.to}`);
             console.log(`Failed save message from ${message.from} to ${message.to}`);
         }
+        // auto reply email
         try {
             const results = await env.DB.prepare(
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
@@ -74,6 +78,27 @@ async function email(message, env, ctx) {
             }
         } catch (error) {
             console.log("reply email error", error);
+        }
+        // process attachments
+        try {
+            if (
+                parsedEmail.attachments
+                && parsedEmail.attachments.length > 0
+            ) {
+                const { success } = await env.DB.prepare(
+                    `INSERT INTO attachments (source, address, message_id, data) VALUES (?, ?, ?, ?)`
+                ).bind(
+                    message.from, message.to, message_id,
+                    JSON.stringify(parsedEmail.attachments)
+                ).run();
+                if (!success) {
+                    message.setReject(`Failed save attachment to ${message.to}`);
+                    console.log(`Failed save attachment from ${message.from} to ${message.to}`);
+                }
+            }
+        }
+        catch (error) {
+            console.log("save attachment error", error);
         }
     } else {
         message.setReject(`Unknown address ${message.to}`);

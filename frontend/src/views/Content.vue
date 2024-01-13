@@ -1,13 +1,14 @@
 <script setup>
 import { NSpace, NAlert, NSwitch, NCard, NInput, NInputGroupLabel } from 'naive-ui'
 import { NButton, NLayout, NInputGroup, NModal, NSelect, NPagination } from 'naive-ui'
-import { NList, NListItem, NThing, NTag } from 'naive-ui'
+import { NList, NListItem, NThing, NTag, NIcon } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
 import useClipboard from 'vue-clipboard3'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
 import { api } from '../api'
+import { CloudDownloadRound } from '@vicons/material'
 
 const { toClipboard } = useClipboard()
 const message = useMessage()
@@ -24,6 +25,9 @@ const emailDomain = ref("")
 const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
+
+const showAttachments = ref(false)
+const curAttachments = ref([])
 
 const { t } = useI18n({
   locale: 'zh',
@@ -42,6 +46,7 @@ const { t } = useI18n({
       refresh: 'Refresh',
       password: 'Password',
       passwordTip: 'Please copy the password and you can use it to login to your email account.',
+      attachments: 'Show Attachments',
     },
     zh: {
       yourAddress: '你的邮箱地址是',
@@ -57,6 +62,7 @@ const { t } = useI18n({
       refresh: '刷新',
       password: '密码',
       passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
+      attachments: '查看附件',
     }
   }
 });
@@ -128,6 +134,31 @@ const newEmail = async () => {
   }
 };
 
+const getAttachments = async (attachment_id) => {
+  try {
+    const res = await api.fetch(
+      `/api/attachment/${attachment_id}`
+    );
+    curAttachments.value = res
+      .filter((item) => item?.content?.data)
+      .map((item) => {
+        return {
+          id: item.contentId || Math.random().toString(36).substring(2, 15),
+          filename: item.filename || "",
+          size: item.size,
+          url: URL.createObjectURL(
+            new Blob(
+              [new Uint8Array(item.content.data)],
+              { type: item.contentType || 'application/octet-stream' }
+            ))
+        }
+      });
+    showAttachments.value = true;
+  } catch (error) {
+    message.error(error.message || "error");
+  }
+};
+
 onMounted(async () => {
   await api.getOpenSettings(message);
   emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
@@ -182,6 +213,10 @@ onMounted(async () => {
                 <n-tag type="info">
                   ID: {{ row.id }}
                 </n-tag>
+                <n-button v-if="row.attachment_id" size="small" tertiary type="info"
+                  @click="getAttachments(row.attachment_id)">
+                  {{ t('attachments') }}
+                </n-button>
               </n-space>
             </template>
             <div v-html="row.message"></div>
@@ -224,6 +259,31 @@ onMounted(async () => {
       <n-card>
         <b>{{ jwt }}</b>
       </n-card>
+      <template #action>
+      </template>
+    </n-modal>
+    <n-modal v-model:show="showAttachments" preset="dialog" title="Dialog">
+      <template #header>
+        <div>{{ t("attachments") }}</div>
+      </template>
+      <n-list hoverable clickable>
+        <n-list-item v-for="row in curAttachments" v-bind:key="row.id">
+          <n-thing class="center" :title="row.filename">
+            <template #description>
+              <n-space>
+                <n-tag type="info">
+                  Size: {{ row.size }}
+                </n-tag>
+              </n-space>
+            </template>
+          </n-thing>
+          <template #suffix>
+            <n-button tag="a" target="_blank" tertiary type="info" size="small'" :download="row.filename" :href="row.url">
+              <n-icon :component="CloudDownloadRound" />
+            </n-button>
+          </template>
+        </n-list-item>
+      </n-list>
       <template #action>
       </template>
     </n-modal>

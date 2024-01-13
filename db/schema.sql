@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS mails (
     id INTEGER PRIMARY KEY,
+    message_id TEXT,
     source TEXT,
     address TEXT,
     subject TEXT,
@@ -21,5 +22,14 @@ CREATE TABLE IF NOT EXISTS auto_reply_mails (
     subject TEXT,
     message TEXT,
     enabled INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS attachments (
+    id INTEGER PRIMARY KEY,
+    source TEXT,
+    address TEXT,
+    message_id TEXT,
+    data TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
