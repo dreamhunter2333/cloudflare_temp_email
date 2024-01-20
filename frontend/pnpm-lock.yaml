@@ -36,13 +36,13 @@ dependencies:
 devDependencies:
   '@vitejs/plugin-vue':
     specifier: ^4.6.2
-    version: 4.6.2(vite@4.5.1)(vue@3.4.13)
+    version: 4.6.2(vite@4.5.2)(vue@3.4.13)
   vite:
-    specifier: ^4.5.1
-    version: 4.5.1
+    specifier: ^4.5.2
+    version: 4.5.2
   vite-plugin-pwa:
     specifier: ^0.17.4
-    version: 0.17.4(vite@4.5.1)(workbox-build@7.0.0)(workbox-window@7.0.0)
+    version: 0.17.4(vite@4.5.2)(workbox-build@7.0.0)(workbox-window@7.0.0)
 
 packages:
 
@@ -1631,14 +1631,14 @@ packages:
     resolution: {integrity: sha512-chv1CYAl8P32P3Ycwgd5+vw/OFNc2mtkKdb1Rw4T5IJmKy6GVDsoUKV3N2l208HATn7CCQphZtuPDdsm7K2kmA==}
     dev: false
 
-  /@vitejs/plugin-vue@4.6.2(vite@4.5.1)(vue@3.4.13):
+  /@vitejs/plugin-vue@4.6.2(vite@4.5.2)(vue@3.4.13):
     resolution: {integrity: sha512-kqf7SGFoG+80aZG6Pf+gsZIVvGSCKE98JbiWqcCV9cThtg91Jav0yvYFC9Zb+jKetNGF6ZKeoaxgZfND21fWKw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
       vite: ^4.0.0 || ^5.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 4.5.1
+      vite: 4.5.2
       vue: 3.4.13
     dev: true
 
@@ -3283,7 +3283,7 @@ packages:
       vue: 3.4.13
     dev: false
 
-  /vite-plugin-pwa@0.17.4(vite@4.5.1)(workbox-build@7.0.0)(workbox-window@7.0.0):
+  /vite-plugin-pwa@0.17.4(vite@4.5.2)(workbox-build@7.0.0)(workbox-window@7.0.0):
     resolution: {integrity: sha512-j9iiyinFOYyof4Zk3Q+DtmYyDVBDAi6PuMGNGq6uGI0pw7E+LNm9e+nQ2ep9obMP/kjdWwzilqUrlfVRj9OobA==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
@@ -3294,15 +3294,15 @@ packages:
       debug: 4.3.4
       fast-glob: 3.3.2
       pretty-bytes: 6.1.1
-      vite: 4.5.1
+      vite: 4.5.2
       workbox-build: 7.0.0
       workbox-window: 7.0.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite@4.5.1:
-    resolution: {integrity: sha512-AXXFaAJ8yebyqzoNB9fu2pHoo/nWX+xZlaRwoeYUxEqBO+Zj4msE5G+BhGBll9lYEKv9Hfks52PAF2X7qDYXQA==}
+  /vite@4.5.2:
+    resolution: {integrity: sha512-tBCZBNSBbHQkaGyhGCDUGqeo2ph8Fstyp6FMSvTtsXeZSPpSMGlviAOav2hxVTqFcx8Hj/twtWKsMJXNY0xI8w==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:

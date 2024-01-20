@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.6.2",
-    "vite": "^4.5.1",
+    "vite": "^4.5.2",
     "vite-plugin-pwa": "^0.17.4"
   }
 }
