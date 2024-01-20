@@ -2,6 +2,22 @@
 
 ## [English](README_EN.md)
 
+- [Backend](https://temp-email-api.dreamhunter2333.xyz/) Status:
+![](https://uptime.aks.awsl.icu/api/badge/10/status)
+![](https://uptime.aks.awsl.icu/api/badge/10/uptime)
+![](https://uptime.aks.awsl.icu/api/badge/10/ping)
+![](https://uptime.aks.awsl.icu/api/badge/10/avg-response)
+![](https://uptime.aks.awsl.icu/api/badge/10/cert-exp)
+![](https://uptime.aks.awsl.icu/api/badge/10/response)
+
+- [Frontend](https://temp-email.dreamhunter2333.xyz/) Status:
+![](https://uptime.aks.awsl.icu/api/badge/12/status)
+![](https://uptime.aks.awsl.icu/api/badge/12/uptime)
+![](https://uptime.aks.awsl.icu/api/badge/12/ping)
+![](https://uptime.aks.awsl.icu/api/badge/12/avg-response)
+![](https://uptime.aks.awsl.icu/api/badge/12/cert-exp)
+![](https://uptime.aks.awsl.icu/api/badge/12/response)
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date&theme=dark" />
   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
