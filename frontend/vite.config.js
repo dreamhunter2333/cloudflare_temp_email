@@ -22,9 +22,9 @@ export default defineConfig({
         description: 'Temp Email - Temporary Email',
         icons: [
           {
-            src: '/logo.svg',
+            src: '/logo.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png'
           }
         ]
       }
