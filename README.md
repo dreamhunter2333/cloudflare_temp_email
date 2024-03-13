@@ -157,6 +157,8 @@ pnpm run deploy
 
 ## Cloudflare Email Routing
 
+配置对应域名的 `电子邮件 DNS 记录`
+
 配置 `Cloudflare Email Routing` catch-all 发送到 `worker`
 
 
