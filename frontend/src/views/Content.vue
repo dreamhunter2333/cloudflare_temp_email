@@ -219,7 +219,7 @@ onMounted(async () => {
                 </n-button>
               </n-space>
             </template>
-            <div v-html="row.message"></div>
+            <div v-html="row.message" style="max-height: 400px; overflow: auto; text-align: left;"></div>
           </n-thing>
         </n-list-item>
       </n-list>
@@ -278,7 +278,8 @@ onMounted(async () => {
             </template>
           </n-thing>
           <template #suffix>
-            <n-button tag="a" target="_blank" tertiary type="info" size="small'" :download="row.filename" :href="row.url">
+            <n-button tag="a" target="_blank" tertiary type="info" size="small'" :download="row.filename"
+              :href="row.url">
               <n-icon :component="CloudDownloadRound" />
             </n-button>
           </template>
