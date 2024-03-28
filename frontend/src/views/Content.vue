@@ -197,7 +197,7 @@ onMounted(async () => {
           </n-button>
         </span>
       </n-alert>
-      <n-split v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" default-size="0.25">
+      <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" default-size="0.25">
         <template #1>
           <div>
             <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
@@ -233,13 +233,13 @@ onMounted(async () => {
         </template>
         <template #2>
           <n-card v-if="curMail" :title="curMail.subject" style="overflow: scroll;">
-            <n-tag type="info">
-              ID: {{ curMail.id }}
-            </n-tag>
-            <n-tag type="info">
-              FROM: {{ curMail.source }}
-            </n-tag>
             <n-space>
+              <n-tag type="info">
+                ID: {{ curMail.id }}
+              </n-tag>
+              <n-tag type="info">
+                FROM: {{ curMail.source }}
+              </n-tag>
               <n-button v-if="curMail.attachment_id" size="small" tertiary type="info"
                 @click="getAttachments(curMail.attachment_id)">
                 {{ t('attachments') }}
@@ -252,7 +252,7 @@ onMounted(async () => {
           </n-card>
         </template>
       </n-split>
-      <div v-else>
+      <div class="left" v-else>
         <div>
           <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
             <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
@@ -286,14 +286,14 @@ onMounted(async () => {
         </div>
         <n-drawer v-model:show="curMail" width="100%" :trap-focus="false" :block-scroll="false" to="#drawer-target">
           <n-drawer-content :title="curMail.subject" closable>
-            <n-tag type="info">
-              ID: {{ curMail.id }}
-            </n-tag>
-            <n-tag type="info">
-              FROM: {{ curMail.source }}
-            </n-tag>
             <n-card style="overflow: scroll;">
               <n-space>
+                <n-tag type="info">
+                  ID: {{ curMail.id }}
+                </n-tag>
+                <n-tag type="info">
+                  FROM: {{ curMail.source }}
+                </n-tag>
                 <n-button v-if="curMail.attachment_id" size="small" tertiary type="info"
                   @click="getAttachments(curMail.attachment_id)">
                   {{ t('attachments') }}
@@ -378,7 +378,7 @@ onMounted(async () => {
   text-align: center;
 }
 
-.n-split {
+.left {
   overflow: scroll;
   text-align: left;
 }

@@ -16,6 +16,10 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
+      workbox: {
+        disableDevLogs: true,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+      },
       manifest: {
         name: 'Temp Email',
         short_name: 'Temp Email',
