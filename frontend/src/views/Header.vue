@@ -61,6 +61,7 @@ const { t } = useI18n({
             authTip: 'Please enter the correct auth code',
             settings: 'Settings',
             home: 'Home',
+            menu: 'Menu'
         },
         zh: {
             title: 'Cloudflare 临时邮件',
@@ -73,6 +74,7 @@ const { t } = useI18n({
             authTip: '请输入正确的授权码',
             settings: '设置',
             home: '主页',
+            menu: '菜单'
         }
     }
 });
@@ -160,7 +162,8 @@ const menuOptions = computed(() => [
 
 const menuOptionsMobile = [
     {
-        label: () => h(
+        label: t('menu'),
+        icon: () => h(
             NIcon,
             {
                 component: MenuFilled
