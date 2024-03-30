@@ -1,7 +1,7 @@
 <script setup>
 import { NSpace, NAlert, NSwitch, NCard, NInput, NInputGroupLabel } from 'naive-ui'
 import { NButton, NLayout, NInputGroup, NModal, NSelect, NPagination } from 'naive-ui'
-import { NList, NListItem, NThing, NTag, NIcon, NSplit } from 'naive-ui'
+import { NList, NListItem, NThing, NTag, NIcon, NSplit, NResult } from 'naive-ui'
 import { NDrawer, NDrawerContent } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
 import useClipboard from 'vue-clipboard3'
@@ -106,6 +106,9 @@ const refresh = async () => {
     data.value = results;
     if (totalCount > 0) {
       count.value = totalCount;
+    }
+    if (!isMobile.value && !curMail.value && data.value.length > 0) {
+      curMail.value = results[0];
     }
   } catch (error) {
     message.error(error.message || "error");
@@ -248,7 +251,8 @@ onMounted(async () => {
             <div v-html="curMail.message" style="max-height: 100vh;"></div>
           </n-card>
           <n-card v-else>
-            {{ t('pleaseSelectMail') }}
+            <n-result status="info" :title="t('pleaseSelectMail')">
+            </n-result>
           </n-card>
         </template>
       </n-split>
