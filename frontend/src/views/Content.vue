@@ -16,7 +16,7 @@ const { toClipboard } = useClipboard()
 const message = useMessage()
 const isMobile = useIsMobile()
 
-const { jwt, settings, openSettings } = useGlobalState()
+const { jwt, settings, openSettings, themeSwitch } = useGlobalState()
 const autoRefresh = ref(false)
 const data = ref([])
 const timer = ref(null)
@@ -219,7 +219,8 @@ onMounted(async () => {
           </div>
           <div style="overflow: scroll; max-height: 80vh;">
             <n-list hoverable clickable>
-              <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
+              <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
+                :class="curMail && row.id == curMail.id ? (themeSwitch ? 'overlay overlay-dark-backgroud' : 'overlay overlay-light-backgroud') : ''">
                 <n-thing class="center" :title="row.subject" style="overflow: scroll">
                   <template #description>
                     <n-tag type="info">
@@ -385,5 +386,19 @@ onMounted(async () => {
 .left {
   overflow: scroll;
   text-align: left;
+}
+
+.overlay {
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+
+.overlay-dark-backgroud {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.overlay-light-backgroud {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 </style>
