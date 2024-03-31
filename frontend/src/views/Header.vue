@@ -1,8 +1,11 @@
 <script setup>
 import { NGrid, NLayoutHeader, NInput } from 'naive-ui'
-import { NButton, NSelect, NModal, NIcon, NMenu } from 'naive-ui'
-import { NSwitch, NPopconfirm } from 'naive-ui'
-import { ref, h, computed } from 'vue'
+import { NButton, NSelect, NModal, NIcon, NMenu, NAlert } from 'naive-ui'
+import { NInputGroup, NInputGroupLabel, NCard, NResult } from 'naive-ui'
+import { NSwitch, NPopconfirm, NSkeleton } from 'naive-ui'
+import { useMessage } from 'naive-ui'
+import useClipboard from 'vue-clipboard3'
+import { ref, h, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
@@ -10,14 +13,20 @@ import { DarkModeFilled, DarkModeOutlined, StarOutlineFilled, MenuFilled } from 
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
+const { toClipboard } = useClipboard()
+const message = useMessage()
 
 const { jwt, localeCache, themeSwitch, showAuth, adminAuth, auth } = useGlobalState()
+const { showLogin, openSettings, settings } = useGlobalState()
 const router = useRouter()
 const isMobile = useIsMobile()
 
-const showLogin = ref(false)
+const showNewEmail = ref(false)
 const showLogout = ref(false)
 const password = ref('')
+const showPassword = ref(false)
+const emailName = ref("")
+const emailDomain = ref("")
 
 const login = async () => {
     try {
@@ -61,7 +70,18 @@ const { t } = useI18n({
             authTip: 'Please enter the correct auth code',
             settings: 'Settings',
             home: 'Home',
-            menu: 'Menu'
+            menu: 'Menu',
+            pleaseGetNewEmail: 'Please login or click "Get New Email" button to get a new email address',
+            getNewEmail: 'Get New Email',
+            getNewEmailTip1: 'Please input the email you want to use.',
+            getNewEmailTip2: 'Levaing it blank will generate a random email address.',
+            yourAddress: 'Your email address is',
+            password: 'Password',
+            passwordTip: 'Please copy the password and you can use it to login to your email account.', cancel: 'Cancel',
+            ok: 'OK',
+            copy: 'Copy',
+            copied: 'Copied',
+            showPassword: 'Show Password', fetchAddressError: 'Fetch address error, maybe your jwt is invalid or network error.',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
@@ -74,7 +94,20 @@ const { t } = useI18n({
             authTip: '请输入正确的授权码',
             settings: '设置',
             home: '主页',
-            menu: '菜单'
+            menu: '菜单',
+            pleaseGetNewEmail: '请"登录"或点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
+            getNewEmail: '获取新邮箱',
+            getNewEmailTip1: '请输入你想要使用的邮箱地址。',
+            getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
+            yourAddress: '你的邮箱地址是',
+            password: '密码',
+            passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
+            cancel: '取消',
+            ok: '确定',
+            copy: '复制',
+            copied: '已复制',
+            showPassword: '显示密码',
+            fetchAddressError: '获取地址失败, 请检查你的 jwt 是否有效 或 网络是否正常。',
         }
     }
 });
@@ -126,19 +159,6 @@ const menuOptions = computed(() => [
             {
                 tertiary: true,
                 ghost: true,
-                onClick: () => { showLogin.value = true }
-            },
-            { default: () => t('login') }
-        ),
-        show: !jwt.value,
-        key: "login"
-    },
-    {
-        label: () => h(
-            NButton,
-            {
-                tertiary: true,
-                ghost: true,
                 onClick: () => { showLogout.value = true }
             },
             { default: () => t('logout') }
@@ -156,6 +176,7 @@ const menuOptions = computed(() => [
             },
             { default: () => t('settings') }
         ),
+        show: !!settings.value.address,
         key: "settings"
     }
 ]);
@@ -173,6 +194,37 @@ const menuOptionsMobile = [
         children: menuOptions.value
     },
 ];
+
+
+const copy = async () => {
+    try {
+        await toClipboard(settings.value.address)
+        message.success(t('copied'));
+    } catch (e) {
+        message.error(e.message || "error");
+    }
+}
+
+const newEmail = async () => {
+    try {
+        const res = await api.fetch(
+            `/api/new_address`
+            + `?name=${emailName.value || ''}`
+            + `&domain=${emailDomain.value || ''}`
+        );
+        jwt.value = res["jwt"];
+        await api.getSettings();
+        showNewEmail.value = false;
+        showPassword.value = true;
+    } catch (error) {
+        message.error(error.message || "error");
+    }
+};
+
+onMounted(async () => {
+    await api.getOpenSettings(message);
+    emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
+});
 </script>
 
 <template>
@@ -198,6 +250,73 @@ const menuOptionsMobile = [
                 </n-button>
             </div>
         </n-layout-header>
+        <n-card v-if="!settings.fetched">
+            <n-skeleton style="height: 50vh" />
+        </n-card>
+        <n-alert v-else-if="settings.address" type="info" show-icon>
+            <span>
+                {{ t('yourAddress') }} <b>{{ settings.address }}</b>
+                <n-button size="small" class="center" @click="showPassword = true" tertiary round type="primary">
+                    {{ t('showPassword') }}
+                </n-button>
+                <n-button @click="copy" size="small" tertiary round type="primary">
+                    {{ t('copy') }}
+                </n-button>
+            </span>
+        </n-alert>
+        <n-card v-else>
+            <n-result status="info" :description="t('pleaseGetNewEmail')">
+                <template #footer>
+                    <n-alert v-if="jwt" type="warning" show-icon>
+                        <span>{{ t('fetchAddressError') }}</span>
+                    </n-alert>
+                    <n-button @click="showLogin = true" tertiary round type="primary">
+                        {{ t('login') }}
+                    </n-button>
+                    <n-button @click="showNewEmail = true" tertiary round type="primary">
+                        {{ t('getNewEmail') }}
+                    </n-button>
+                </template>
+            </n-result>
+        </n-card>
+        <n-modal v-model:show="showNewEmail" preset="dialog" title="Dialog">
+            <template #header>
+                <div>{{ t('getNewEmail') }}</div>
+            </template>
+            <span>
+                <p>{{ t("getNewEmailTip1") }}</p>
+                <p>{{ t("getNewEmailTip2") }}</p>
+            </span>
+            <n-input-group>
+                <n-input-group-label v-if="openSettings.prefix">
+                    {{ openSettings.prefix }}
+                </n-input-group-label>
+                <n-input v-model:value="emailName" />
+                <n-input-group-label>@</n-input-group-label>
+                <n-select v-model:value="emailDomain" :consistent-menu-width="false" :options="openSettings.domains" />
+            </n-input-group>
+            <template #action>
+                <n-button @click="showNewEmail = false">
+                    {{ t('cancel') }}
+                </n-button>
+                <n-button @click="newEmail" type="primary">
+                    {{ t('ok') }}
+                </n-button>
+            </template>
+        </n-modal>
+        <n-modal v-model:show="showPassword" preset="dialog" title="Dialog">
+            <template #header>
+                <div>{{ t("password") }}</div>
+            </template>
+            <span>
+                <p>{{ t("passwordTip") }}</p>
+            </span>
+            <n-card>
+                <b>{{ jwt }}</b>
+            </n-card>
+            <template #action>
+            </template>
+        </n-modal>
         <n-modal v-model:show="showLogin" preset="dialog" title="Dialog">
             <template #header>
                 <div>{{ t('login') }}</div>
@@ -245,5 +364,15 @@ const menuOptionsMobile = [
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.n-alert {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.n-card {
+    margin-top: 10px;
 }
 </style>
