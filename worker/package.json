@@ -8,12 +8,12 @@
     "start": "wrangler dev"
   },
   "devDependencies": {
-    "wrangler": "^3.20.0"
+    "wrangler": "^3.41.0"
   },
   "dependencies": {
-    "hono": "^3.11.7",
-    "mailparser": "^3.6.5",
-    "mimetext": "^3.0.16",
+    "hono": "^4.1.7",
+    "mailparser": "3.6.5",
+    "mimetext": "^3.0.24",
     "postal-mime": "^1.1.0"
   },
   "pnpm": {

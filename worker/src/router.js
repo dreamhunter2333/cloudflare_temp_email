@@ -16,7 +16,7 @@ api.get('/api/mails', async (c) => {
         return c.text("Invalid offset", 400)
     }
     const { results } = await c.env.DB.prepare(
-        `SELECT id, source, subject, message, message_id FROM mails where address = ? order by id desc limit ? offset ?`
+        `SELECT id, source, subject, message, message_id, created_at FROM mails where address = ? order by id desc limit ? offset ?`
     ).bind(address, limit, offset).all();
     let count = 0;
     if (offset == 0) {
@@ -28,7 +28,6 @@ api.get('/api/mails', async (c) => {
     // add attachments
     let attachmentResults = [];
     const message_ids = results.map((r) => r.message_id).filter((r) => r);
-    console.log("message_ids", message_ids.map((id) => `'${id}'`).join(","));
     if (message_ids && message_ids.length > 0) {
         const { results: innerAttachmentResults } = await c.env.DB.prepare(
             `SELECT id, message_id FROM attachments where message_id in (${message_ids.map((id) => `'${id}'`).join(",")})`
