@@ -4,7 +4,6 @@ import { NButton, NLayout, NInputGroup, NModal, NSelect, NPagination } from 'nai
 import { NList, NListItem, NThing, NTag, NIcon, NSplit, NResult } from 'naive-ui'
 import { NDrawer, NDrawerContent } from 'naive-ui'
 import { watch, onMounted, ref } from "vue";
-import useClipboard from 'vue-clipboard3'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
@@ -119,6 +118,10 @@ const getAttachments = async (attachment_id) => {
   }
 };
 
+const mailItemClass = (row) => {
+  return curMail.value && row.id == curMail.value.id ? (themeSwitch.value ? 'overlay overlay-dark-backgroud' : 'overlay overlay-light-backgroud') : '';
+};
+
 onMounted(async () => {
   await api.getSettings();
   await refresh();
@@ -128,7 +131,7 @@ onMounted(async () => {
 <template>
   <div>
     <n-layout v-if="settings.address">
-      <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" default-size="0.25">
+      <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" :default-size="0.25">
         <template #1>
           <div>
             <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
@@ -148,7 +151,7 @@ onMounted(async () => {
           <div style="overflow: scroll; max-height: 80vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
-                :class="curMail && row.id == curMail.id ? (themeSwitch ? 'overlay overlay-dark-backgroud' : 'overlay overlay-light-backgroud') : ''">
+                :class="mailItemClass(row)">
                 <n-thing class="center" :title="row.subject" style="overflow: scroll">
                   <template #description>
                     <n-tag type="info">
