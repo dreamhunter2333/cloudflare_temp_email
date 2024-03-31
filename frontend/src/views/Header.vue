@@ -9,7 +9,8 @@ import { ref, h, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
-import { DarkModeFilled, DarkModeOutlined, StarOutlineFilled, MenuFilled } from '@vicons/material'
+import { DarkModeFilled, LightModeFilled, MenuFilled } from '@vicons/material'
+import { GithubAlt, Language, User, Home, Copy } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -71,6 +72,7 @@ const { t } = useI18n({
             settings: 'Settings',
             home: 'Home',
             menu: 'Menu',
+            user: 'User',
             pleaseGetNewEmail: 'Please login or click "Get New Email" button to get a new email address',
             getNewEmail: 'Get New Email',
             getNewEmailTip1: 'Please input the email you want to use.',
@@ -81,7 +83,8 @@ const { t } = useI18n({
             ok: 'OK',
             copy: 'Copy',
             copied: 'Copied',
-            showPassword: 'Show Password', fetchAddressError: 'Fetch address error, maybe your jwt is invalid or network error.',
+            showPassword: 'Show Password',
+            fetchAddressError: 'Fetch address error, maybe your jwt is invalid or network error.',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
@@ -95,6 +98,7 @@ const { t } = useI18n({
             settings: '设置',
             home: '主页',
             menu: '菜单',
+            user: '用户',
             pleaseGetNewEmail: '请"登录"或点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
             getNewEmail: '获取新邮箱',
             getNewEmailTip1: '请输入你想要使用的邮箱地址。',
@@ -106,7 +110,7 @@ const { t } = useI18n({
             ok: '确定',
             copy: '复制',
             copied: '已复制',
-            showPassword: '显示密码',
+            showPassword: '查看密码',
             fetchAddressError: '获取地址失败, 请检查你的 jwt 是否有效 或 网络是否正常。',
         }
     }
@@ -118,11 +122,15 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                tertiary: true,
+                bordered: false,
                 ghost: true,
+                size: "small",
                 onClick: () => router.push('/')
             },
-            { default: () => t('home') }
+            {
+                default: () => t('home'),
+                icon: () => h(NIcon, { component: Home })
+            }
         ),
         key: "home"
     },
@@ -130,8 +138,9 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                tertiary: true,
+                bordered: false,
                 ghost: true,
+                size: "small",
                 onClick: () => router.push('/admin')
             },
             { default: () => "Admin" }
@@ -143,12 +152,91 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                tertiary: true,
+                bordered: false,
                 ghost: true,
+                size: "small",
+            },
+            {
+                default: () => t('user'),
+                icon: () => h(NIcon, { component: User }),
+            }
+        ),
+        show: !!settings.value.address,
+        key: "user",
+        children: [
+            {
+                label: () => h(
+                    NButton,
+                    {
+                        tertiary: true,
+                        ghost: true,
+                        size: "small",
+                        onClick: () => { showPassword.value = true }
+                    },
+                    { default: () => t('showPassword') }
+                ),
+                key: "showPassword"
+            },
+            {
+                label: () => h(
+                    NButton,
+                    {
+                        tertiary: true,
+                        ghost: true,
+                        size: "small",
+                        onClick: () => { router.push('/settings') }
+                    },
+                    { default: () => t('settings') }
+                ),
+                key: "settings"
+            },
+            {
+                label: () => h(
+                    NButton,
+                    {
+                        tertiary: true,
+                        ghost: true,
+                        size: "small",
+                        onClick: () => { showLogout.value = true }
+                    },
+                    { default: () => t('logout') }
+                ),
+                key: "logout"
+            }
+        ]
+    },
+    {
+        label: () => h(
+            NButton,
+            {
+                bordered: false,
+                ghost: true,
+                size: "small",
+                onClick: () => { themeSwitch.value = !themeSwitch.value }
+            },
+            {
+                default: () => themeSwitch.value ? t('light') : t('dark'),
+                icon: () => h(
+                    NIcon, { component: themeSwitch.value ? LightModeFilled : DarkModeFilled }
+                )
+            }
+        ),
+        key: "theme"
+    },
+    {
+        label: () => h(
+            NButton,
+            {
+                bordered: false,
+                ghost: true,
+                size: "small",
                 onClick: () => localeCache.value == 'zh' ? changeLocale('en') : changeLocale('zh')
             },
             {
-                default: () => localeCache.value == 'zh' ? "English" : "中文"
+                default: () => localeCache.value == 'zh' ? "English" : "中文",
+                icon: () => h(
+                    NIcon, { component: Language }
+                )
             }
         ),
         key: "lang"
@@ -157,27 +245,19 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                tertiary: true,
+                bordered: !isMobile.value,
                 ghost: true,
-                onClick: () => { showLogout.value = true }
+                size: "small",
+                tag: "a",
+                target: "_blank",
+                href: "https://github.com/dreamhunter2333/cloudflare_temp_email",
             },
-            { default: () => t('logout') }
-        ),
-        show: !!jwt.value,
-        key: "logout"
-    },
-    {
-        label: () => h(
-            NButton,
             {
-                tertiary: true,
-                ghost: true,
-                onClick: () => { router.push('/settings') }
-            },
-            { default: () => t('settings') }
+                default: () => "Github",
+                icon: () => h(NIcon, { component: GithubAlt })
+            }
         ),
-        show: !!settings.value.address,
-        key: "settings"
+        key: "github"
     }
 ]);
 
@@ -230,24 +310,10 @@ onMounted(async () => {
 <template>
     <div>
         <n-layout-header>
-            <h2 v-if="!isMobile" style="display: inline-block; margin-left: 10px;">{{ t('title') }}</h2>
+            <h2 style="display: inline-block; margin-left: 10px;">{{ t('title') }}</h2>
             <div>
                 <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" />
                 <n-menu v-else mode="horizontal" :options="menuOptionsMobile" />
-            </div>
-            <div>
-                <n-switch v-model:value="themeSwitch" :size="isMobile ? 'small' : 'medium'">
-                    <template #checked-icon>
-                        <n-icon :component="DarkModeFilled" />
-                    </template>
-                    <template #unchecked-icon>
-                        <n-icon :component="DarkModeOutlined" />
-                    </template>
-                </n-switch>
-                <n-button tag="a" target="_blank" tertiary type="primary" round :size="isMobile ? 'small' : 'medium'"
-                    href="https://github.com/dreamhunter2333/cloudflare_temp_email">
-                    <n-icon :component="StarOutlineFilled" /> Github
-                </n-button>
             </div>
         </n-layout-header>
         <n-card v-if="!settings.fetched">
@@ -255,12 +321,9 @@ onMounted(async () => {
         </n-card>
         <n-alert v-else-if="settings.address" type="info" show-icon>
             <span>
-                {{ t('yourAddress') }} <b>{{ settings.address }}</b>
-                <n-button size="small" class="center" @click="showPassword = true" tertiary round type="primary">
-                    {{ t('showPassword') }}
-                </n-button>
-                <n-button @click="copy" size="small" tertiary round type="primary">
-                    {{ t('copy') }}
+                <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
+                <n-button style="margin-left: 10px" @click="copy" size="small" tertiary round type="primary">
+                    <n-icon :component="Copy" /> {{ t('copy') }}
                 </n-button>
             </span>
         </n-alert>
