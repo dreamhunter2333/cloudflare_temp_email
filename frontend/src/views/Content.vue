@@ -157,6 +157,9 @@ onMounted(async () => {
                     <n-tag type="info">
                       ID: {{ row.id }}
                     </n-tag>
+                    <n-tag type="info">
+                      {{ row.created_at }}
+                    </n-tag>
                     <div style="word-break: break-all; font-size: small;">
                       FROM: {{ row.source }}
                     </div>
@@ -171,6 +174,9 @@ onMounted(async () => {
             <n-space>
               <n-tag type="info">
                 ID: {{ curMail.id }}
+              </n-tag>
+              <n-tag type="info">
+                {{ curMail.created_at }}
               </n-tag>
               <n-tag type="info">
                 FROM: {{ curMail.source }}
@@ -212,6 +218,9 @@ onMounted(async () => {
                   <n-tag type="info">
                     ID: {{ row.id }}
                   </n-tag>
+                  <n-tag type="info">
+                    {{ row.created_at }}
+                  </n-tag>
                   <div style="word-break: break-all; font-size: small;">
                     FROM: {{ row.source }}
                   </div>
@@ -226,6 +235,9 @@ onMounted(async () => {
               <n-space>
                 <n-tag type="info">
                   ID: {{ curMail.id }}
+                </n-tag>
+                <n-tag type="info">
+                  {{ curMail.created_at }}
                 </n-tag>
                 <n-tag type="info">
                   FROM: {{ curMail.source }}
