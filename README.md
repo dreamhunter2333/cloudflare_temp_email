@@ -127,7 +127,7 @@ node_compat = true
 PREFIX = "tmp" # 要处理的邮箱名称前缀
 # 如果你想要你的网站私有，取消下面的注释，并修改密码
 # PASSWORDS = ["123", "456"]
-# admin 控制台密码
+# admin 控制台密码, 不配置则不允许访问控制台
 # ADMIN_PASSWORDS = ["123", "456"]
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名
 JWT_SECRET = "xxx" # 用于生成 jwt 的密钥
