@@ -73,13 +73,13 @@ const saveSettings = async () => {
     }
 }
 
-onMounted(() => {
-    getSettings()
+onMounted(async () => {
+    await getSettings()
 })
 </script>
 
 <template>
-    <n-space vertical>
+    <n-space v-if="settings.address" vertical>
         <Header />
         <h1>{{ t("settings") }}</h1>
         <n-button type="primary" @click="saveSettings">{{ t('save') }}</n-button>

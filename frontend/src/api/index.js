@@ -63,14 +63,18 @@ const getOpenSettings = async (message) => {
 }
 
 const getSettings = async () => {
-    if (typeof jwt.value != 'string' || jwt.value.trim() === '' || jwt.value === 'undefined') {
-        return "";
+    try {
+        if (typeof jwt.value != 'string' || jwt.value.trim() === '' || jwt.value === 'undefined') {
+            return "";
+        }
+        const res = await apiFetch("/api/settings");;
+        settings.value = {
+            address: res["address"],
+            auto_reply: res["auto_reply"]
+        };
+    } finally {
+        settings.value.fetched = true;
     }
-    const res = await apiFetch("/api/settings");;
-    settings.value = {
-        address: res["address"],
-        auto_reply: res["auto_reply"]
-    };
 }
 
 const adminShowPassword = async (id) => {

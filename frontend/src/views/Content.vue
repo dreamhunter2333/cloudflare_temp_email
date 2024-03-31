@@ -12,18 +12,13 @@ import { api } from '../api'
 import { CloudDownloadRound } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
 
-const { toClipboard } = useClipboard()
 const message = useMessage()
 const isMobile = useIsMobile()
 
-const { jwt, settings, openSettings, themeSwitch } = useGlobalState()
+const { settings, themeSwitch } = useGlobalState()
 const autoRefresh = ref(false)
 const data = ref([])
 const timer = ref(null)
-const showPassword = ref(false)
-const showNewEmail = ref(false)
-const emailName = ref("")
-const emailDomain = ref("")
 
 const count = ref(0)
 const page = ref(1)
@@ -31,41 +26,20 @@ const pageSize = ref(20)
 
 const showAttachments = ref(false)
 const curAttachments = ref([])
+const curMail = ref(null);
 
 const { t } = useI18n({
   locale: 'zh',
   messages: {
     en: {
-      yourAddress: 'Your email address is',
-      pleaseGetNewEmail: 'Please click "Get New Email" button to get a new email address',
-      getNewEmail: 'Get New Email',
-      getNewEmailTip1: 'Please input the email you want to use.',
-      getNewEmailTip2: 'Levaing it blank will generate a random email address.',
-      cancel: 'Cancel',
-      ok: 'OK',
-      copy: 'Copy',
-      showPassword: 'Show Password',
       autoRefresh: 'Auto Refresh',
       refresh: 'Refresh',
-      password: 'Password',
-      passwordTip: 'Please copy the password and you can use it to login to your email account.',
       attachments: 'Show Attachments',
       pleaseSelectMail: "Please select a mail to view."
     },
     zh: {
-      yourAddress: '你的邮箱地址是',
-      pleaseGetNewEmail: '请点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
-      getNewEmail: '获取新邮箱',
-      getNewEmailTip1: '请输入你想要使用的邮箱地址。',
-      getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
-      cancel: '取消',
-      ok: '确定',
-      copy: '复制',
-      showPassword: '显示密码',
       autoRefresh: '自动刷新',
       refresh: '刷新',
-      password: '密码',
-      passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
       attachments: '查看附件',
       pleaseSelectMail: "请选择一封邮件查看。"
     }
@@ -116,33 +90,6 @@ const refresh = async () => {
   }
 };
 
-const copy = async () => {
-  try {
-    await toClipboard(settings.value.address)
-    message.success('Copied');
-  } catch (e) {
-    message.error(e.message || "error");
-  }
-}
-
-const newEmail = async () => {
-  try {
-    const res = await api.fetch(
-      `/api/new_address`
-      + `?name=${emailName.value || ''}`
-      + `&domain=${emailDomain.value || ''}`
-    );
-    jwt.value = res["jwt"];
-    await api.getSettings();
-    await refresh();
-    showNewEmail.value = false;
-    showPassword.value = true;
-  } catch (error) {
-    message.error(error.message || "error");
-  }
-};
-
-const curMail = ref(null);
 const clickRow = async (row) => {
   curMail.value = row;
 };
@@ -173,8 +120,6 @@ const getAttachments = async (attachment_id) => {
 };
 
 onMounted(async () => {
-  await api.getOpenSettings(message);
-  emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
   await api.getSettings();
   await refresh();
 });
@@ -182,24 +127,7 @@ onMounted(async () => {
 
 <template>
   <div>
-    <n-layout>
-      <n-alert :type='settings.address ? "info" : "warning"' show-icon>
-        <span v-if="settings.address">
-          {{ t('yourAddress') }} <b>{{ settings.address }}</b>
-          <n-button size="small" class="center" @click="showPassword = true" tertiary round type="primary">
-            {{ t('showPassword') }}
-          </n-button>
-          <n-button @click="copy" size="small" tertiary round type="primary">
-            {{ t('copy') }}
-          </n-button>
-        </span>
-        <span v-else>
-          {{ t('pleaseGetNewEmail') }}
-          <n-button class="center" @click="showNewEmail = true" tertiary round type="primary">
-            {{ t('getNewEmail') }}
-          </n-button>
-        </span>
-      </n-alert>
+    <n-layout v-if="settings.address">
       <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" default-size="0.25">
         <template #1>
           <div>
@@ -310,44 +238,6 @@ onMounted(async () => {
         </n-drawer>
       </div>
     </n-layout>
-    <n-modal v-model:show="showNewEmail" preset="dialog" title="Dialog">
-      <template #header>
-        <div>{{ t('getNewEmail') }}</div>
-      </template>
-      <span>
-        <p>{{ t("getNewEmailTip1") }}</p>
-        <p>{{ t("getNewEmailTip2") }}</p>
-      </span>
-      <n-input-group>
-        <n-input-group-label v-if="openSettings.prefix">
-          {{ openSettings.prefix }}
-        </n-input-group-label>
-        <n-input v-model:value="emailName" />
-        <n-input-group-label>@</n-input-group-label>
-        <n-select v-model:value="emailDomain" :consistent-menu-width="false" :options="openSettings.domains" />
-      </n-input-group>
-      <template #action>
-        <n-button @click="showNewEmail = false">
-          {{ t('cancel') }}
-        </n-button>
-        <n-button @click="newEmail" type="primary">
-          {{ t('ok') }}
-        </n-button>
-      </template>
-    </n-modal>
-    <n-modal v-model:show="showPassword" preset="dialog" title="Dialog">
-      <template #header>
-        <div>{{ t("password") }}</div>
-      </template>
-      <span>
-        <p>{{ t("passwordTip") }}</p>
-      </span>
-      <n-card>
-        <b>{{ jwt }}</b>
-      </n-card>
-      <template #action>
-      </template>
-    </n-modal>
     <n-modal v-model:show="showAttachments" preset="dialog" title="Dialog">
       <template #header>
         <div>{{ t("attachments") }}</div>
@@ -378,11 +268,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.n-alert {
-  margin-bottom: 10px;
-  text-align: center;
-}
-
 .left {
   overflow: scroll;
   text-align: left;

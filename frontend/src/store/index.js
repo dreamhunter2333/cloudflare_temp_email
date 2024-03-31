@@ -13,6 +13,7 @@ export const useGlobalState = createGlobalState(
             }]
         })
         const settings = ref({
+            fetched: false,
             address: '',
             auto_reply: {
                 subject: '',
@@ -29,6 +30,7 @@ export const useGlobalState = createGlobalState(
         const jwt = useStorage('jwt', '');
         const localeCache = useStorage('locale', 'zhCN');
         const themeSwitch = useStorage('themeSwitch', false);
+        const showLogin = ref(false);
         return {
             loading,
             settings,
@@ -40,6 +42,7 @@ export const useGlobalState = createGlobalState(
             themeSwitch,
             adminAuth,
             showAdminAuth,
+            showLogin,
         }
     },
 )
