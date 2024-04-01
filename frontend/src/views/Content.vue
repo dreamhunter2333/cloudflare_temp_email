@@ -148,7 +148,7 @@ onMounted(async () => {
               {{ t('refresh') }}
             </n-button>
           </div>
-          <div style="overflow: scroll; max-height: 80vh;">
+          <div style="overflow: scroll; height: 80vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
@@ -188,7 +188,7 @@ onMounted(async () => {
             </n-space>
             <div v-html="curMail.message" style="max-height: 100vh;"></div>
           </n-card>
-          <n-card v-else>
+          <n-card class="mail-item" v-else>
             <n-result status="info" :title="t('pleaseSelectMail')">
             </n-result>
           </n-card>
@@ -300,5 +300,9 @@ onMounted(async () => {
 
 .overlay-light-backgroud {
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+.mail-item {
+  height: 100%;
 }
 </style>
