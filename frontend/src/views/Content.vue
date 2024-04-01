@@ -170,7 +170,7 @@ onMounted(async () => {
           </div>
         </template>
         <template #2>
-          <n-card v-if="curMail" :title="curMail.subject" style="overflow: scroll;">
+          <n-card v-if="curMail" class="mail-item" :title="curMail.subject" style="overflow: scroll;">
             <n-space>
               <n-tag type="info">
                 ID: {{ curMail.id }}
