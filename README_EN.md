@@ -32,6 +32,8 @@ This is a temporary email service that uses Cloudflare Workers to create a tempo
 # create a database, and copy the output to wrangler.toml in the next step
 wrangler d1 create dev
 wrangler d1 execute dev --file=db/schema.sql
+# schema update, if you have initialized the database before this date, you can execute this command to update
+wrangler d1 execute dev --file=db/2024-01-13-path.sql
 ```
 
 ![d1](readme_assets/d1.png)
