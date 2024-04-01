@@ -161,7 +161,7 @@ const menuOptions = computed(() => [
                 icon: () => h(NIcon, { component: User }),
             }
         ),
-        show: !!settings.value.address,
+        show: !!jwt.value,
         key: "user",
         children: [
             {
