@@ -36,6 +36,11 @@ const apiFetch = async (path, options = {}) => {
         }
         const data = response.data;
         return data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(`Code ${error.response.status}: ${error.response.data?.detail}` || "error");
+        }
+        throw error;
     } finally {
         loading.value = false;
     }

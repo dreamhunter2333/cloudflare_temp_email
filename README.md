@@ -98,7 +98,8 @@ git clone https://github.com/dreamhunter2333/cloudflare_temp_email.git
 wrangler d1 create dev
 wrangler d1 execute dev --file=db/schema.sql
 # schema 更新，如果你在此日期之前初始化过数据库，可以执行此命令更新
-# wrangler d1 execute dev --file=db/2024-01-13-path.sql
+# wrangler d1 execute dev --file=db/2024-01-13-patch.sql
+# wrangler d1 execute dev --file=db/2024-04-03-patch.sql
 ```
 
 创建完成后，我们在 cloudflare 的控制台可以看到 D1 数据库

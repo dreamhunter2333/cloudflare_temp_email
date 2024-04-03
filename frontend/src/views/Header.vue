@@ -1,15 +1,10 @@
 <script setup>
-import { NGrid, NLayoutHeader, NInput } from 'naive-ui'
-import { NButton, NSelect, NModal, NIcon, NMenu, NAlert } from 'naive-ui'
-import { NInputGroup, NInputGroupLabel, NCard, NResult } from 'naive-ui'
-import { NSwitch, NPopconfirm, NSkeleton } from 'naive-ui'
-import { useMessage } from 'naive-ui'
 import useClipboard from 'vue-clipboard3'
 import { ref, h, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
-import { DarkModeFilled, LightModeFilled, MenuFilled } from '@vicons/material'
+import { DarkModeFilled, LightModeFilled, MenuFilled, AdminPanelSettingsFilled } from '@vicons/material'
 import { GithubAlt, Language, User, Home, Copy } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
@@ -19,11 +14,14 @@ const message = useMessage()
 
 const { jwt, localeCache, themeSwitch, showAuth, adminAuth, auth } = useGlobalState()
 const { showLogin, openSettings, settings } = useGlobalState()
+const route = useRoute()
 const router = useRouter()
 const isMobile = useIsMobile()
+const isAdminRoute = computed(() => route.path.includes('admin'))
 
 const showNewEmail = ref(false)
 const showLogout = ref(false)
+const showDelteAccount = ref(false)
 const password = ref('')
 const showPassword = ref(false)
 const emailName = ref("")
@@ -67,6 +65,8 @@ const { t } = useI18n({
             login: 'Login',
             logout: 'Logout',
             logoutConfirm: 'Are you sure to logout?',
+            delteAccount: "Delete Account",
+            delteAccountConfirm: "Are you sure to delete your account and all emails for this account?",
             auth: 'Auth',
             authTip: 'Please enter the correct auth code',
             settings: 'Settings',
@@ -93,6 +93,8 @@ const { t } = useI18n({
             login: '登录',
             logout: '登出',
             logoutConfirm: '确定要登出吗？',
+            delteAccount: "删除账户",
+            delteAccountConfirm: "确定要删除你的账户和其中的所有邮件吗?",
             auth: '授权',
             authTip: '请输入正确的授权码',
             settings: '设置',
@@ -143,7 +145,10 @@ const menuOptions = computed(() => [
                 size: "small",
                 onClick: () => router.push('/admin')
             },
-            { default: () => "Admin" }
+            {
+                default: () => "Admin",
+                icon: () => h(NIcon, { component: AdminPanelSettingsFilled }),
+            }
         ),
         show: !!adminAuth.value,
         key: "admin"
@@ -202,6 +207,19 @@ const menuOptions = computed(() => [
                     { default: () => t('logout') }
                 ),
                 key: "logout"
+            },
+            {
+                label: () => h(
+                    NButton,
+                    {
+                        tertiary: true,
+                        ghost: true,
+                        size: "small",
+                        onClick: () => { showDelteAccount.value = true }
+                    },
+                    { default: () => t('delteAccount') }
+                ),
+                key: "delte_account"
             }
         ]
     },
@@ -301,6 +319,18 @@ const newEmail = async () => {
     }
 };
 
+const deleteAccount = async () => {
+    try {
+        await api.fetch(`/api/delete_address`, {
+            method: 'DELETE'
+        });
+        jwt.value = '';
+        location.reload()
+    } catch (error) {
+        message.error(error.message || "error");
+    }
+};
+
 onMounted(async () => {
     await api.getOpenSettings(message);
     emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
@@ -316,32 +346,34 @@ onMounted(async () => {
                 <n-menu v-else mode="horizontal" :options="menuOptionsMobile" />
             </div>
         </n-layout-header>
-        <n-card v-if="!settings.fetched">
-            <n-skeleton style="height: 50vh" />
-        </n-card>
-        <n-alert v-else-if="settings.address" type="info" show-icon>
-            <span>
-                <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
-                <n-button style="margin-left: 10px" @click="copy" size="small" tertiary round type="primary">
-                    <n-icon :component="Copy" /> {{ t('copy') }}
-                </n-button>
-            </span>
-        </n-alert>
-        <n-card v-else>
-            <n-result status="info" :description="t('pleaseGetNewEmail')">
-                <template #footer>
-                    <n-alert v-if="jwt" type="warning" show-icon>
-                        <span>{{ t('fetchAddressError') }}</span>
-                    </n-alert>
-                    <n-button @click="showLogin = true" tertiary round type="primary">
-                        {{ t('login') }}
+        <div v-if="!isAdminRoute">
+            <n-card v-if="!settings.fetched">
+                <n-skeleton style="height: 50vh" />
+            </n-card>
+            <n-alert v-else-if="settings.address" type="info" show-icon>
+                <span>
+                    <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
+                    <n-button style="margin-left: 10px" @click="copy" size="small" tertiary round type="primary">
+                        <n-icon :component="Copy" /> {{ t('copy') }}
                     </n-button>
-                    <n-button @click="showNewEmail = true" tertiary round type="primary">
-                        {{ t('getNewEmail') }}
-                    </n-button>
-                </template>
-            </n-result>
-        </n-card>
+                </span>
+            </n-alert>
+            <n-card v-else>
+                <n-result status="info" :description="t('pleaseGetNewEmail')">
+                    <template #footer>
+                        <n-alert v-if="jwt" type="warning" show-icon>
+                            <span>{{ t('fetchAddressError') }}</span>
+                        </n-alert>
+                        <n-button @click="showLogin = true" tertiary round type="primary">
+                            {{ t('login') }}
+                        </n-button>
+                        <n-button @click="showNewEmail = true" tertiary round type="primary">
+                            {{ t('getNewEmail') }}
+                        </n-button>
+                    </template>
+                </n-result>
+            </n-card>
+        </div>
         <n-modal v-model:show="showNewEmail" preset="dialog" title="Dialog">
             <template #header>
                 <div>{{ t('getNewEmail') }}</div>
@@ -401,6 +433,17 @@ onMounted(async () => {
             <template #action>
                 <n-button @click="logout" size="small" tertiary round type="primary">
                     {{ t('logout') }}
+                </n-button>
+            </template>
+        </n-modal>
+        <n-modal v-model:show="showDelteAccount" preset="dialog" title="Dialog">
+            <template #header>
+                <div>{{ t('delteAccount') }}</div>
+            </template>
+            <p>{{ t('delteAccountConfirm') }}</p>
+            <template #action>
+                <n-button @click="deleteAccount" size="small" tertiary round type="error">
+                    {{ t('delteAccount') }}
                 </n-button>
             </template>
         </n-modal>

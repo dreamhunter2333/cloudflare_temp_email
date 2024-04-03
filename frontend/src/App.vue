@@ -1,12 +1,11 @@
 <script setup>
-import { NMessageProvider, NGrid, NBackTop, NSpin } from 'naive-ui'
-import { NGi, NSpace, NButton, NConfigProvider } from 'naive-ui'
 import { darkTheme, NGlobalStyle } from 'naive-ui'
 import { zhCN } from 'naive-ui'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
+import Header from './views/Header.vue';
 
 const { localeCache, themeSwitch, loading } = useGlobalState()
 const theme = computed(() => themeSwitch.value ? darkTheme : null)
@@ -42,7 +41,10 @@ onMounted(async () => {
           <n-gi v-if="!isMobile" span="1"></n-gi>
           <n-gi :span="isMobile ? 12 : 10">
             <div class="main">
-              <router-view></router-view>
+              <n-space vertical>
+                <Header />
+                <router-view></router-view>
+              </n-space>
             </div>
           </n-gi>
           <n-gi v-if="!isMobile" span="1"></n-gi>

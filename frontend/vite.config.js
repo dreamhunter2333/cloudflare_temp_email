@@ -4,6 +4,9 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { splitVendorChunkPlugin } from 'vite';
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,6 +16,22 @@ export default defineConfig({
   plugins: [
     vue(),
     splitVendorChunkPlugin(),
+    AutoImport({
+      imports: [
+        'vue',
+        {
+          'naive-ui': [
+            'useMessage',
+            'NButton',
+            'NPopconfirm',
+            'NIcon',
+          ]
+        }
+      ]
+    }),
+    Components({
+      resolvers: [NaiveUiResolver()]
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
