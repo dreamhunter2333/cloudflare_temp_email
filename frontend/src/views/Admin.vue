@@ -1,12 +1,8 @@
 <script setup>
-import { NSpace, NLayoutHeader, NInput, NPagination } from 'naive-ui'
-import { NButton, NModal, NTabs, NTabPane, NInputGroup } from 'naive-ui'
-import { NList, NListItem, NThing, NTag } from 'naive-ui'
-import { NDataTable, NPopconfirm } from 'naive-ui'
 import { ref, h, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useMessage } from 'naive-ui'
+import { User, UserCheck, MailBulk } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -17,6 +13,7 @@ const message = useMessage()
 
 const showEmailPassword = ref(false)
 const curEmailPassword = ref("")
+const addressQuery = ref("")
 
 const authFunc = async () => {
   try {
@@ -42,9 +39,15 @@ const { t } = useI18n({
       delete: 'Delete',
       deleteTip: 'Are you sure to delete this email?',
       refresh: 'Refresh',
-      emails: 'Emails',
+      mails: 'Emails',
       itemCount: 'itemCount',
       query: 'Query',
+      userCount: 'User Count',
+      activeUser: '7 days Active User',
+      mailCount: 'Mail Count',
+      account: 'Account',
+      unknow: 'Unknow',
+      addressQueryTip: 'Leave blank to query all addresses',
     },
     zh: {
       title: '临时邮件 Admin',
@@ -59,9 +62,15 @@ const { t } = useI18n({
       delete: '删除',
       deleteTip: '确定要删除这个邮箱吗？',
       refresh: '刷新',
-      emails: '邮件',
+      mails: '邮件',
       itemCount: '总数',
       query: '查询',
+      userCount: '用户总数',
+      activeUser: '周活跃用户',
+      mailCount: '邮件总数',
+      account: '账号',
+      unknow: '未知',
+      addressQueryTip: '留空查询所有地址',
     }
   }
 });
@@ -97,6 +106,7 @@ const fetchData = async () => {
       `/admin/address`
       + `?limit=${pageSize.value}`
       + `&offset=${(page.value - 1) * pageSize.value}`
+      + (addressQuery.value ? `&query=${addressQuery.value}` : "")
     );
     data.value = results;
     if (addressCount > 0) {
@@ -129,6 +139,7 @@ const columns = [
         h(NButton,
           {
             type: 'success',
+            ghost: true,
             onClick: () => showPassword(row.id)
           },
           { default: () => t('showPass') }
@@ -136,12 +147,13 @@ const columns = [
         h(NButton,
           {
             type: 'success',
+            ghost: true,
             onClick: () => {
               mailAddress.value = row.name
               tab.value = "mails"
             }
           },
-          { default: () => t('emails') }
+          { default: () => t('mails') }
         ),
         h(NPopconfirm,
           {
@@ -161,12 +173,30 @@ watch([page, pageSize], async () => {
   await fetchData()
 })
 
+const statistics = ref({
+  userCount: 0,
+  mailCount: 0,
+  activeUserCount7days: 0,
+})
+
+const fetchStatistics = async () => {
+  try {
+    const { userCount, activeUserCount7days, mailCount } = await api.fetch(`/admin/statistics`);
+    statistics.value.mailCount = mailCount || 0;
+    statistics.value.userCount = userCount || 0;
+    statistics.value.activeUserCount7days = activeUserCount7days || 0;
+  } catch (error) {
+    console.log(error)
+    message.error(error.message || "error");
+  }
+}
 
 onMounted(async () => {
   if (!adminAuth.value) {
     showAdminAuth.value = true
   } else {
     await fetchData()
+    await fetchStatistics()
   }
 })
 
@@ -231,47 +261,66 @@ const fetchMailUnknowData = async () => {
 </script>
 
 <template>
-  <n-space vertical>
-    <n-layout-header>
-      <div>
-        <h2>{{ t('title') }}</h2>
-      </div>
-      <div>
-        <n-button tertiary @click="() => router.push('/')" type="primary">
-          {{ t('home') }}
+  <div>
+    <n-modal v-model:show="showAdminAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
+      title="Dialog">
+      <template #header>
+        <div>{{ t('auth') }}</div>
+      </template>
+      <p>{{ t('authTip') }}</p>
+      <n-input v-model:value="adminAuth" type="textarea" :autosize="{
+      minRows: 3
+    }" />
+      <template #action>
+        <n-button @click="authFunc" size="small" tertiary round type="primary">
+          {{ t('auth') }}
         </n-button>
-      </div>
-      <n-modal v-model:show="showAdminAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
-        title="Dialog">
-        <template #header>
-          <div>{{ t('auth') }}</div>
-        </template>
-        <p>{{ t('authTip') }}</p>
-        <n-input v-model:value="adminAuth" type="textarea" :autosize="{
-          minRows: 3
-        }" />
-        <template #action>
-          <n-button @click="authFunc" size="small" tertiary round type="primary">
-            {{ t('auth') }}
-          </n-button>
-        </template>
-      </n-modal>
-      <n-modal v-model:show="showEmailPassword" preset="dialog" title="Dialog">
-        <template #header>
-          <div>{{ t("password") }}</div>
-        </template>
-        <span>
-          <p>{{ t("passwordTip") }}</p>
-        </span>
-        <n-card>
-          <b>{{ curEmailPassword }}</b>
-        </n-card>
-        <template #action>
-        </template>
-      </n-modal>
-    </n-layout-header>
+      </template>
+    </n-modal>
+    <n-modal v-model:show="showEmailPassword" preset="dialog" title="Dialog">
+      <template #header>
+        <div>{{ t("password") }}</div>
+      </template>
+      <span>
+        <p>{{ t("passwordTip") }}</p>
+      </span>
+      <n-card>
+        <b>{{ curEmailPassword }}</b>
+      </n-card>
+      <template #action>
+      </template>
+    </n-modal>
+    <n-row>
+      <n-col :span="8">
+        <n-statistic :label="t('userCount')" :value="statistics.userCount">
+          <template #prefix>
+            <n-icon :component="User" />
+          </template>
+        </n-statistic>
+      </n-col>
+      <n-col :span="8">
+        <n-statistic :label="t('activeUser')" :value="statistics.activeUserCount7days">
+          <template #prefix>
+            <n-icon :component="UserCheck" />
+          </template>
+        </n-statistic>
+      </n-col>
+      <n-col :span="8">
+        <n-statistic :label="t('mailCount')" :value="statistics.mailCount">
+          <template #prefix>
+            <n-icon :component="MailBulk" />
+          </template>
+        </n-statistic>
+      </n-col>
+    </n-row>
     <n-tabs type="segment" v-model:value="tab">
-      <n-tab-pane name="account" tab="account">
+      <n-tab-pane name="account" :tab="t('account')">
+        <n-input-group>
+          <n-input v-model:value="addressQuery" clearable :placeholder="t('addressQueryTip')" />
+          <n-button @click="fetchData" type="primary" ghost>
+            {{ t('query') }}
+          </n-button>
+        </n-input-group>
         <div style="display: inline-block;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" :page-sizes="[20, 50, 100]"
             show-size-picker>
@@ -280,16 +329,13 @@ const fetchMailUnknowData = async () => {
             </template>
           </n-pagination>
         </div>
-        <n-button tertiary @click="fetchData" type="primary">
-          {{ t('refresh') }}
-        </n-button>
         <n-data-table :columns="columns" :data="data" :bordered="false" />
       </n-tab-pane>
-      <n-tab-pane name="mails" tab="mails">
+      <n-tab-pane name="mails" :tab="t('mails')">
         <n-input-group>
           <n-input v-model:value="mailAddress" />
           <n-button @click="fetchMailData" type="primary" ghost>
-            {{ t('refresh') }}
+            {{ t('query') }}
           </n-button>
         </n-input-group>
         <n-list hoverable clickable>
@@ -317,7 +363,7 @@ const fetchMailUnknowData = async () => {
           </n-list-item>
         </n-list>
       </n-tab-pane>
-      <n-tab-pane name="unknow" tab="unknown">
+      <n-tab-pane name="unknow" :tab="t('unknow')">
         <n-button @click="fetchMailUnknowData" type="primary" ghost>
           {{ t('query') }}
         </n-button>
@@ -348,16 +394,10 @@ const fetchMailUnknowData = async () => {
         </n-list>
       </n-tab-pane>
     </n-tabs>
-  </n-space>
+  </div>
 </template>
 
 <style scoped>
-.n-layout-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .n-pagination {
   margin-top: 10px;
   margin-bottom: 10px;

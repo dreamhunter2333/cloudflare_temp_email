@@ -2,6 +2,8 @@
 
 ## [中文](README.md)
 
+[CHANGELOG](CHANGELOG)
+
 ## [Live Demo](https://temp-email.dreamhunter2333.xyz/)
 
 This is a temporary email service that uses Cloudflare Workers to create a temporary email address and view the received email in web browser.
@@ -33,7 +35,8 @@ This is a temporary email service that uses Cloudflare Workers to create a tempo
 wrangler d1 create dev
 wrangler d1 execute dev --file=db/schema.sql
 # schema update, if you have initialized the database before this date, you can execute this command to update
-# wrangler d1 execute dev --file=db/2024-01-13-path.sql
+# wrangler d1 execute dev --file=db/2024-01-13-patch.sql
+# wrangler d1 execute dev --file=db/2024-04-03-patch.sql
 ```
 
 ![d1](readme_assets/d1.png)

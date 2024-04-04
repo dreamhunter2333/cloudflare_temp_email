@@ -1,6 +1,4 @@
 <script setup>
-import { NSpace, NFormItem, NInput, NSwitch, NButton, NCard } from 'naive-ui'
-import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { onMounted, ref } from 'vue'
 
@@ -79,33 +77,30 @@ onMounted(async () => {
 </script>
 
 <template>
-    <n-space vertical>
-        <Header />
-        <div class="center">
-            <n-card v-if="settings.address" :title='t("settings")'>
-                <div class="right">
-                    <n-button type="primary" @click="saveSettings">{{ t('save') }}</n-button>
-                </div>
-                <div class="left">
-                    <n-form-item :label="t('enableAutoReply')" label-placement="left">
-                        <n-switch v-model:value="enableAutoReply" />
-                    </n-form-item>
-                    <n-form-item :label="t('name')" label-placement="left">
-                        <n-input :disabled="!enableAutoReply" v-model:value="name" />
-                    </n-form-item>
-                    <n-form-item :label="t('sourcePrefix')" label-placement="left">
-                        <n-input :disabled="!enableAutoReply" v-model:value="sourcePrefix" />
-                    </n-form-item>
-                    <n-form-item :label="t('subject')" label-placement="left">
-                        <n-input :disabled="!enableAutoReply" v-model:value="subject" />
-                    </n-form-item>
-                    <n-form-item :label="t('autoReply')" label-placement="left">
-                        <n-input :disabled="!enableAutoReply" type="textarea" v-model:value="autoReplyMessage" />
-                    </n-form-item>
-                </div>
-            </n-card>
-        </div>
-    </n-space>
+    <div class="center">
+        <n-card v-if="settings.address" :title='t("settings")'>
+            <div class="right">
+                <n-button type="primary" @click="saveSettings">{{ t('save') }}</n-button>
+            </div>
+            <div class="left">
+                <n-form-item :label="t('enableAutoReply')" label-placement="left">
+                    <n-switch v-model:value="enableAutoReply" />
+                </n-form-item>
+                <n-form-item :label="t('name')" label-placement="left">
+                    <n-input :disabled="!enableAutoReply" v-model:value="name" />
+                </n-form-item>
+                <n-form-item :label="t('sourcePrefix')" label-placement="left">
+                    <n-input :disabled="!enableAutoReply" v-model:value="sourcePrefix" />
+                </n-form-item>
+                <n-form-item :label="t('subject')" label-placement="left">
+                    <n-input :disabled="!enableAutoReply" v-model:value="subject" />
+                </n-form-item>
+                <n-form-item :label="t('autoReply')" label-placement="left">
+                    <n-input :disabled="!enableAutoReply" type="textarea" v-model:value="autoReplyMessage" />
+                </n-form-item>
+            </div>
+        </n-card>
+    </div>
 </template>
 
 <style scoped>

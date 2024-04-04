@@ -48,7 +48,30 @@ api.get('/api/mails', async (c) => {
 })
 
 api.get('/api/settings', async (c) => {
-    const { address } = c.get("jwtPayload")
+    const { address, address_id } = c.get("jwtPayload")
+    if (address.startsWith(c.env.PREFIX)) {
+        // check address id
+        if (address_id && address_id > 0) {
+            try {
+                const db_address_id = await c.env.DB.prepare(
+                    `SELECT id FROM address where name = ?`
+                ).bind(address.substring(c.env.PREFIX.length)).first("id");
+                if (db_address_id != address_id) {
+                    return c.text("Invalid address", 400)
+                }
+            } catch (error) {
+                return c.text("Invalid address", 400)
+            }
+        }
+        // update address updated_at
+        try {
+            c.env.DB.prepare(
+                `UPDATE address SET updated_at = datetime('now') where name = ?`
+            ).bind(address.substring(c.env.PREFIX.length)).run();
+        } catch (e) {
+            console.warn("Failed to update address")
+        }
+    }
     const results = await c.env.DB.prepare(
         `SELECT * FROM auto_reply_mails where address = ? `
     ).bind(address).first();
@@ -135,22 +158,74 @@ api.get('/api/new_address', async (c) => {
         }
         return c.text("Failed to create address", 500)
     }
+    let address_id = 0;
+    try {
+        address_id = await c.env.DB.prepare(
+            `SELECT id FROM address where name = ?`
+        ).bind(name + "@" + domain).first("id");
+        address_id = results.id;
+    } catch (error) {
+        console.log(error);
+    }
     // create jwt
     const jwt = await Jwt.sign({
-        address: emailAddress
+        address: emailAddress,
+        address_id: address_id
     }, c.env.JWT_SECRET)
     return c.json({
         jwt: jwt
     })
 })
 
+api.delete('/api/delete_address', async (c) => {
+    const { address } = c.get("jwtPayload")
+    let name = address;
+    if (address.startsWith(c.env.PREFIX)) {
+        name = address.substring(c.env.PREFIX.length);
+    }
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM address WHERE name = ? `
+    ).bind(name).run();
+    if (!success) {
+        return c.text("Failed to delete address", 500)
+    }
+    const { success: mailSuccess } = await c.env.DB.prepare(
+        `DELETE FROM mails WHERE address = ? `
+    ).bind(address).run();
+    if (!mailSuccess) {
+        return c.text("Failed to delete mails", 500)
+    }
+    return c.json({
+        success: success
+    })
+})
+
 api.get('/admin/address', async (c) => {
-    const { limit, offset } = c.req.query();
+    const { limit, offset, query } = c.req.query();
     if (!limit || limit < 0 || limit > 100) {
         return c.text("Invalid limit", 400)
     }
     if (!offset || offset < 0) {
         return c.text("Invalid offset", 400)
+    }
+    if (query) {
+        const { results } = await c.env.DB.prepare(
+            `SELECT * FROM address where concat('${c.env.PREFIX}', name) like ? order by id desc limit ? offset ? `
+        ).bind(`%${query}%`, limit, offset).all();
+        let count = 0;
+        if (offset == 0) {
+            const { count: addressCount } = await c.env.DB.prepare(
+                `SELECT count(*) as count FROM address where concat('${c.env.PREFIX}', name) like ?`
+            ).bind(`%${query}%`).first();
+            count = addressCount;
+        }
+        return c.json({
+            results: results.map((r) => {
+                r.name = c.env.PREFIX + r.name;
+                return r;
+            }),
+            count: count
+        })
     }
     const { results } = await c.env.DB.prepare(
         `SELECT * FROM address order by id desc limit ? offset ? `
@@ -179,6 +254,13 @@ api.delete('/admin/delete_address/:id', async (c) => {
     if (!success) {
         return c.text("Failed to delete address", 500)
     }
+    const { success: mailSuccess } = await c.env.DB.prepare(
+        `DELETE FROM mails WHERE address IN
+        (select concat('${c.env.PREFIX}', name) from address where id = ?) `
+    ).bind(id).run();
+    if (!mailSuccess) {
+        return c.text("Failed to delete mails", 500)
+    }
     return c.json({
         success: success
     })
@@ -192,7 +274,8 @@ api.get('/admin/show_password/:id', async (c) => {
     // compute address
     const emailAddress = c.env.PREFIX + name
     const jwt = await Jwt.sign({
-        address: emailAddress
+        address: emailAddress,
+        address_id: id
     }, c.env.JWT_SECRET)
     return c.json({
         password: jwt
@@ -249,6 +332,24 @@ api.get('/admin/mails_unknow', async (c) => {
     return c.json({
         results: results,
         count: count
+    })
+});
+
+
+api.get('/admin/statistics', async (c) => {
+    const { count: mailCount } = await c.env.DB.prepare(`
+            SELECT count(*) as count FROM mails`
+    ).first();
+    const { count: addressCount } = await c.env.DB.prepare(`
+            SELECT count(*) as count FROM address`
+    ).first();
+    const { count: activeUserCount7days } = await c.env.DB.prepare(`
+            SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
+    ).first();
+    return c.json({
+        mailCount: mailCount,
+        userCount: addressCount,
+        activeUserCount7days: activeUserCount7days
     })
 });
 
