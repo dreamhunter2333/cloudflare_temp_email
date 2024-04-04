@@ -48,8 +48,22 @@ api.get('/api/mails', async (c) => {
 })
 
 api.get('/api/settings', async (c) => {
-    const { address } = c.get("jwtPayload")
+    const { address, address_id } = c.get("jwtPayload")
     if (address.startsWith(c.env.PREFIX)) {
+        // check address id
+        if (address_id && address_id > 0) {
+            try {
+                const db_address_id = await c.env.DB.prepare(
+                    `SELECT id FROM address where name = ?`
+                ).bind(address.substring(c.env.PREFIX.length)).first("id");
+                if (db_address_id != address_id) {
+                    return c.text("Invalid address", 400)
+                }
+            } catch (error) {
+                return c.text("Invalid address", 400)
+            }
+        }
+        // update address updated_at
         try {
             c.env.DB.prepare(
                 `UPDATE address SET updated_at = datetime('now') where name = ?`
@@ -144,9 +158,19 @@ api.get('/api/new_address', async (c) => {
         }
         return c.text("Failed to create address", 500)
     }
+    let address_id = 0;
+    try {
+        address_id = await c.env.DB.prepare(
+            `SELECT id FROM address where name = ?`
+        ).bind(name + "@" + domain).first("id");
+        address_id = results.id;
+    } catch (error) {
+        console.log(error);
+    }
     // create jwt
     const jwt = await Jwt.sign({
-        address: emailAddress
+        address: emailAddress,
+        address_id: address_id
     }, c.env.JWT_SECRET)
     return c.json({
         jwt: jwt
@@ -250,7 +274,8 @@ api.get('/admin/show_password/:id', async (c) => {
     // compute address
     const emailAddress = c.env.PREFIX + name
     const jwt = await Jwt.sign({
-        address: emailAddress
+        address: emailAddress,
+        address_id: id
     }, c.env.JWT_SECRET)
     return c.json({
         password: jwt

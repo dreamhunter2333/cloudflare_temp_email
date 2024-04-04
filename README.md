@@ -2,7 +2,9 @@
 
 ## [English](README_EN.md)
 
-- [Backend](https://temp-email-api.dreamhunter2333.xyz/):
+[CHANGELOG](CHANGELOG)
+
+[Backend](https://temp-email-api.dreamhunter2333.xyz/)
 ![](https://uptime.aks.awsl.icu/api/badge/10/status)
 ![](https://uptime.aks.awsl.icu/api/badge/10/uptime)
 ![](https://uptime.aks.awsl.icu/api/badge/10/ping)
@@ -10,7 +12,7 @@
 ![](https://uptime.aks.awsl.icu/api/badge/10/cert-exp)
 ![](https://uptime.aks.awsl.icu/api/badge/10/response)
 
-- [Frontend](https://temp-email.dreamhunter2333.xyz/):
+[Frontend](https://temp-email.dreamhunter2333.xyz/)
 ![](https://uptime.aks.awsl.icu/api/badge/12/status)
 ![](https://uptime.aks.awsl.icu/api/badge/12/uptime)
 ![](https://uptime.aks.awsl.icu/api/badge/12/ping)

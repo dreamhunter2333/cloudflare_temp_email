@@ -2,6 +2,8 @@
 
 ## [中文](README.md)
 
+[CHANGELOG](CHANGELOG)
+
 ## [Live Demo](https://temp-email.dreamhunter2333.xyz/)
 
 This is a temporary email service that uses Cloudflare Workers to create a temporary email address and view the received email in web browser.

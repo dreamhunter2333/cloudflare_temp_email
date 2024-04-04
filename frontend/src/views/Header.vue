@@ -118,6 +118,7 @@ const { t } = useI18n({
     }
 });
 
+const showUserMenu = computed(() => !!settings.value.address)
 
 const menuOptions = computed(() => [
     {
@@ -166,7 +167,7 @@ const menuOptions = computed(() => [
                 icon: () => h(NIcon, { component: User }),
             }
         ),
-        show: !!jwt.value,
+        show: showUserMenu.value,
         key: "user",
         children: [
             {
@@ -279,7 +280,7 @@ const menuOptions = computed(() => [
     }
 ]);
 
-const menuOptionsMobile = [
+const menuOptionsMobile = computed(() => [
     {
         label: t('menu'),
         icon: () => h(
@@ -291,7 +292,7 @@ const menuOptionsMobile = [
         key: "menu",
         children: menuOptions.value
     },
-];
+]);
 
 
 const copy = async () => {

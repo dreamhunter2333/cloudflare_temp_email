@@ -38,7 +38,7 @@ const apiFetch = async (path, options = {}) => {
         return data;
     } catch (error) {
         if (error.response) {
-            throw new Error(`Code ${error.response.status}: ${error.response.data?.detail}` || "error");
+            throw new Error(`Code ${error.response.status}: ${error.response.data}` || "error");
         }
         throw error;
     } finally {

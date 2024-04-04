@@ -8,4 +8,11 @@ DB changes
 
 ## 2024-04-03
 
+DB changes
+
 - `db/2024-04-03-patch.sql`
+
+Changes:
+
+- add delete account
+- add admin panel search
