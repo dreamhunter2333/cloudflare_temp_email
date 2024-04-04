@@ -12,6 +12,8 @@ PREFIX = "tmp"
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
 JWT_SECRET = "xxx"
 BLACK_LIST = ""
+# IF YOU WANT DISABLE ATTACHMENT, SET IT TO false or COMMENT IT
+ENABLE_ATTACHMENT = true
 
 [[d1_databases]]
 binding = "DB"

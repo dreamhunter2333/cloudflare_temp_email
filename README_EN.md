@@ -56,6 +56,8 @@ pnpm install
 # DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] you domain name
 # JWT_SECRET = "xxx"
 # BLACK_LIST = ""
+# free version attachment too large will cause Exceeded CPU Limit error, if you don't need attachment function, you can close
+# ENABLE_ATTACHMENT = true
 cp wrangler.toml.template wrangler.toml
 # deploy
 pnpm run deploy
