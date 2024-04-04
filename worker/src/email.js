@@ -82,7 +82,8 @@ async function email(message, env, ctx) {
         // process attachments
         try {
             if (
-                parsedEmail.attachments
+                env.ENABLE_ATTACHMENT
+                && parsedEmail.attachments
                 && parsedEmail.attachments.length > 0
             ) {
                 const { success } = await env.DB.prepare(

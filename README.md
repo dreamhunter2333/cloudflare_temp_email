@@ -137,6 +137,8 @@ PREFIX = "tmp" # 要处理的邮箱名称前缀
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名
 JWT_SECRET = "xxx" # 用于生成 jwt 的密钥
 BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
+# 免费版附件过大会造成 Exceeded CPU Limit 错误，如果不需要附件功能，可以关闭
+ENABLE_ATTACHMENT = true
 
 [[d1_databases]]
 binding = "DB"
