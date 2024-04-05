@@ -49,19 +49,31 @@ api.get('/api/mails', async (c) => {
 
 api.get('/api/settings', async (c) => {
     const { address, address_id } = c.get("jwtPayload")
+    if (address_id && address_id > 0) {
+        try {
+            const db_address_id = await c.env.DB.prepare(
+                `SELECT id FROM address where id = ?`
+            ).bind(address_id).first("id");
+            if (!db_address_id) {
+                return c.text("Invalid address", 400)
+            }
+        } catch (error) {
+            return c.text("Invalid address", 400)
+        }
+    }
     if (address.startsWith(c.env.PREFIX)) {
         // check address id
-        if (address_id && address_id > 0) {
-            try {
+        try {
+            if (!address_id) {
                 const db_address_id = await c.env.DB.prepare(
                     `SELECT id FROM address where name = ?`
                 ).bind(address.substring(c.env.PREFIX.length)).first("id");
-                if (db_address_id != address_id) {
+                if (!db_address_id) {
                     return c.text("Invalid address", 400)
                 }
-            } catch (error) {
-                return c.text("Invalid address", 400)
             }
+        } catch (error) {
+            return c.text("Invalid address", 400)
         }
         // update address updated_at
         try {
