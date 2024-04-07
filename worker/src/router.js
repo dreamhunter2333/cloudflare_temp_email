@@ -175,7 +175,6 @@ api.get('/api/new_address', async (c) => {
         address_id = await c.env.DB.prepare(
             `SELECT id FROM address where name = ?`
         ).bind(name + "@" + domain).first("id");
-        address_id = results.id;
     } catch (error) {
         console.log(error);
     }
