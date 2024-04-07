@@ -1,8 +1,7 @@
 import { createMimeMessage } from "mimetext";
 import { EmailMessage } from "cloudflare:email";
-
-const PostalMime = require("postal-mime");
-const simpleParser = require('mailparser').simpleParser;
+import { simpleParser } from 'mailparser';
+import PostalMime from 'postal-mime';
 global.setImmediate = (callback) => callback();
 
 async function email(message, env, ctx) {
@@ -22,20 +21,22 @@ async function email(message, env, ctx) {
             }
             rawEmail += decoder.decode(value);
         }
+        const message_id = message.headers.get("Message-ID");
 
         let parsedEmail = {};
-        try {
-            parsedEmail = await simpleParser(rawEmail)
-        } catch (error) {
-            console.log(error)
+        // todo fix this
+        if (!message.from.endsWith("@mega.nz")) {
+            try {
+                parsedEmail = await simpleParser(rawEmail)
+            } catch (error) {
+                console.log(error)
+            }
         }
 
         if (!parsedEmail.html && !parsedEmail.textAsHtml && !parsedEmail.text) {
             console.log("Failed parse email, try postal-mime");
-            const parser = new PostalMime.default();
-            parsedEmail = await parser.parse(rawEmail);
+            parsedEmail = await PostalMime.parse(rawEmail);
         }
-        const message_id = message.headers.get("Message-ID");
 
         // process email
         const { success } = await env.DB.prepare(

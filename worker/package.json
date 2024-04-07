@@ -2,23 +2,24 @@
   "name": "cloudflare_temp_email",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "start": "wrangler dev"
   },
   "devDependencies": {
-    "wrangler": "^3.41.0"
+    "wrangler": "^3.48.0"
   },
   "dependencies": {
-    "hono": "^4.1.7",
-    "mailparser": "3.6.5",
+    "hono": "^4.2.2",
+    "mailparser": "^3.6.9",
     "mimetext": "^3.0.24",
-    "postal-mime": "^1.1.0"
+    "postal-mime": "^2.2.1"
   },
   "pnpm": {
     "patchedDependencies": {
-      "mailparser@3.6.5": "patches/mailparser@3.6.5.patch"
+      "mailparser@3.6.9": "patches/mailparser@3.6.9.patch"
     }
   }
 }
