@@ -75,8 +75,7 @@ const getSettings = async () => {
         const res = await apiFetch("/api/settings");;
         settings.value = {
             address: res["address"],
-            auto_reply: res["auto_reply"],
-            has_v1_mails: res["has_v1_mails"],
+            auto_reply: res["auto_reply"]
         };
     } finally {
         settings.value.fetched = true;

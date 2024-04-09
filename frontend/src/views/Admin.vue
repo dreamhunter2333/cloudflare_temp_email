@@ -6,7 +6,6 @@ import { User, UserCheck, MailBulk } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
 
 const { localeCache, adminAuth, showAdminAuth } = useGlobalState()
 const router = useRouter()
@@ -218,14 +217,12 @@ const fetchMailData = async () => {
   }
   try {
     const { results, count } = await api.fetch(
-      `/admin/mails`
+      `/admin/v1/mails`
       + `?address=${mailAddress.value}`
       + `&limit=${mailPageSize.value}`
       + `&offset=${(mailPage.value - 1) * mailPageSize.value}`
     );
-    mailData.value = await Promise.all(results.map(async (item) => {
-      return await processItem(item);
-    }));
+    mailData.value = results;
     if (count > 0) {
       mailCount.value = count;
     }
@@ -248,13 +245,11 @@ watch([mailUnknowPage, mailUnknowPageSize], async () => {
 const fetchMailUnknowData = async () => {
   try {
     const { results, count } = await api.fetch(
-      `/admin/mails_unknow`
+      `/admin/v1/mails_unknow`
       + `?limit=${mailPageSize.value}`
       + `&offset=${(mailPage.value - 1) * mailPageSize.value}`
     );
-    mailUnknowData.value = await Promise.all(results.map(async (item) => {
-      return await processItem(item);
-    }));
+    mailUnknowData.value = results;
     if (count > 0) {
       mailUnknowCount.value = count;
     }
@@ -273,7 +268,9 @@ const fetchMailUnknowData = async () => {
         <div>{{ t('auth') }}</div>
       </template>
       <p>{{ t('authTip') }}</p>
-      <n-input v-model:value="adminAuth" type="textarea" :autosize="{ minRows: 3 }" />
+      <n-input v-model:value="adminAuth" type="textarea" :autosize="{
+      minRows: 3
+    }" />
       <template #action>
         <n-button @click="authFunc" size="small" tertiary round type="primary">
           {{ t('auth') }}

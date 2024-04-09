@@ -85,7 +85,6 @@ const { t } = useI18n({
             copied: 'Copied',
             showPassword: 'Show Password',
             fetchAddressError: 'Fetch address error, maybe your jwt is invalid or network error.',
-            mailV1Alert: 'You have some mails in v1, please click here to login and visit your history mails.',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
@@ -115,7 +114,6 @@ const { t } = useI18n({
             copied: '已复制',
             showPassword: '查看密码',
             fetchAddressError: '获取地址失败, 请检查你的 jwt 是否有效 或 网络是否正常。',
-            mailV1Alert: '你有一些 v1 版本的邮件，请点击此处登录查看。',
         }
     }
 });
@@ -353,24 +351,14 @@ onMounted(async () => {
             <n-card v-if="!settings.fetched">
                 <n-skeleton style="height: 50vh" />
             </n-card>
-            <div v-else-if="settings.address">
-                <n-alert v-if="settings.has_v1_mails" type="warning" show-icon closable>
-                    <span>
-                        <n-button tag="a" target="_blank" tertiary type="info" size="small"
-                            href="https://temp-email-v1.dreamhunter2333.xyz/">
-                            <b>{{ t('mailV1Alert') }} </b>
-                        </n-button>
-                    </span>
-                </n-alert>
-                <n-alert type="info" show-icon>
-                    <span>
-                        <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
-                        <n-button style="margin-left: 10px" @click="copy" size="small" tertiary round type="primary">
-                            <n-icon :component="Copy" /> {{ t('copy') }}
-                        </n-button>
-                    </span>
-                </n-alert>
-            </div>
+            <n-alert v-else-if="settings.address" type="info" show-icon>
+                <span>
+                    <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
+                    <n-button style="margin-left: 10px" @click="copy" size="small" tertiary round type="primary">
+                        <n-icon :component="Copy" /> {{ t('copy') }}
+                    </n-button>
+                </span>
+            </n-alert>
             <n-card v-else>
                 <n-result status="info" :description="t('pleaseGetNewEmail')">
                     <template #footer>
