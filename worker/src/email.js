@@ -22,7 +22,7 @@ async function email(message, env, ctx) {
 
         // save email
         const { success } = await env.DB.prepare(
-            `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?, ?)`
+            `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
         ).bind(
             message.from, message.to, rawEmail, message_id
         ).run();

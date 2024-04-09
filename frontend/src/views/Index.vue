@@ -162,7 +162,7 @@ onMounted(async () => {
               <n-tag type="info">
                 FROM: {{ curMail.source }}
               </n-tag>
-              <n-button v-if="curMail.attachments" size="small" tertiary type="info"
+              <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
                 @click="getAttachments(curMail.attachments)">
                 {{ t('attachments') }}
               </n-button>
@@ -228,7 +228,7 @@ onMounted(async () => {
                 <n-tag type="info">
                   FROM: {{ curMail.source }}
                 </n-tag>
-                <n-button v-if="curMail.attachments" size="small" tertiary type="info"
+                <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
                   @click="getAttachments(curMail.attachments)">
                   {{ t('attachments') }}
                 </n-button>

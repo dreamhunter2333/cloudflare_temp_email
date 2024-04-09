@@ -354,7 +354,7 @@ onMounted(async () => {
                 <n-skeleton style="height: 50vh" />
             </n-card>
             <div v-else-if="settings.address">
-                <n-alert v-if="settings.has_v1_mails" type="warning" show-icon>
+                <n-alert v-if="settings.has_v1_mails" type="warning" show-icon closable>
                     <span>
                         <n-button tag="a" target="_blank" tertiary type="info" size="small"
                             href="https://temp-email-v1.dreamhunter2333.xyz/">

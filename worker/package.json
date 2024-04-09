@@ -13,13 +13,6 @@
   },
   "dependencies": {
     "hono": "^4.2.2",
-    "mailparser": "^3.6.9",
-    "mimetext": "^3.0.24",
-    "postal-mime": "^2.2.1"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "mailparser@3.6.9": "patches/mailparser@3.6.9.patch"
-    }
+    "mimetext": "^3.0.24"
   }
 }
