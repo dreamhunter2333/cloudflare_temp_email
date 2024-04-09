@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import { DarkModeFilled, LightModeFilled, MenuFilled, AdminPanelSettingsFilled } from '@vicons/material'
 import { GithubAlt, Language, User, Home, Copy } from '@vicons/fa'
+import { faker } from '@faker-js/faker';
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -75,7 +76,7 @@ const { t } = useI18n({
             user: 'User',
             pleaseGetNewEmail: 'Please login or click "Get New Email" button to get a new email address',
             getNewEmail: 'Get New Email',
-            getNewEmailTip1: 'Please input the email you want to use.',
+            getNewEmailTip1: 'Please input the email you want to use. only allow ., a-z, A-Z and 0-9',
             getNewEmailTip2: 'Levaing it blank will generate a random email address.',
             yourAddress: 'Your email address is',
             password: 'Password',
@@ -86,6 +87,7 @@ const { t } = useI18n({
             showPassword: 'Show Password',
             fetchAddressError: 'Fetch address error, maybe your jwt is invalid or network error.',
             mailV1Alert: 'You have some mails in v1, please click here to login and visit your history mails.',
+            generateName: 'Generate Fake Name',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
@@ -104,7 +106,7 @@ const { t } = useI18n({
             user: '用户',
             pleaseGetNewEmail: '请"登录"或点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
             getNewEmail: '获取新邮箱',
-            getNewEmailTip1: '请输入你想要使用的邮箱地址。',
+            getNewEmailTip1: '请输入你想要使用的邮箱地址, 只允许 ., a-z, A-Z, 0-9',
             getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
             yourAddress: '你的邮箱地址是',
             password: '密码',
@@ -116,6 +118,7 @@ const { t } = useI18n({
             showPassword: '查看密码',
             fetchAddressError: '获取地址失败, 请检查你的 jwt 是否有效 或 网络是否正常。',
             mailV1Alert: '你有一些 v1 版本的邮件，请点击此处登录查看。',
+            generateName: '生成随机名字',
         }
     }
 });
@@ -306,6 +309,14 @@ const copy = async () => {
     }
 }
 
+const generateName = async () => {
+    emailName.value = faker.person
+        .fullName()
+        .replace(/\s+/g, '.')
+        .replace(/[^a-zA-Z0-9.]/g, '')
+        .toLowerCase();
+};
+
 const newEmail = async () => {
     try {
         const res = await api.fetch(
@@ -395,6 +406,9 @@ onMounted(async () => {
                 <p>{{ t("getNewEmailTip1") }}</p>
                 <p>{{ t("getNewEmailTip2") }}</p>
             </span>
+            <n-button @click="generateName" style="margin-bottom: 10px;">
+                {{ t('generateName') }}
+            </n-button>
             <n-input-group>
                 <n-input-group-label v-if="openSettings.prefix">
                     {{ openSettings.prefix }}
