@@ -68,24 +68,26 @@ api.get('/api/settings', async (c) => {
             console.warn("Failed to update address")
         }
     }
+    let auto_reply = {};
     const results = await c.env.DB.prepare(
         `SELECT * FROM auto_reply_mails where address = ? `
     ).bind(address).first();
-    if (!results) {
-        return c.json({
-            auto_reply: {},
-            address: address
-        });
-    }
-    return c.json({
-        auto_reply: {
+    if (results) {
+        auto_reply = {
             subject: results.subject,
             message: results.message,
             enabled: results.enabled == 1,
             source_prefix: results.source_prefix,
             name: results.name,
-        },
-        address: address
+        }
+    }
+    const { count: mailCountV1 } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM mails where address = ?`
+    ).bind(address).first();
+    return c.json({
+        auto_reply: auto_reply,
+        address: address,
+        has_v1_mails: mailCountV1 > 0
     });
 })
 
