@@ -1,6 +1,11 @@
 import PostalMime from 'postal-mime';
 import { parse_message } from 'mail-parser-wasm'
 
+function humanFileSize(size) {
+    const i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+    return parseFloat((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
+}
+
 export async function processItem(item) {
     // Try to parse the email using mail-parser-wasm
     try {
@@ -20,7 +25,7 @@ export async function processItem(item) {
             return {
                 id: a_item.content_id || Math.random().toString(36).substring(2, 15),
                 filename: a_item.filename || a_item.content_id || "",
-                size: a_item.content?.length || 0,
+                size: humanFileSize(a_item.content?.length || 0),
                 url: blob_url
             }
         }) || [];
@@ -52,7 +57,7 @@ export async function processItem(item) {
             return {
                 id: a_item.contentId || Math.random().toString(36).substring(2, 15),
                 filename: a_item.filename || a_item.contentId || "",
-                size: a_item.content?.length || 0,
+                size: humanFileSize(a_item.content?.length || 0),
                 url: blob_url
             }
         }) || [];
