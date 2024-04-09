@@ -232,7 +232,7 @@ onMounted(async () => {
                   @click="getAttachments(curMail.attachments)">
                   {{ t('attachments') }}
                 </n-button>
-                <n-button tag="a" target="_blank" tertiary type="info" size="small'" :download="curMail.id + '.eml'"
+                <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="curMail.id + '.eml'"
                   :href="getDownloadEmlUrl(curMail)">
                   {{ t('downloadMail') }}
                   <n-icon :component="CloudDownloadRound" />
@@ -260,7 +260,7 @@ onMounted(async () => {
             </template>
           </n-thing>
           <template #suffix>
-            <n-button tag="a" target="_blank" tertiary type="info" size="small'" :download="row.filename"
+            <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="row.filename"
               :href="row.url">
               <n-icon :component="CloudDownloadRound" />
             </n-button>
