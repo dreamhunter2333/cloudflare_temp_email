@@ -131,10 +131,19 @@ api.get('/open_api/settings', async (c) => {
 })
 
 api.get('/api/new_address', async (c) => {
-    let { name, domain } = await c.req.query();
+    let { name, domain } = c.req.query();
     // if no name, generate random name
     if (!name) {
         name = Math.random().toString(36).substring(2, 15);
+    }
+    // remove special characters
+    name = name.replace(/[^a-zA-Z0-9.]/g, '')
+    // check name length
+    if (name.length < 0) {
+        return c.text("Name too short", 400)
+    }
+    if (name.length > 100) {
+        return c.text("Name too long (max 100)", 400)
     }
     // check domain, generate random domain
     if (!domain || !c.env.DOMAINS.includes(domain)) {
