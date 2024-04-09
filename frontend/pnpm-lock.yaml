@@ -40,9 +40,6 @@ dependencies:
     version: 4.3.0(vue@3.4.21)
 
 devDependencies:
-  '@faker-js/faker':
-    specifier: ^8.4.1
-    version: 8.4.1
   '@vicons/fa':
     specifier: ^0.12.0
     version: 0.12.0
@@ -1483,11 +1480,6 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
-
-  /@faker-js/faker@8.4.1:
-    resolution: {integrity: sha512-XQ3cU+Q8Uqmrbf2e0cIC/QN43sTBSC8KF12u29Mb47tWrt2hAgBXSgpZMj4Ao8Uk0iJcU99QsOCaIL8934obCg==}
-    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
-    dev: true
 
   /@intlify/core-base@9.10.2:
     resolution: {integrity: sha512-HGStVnKobsJL0DoYIyRCGXBH63DMQqEZxDUGrkNI05FuTcruYUtOAxyL3zoAZu/uDGO6mcUvm3VXBaHG2GdZCg==}

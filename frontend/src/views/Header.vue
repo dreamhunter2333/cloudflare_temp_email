@@ -6,7 +6,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import { DarkModeFilled, LightModeFilled, MenuFilled, AdminPanelSettingsFilled } from '@vicons/material'
 import { GithubAlt, Language, User, Home, Copy } from '@vicons/fa'
-import { faker } from '@faker-js/faker';
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -309,12 +308,21 @@ const copy = async () => {
     }
 }
 
+const generateNameLoading = ref(false);
 const generateName = async () => {
-    emailName.value = faker.person
-        .fullName()
-        .replace(/\s+/g, '.')
-        .replace(/[^a-zA-Z0-9.]/g, '')
-        .toLowerCase();
+    try {
+        generateNameLoading.value = true;
+        const { faker } = await import('https://esm.sh/@faker-js/faker');
+        emailName.value = faker.person
+            .fullName()
+            .replace(/\s+/g, '.')
+            .replace(/[^a-zA-Z0-9.]/g, '')
+            .toLowerCase();
+    } catch (error) {
+        message.error(error.message || "error");
+    } finally {
+        generateNameLoading.value = false;
+    }
 };
 
 const newEmail = async () => {
@@ -402,21 +410,24 @@ onMounted(async () => {
             <template #header>
                 <div>{{ t('getNewEmail') }}</div>
             </template>
-            <span>
-                <p>{{ t("getNewEmailTip1") }}</p>
-                <p>{{ t("getNewEmailTip2") }}</p>
-            </span>
-            <n-button @click="generateName" style="margin-bottom: 10px;">
-                {{ t('generateName') }}
-            </n-button>
-            <n-input-group>
-                <n-input-group-label v-if="openSettings.prefix">
-                    {{ openSettings.prefix }}
-                </n-input-group-label>
-                <n-input v-model:value="emailName" />
-                <n-input-group-label>@</n-input-group-label>
-                <n-select v-model:value="emailDomain" :consistent-menu-width="false" :options="openSettings.domains" />
-            </n-input-group>
+            <n-spin :show="generateNameLoading">
+                <span>
+                    <p>{{ t("getNewEmailTip1") }}</p>
+                    <p>{{ t("getNewEmailTip2") }}</p>
+                </span>
+                <n-button @click="generateName" style="margin-bottom: 10px;">
+                    {{ t('generateName') }}
+                </n-button>
+                <n-input-group>
+                    <n-input-group-label v-if="openSettings.prefix">
+                        {{ openSettings.prefix }}
+                    </n-input-group-label>
+                    <n-input v-model:value="emailName" />
+                    <n-input-group-label>@</n-input-group-label>
+                    <n-select v-model:value="emailDomain" :consistent-menu-width="false"
+                        :options="openSettings.domains" />
+                </n-input-group>
+            </n-spin>
             <template #action>
                 <n-button @click="showNewEmail = false">
                     {{ t('cancel') }}

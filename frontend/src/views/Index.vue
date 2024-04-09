@@ -129,7 +129,7 @@ onMounted(async () => {
               {{ t('refresh') }}
             </n-button>
           </div>
-          <div style="overflow: scroll; height: 80vh;">
+          <div style="overflow: auto; height: 80vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
@@ -151,7 +151,7 @@ onMounted(async () => {
           </div>
         </template>
         <template #2>
-          <n-card v-if="curMail" class="mail-item" :title="curMail.subject" style="overflow: scroll;">
+          <n-card v-if="curMail" class="mail-item" :title="curMail.subject" style="overflow: auto;">
             <n-space>
               <n-tag type="info">
                 ID: {{ curMail.id }}
@@ -196,7 +196,7 @@ onMounted(async () => {
             {{ t('refresh') }}
           </n-button>
         </div>
-        <div id="drawer-target" style="overflow: scroll; max-height: 80vh;">
+        <div id="drawer-target" style="overflow: auto; max-height: 80vh;">
           <n-list hoverable clickable>
             <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
               <n-thing class="center" :title="row.subject" style="overflow: scroll">
@@ -217,7 +217,7 @@ onMounted(async () => {
         </div>
         <n-drawer v-model:show="curMail" width="100%" :trap-focus="false" :block-scroll="false" to="#drawer-target">
           <n-drawer-content :title="curMail.subject" closable>
-            <n-card style="overflow: scroll;">
+            <n-card style="overflow: auto;">
               <n-space>
                 <n-tag type="info">
                   ID: {{ curMail.id }}
@@ -275,7 +275,7 @@ onMounted(async () => {
 
 <style scoped>
 .left {
-  overflow: scroll;
+  overflow: auto;
   text-align: left;
 }
 
