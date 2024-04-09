@@ -139,8 +139,11 @@ api.get('/admin/mails_unknow', async (c) => {
 });
 
 api.get('/admin/statistics', async (c) => {
-    const { count: mailCount } = await c.env.DB.prepare(`
+    const { count: mailCountV1 } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM mails`
+    ).first();
+    const { count: mailCount } = await c.env.DB.prepare(`
+            SELECT count(*) as count FROM raw_mails`
     ).first();
     const { count: addressCount } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM address`
@@ -149,7 +152,7 @@ api.get('/admin/statistics', async (c) => {
             SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
     ).first();
     return c.json({
-        mailCount: mailCount,
+        mailCount: (mailCountV1 || 0) + (mailCount || 0),
         userCount: addressCount,
         activeUserCount7days: activeUserCount7days
     })
