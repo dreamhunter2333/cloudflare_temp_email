@@ -29,8 +29,8 @@ const emailDomain = ref("")
 
 const login = async () => {
     try {
-        await api.getSettings()
         jwt.value = password.value;
+        await api.getSettings()
         location.reload()
     } catch (error) {
         message.error(error.message || "error");
