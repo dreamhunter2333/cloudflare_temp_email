@@ -2,7 +2,7 @@
 
 ## [中文](README.md)
 
-[CHANGELOG](CHANGELOG)
+[CHANGELOG](CHANGELOG.md)
 
 ## [Live Demo](https://temp-email.dreamhunter2333.xyz/)
 

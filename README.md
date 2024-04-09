@@ -2,7 +2,7 @@
 
 ## [English](README_EN.md)
 
-[CHANGELOG](CHANGELOG)
+[CHANGELOG](CHANGELOG.md)
 
 [Backend](https://temp-email-api.dreamhunter2333.xyz/)
 ![](https://uptime.aks.awsl.icu/api/badge/10/status)
