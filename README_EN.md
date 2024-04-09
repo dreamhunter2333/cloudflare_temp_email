@@ -43,6 +43,8 @@ wrangler d1 execute dev --file=db/schema.sql
 
 ### Backend - Cloudflare workers
 
+The first deployment will prompt you to create a project. Please fill in `production` for the `production` branch.
+
 ```bash
 cd worker
 pnpm install
@@ -65,11 +67,17 @@ you can find and test the worker's url in the  workers dashboard
 
 ![worker](readme_assets/worker.png)
 
+## Cloudflare Email Routing
+
+Before you can bind an email address to your Worker, you need to enable Email Routing and have at least one verified email address.
+
 enable email route and config email forward catch-all to the worker
 
 ![email](readme_assets/email.png)
 
 ### Frontend - Cloudflare pages
+
+The first deployment will prompt you to create a project. Please fill in `production` for the `production` branch.
 
 ```bash
 cd frontend
