@@ -8,18 +8,8 @@ async function email(message, env, ctx) {
         return;
     }
     if (!env.PREFIX || (message.to && message.to.startsWith(env.PREFIX))) {
-        const reader = message.raw.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let rawEmail = "";
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                break;
-            }
-            rawEmail += decoder.decode(value);
-        }
+        const rawEmail = await new Response(message.raw).text();
         const message_id = message.headers.get("Message-ID");
-
         // save email
         const { success } = await env.DB.prepare(
             `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`

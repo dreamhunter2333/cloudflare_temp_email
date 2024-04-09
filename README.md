@@ -150,6 +150,8 @@ database_id = "xxx" # D1 数据库 ID
 
 部署
 
+第一次部署会提示创建项目, `production` 分支请填写 `production`
+
 ```bash
 pnpm run deploy
 ```
@@ -162,6 +164,8 @@ pnpm run deploy
 
 ## Cloudflare Email Routing
 
+在将电子邮件地址绑定到您的 Worker 之前，您需要启用电子邮件路由并拥有至少一个经过验证的电子邮件地址。
+
 配置对应域名的 `电子邮件 DNS 记录`
 
 配置 `Cloudflare Email Routing` catch-all 发送到 `worker`
@@ -171,6 +175,8 @@ pnpm run deploy
 ---
 
 ## Cloudflare Pages 前端
+
+第一次部署会提示创建项目, `production` 分支请填写 `production`
 
 ```bash
 cd frontend
