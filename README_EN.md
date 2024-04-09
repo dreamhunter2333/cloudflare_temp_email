@@ -20,7 +20,7 @@ This is a temporary email service that uses Cloudflare Workers to create a tempo
 - [x] Add access authorization, which can be used as a private site
 - [x] Add auto reply feature
 - [x] Add attachment viewing function
-- [ ] Exceeded CPU Limit error caused by the free version of the attachment
+- [x] use rust wasm to parse email
 
 ![demo](readme_assets/demo.png)
 
@@ -56,8 +56,6 @@ pnpm install
 # DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] you domain name
 # JWT_SECRET = "xxx"
 # BLACK_LIST = ""
-# free version attachment too large will cause Exceeded CPU Limit error, if you don't need attachment function, you can close
-# ENABLE_ATTACHMENT = true
 cp wrangler.toml.template wrangler.toml
 # deploy
 pnpm run deploy

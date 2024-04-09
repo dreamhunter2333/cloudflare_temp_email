@@ -3,6 +3,8 @@ import { cors } from 'hono/cors';
 import { jwt } from 'hono/jwt'
 
 import { api } from './router';
+import { api as adminApi } from './admin_api';
+import { api as apiV1 } from './api_v1';
 import { email } from './email';
 
 const app = new Hono()
@@ -36,8 +38,10 @@ app.use('/admin/*', async (c, next) => {
 
 
 app.route('/', api)
+app.route('/', adminApi)
+app.route('/', apiV1)
 
-app.all('/*', async c => c.html(`<h1>Hello World</h1>`))
+app.all('/*', async c => c.text("Not Found", 404))
 
 
 export default {

@@ -1,6 +1,6 @@
 name = "cloudflare_temp_email"
 main = "src/worker.js"
-compatibility_date = "2023-08-14"
+compatibility_date = "2023-12-01"
 node_compat = true
 
 [vars]
@@ -12,8 +12,6 @@ PREFIX = "tmp"
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
 JWT_SECRET = "xxx"
 BLACK_LIST = ""
-# IF YOU WANT DISABLE ATTACHMENT, SET IT TO false or COMMENT IT
-ENABLE_ATTACHMENT = true
 
 [[d1_databases]]
 binding = "DB"

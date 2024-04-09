@@ -6,6 +6,7 @@ import { useGlobalState } from '../store'
 import { api } from '../api'
 import { CloudDownloadRound } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
+import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -30,11 +31,13 @@ const { t } = useI18n({
       autoRefresh: 'Auto Refresh',
       refresh: 'Refresh',
       attachments: 'Show Attachments',
+      downloadMail: 'Download Mail',
       pleaseSelectMail: "Please select a mail to view."
     },
     zh: {
       autoRefresh: '自动刷新',
       refresh: '刷新',
+      downloadMail: '下载邮件',
       attachments: '查看附件',
       pleaseSelectMail: "请选择一封邮件查看。"
     }
@@ -72,12 +75,14 @@ const refresh = async () => {
       + `?limit=${pageSize.value}`
       + `&offset=${(page.value - 1) * pageSize.value}`
     );
-    data.value = results;
+    data.value = await Promise.all(results.map(async (item) => {
+      return await processItem(item);
+    }));
     if (totalCount > 0) {
       count.value = totalCount;
     }
     if (!isMobile.value && !curMail.value && data.value.length > 0) {
-      curMail.value = results[0];
+      curMail.value = data.value[0];
     }
   } catch (error) {
     message.error(error.message || "error");
@@ -89,29 +94,9 @@ const clickRow = async (row) => {
   curMail.value = row;
 };
 
-const getAttachments = async (attachment_id) => {
-  try {
-    const res = await api.fetch(
-      `/api/attachment/${attachment_id}`
-    );
-    curAttachments.value = res
-      .filter((item) => item?.content?.data)
-      .map((item) => {
-        return {
-          id: item.contentId || Math.random().toString(36).substring(2, 15),
-          filename: item.filename || "",
-          size: item.size,
-          url: URL.createObjectURL(
-            new Blob(
-              [new Uint8Array(item.content.data)],
-              { type: item.contentType || 'application/octet-stream' }
-            ))
-        }
-      });
-    showAttachments.value = true;
-  } catch (error) {
-    message.error(error.message || "error");
-  }
+const getAttachments = (attachments) => {
+  curAttachments.value = attachments;
+  showAttachments.value = true;
 };
 
 const mailItemClass = (row) => {
@@ -177,12 +162,17 @@ onMounted(async () => {
               <n-tag type="info">
                 FROM: {{ curMail.source }}
               </n-tag>
-              <n-button v-if="curMail.attachment_id" size="small" tertiary type="info"
-                @click="getAttachments(curMail.attachment_id)">
+              <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
+                @click="getAttachments(curMail.attachments)">
                 {{ t('attachments') }}
               </n-button>
+              <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="curMail.id + '.eml'"
+                :href="getDownloadEmlUrl(curMail.raw)">
+                <n-icon :component="CloudDownloadRound" />
+                {{ t('downloadMail') }}
+              </n-button>
             </n-space>
-            <div v-html="curMail.message" style="max-height: 100vh;"></div>
+            <div v-html="curMail.message" style="margin-top: 10px;max-height: 100vh;"></div>
           </n-card>
           <n-card class="mail-item" v-else>
             <n-result status="info" :title="t('pleaseSelectMail')">
@@ -238,9 +228,14 @@ onMounted(async () => {
                 <n-tag type="info">
                   FROM: {{ curMail.source }}
                 </n-tag>
-                <n-button v-if="curMail.attachment_id" size="small" tertiary type="info"
-                  @click="getAttachments(curMail.attachment_id)">
+                <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
+                  @click="getAttachments(curMail.attachments)">
                   {{ t('attachments') }}
+                </n-button>
+                <n-button tag="a" target="_blank" tertiary type="info" size="small'" :download="curMail.id + '.eml'"
+                  :href="getDownloadEmlUrl(curMail)">
+                  {{ t('downloadMail') }}
+                  <n-icon :component="CloudDownloadRound" />
                 </n-button>
               </n-space>
               <div v-html="curMail.message" style="max-height: 100vh;"></div>

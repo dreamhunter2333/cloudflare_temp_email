@@ -16,31 +16,15 @@ api.get('/api/mails', async (c) => {
         return c.text("Invalid offset", 400)
     }
     const { results } = await c.env.DB.prepare(
-        `SELECT id, source, subject, message, message_id, created_at FROM mails where address = ? order by id desc limit ? offset ?`
+        `SELECT id, source, raw, created_at FROM raw_mails where address = ? order by id desc limit ? offset ?`
     ).bind(address, limit, offset).all();
     let count = 0;
     if (offset == 0) {
         const { count: mailCount } = await c.env.DB.prepare(
-            `SELECT count(*) as count FROM mails where address = ?`
+            `SELECT count(*) as count FROM raw_mails where address = ?`
         ).bind(address).first();
         count = mailCount;
     }
-    // add attachments
-    let attachmentResults = [];
-    const message_ids = results.map((r) => r.message_id).filter((r) => r);
-    if (message_ids && message_ids.length > 0) {
-        const { results: innerAttachmentResults } = await c.env.DB.prepare(
-            `SELECT id, message_id FROM attachments where message_id in (${message_ids.map((id) => `'${id}'`).join(",")})`
-        ).all();
-        attachmentResults = innerAttachmentResults || [];
-    }
-    results.forEach((r) => {
-        const attachment_id = attachmentResults.filter((ar) => ar.message_id == r.message_id).map((ar) => ar.id);
-        if (attachment_id && attachment_id.length > 0) {
-            r.attachment_id = attachment_id[0];
-        }
-        delete r.message_id;
-    })
     return c.json({
         results: results,
         count: count
@@ -84,27 +68,28 @@ api.get('/api/settings', async (c) => {
             console.warn("Failed to update address")
         }
     }
+    let auto_reply = {};
     const results = await c.env.DB.prepare(
         `SELECT * FROM auto_reply_mails where address = ? `
     ).bind(address).first();
-    if (!results) {
-        return c.json({
-            auto_reply: {},
-            address: address
-        });
-    }
-    return c.json({
-        auto_reply: {
+    if (results) {
+        auto_reply = {
             subject: results.subject,
             message: results.message,
             enabled: results.enabled == 1,
             source_prefix: results.source_prefix,
             name: results.name,
-        },
-        address: address
+        }
+    }
+    const { count: mailCountV1 } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM mails where address = ?`
+    ).bind(address).first();
+    return c.json({
+        auto_reply: auto_reply,
+        address: address,
+        has_v1_mails: mailCountV1 > 0
     });
 })
-
 
 api.post('/api/settings', async (c) => {
     const { address } = c.get("jwtPayload")
@@ -209,171 +194,6 @@ api.delete('/api/delete_address', async (c) => {
     return c.json({
         success: success
     })
-})
-
-api.get('/admin/address', async (c) => {
-    const { limit, offset, query } = c.req.query();
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
-    }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
-    if (query) {
-        const { results } = await c.env.DB.prepare(
-            `SELECT * FROM address where concat('${c.env.PREFIX}', name) like ? order by id desc limit ? offset ? `
-        ).bind(`%${query}%`, limit, offset).all();
-        let count = 0;
-        if (offset == 0) {
-            const { count: addressCount } = await c.env.DB.prepare(
-                `SELECT count(*) as count FROM address where concat('${c.env.PREFIX}', name) like ?`
-            ).bind(`%${query}%`).first();
-            count = addressCount;
-        }
-        return c.json({
-            results: results.map((r) => {
-                r.name = c.env.PREFIX + r.name;
-                return r;
-            }),
-            count: count
-        })
-    }
-    const { results } = await c.env.DB.prepare(
-        `SELECT * FROM address order by id desc limit ? offset ? `
-    ).bind(limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: addressCount } = await c.env.DB.prepare(
-            `SELECT count(*) as count FROM address`
-        ).first();
-        count = addressCount;
-    }
-    return c.json({
-        results: results.map((r) => {
-            r.name = c.env.PREFIX + r.name;
-            return r;
-        }),
-        count: count
-    })
-})
-
-api.delete('/admin/delete_address/:id', async (c) => {
-    const { id } = c.req.param();
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM address WHERE id = ? `
-    ).bind(id).run();
-    if (!success) {
-        return c.text("Failed to delete address", 500)
-    }
-    const { success: mailSuccess } = await c.env.DB.prepare(
-        `DELETE FROM mails WHERE address IN
-        (select concat('${c.env.PREFIX}', name) from address where id = ?) `
-    ).bind(id).run();
-    if (!mailSuccess) {
-        return c.text("Failed to delete mails", 500)
-    }
-    return c.json({
-        success: success
-    })
-})
-
-api.get('/admin/show_password/:id', async (c) => {
-    const { id } = c.req.param();
-    const name = await c.env.DB.prepare(
-        `SELECT name FROM address WHERE id = ? `
-    ).bind(id).first("name");
-    // compute address
-    const emailAddress = c.env.PREFIX + name
-    const jwt = await Jwt.sign({
-        address: emailAddress,
-        address_id: id
-    }, c.env.JWT_SECRET)
-    return c.json({
-        password: jwt
-    })
-})
-
-
-api.get('/admin/mails', async (c) => {
-    const { address, limit, offset } = c.req.query();
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
-    }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
-    const { results } = await c.env.DB.prepare(
-        `SELECT id, source, subject, message FROM mails where address = ? order by id desc limit ? offset ? `
-    ).bind(address, limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: mailCount } = await c.env.DB.prepare(
-            `SELECT count(*) as count FROM mails where address = ? `
-        ).bind(address).first();
-        count = mailCount;
-    }
-    return c.json({
-        results: results,
-        count: count
-    })
-});
-
-api.get('/admin/mails_unknow', async (c) => {
-    const { limit, offset } = c.req.query();
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
-    }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
-    const { results } = await c.env.DB.prepare(`
-        SELECT id, source, subject, message FROM mails
-        where address NOT IN(select concat('${c.env.PREFIX}', name) from address)
-        order by id desc limit ? offset ? `
-    ).bind(limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: mailCount } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM mails
-            where address NOT IN
-            (select concat('${c.env.PREFIX}', name) from address)`
-        ).first();
-        count = mailCount;
-    }
-    return c.json({
-        results: results,
-        count: count
-    })
-});
-
-
-api.get('/admin/statistics', async (c) => {
-    const { count: mailCount } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM mails`
-    ).first();
-    const { count: addressCount } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM address`
-    ).first();
-    const { count: activeUserCount7days } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
-    ).first();
-    return c.json({
-        mailCount: mailCount,
-        userCount: addressCount,
-        activeUserCount7days: activeUserCount7days
-    })
-});
-
-// attachments
-api.get("/api/attachment/:attachment_id", async (c) => {
-    const { attachment_id } = c.req.param();
-    const { data } = await c.env.DB.prepare(
-        `SELECT data FROM attachments where id = ? `
-    ).bind(attachment_id).first();
-    if (!data) {
-        return c.text("Not found", 404)
-    }
-    return c.json(JSON.parse(data))
 })
 
 export { api }

@@ -1,8 +1,5 @@
 import { createMimeMessage } from "mimetext";
 import { EmailMessage } from "cloudflare:email";
-import { simpleParser } from 'mailparser';
-import PostalMime from 'postal-mime';
-global.setImmediate = (callback) => callback();
 
 async function email(message, env, ctx) {
     if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => message.from.includes(word))) {
@@ -23,34 +20,17 @@ async function email(message, env, ctx) {
         }
         const message_id = message.headers.get("Message-ID");
 
-        let parsedEmail = {};
-        // todo fix this
-        if (!message.from.endsWith("@mega.nz")) {
-            try {
-                parsedEmail = await simpleParser(rawEmail)
-            } catch (error) {
-                console.log(error)
-            }
-        }
-
-        if (!parsedEmail.html && !parsedEmail.textAsHtml && !parsedEmail.text) {
-            console.log("Failed parse email, try postal-mime");
-            parsedEmail = await PostalMime.parse(rawEmail);
-        }
-
-        // process email
+        // save email
         const { success } = await env.DB.prepare(
-            `INSERT INTO mails (source, address, subject, message, message_id) VALUES (?, ?, ?, ?, ?)`
+            `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
         ).bind(
-            message.from, message.to,
-            parsedEmail.subject || "",
-            parsedEmail.html || parsedEmail.textAsHtml || parsedEmail.text || "",
-            message_id
+            message.from, message.to, rawEmail, message_id
         ).run();
         if (!success) {
             message.setReject(`Failed save message to ${message.to}`);
             console.log(`Failed save message from ${message.from} to ${message.to}`);
         }
+
         // auto reply email
         try {
             const results = await env.DB.prepare(
@@ -79,28 +59,6 @@ async function email(message, env, ctx) {
             }
         } catch (error) {
             console.log("reply email error", error);
-        }
-        // process attachments
-        try {
-            if (
-                env.ENABLE_ATTACHMENT
-                && parsedEmail.attachments
-                && parsedEmail.attachments.length > 0
-            ) {
-                const { success } = await env.DB.prepare(
-                    `INSERT INTO attachments (source, address, message_id, data) VALUES (?, ?, ?, ?)`
-                ).bind(
-                    message.from, message.to, message_id,
-                    JSON.stringify(parsedEmail.attachments)
-                ).run();
-                if (!success) {
-                    message.setReject(`Failed save attachment to ${message.to}`);
-                    console.log(`Failed save attachment from ${message.from} to ${message.to}`);
-                }
-            }
-        }
-        catch (error) {
-            console.log("save attachment error", error);
         }
     } else {
         message.setReject(`Unknown address ${message.to}`);
