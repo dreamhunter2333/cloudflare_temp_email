@@ -2,7 +2,12 @@
 
 ## [English](README_EN.md)
 
-[CHANGELOG](CHANGELOG.md)
+## [CHANGELOG](CHANGELOG.md)
+
+## [在线演示](https://mail.awsl.uk/)
+
+[https://mail.awsl.uk](https://mail.awsl.uk/)
+或者 [https://temp-email.dreamhunter2333.xyz](https://temp-email.dreamhunter2333.xyz/)
 
 [Backend](https://temp-email-api.awsl.uk/)
 ![](https://uptime.aks.awsl.icu/api/badge/10/status)
@@ -28,6 +33,7 @@
 
 - [使用 cloudflare 免费服务，搭建临时邮箱](#使用-cloudflare-免费服务搭建临时邮箱)
   - [English](#english)
+  - [CHANGELOG](#changelog)
   - [在线演示](#在线演示)
   - [功能/TODO](#功能todo)
   - [什么是临时邮箱](#什么是临时邮箱)
@@ -40,11 +46,6 @@
   - [Cloudflare Pages 前端](#cloudflare-pages-前端)
   - [参考资料](#参考资料)
 
-## [在线演示](https://mail.awsl.uk/)
-
-[https://mail.awsl.uk](https://mail.awsl.uk/)
-
-或者 [https://temp-email.dreamhunter2333.xyz](https://temp-email.dreamhunter2333.xyz/)
 
 ## 功能/TODO
 
