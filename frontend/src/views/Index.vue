@@ -133,7 +133,7 @@ onMounted(async () => {
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
-                <n-thing class="center" :title="row.subject" style="overflow: scroll">
+                <n-thing class="center" :title="row.subject">
                   <template #description>
                     <n-tag type="info">
                       ID: {{ row.id }}
@@ -151,7 +151,7 @@ onMounted(async () => {
           </div>
         </template>
         <template #2>
-          <n-card v-if="curMail" class="mail-item" :title="curMail.subject" style="overflow: auto;">
+          <n-card v-if="curMail" class="mail-item" :title="curMail.subject" style="overflow: auto; max-height: 100vh;">
             <n-space>
               <n-tag type="info">
                 ID: {{ curMail.id }}
@@ -172,7 +172,7 @@ onMounted(async () => {
                 {{ t('downloadMail') }}
               </n-button>
             </n-space>
-            <div v-html="curMail.message" style="margin-top: 10px;max-height: 100vh;"></div>
+            <div v-html="curMail.message" style="margin-top: 10px;"></div>
           </n-card>
           <n-card class="mail-item" v-else>
             <n-result status="info" :title="t('pleaseSelectMail')">
@@ -196,10 +196,10 @@ onMounted(async () => {
             {{ t('refresh') }}
           </n-button>
         </div>
-        <div id="drawer-target" style="overflow: auto; max-height: 80vh;">
+        <div id="drawer-target" style="overflow: auto; height: 80vh;">
           <n-list hoverable clickable>
             <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
-              <n-thing class="center" :title="row.subject" style="overflow: scroll">
+              <n-thing class="center" :title="row.subject">
                 <template #description>
                   <n-tag type="info">
                     ID: {{ row.id }}
@@ -234,11 +234,11 @@ onMounted(async () => {
                 </n-button>
                 <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="curMail.id + '.eml'"
                   :href="getDownloadEmlUrl(curMail)">
-                  {{ t('downloadMail') }}
                   <n-icon :component="CloudDownloadRound" />
+                  {{ t('downloadMail') }}
                 </n-button>
               </n-space>
-              <div v-html="curMail.message" style="max-height: 100vh;"></div>
+              <div v-html="curMail.message" style="margin-top: 10px;"></div>
             </n-card>
           </n-drawer-content>
         </n-drawer>
@@ -275,7 +275,6 @@ onMounted(async () => {
 
 <style scoped>
 .left {
-  overflow: auto;
   text-align: left;
 }
 

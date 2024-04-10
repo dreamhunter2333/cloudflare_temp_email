@@ -4,7 +4,7 @@
 
 [CHANGELOG](CHANGELOG.md)
 
-[Backend](https://temp-email-api.dreamhunter2333.xyz/)
+[Backend](https://temp-email-api.awsl.uk/)
 ![](https://uptime.aks.awsl.icu/api/badge/10/status)
 ![](https://uptime.aks.awsl.icu/api/badge/10/uptime)
 ![](https://uptime.aks.awsl.icu/api/badge/10/ping)
@@ -12,7 +12,7 @@
 ![](https://uptime.aks.awsl.icu/api/badge/10/cert-exp)
 ![](https://uptime.aks.awsl.icu/api/badge/10/response)
 
-[Frontend](https://temp-email.dreamhunter2333.xyz/)
+[Frontend](https://mail.awsl.uk/)
 ![](https://uptime.aks.awsl.icu/api/badge/12/status)
 ![](https://uptime.aks.awsl.icu/api/badge/12/uptime)
 ![](https://uptime.aks.awsl.icu/api/badge/12/ping)
@@ -40,7 +40,11 @@
   - [Cloudflare Pages 前端](#cloudflare-pages-前端)
   - [参考资料](#参考资料)
 
-## [在线演示](https://temp-email.dreamhunter2333.xyz/)
+## [在线演示](https://mail.awsl.uk/)
+
+[https://mail.awsl.uk](https://mail.awsl.uk/)
+
+或者 [https://temp-email.dreamhunter2333.xyz](https://temp-email.dreamhunter2333.xyz/)
 
 ## 功能/TODO
 
