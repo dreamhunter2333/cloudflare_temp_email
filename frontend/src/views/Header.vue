@@ -77,6 +77,7 @@ const { t } = useI18n({
             getNewEmail: 'Get New Email',
             getNewEmailTip1: 'Please input the email you want to use. only allow ., a-z, A-Z and 0-9',
             getNewEmailTip2: 'Levaing it blank will generate a random email address.',
+            getNewEmailTip3: 'You can choose a domain from the dropdown list.',
             yourAddress: 'Your email address is',
             password: 'Password',
             passwordTip: 'Please copy the password and you can use it to login to your email account.', cancel: 'Cancel',
@@ -107,6 +108,7 @@ const { t } = useI18n({
             getNewEmail: '获取新邮箱',
             getNewEmailTip1: '请输入你想要使用的邮箱地址, 只允许 ., a-z, A-Z, 0-9',
             getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
+            getNewEmailTip3: '你可以从下拉列表中选择一个域名。',
             yourAddress: '你的邮箱地址是',
             password: '密码',
             passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
@@ -376,7 +378,7 @@ onMounted(async () => {
                 <n-alert v-if="settings.has_v1_mails" type="warning" show-icon closable>
                     <span>
                         <n-button tag="a" target="_blank" tertiary type="info" size="small"
-                            href="https://temp-email-v1.dreamhunter2333.xyz/">
+                            href="https://mail-v1.awsl.uk">
                             <b>{{ t('mailV1Alert') }} </b>
                         </n-button>
                     </span>
@@ -414,6 +416,7 @@ onMounted(async () => {
                 <span>
                     <p>{{ t("getNewEmailTip1") }}</p>
                     <p>{{ t("getNewEmailTip2") }}</p>
+                    <p>{{ t("getNewEmailTip3") }}</p>
                 </span>
                 <n-button @click="generateName" style="margin-bottom: 10px;">
                     {{ t('generateName') }}
