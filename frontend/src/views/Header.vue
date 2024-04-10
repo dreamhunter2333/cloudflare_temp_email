@@ -4,7 +4,7 @@ import { ref, h, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
-import { DarkModeFilled, LightModeFilled, MenuFilled, AdminPanelSettingsFilled } from '@vicons/material'
+import { DarkModeFilled, LightModeFilled, MenuFilled, AdminPanelSettingsFilled, SendFilled } from '@vicons/material'
 import { GithubAlt, Language, User, Home, Copy } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
@@ -73,6 +73,7 @@ const { t } = useI18n({
             home: 'Home',
             menu: 'Menu',
             user: 'User',
+            sendMail: 'Send Mail',
             pleaseGetNewEmail: 'Please login or click "Get New Email" button to get a new email address',
             getNewEmail: 'Get New Email',
             getNewEmailTip1: 'Please input the email you want to use. only allow ., a-z, A-Z and 0-9',
@@ -104,6 +105,7 @@ const { t } = useI18n({
             home: '主页',
             menu: '菜单',
             user: '用户',
+            sendMail: '发送邮件',
             pleaseGetNewEmail: '请"登录"或点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
             getNewEmail: '获取新邮箱',
             getNewEmailTip1: '请输入你想要使用的邮箱地址, 只允许 ., a-z, A-Z, 0-9',
@@ -358,6 +360,7 @@ const deleteAccount = async () => {
 onMounted(async () => {
     await api.getOpenSettings(message);
     emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
+    await api.getSettings();
 });
 </script>
 
@@ -386,6 +389,10 @@ onMounted(async () => {
                 <n-alert type="info" show-icon>
                     <span>
                         <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
+                        <n-button style="margin-left: 10px" @click="router.push('/send')" size="small" tertiary round
+                            type="primary">
+                            <n-icon :component="SendFilled" /> {{ t('sendMail') }}
+                        </n-button>
                         <n-button style="margin-left: 10px" @click="copy" size="small" tertiary round type="primary">
                             <n-icon :component="Copy" /> {{ t('copy') }}
                         </n-button>

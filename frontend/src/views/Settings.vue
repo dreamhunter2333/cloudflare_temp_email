@@ -2,7 +2,6 @@
 import { useI18n } from 'vue-i18n'
 import { onMounted, ref } from 'vue'
 
-import Header from './Header.vue'
 import { useGlobalState } from '../store'
 import { api } from '../api'
 
@@ -43,7 +42,6 @@ const { t } = useI18n({
 });
 
 const getSettings = async () => {
-    await api.getSettings()
     sourcePrefix.value = settings.value.auto_reply.source_prefix || ""
     enableAutoReply.value = settings.value.auto_reply.enabled || false
     name.value = settings.value.auto_reply.name || ""

@@ -104,7 +104,6 @@ const mailItemClass = (row) => {
 };
 
 onMounted(async () => {
-  await api.getSettings();
   await refresh();
 });
 </script>

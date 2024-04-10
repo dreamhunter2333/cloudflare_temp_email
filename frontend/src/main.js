@@ -10,10 +10,14 @@ const i18n = createI18n({
     locale: 'zh', // set locale
     fallbackLocale: 'en', // set fallback locale
     'en': {
-        messages: {}
+        messages: {
+            success: 'Success',
+        }
     },
-    'zhCN': {
-        messages: {}
+    'zh': {
+        messages: {
+            success: '成功',
+        }
     }
 })
 const app = createApp(App)

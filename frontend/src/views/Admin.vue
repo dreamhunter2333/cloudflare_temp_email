@@ -6,7 +6,8 @@ import { User, UserCheck, MailBulk } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
+import { processItem } from '../utils/email-parser'
+import SenderAccess from './admin/SenderAccess.vue'
 
 const { localeCache, adminAuth, showAdminAuth } = useGlobalState()
 const router = useRouter()
@@ -49,6 +50,7 @@ const { t } = useI18n({
       account: 'Account',
       unknow: 'Unknow',
       addressQueryTip: 'Leave blank to query all addresses',
+      senderAccess: 'Sender Access Control',
     },
     zh: {
       title: '临时邮件 Admin',
@@ -72,6 +74,7 @@ const { t } = useI18n({
       account: '账号',
       unknow: '未知',
       addressQueryTip: '留空查询所有地址',
+      senderAccess: '发件权限控制',
     }
   }
 });
@@ -395,6 +398,9 @@ const fetchMailUnknowData = async () => {
             </n-thing>
           </n-list-item>
         </n-list>
+      </n-tab-pane>
+      <n-tab-pane name="senderAccess" :tab="t('senderAccess')">
+        <SenderAccess />
       </n-tab-pane>
     </n-tabs>
   </div>

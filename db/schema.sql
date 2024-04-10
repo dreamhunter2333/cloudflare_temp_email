@@ -43,3 +43,10 @@ CREATE TABLE IF NOT EXISTS attachments (
     data TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS address_sender (
+    id INTEGER PRIMARY KEY,
+    address TEXT UNIQUE,
+    enabled INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

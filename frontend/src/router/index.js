@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/Index.vue'
 import Settings from '../views/Settings.vue'
+import SendMail from '../views/SendMail.vue'
 import Admin from '../views/Admin.vue'
 
 const router = createRouter({
@@ -13,6 +14,10 @@ const router = createRouter({
         {
             path: '/settings',
             component: Settings
+        },
+        {
+            path: '/send',
+            component: SendMail
         },
         {
             path: '/admin',

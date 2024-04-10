@@ -138,6 +138,47 @@ api.get('/admin/mails_unknow', async (c) => {
     })
 });
 
+api.get('/admin/address_sender', async (c) => {
+    const { limit, offset } = c.req.query();
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
+    const { results } = await c.env.DB.prepare(
+        `SELECT * FROM address_sender order by id desc limit ? offset ? `
+    ).bind(limit, offset).all();
+    let count = 0;
+    if (offset == 0) {
+        const { count: addressCount } = await c.env.DB.prepare(
+            `SELECT count(*) as count FROM address_sender`
+        ).first();
+        count = addressCount;
+    }
+    return c.json({
+        results: results,
+        count: count
+    })
+})
+
+api.post('/admin/address_sender', async (c) => {
+    let { id: address_id, enabled } = await c.req.json();
+    if (!address_id) {
+        return c.text("Invalid address_id", 400)
+    }
+    enabled = enabled ? 1 : 0;
+    const { success } = await c.env.DB.prepare(
+        `UPDATE address_sender SET enabled = ? WHERE id = ? `
+    ).bind(enabled, address_id).run();
+    if (!success) {
+        return c.text("Failed to update address sender", 500)
+    }
+    return c.json({
+        success: success
+    })
+})
+
 api.get('/admin/statistics', async (c) => {
     const { count: mailCountV1 } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM mails`

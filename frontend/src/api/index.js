@@ -77,6 +77,7 @@ const getSettings = async () => {
             address: res["address"],
             auto_reply: res["auto_reply"],
             has_v1_mails: res["has_v1_mails"],
+            has_send_access: res["has_send_access"],
         };
     } finally {
         settings.value.fetched = true;
