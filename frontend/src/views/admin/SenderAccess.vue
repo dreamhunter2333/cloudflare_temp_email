@@ -16,16 +16,28 @@ const { t } = useI18n({
       success: 'Success',
       enable: 'Enable',
       disable: 'Disable',
+      modify: 'Modify',
+      created_at: 'Created At',
+      action: 'Action',
       itemCount: 'itemCount',
-      query: 'Query',
+      modalTip: 'Please input the sender balance',
+      balance: 'Balance',
+      refresh: 'Refresh',
+      ok: 'OK'
     },
     zh: {
       address: '地址',
       success: '成功',
       enable: '启用',
       disable: '禁用',
+      modify: '修改',
+      created_at: '创建时间',
+      action: '操作',
       itemCount: '总数',
-      query: '查询',
+      modalTip: '请输入发件额度',
+      balance: '余额',
+      refresh: '刷新',
+      ok: '确定'
     }
   }
 });
@@ -34,16 +46,23 @@ const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 
+const curRow = ref({})
+const showModal = ref(false)
+const senderBalance = ref(0)
+const senderEnabled = ref(false)
 
-const updateData = async (id, enabled) => {
+
+const updateData = async () => {
   try {
     await api.fetch(`/admin/address_sender`, {
       method: 'POST',
       body: JSON.stringify({
-        id,
-        enabled
+        address_id: curRow.value.id,
+        balance: senderBalance.value,
+        enabled: senderEnabled.value ? 1 : 0
       })
     });
+    showModal.value = false;
     message.success(t("success"));
     await fetchData()
   } catch (error) {
@@ -82,17 +101,34 @@ const columns = [
     key: "created_at"
   },
   {
-    title: 'Action',
+    title: t('balance'),
+    key: "balance"
+  },
+  {
+    title: "Enabled",
+    key: "enabled",
+    render(row) {
+      return h('div', [
+        h('span', row.enabled ? t('enable') : t('disable'))
+      ])
+    }
+  },
+  {
+    title: t('action'),
     key: 'actions',
     render(row) {
       return h('div', [
         h(NButton,
           {
-            type: row.enabled ? 'error' : 'success',
+            type: 'success',
             ghost: true,
-            onClick: () => updateData(row.id, row.enabled ? 0 : 1)
+            onClick: () => {
+              showModal.value = true;
+              curRow.value = row;
+              senderBalance.value = row.balance
+            }
           },
-          { default: () => row.enabled ? t('disable') : t('enable') }
+          { default: () => t('modify') }
         )
       ])
     }
@@ -111,16 +147,33 @@ onMounted(async () => {
 
 <template>
   <div>
-    <n-input-group>
-      <n-button @click="fetchData" type="primary" ghost>
-        {{ t('query') }}
-      </n-button>
-    </n-input-group>
+    <n-modal v-model:show="showModal" preset="dialog">
+      <p>{{ curRow.address }}</p>
+      <p>{{ t('modalTip') }}</p>
+      <n-form-item :show-label="false">
+        <n-checkbox v-model:checked="senderEnabled">
+          {{ t('enable') }}
+        </n-checkbox>
+      </n-form-item>
+      <n-form-item :show-label="false">
+        <n-input-number v-model:value="senderBalance" :min="0" :max="1000" />
+      </n-form-item>
+      <template #action>
+        <n-button @click="updateData()" size="small" tertiary round type="primary">
+          {{ t('ok') }}
+        </n-button>
+      </template>
+    </n-modal>
     <div style="display: inline-block;">
       <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" :page-sizes="[20, 50, 100]"
         show-size-picker>
         <template #prefix="{ itemCount }">
           {{ t('itemCount') }}: {{ itemCount }}
+        </template>
+        <template #suffix>
+          <n-button @click="fetchData" type="primary" size="small" ghost>
+            {{ t('refresh') }}
+          </n-button>
         </template>
       </n-pagination>
     </div>

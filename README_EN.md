@@ -23,6 +23,7 @@ This is a temporary email service that uses Cloudflare Workers to create a tempo
 - [x] Add auto reply feature
 - [x] Add attachment viewing function
 - [x] use rust wasm to parse email
+- [x] support send email
 
 ![demo](readme_assets/demo.png)
 
@@ -92,3 +93,16 @@ pnpm run deploy
 ```
 
 ![pages](readme_assets/pages.png)
+
+## Configure sending emails
+
+Find the `SPF` record of `TXT` in the domain name `DNS` record, and add `include:relay.mailchannels.net`
+
+```bash
+v=spf1 include:_spf.mx.cloudflare.net include:relay.mailchannels.net ~all
+```
+
+Create a new `_mailchannels` record, the type is `TXT`, the content is `v=mc1 cfid=your worker domain name`
+
+- The worker domain name here is the domain name of the back-end api. For example, if I deploy it at `https://temp-email-api.awsl.uk/`, fill in `v=mc1 cfid=awsl.uk`
+- If your domain name is `https://temp-email-api.xxx.workers.dev`, fill in `v=mc1 cfid=xxx.workers.dev`

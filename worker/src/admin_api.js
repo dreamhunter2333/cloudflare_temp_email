@@ -163,14 +163,14 @@ api.get('/admin/address_sender', async (c) => {
 })
 
 api.post('/admin/address_sender', async (c) => {
-    let { id: address_id, enabled } = await c.req.json();
+    let { address_id, balance, enabled } = await c.req.json();
     if (!address_id) {
         return c.text("Invalid address_id", 400)
     }
     enabled = enabled ? 1 : 0;
     const { success } = await c.env.DB.prepare(
-        `UPDATE address_sender SET enabled = ? WHERE id = ? `
-    ).bind(enabled, address_id).run();
+        `UPDATE address_sender SET enabled = ?, balance = ? WHERE id = ? `
+    ).bind(enabled, balance, address_id).run();
     if (!success) {
         return c.text("Failed to update address sender", 500)
     }

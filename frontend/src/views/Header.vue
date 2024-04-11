@@ -73,6 +73,7 @@ const { t } = useI18n({
             home: 'Home',
             menu: 'Menu',
             user: 'User',
+            sendbox: 'Send Box',
             sendMail: 'Send Mail',
             pleaseGetNewEmail: 'Please login or click "Get New Email" button to get a new email address',
             getNewEmail: 'Get New Email',
@@ -105,6 +106,7 @@ const { t } = useI18n({
             home: '主页',
             menu: '菜单',
             user: '用户',
+            sendbox: '发件箱',
             sendMail: '发送邮件',
             pleaseGetNewEmail: '请"登录"或点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
             getNewEmail: '获取新邮箱',
@@ -178,6 +180,19 @@ const menuOptions = computed(() => [
         show: showUserMenu.value,
         key: "user",
         children: [
+            {
+                label: () => h(
+                    NButton,
+                    {
+                        tertiary: true,
+                        ghost: true,
+                        size: "small",
+                        onClick: () => router.push('/sendbox')
+                    },
+                    { default: () => t('sendbox') }
+                ),
+                key: "sendbox"
+            },
             {
                 label: () => h(
                     NButton,

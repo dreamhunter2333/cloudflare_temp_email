@@ -15,7 +15,7 @@ export const useGlobalState = createGlobalState(
         const settings = ref({
             fetched: false,
             has_v1_mails: false,
-            has_send_access: false,
+            send_balance: 0,
             address: '',
             auto_reply: {
                 subject: '',

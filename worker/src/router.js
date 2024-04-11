@@ -84,14 +84,15 @@ api.get('/api/settings', async (c) => {
     const { count: mailCountV1 } = await c.env.DB.prepare(
         `SELECT count(*) as count FROM mails where address = ?`
     ).bind(address).first();
-    const { count: SenderCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM address_sender where address = ? and enabled = 1`
-    ).bind(address).first();
+    const balance = await c.env.DB.prepare(
+        `SELECT balance FROM address_sender
+            where address = ? and enabled = 1`
+    ).bind(address).first("balance");
     return c.json({
         auto_reply: auto_reply,
         address: address,
         has_v1_mails: mailCountV1 && mailCountV1 > 0,
-        has_send_access: SenderCount && SenderCount > 0,
+        send_balance: balance || 0,
     });
 })
 

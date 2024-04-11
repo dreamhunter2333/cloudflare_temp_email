@@ -1,5 +1,13 @@
 # CHANGE LOG
 
+## 2024-04-12 v0.0.2
+
+- support send email
+
+DB changes:
+
+- `db/2024-04-12-patch.sql`
+
 ## 2024-04-10 v0.0.1
 
 Breaking changes:
