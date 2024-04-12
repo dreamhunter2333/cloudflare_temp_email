@@ -7,7 +7,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "start": "wrangler dev",
-    "build": "wrangler deploy --dry-run --outdir dist --minify"
+    "build": "wrangler deploy --dry-run --outdir dist --minify --main src/worker.js"
   },
   "devDependencies": {
     "wrangler": "^3.48.0"
