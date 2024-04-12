@@ -34,6 +34,9 @@ jobs:
       - name: Build Frontend
         run: cd frontend && pnpm install --no-frozen-lockfile && pnpm build:release
 
+      - name: cp wrangler.toml
+        run: cd worker && cp wrangler.toml.template wrangler.toml
+
       - name: Build Backend
         run: cd worker && pnpm install --no-frozen-lockfile && pnpm build
 
