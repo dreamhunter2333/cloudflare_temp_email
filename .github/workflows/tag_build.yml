@@ -1,0 +1,46 @@
+name: Tag Build CI
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Get version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      - name: Build Frontend
+        run: cd frontend && pnpm install --no-frozen-lockfile && pnpm build:release
+
+      - name: Build Backend
+        run: cd worker && pnpm install --no-frozen-lockfile && pnpm build
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            frontend/dist/*
+            worker/dist/*
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
