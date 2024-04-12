@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build -m prod --emptyOutDir",
+    "build:release": "vite build -m example --emptyOutDir",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy ../dist --branch production"
+    "deploy": "npm run build && wrangler pages deploy ./dist --branch production"
   },
   "dependencies": {
     "@vicons/material": "^0.12.0",
