@@ -44,6 +44,7 @@
   - [Cloudflare Workers 后端](#cloudflare-workers-后端-1)
   - [Cloudflare Email Routing](#cloudflare-email-routing)
   - [Cloudflare Pages 前端](#cloudflare-pages-前端)
+  - [配置发送邮件](#配置发送邮件)
   - [参考资料](#参考资料)
 
 
@@ -60,6 +61,7 @@
 - [x] 增加自动回复功能
 - [x] 增加查看附件功能
 - [x] 使用 rust wasm 解析邮件
+- [x] 支持发送邮件
 
 ---
 
@@ -200,6 +202,19 @@ pnpm run deploy
 ```
 
 ![pages](readme_assets/pages.png)
+
+## 配置发送邮件
+
+找到域名 `DNS` 记录的 `TXT` 的 `SPF` 记录, 增加 `include:relay.mailchannels.net`
+
+```bash
+v=spf1 include:_spf.mx.cloudflare.net include:relay.mailchannels.net ~all
+```
+
+新建 `_mailchannels` 记录, 类型为 `TXT`, 内容为 `v=mc1 cfid=你的worker域名`
+
+- 此处 worker 域名为后端 api 的域名，比如我部署在 `https://temp-email-api.awsl.uk/`，则填写 `v=mc1 cfid=awsl.uk`
+- 如果你的域名是 `https://temp-email-api.xxx.workers.dev`，则填写 `v=mc1 cfid=xxx.workers.dev`
 
 ## 参考资料
 

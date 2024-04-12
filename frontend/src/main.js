@@ -12,7 +12,7 @@ const i18n = createI18n({
     'en': {
         messages: {}
     },
-    'zhCN': {
+    'zh': {
         messages: {}
     }
 })

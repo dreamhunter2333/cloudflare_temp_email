@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS address_sender (
+    id INTEGER PRIMARY KEY,
+    address TEXT UNIQUE,
+    balance INTEGER DEFAULT 0,
+    enabled INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sendbox (
+    id INTEGER PRIMARY KEY,
+    address TEXT,
+    raw TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
