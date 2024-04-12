@@ -9,13 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: write
+      contents: write
     steps:
-      - name: Get version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -46,4 +41,3 @@ jobs:
           files: |
             frontend/dist/*
             worker/dist/*
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
