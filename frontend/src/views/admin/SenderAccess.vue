@@ -125,7 +125,8 @@ const columns = [
             onClick: () => {
               showModal.value = true;
               curRow.value = row;
-              senderBalance.value = row.balance
+              senderEnabled.value = row.enabled ? true : false;
+              senderBalance.value = row.balance;
             }
           },
           { default: () => t('modify') }
