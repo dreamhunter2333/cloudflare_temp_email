@@ -2,6 +2,8 @@
 
 ## [English](README_EN.md)
 
+## [新版部署文档](https://temp-mail-docs.awsl.uk) 
+
 ## [CHANGELOG](CHANGELOG.md)
 
 ## [在线演示](https://mail.awsl.uk/)
