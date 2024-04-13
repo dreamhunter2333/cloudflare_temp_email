@@ -2,7 +2,7 @@
 
 ## [English](README_EN.md)
 
-## [新版部署文档](https://temp-mail-docs.awsl.uk) 
+## [查看部署文档](https://temp-mail-docs.awsl.uk)
 
 ## [CHANGELOG](CHANGELOG.md)
 
@@ -35,6 +35,7 @@
 
 - [使用 cloudflare 免费服务，搭建临时邮箱](#使用-cloudflare-免费服务搭建临时邮箱)
   - [English](#english)
+  - [查看部署文档](#查看部署文档)
   - [CHANGELOG](#changelog)
   - [在线演示](#在线演示)
   - [功能/TODO](#功能todo)
@@ -43,12 +44,10 @@
   - [wrangler 的安装](#wrangler-的安装)
   - [D1 数据库](#d1-数据库)
   - [Cloudflare workers 后端](#cloudflare-workers-后端)
-  - [Cloudflare Workers 后端](#cloudflare-workers-后端-1)
   - [Cloudflare Email Routing](#cloudflare-email-routing)
   - [Cloudflare Pages 前端](#cloudflare-pages-前端)
   - [配置发送邮件](#配置发送邮件)
   - [参考资料](#参考资料)
-
 
 ## 功能/TODO
 
@@ -96,6 +95,8 @@ npm install wrangler -g
 
 ```bash
 git clone https://github.com/dreamhunter2333/cloudflare_temp_email.git
+# 切换到最新 tag 或者你想部署的分支，你也可以直接使用 main 分支
+# git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
 ```
 
 ---
@@ -115,7 +116,7 @@ wrangler d1 execute dev --file=db/schema.sql
 
 创建完成后，我们在 cloudflare 的控制台可以看到 D1 数据库
 
-![D1](readme_assets/d1.png)
+![D1](vitepress-docs/docs/public/readme_assets/d1.png)
 
 ---
 
@@ -153,10 +154,6 @@ database_name = "xxx" # D1 数据库名称
 database_id = "xxx" # D1 数据库 ID
 ```
 
----
-
-## Cloudflare Workers 后端
-
 部署
 
 第一次部署会提示创建项目, `production` 分支请填写 `production`
@@ -167,7 +164,7 @@ pnpm run deploy
 
 部署成功之后再路由中可以看到 `worker` 的 `url`，控制台也会输出 `worker` 的 `url`
 
-![worker](readme_assets/worker.png)
+![worker](vitepress-docs/docs/public/readme_assets/worker.png)
 
 ---
 
@@ -179,7 +176,7 @@ pnpm run deploy
 
 配置 `Cloudflare Email Routing` catch-all 发送到 `worker`
 
-![email](readme_assets/email.png)
+![email](vitepress-docs/docs/public/readme_assets/email.png)
 
 ---
 
@@ -203,7 +200,7 @@ pnpm build --emptyOutDir
 pnpm run deploy
 ```
 
-![pages](readme_assets/pages.png)
+![pages](vitepress-docs/docs/public/readme_assets/pages.png)
 
 ## 配置发送邮件
 

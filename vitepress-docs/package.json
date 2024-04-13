@@ -1,0 +1,20 @@
+{
+  "name": "temp-mail-docs",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "vitepress": "^1.1.0",
+    "wrangler": "^3.50.0"
+  },
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "deploy": "npm run build && wrangler pages deploy ./docs/.vitepress/dist --branch production"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}
