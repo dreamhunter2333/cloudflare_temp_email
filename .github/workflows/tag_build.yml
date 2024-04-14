@@ -30,7 +30,7 @@ jobs:
         run: cd frontend && pnpm install --no-frozen-lockfile && pnpm build:release
 
       - name: Zip Frontend dist
-        run: cd frontend && zip -r frontend.zip dist
+        run: cd frontend && zip -r frontend.zip dist/
 
       - name: cp wrangler.toml
         run: cd worker && cp wrangler.toml.template wrangler.toml
