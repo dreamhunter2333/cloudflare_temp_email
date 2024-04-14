@@ -1,15 +1,5 @@
 # cloudflare temp email
 
-## [中文](README.md)
-
-[CHANGELOG](CHANGELOG.md)
-
-## [Live Demo](https://mail.awsl.uk/)
-
-[https://mail.awsl.uk](https://mail.awsl.uk/)
-
-This is a temporary email service that uses Cloudflare Workers to create a temporary email address and view the received email in web browser.
-
 ## Features
 
 - [x] Cloudflare D1 as a database
@@ -24,8 +14,6 @@ This is a temporary email service that uses Cloudflare Workers to create a tempo
 - [x] Add attachment viewing function
 - [x] use rust wasm to parse email
 - [x] support send email
-
-![demo](vitepress-docs/docs/public/readme_assets/demo.png)
 
 ## Deploy
 
@@ -49,7 +37,7 @@ wrangler d1 execute dev --file=db/schema.sql
 # wrangler d1 execute dev --file=db/2024-04-03-patch.sql
 ```
 
-![d1](vitepress-docs/docs/public/readme_assets/d1.png)
+![d1](/readme_assets/d1.png)
 
 ### Backend - Cloudflare workers
 
@@ -75,7 +63,7 @@ pnpm run deploy
 
 you can find and test the worker's url in the  workers dashboard
 
-![worker](vitepress-docs/docs/public/readme_assets/worker.png)
+![worker](/readme_assets/worker.png)
 
 ## Cloudflare Email Routing
 
@@ -83,7 +71,7 @@ Before you can bind an email address to your Worker, you need to enable Email Ro
 
 enable email route and config email forward catch-all to the worker
 
-![email](vitepress-docs/docs/public/readme_assets/email.png)
+![email](/readme_assets/email.png)
 
 ### Frontend - Cloudflare pages
 
@@ -99,7 +87,7 @@ pnpm build --emptyOutDir
 pnpm run deploy
 ```
 
-![pages](vitepress-docs/docs/public/readme_assets/pages.png)
+![pages](/readme_assets/pages.png)
 
 ## Configure sending emails
 
