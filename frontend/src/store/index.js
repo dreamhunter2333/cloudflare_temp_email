@@ -30,9 +30,12 @@ export const useGlobalState = createGlobalState(
         const auth = useStorage('auth', '');
         const adminAuth = useStorage('adminAuth', '');
         const jwt = useStorage('jwt', '');
-        const localeCache = useStorage('locale', 'zhCN');
+        const localeCache = useStorage('locale', 'zh');
         const themeSwitch = useStorage('themeSwitch', false);
         const showLogin = ref(false);
+        const adminTab = ref("account");
+        const adminMailTabAddress = ref("");
+        const adminSendBoxTabAddress = ref("");
         return {
             loading,
             settings,
@@ -45,6 +48,9 @@ export const useGlobalState = createGlobalState(
             adminAuth,
             showAdminAuth,
             showLogin,
+            adminTab,
+            adminMailTabAddress,
+            adminSendBoxTabAddress,
         }
     },
 )

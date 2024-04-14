@@ -12,7 +12,7 @@
     "dev": "vitepress dev docs",
     "build": "vitepress build docs",
     "preview": "vitepress preview docs",
-    "deploy": "npm run build && wrangler pages deploy ./docs/.vitepress/dist --branch production"
+    "deploy": "npm run build && wrangler pages deploy ./docs/.vitepress/dist --project-name=temp-mail-docs --branch production"
   },
   "dependencies": {
     "jszip": "^3.10.1"

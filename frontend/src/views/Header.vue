@@ -184,7 +184,7 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        tertiary: true,
+                        bordered: false,
                         ghost: true,
                         size: "small",
                         onClick: () => router.push('/sendbox')
@@ -197,7 +197,7 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        tertiary: true,
+                        bordered: false,
                         ghost: true,
                         size: "small",
                         onClick: () => { showPassword.value = true }
@@ -210,7 +210,7 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        tertiary: true,
+                        bordered: false,
                         ghost: true,
                         size: "small",
                         onClick: () => { router.push('/settings') }
@@ -223,7 +223,7 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        tertiary: true,
+                        bordered: false,
                         ghost: true,
                         size: "small",
                         onClick: () => { showLogout.value = true }
@@ -236,7 +236,7 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        tertiary: true,
+                        bordered: false,
                         ghost: true,
                         size: "small",
                         onClick: () => { showDelteAccount.value = true }

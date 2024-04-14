@@ -7,14 +7,16 @@ import { api as adminApi } from './admin_api';
 import { api as apiV1 } from './api_v1';
 import { api as apiSendMail } from './send_mail_api'
 import { email } from './email';
+import { getAdminPasswords, getPasswords } from './utils';
 
 const app = new Hono()
 app.use('/*', cors());
 app.use('/api/*', async (c, next) => {
 	// check header x-custom-auth
-	if (c.env.PASSWORDS && c.env.PASSWORDS.length > 0) {
+	const passwords = getPasswords(c);
+	if (passwords && passwords.length > 0) {
 		const auth = c.req.raw.headers.get("x-custom-auth");
-		if (!auth || !c.env.PASSWORDS.includes(auth)) {
+		if (!auth || !passwords.includes(auth)) {
 			return c.text("Need Password", 401)
 		}
 	}
@@ -27,9 +29,10 @@ app.use('/api/*', async (c, next) => {
 
 app.use('/admin/*', async (c, next) => {
 	// check header x-admin-auth
-	if (c.env.ADMIN_PASSWORDS && c.env.ADMIN_PASSWORDS.length > 0) {
+	const adminPasswords = getAdminPasswords(c);
+	if (adminPasswords && adminPasswords.length > 0) {
 		const adminAuth = c.req.raw.headers.get("x-admin-auth");
-		if (adminAuth && c.env.ADMIN_PASSWORDS.includes(adminAuth)) {
+		if (adminAuth && adminPasswords.includes(adminAuth)) {
 			await next();
 			return;
 		}
