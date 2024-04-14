@@ -42,5 +42,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            frontend/frontend.zip
+            frontend/dist/frontend.zip
             worker/dist/worker.js
