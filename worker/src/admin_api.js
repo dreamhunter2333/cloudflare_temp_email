@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
+import { getSendbox } from './send_mail_api'
 
 const api = new Hono()
 
@@ -179,6 +180,11 @@ api.post('/admin/address_sender', async (c) => {
     })
 })
 
+api.get('/admin/sendbox', async (c) => {
+    const { address, limit, offset } = c.req.query();
+    return getSendbox(c, address, limit, offset);
+})
+
 api.get('/admin/statistics', async (c) => {
     const { count: mailCountV1 } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM mails`
@@ -192,11 +198,51 @@ api.get('/admin/statistics', async (c) => {
     const { count: activeUserCount7days } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
     ).first();
+    const { count: sendMailCount } = await c.env.DB.prepare(`
+            SELECT count(*) as count FROM sendbox`
+    ).first();
     return c.json({
         mailCount: (mailCountV1 || 0) + (mailCount || 0),
         userCount: addressCount,
-        activeUserCount7days: activeUserCount7days
+        activeUserCount7days: activeUserCount7days,
+        sendMailCount: sendMailCount
     })
 });
+
+api.post('/admin/cleanup', async (c) => {
+    const { cleanType, cleanDays } = await c.req.json();
+    if (!cleanType || !cleanDays || cleanDays < 0 || cleanDays > 30) {
+        return c.text("Invalid cleanType or cleanDays", 400)
+    }
+    console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
+    switch (cleanType) {
+        case "mails":
+            await c.env.DB.prepare(`
+                DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
+            ).run();
+            break;
+        case "mails_unknow":
+            await c.env.DB.prepare(`
+                DELETE FROM raw_mails WHERE address NOT IN
+                (select concat('${c.env.PREFIX}', name) from address) AND created_at < datetime('now', '-${cleanDays} day')`
+            ).run();
+            break;
+        case "address":
+            await c.env.DB.prepare(`
+                DELETE FROM address WHERE updated_at < datetime('now', '-${cleanDays} day')`
+            ).run();
+            break;
+        case "sendbox":
+            await c.env.DB.prepare(`
+                DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
+            ).run();
+            break;
+        default:
+            return c.text("Invalid cleanType", 400)
+    }
+    return c.json({
+        success: true
+    })
+})
 
 export { api }

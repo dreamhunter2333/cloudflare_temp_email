@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
+import { getDomains, getPasswords } from './utils';
+
 const api = new Hono()
 
 api.get('/api/mails', async (c) => {
@@ -124,13 +126,14 @@ api.post('/api/settings', async (c) => {
 api.get('/open_api/settings', async (c) => {
     // check header x-custom-auth
     let needAuth = false;
-    if (c.env.PASSWORDS && c.env.PASSWORDS.length > 0) {
+    const passwords = getPasswords(c);
+    if (passwords && passwords.length > 0) {
         const auth = c.req.raw.headers.get("x-custom-auth");
-        needAuth = !c.env.PASSWORDS.includes(auth);
+        needAuth = !passwords.includes(auth);
     }
     return c.json({
         "prefix": c.env.PREFIX,
-        "domains": c.env.DOMAINS,
+        "domains": getDomains(c),
         "needAuth": needAuth,
     });
 })
@@ -151,8 +154,9 @@ api.get('/api/new_address', async (c) => {
         return c.text("Name too long (max 100)", 400)
     }
     // check domain, generate random domain
-    if (!domain || !c.env.DOMAINS.includes(domain)) {
-        domain = c.env.DOMAINS[Math.floor(Math.random() * c.env.DOMAINS.length)];
+    const domains = getDomains(c);
+    if (!domain || !domains.includes(domain)) {
+        domain = domains[Math.floor(Math.random() * domains.length)];
     }
     // create address
     const emailAddress = c.env.PREFIX + name + "@" + domain

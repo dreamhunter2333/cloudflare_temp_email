@@ -110,12 +110,10 @@ api.post('/api/send_mail', async (c) => {
     return c.json({ status: "ok" });
 })
 
-api.get('/api/sendbox', async (c) => {
-    const { address } = c.get("jwtPayload")
+const getSendbox = async (c, address, limit, offset) => {
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }
-    const { limit, offset } = c.req.query();
     if (!limit || limit < 0 || limit > 100) {
         return c.text("Invalid limit", 400)
     }
@@ -137,6 +135,12 @@ api.get('/api/sendbox', async (c) => {
         results: results,
         count: count
     })
+}
+
+api.get('/api/sendbox', async (c) => {
+    const { address } = c.get("jwtPayload")
+    const { limit, offset } = c.req.query();
+    return getSendbox(c, address, limit, offset);
 })
 
-export { api }
+export { api, getSendbox }
