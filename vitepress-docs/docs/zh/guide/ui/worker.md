@@ -1,5 +1,8 @@
 # Cloudflare workers 后端
 
+> [!WARNING]
+> 用户界面部署正在开发中，文档不完整
+
 1. 点击 `Workers & Pages` -> `Overview` -> `Create Application`
 
     ![create worker](/ui_install/worker_home.png)
@@ -19,6 +22,8 @@
     ![worker3](/ui_install/worker-3.png)
 
 6. 点击 `Settings` -> `Variables`, 如图所示添加变量，参考 README.md 中的 `wrangler.toml` 文件的 `vars` 部分
+
+    TODO: 控制台此处变量不支持添加 JSON 变量，正在考虑解决方案
 
     ![worker-var](/ui_install/worker-var.png)
 
