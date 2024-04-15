@@ -33,6 +33,17 @@ api.get('/api/mails', async (c) => {
     })
 })
 
+api.delete('/api/mails/:id', async (c) => {
+    const { address } = c.get("jwtPayload")
+    const { id } = c.req.param();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM raw_mails WHERE address = ? and id = ?`
+    ).bind(address, id).run();
+    return c.json({
+        success: success
+    })
+})
+
 api.get('/api/settings', async (c) => {
     const { address, address_id } = c.get("jwtPayload")
     if (address_id && address_id > 0) {

@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 import { getSendbox } from './send_mail_api'
+import { sendAdminInternalMail } from './utils'
 
 const api = new Hono()
 
@@ -164,7 +165,7 @@ api.get('/admin/address_sender', async (c) => {
 })
 
 api.post('/admin/address_sender', async (c) => {
-    let { address_id, balance, enabled } = await c.req.json();
+    let { address, address_id, balance, enabled } = await c.req.json();
     if (!address_id) {
         return c.text("Invalid address_id", 400)
     }
@@ -175,6 +176,10 @@ api.post('/admin/address_sender', async (c) => {
     if (!success) {
         return c.text("Failed to update address sender", 500)
     }
+    await sendAdminInternalMail(
+        c, address, "Account Send Access Updated",
+        `You send access has been ${enabled ? "enabled" : "disabled"}, balance: ${balance}`
+    );
     return c.json({
         success: success
     })
