@@ -247,6 +247,12 @@ onMounted(async () => {
                 <n-tag type="info">
                   FROM: {{ curMail.source }}
                 </n-tag>
+                <n-popconfirm @positive-click="deleteMail">
+                  <template #trigger>
+                    <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
+                  </template>
+                  {{ t('deleteMailTip') }}
+                </n-popconfirm>
                 <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
                   @click="getAttachments(curMail.attachments)">
                   {{ t('attachments') }}
