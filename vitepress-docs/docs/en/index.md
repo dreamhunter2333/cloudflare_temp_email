@@ -20,5 +20,5 @@ features:
   - title: Use rust wasm to parse emails
     details: Use rust wasm to parse emails, support various RFC standards for emails, support attachments, extremely fast
   - title: Support sending emails
-    details: Support sending txt or html emails through domain name mailboxes
+    details: Support sending txt or html emails through domain name mailboxes，Support DKIM signature
 ---

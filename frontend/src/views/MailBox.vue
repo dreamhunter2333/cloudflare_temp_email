@@ -32,14 +32,18 @@ const { t } = useI18n({
       refresh: 'Refresh',
       attachments: 'Show Attachments',
       downloadMail: 'Download Mail',
-      pleaseSelectMail: "Please select a mail to view."
+      pleaseSelectMail: "Please select a mail to view.",
+      delete: 'Delete',
+      deleteMailTip: 'Are you sure you want to delete this mail?'
     },
     zh: {
       autoRefresh: '自动刷新',
       refresh: '刷新',
       downloadMail: '下载邮件',
       attachments: '查看附件',
-      pleaseSelectMail: "请选择一封邮件查看。"
+      pleaseSelectMail: "请选择一封邮件查看。",
+      delete: '删除',
+      deleteMailTip: '确定要删除这封邮件吗？'
     }
   }
 });
@@ -100,6 +104,19 @@ const mailItemClass = (row) => {
   return curMail.value && row.id == curMail.value.id ? (themeSwitch.value ? 'overlay overlay-dark-backgroud' : 'overlay overlay-light-backgroud') : '';
 };
 
+const deleteMail = async () => {
+  try {
+    await api.fetch(`/api/mails/${curMail.value.id}`, {
+      method: 'DELETE'
+    });
+    message.success(t("success"));
+    curMail.value = null;
+    await refresh();
+  } catch (error) {
+    message.error(error.message || "error");
+  }
+};
+
 onMounted(async () => {
   await refresh();
 });
@@ -158,6 +175,12 @@ onMounted(async () => {
               <n-tag type="info">
                 FROM: {{ curMail.source }}
               </n-tag>
+              <n-popconfirm @positive-click="deleteMail">
+                <template #trigger>
+                  <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
+                </template>
+                {{ t('deleteMailTip') }}
+              </n-popconfirm>
               <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
                 @click="getAttachments(curMail.attachments)">
                 {{ t('attachments') }}

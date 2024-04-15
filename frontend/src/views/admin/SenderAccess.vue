@@ -57,6 +57,7 @@ const updateData = async () => {
     await api.fetch(`/admin/address_sender`, {
       method: 'POST',
       body: JSON.stringify({
+        address: curRow.value.address,
         address_id: curRow.value.id,
         balance: senderBalance.value,
         enabled: senderEnabled.value ? 1 : 0

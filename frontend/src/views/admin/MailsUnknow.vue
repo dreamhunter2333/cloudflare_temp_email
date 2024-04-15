@@ -86,6 +86,9 @@ onMounted(async () => {
                             <n-tag type="info">
                                 ID: {{ row.id }}
                             </n-tag>
+                            <n-tag type="info">
+                                TO: {{ row.address }}
+                            </n-tag>
                         </n-space>
                     </template>
                     <div v-html="row.message"></div>

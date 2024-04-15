@@ -24,5 +24,5 @@ features:
   - title:  使用 rust wasm 解析邮件
     details: 使用 rust wasm 解析邮件，支持邮件各种RFC标准，支持附件, 速度极快
   - title: 支持发送邮件
-    details: 支持通过域名邮箱发送 txt 或者 html 邮件
+    details: 支持通过域名邮箱发送 txt 或者 html 邮件，支持 DKIM 签名
 ---
