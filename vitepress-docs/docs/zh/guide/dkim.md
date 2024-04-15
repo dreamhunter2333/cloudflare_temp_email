@@ -1,5 +1,7 @@
 # 配置 DKIM
 
+如果你不想配置 DKIM，可以跳过这一节。
+
 参考: [Adding-a-DKIM-Signature](https://support.mailchannels.com/hc/en-us/articles/7122849237389-Adding-a-DKIM-Signature)
 
 Creating a DKIM private and public key:
