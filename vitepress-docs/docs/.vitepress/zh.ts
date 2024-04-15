@@ -123,7 +123,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             text: '功能简介',
             collapsed: false,
             items: [
-                // { text: '先决条件', link: 'pre-requisite' },
+                { text: 'Admin 控制台', link: 'feature/admin' },
             ]
         },
         { text: '参考', base: "/", link: 'reference' }

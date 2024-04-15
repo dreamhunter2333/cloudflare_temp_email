@@ -38,6 +38,14 @@ BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
 binding = "DB"
 database_name = "xxx" # D1 数据库名称
 database_id = "xxx" # D1 数据库 ID
+
+# 新建地址限流配置 /api/new_address
+# [[unsafe.bindings]]
+# name = "RATE_LIMITER"
+# type = "ratelimit"
+# namespace_id = "1001"
+# # 10 requests per minute
+# simple = { limit = 10, period = 60 }
 ```
 
 ## 部署

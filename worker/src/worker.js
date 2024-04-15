@@ -21,6 +21,13 @@ app.use('/api/*', async (c, next) => {
 		}
 	}
 	if (c.req.path.startsWith("/api/new_address")) {
+		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
+		if (reqIp && c.env.RATE_LIMITER) {
+			const { success } = await c.env.RATE_LIMITER.limit({ key: reqIp })
+			if (!success) {
+				return c.text(`IP=${reqIp} Rate limit exceeded for /api/new_address`, 429)
+			}
+		}
 		await next();
 		return;
 	};

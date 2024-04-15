@@ -24,3 +24,11 @@ BLACK_LIST = ""
 binding = "DB"
 database_name = "xxx"
 database_id = "xxx"
+
+# ratelimit config for /api/new_address
+# [[unsafe.bindings]]
+# name = "RATE_LIMITER"
+# type = "ratelimit"
+# namespace_id = "1001"
+# # 10 requests per minute
+# simple = { limit = 10, period = 60 }

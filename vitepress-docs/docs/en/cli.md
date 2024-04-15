@@ -49,19 +49,44 @@ The first deployment will prompt you to create a project. Please fill in `produc
 ```bash
 cd worker
 pnpm install
-# copy wrangler.toml.template to wrangler.toml
-# and add your d1 config and these config
-# PREFIX = "tmp" - the email create will be like tmp<xxxxx>@DOMAIN
-# IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
-# PASSWORDS = ["123", "456"]
-# For admin panel, if not set will no allow to access the admin panel
-# ADMIN_PASSWORDS = ["123", "456"]
-# DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] you domain name
-# JWT_SECRET = "xxx"
-# BLACK_LIST = ""
 cp wrangler.toml.template wrangler.toml
 # deploy
 pnpm run deploy
+```
+
+`wrangler.toml`
+
+```bash
+name = "cloudflare_temp_email"
+main = "src/worker.js"
+compatibility_date = "2023-08-14"
+node_compat = true
+
+[vars]
+PREFIX = "tmp" # The mailbox name prefix to be processed
+# If you want your site to be private, uncomment below and change your password
+# PASSWORDS = ["123", "456"]
+# admin console password, if not configured, access to the console is not allowed
+# ADMIN_PASSWORDS = ["123", "456"]
+DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # your domain name
+JWT_SECRET = "xxx" # Key used to generate jwt
+BLACK_LIST = "" # Blacklist, used to filter senders, comma separated
+# dkim config
+# DKIM_SELECTOR = "mailchannels" # Refer to the DKIM section mailchannels._domainkey for mailchannels
+# DKIM_PRIVATE_KEY = "" # Refer to the contents of priv_key.txt in the DKIM section
+
+[[d1_databases]]
+binding = "DB"
+database_name = "xxx" # D1 database name
+database_id = "xxx" # D1 database ID
+
+# Create a new address current limiting configuration
+# [[unsafe.bindings]]
+# name = "RATE_LIMITER"
+# type = "ratelimit"
+# namespace_id = "1001"
+# # 10 requests per minute
+# simple = { limit = 10, period = 60 }
 ```
 
 you can find and test the worker's url in the  workers dashboard
@@ -104,7 +129,6 @@ Create a new `_mailchannels` record, the type is `TXT`, the content is `v=mc1 cf
 
 - The worker domain name here is the domain name of the back-end api. For example, if I deploy it at `https://temp-email-api.awsl.uk/`, fill in `v=mc1 cfid=awsl.uk`
 - If your domain name is `https://temp-email-api.xxx.workers.dev`, fill in `v=mc1 cfid=xxx.workers.dev`
-
 
 ## Configure DKIM
 
