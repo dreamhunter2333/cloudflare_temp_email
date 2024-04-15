@@ -52,13 +52,22 @@ api.post('/api/send_mail', async (c) => {
     if (!content) {
         return c.text("Invalid content", 400)
     }
-    const body = JSON.stringify({
+    let dmikBody = {}
+    if (c.env.DKIM_SELECTOR && c.env.DKIM_PRIVATE_KEY && address.includes("@")) {
+        dmikBody = {
+            "dkim_domain": address.split("@")[1],
+            "dkim_selector": c.env.DKIM_SELECTOR,
+            "dkim_private_key": c.env.DKIM_PRIVATE_KEY,
+        }
+    }
+    const body = {
         "personalizations": [
             {
                 "to": [{
                     "email": to_mail,
                     "name": to_name,
-                }]
+                }],
+                ...dmikBody,
             }
         ],
         "from": {
@@ -70,13 +79,13 @@ api.post('/api/send_mail', async (c) => {
             "type": is_html ? "text/html" : "text/plain",
             "value": content,
         }],
-    });
+    };
     let send_request = new Request("https://api.mailchannels.net/tx/v1/send", {
         "method": "POST",
         "headers": {
             "content-type": "application/json",
         },
-        "body": body,
+        "body": JSON.stringify(body),
     });
     const resp = await fetch(send_request);
     const respText = await resp.text();
@@ -98,9 +107,12 @@ api.post('/api/send_mail', async (c) => {
     }
     // save to sendbox
     try {
+        if (body?.personalizations?.[0]?.dkim_private_key) {
+            delete body.personalizations[0].dkim_private_key;
+        }
         const { success: success2 } = await c.env.DB.prepare(
             `INSERT INTO sendbox (address, raw) VALUES (?, ?)`
-        ).bind(address, body).run();
+        ).bind(address, JSON.stringify(body)).run();
         if (!success2) {
             console.warn(`Failed to save to sendbox for ${address}`);
         }
