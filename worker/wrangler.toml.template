@@ -16,6 +16,9 @@ PREFIX = "tmp"
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
 JWT_SECRET = "xxx"
 BLACK_LIST = ""
+# dkim config
+# DKIM_SELECTOR = ""
+# DKIM_PRIVATE_KEY = ""
 
 [[d1_databases]]
 binding = "DB"

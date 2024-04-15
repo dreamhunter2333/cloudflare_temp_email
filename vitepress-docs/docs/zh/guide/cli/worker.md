@@ -10,7 +10,7 @@ cp wrangler.toml.template wrangler.toml
 
 ## 修改 `wrangler.toml` 配置文件
 
-```bash
+```toml
 name = "cloudflare_temp_email"
 main = "src/worker.js"
 compatibility_date = "2023-12-01"
@@ -29,6 +29,9 @@ PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名, 支持多个域名
 JWT_SECRET = "xxx" # 用于生成 jwt 的密钥
 BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
+# dkim config
+# DKIM_SELECTOR = "mailchannels" # 参考 DKIM 部分 mailchannels._domainkey 的 mailchannels
+# DKIM_PRIVATE_KEY = "" # 参考 DKIM 部分 priv_key.txt 的内容
 
 # D1 数据库的名称和 ID 可以在 cloudflare 控制台查看
 [[d1_databases]]
