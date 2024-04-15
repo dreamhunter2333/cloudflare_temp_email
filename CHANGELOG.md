@@ -1,6 +1,17 @@
 # CHANGE LOG
 
-## 2024-04-12 v0.2.1
+## v0.2.7
+
+- Added user interface installation documentation
+- Support email DKIM
+- Rate limiting configuration for `/api/new_address`
+
+## v0.2.6
+
+- Added admin query outbox page
+- Add admin data cleaning page
+
+## 2024-04-12 v0.2.5
 
 - support send email
 
