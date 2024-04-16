@@ -46,7 +46,7 @@ jobs:
           if [[ ${{ github.event.inputs.production }} == true ]]; then
             pnpm run deploy --project-name=$project_name
             echo "Deploying prodcution for ${{ github.ref_name }}"
-          elif [[ ${{github.ref}} == refs/tags/* ]]; then
+          elif [[ ${{ github.ref }} == refs/tags/* ]]; then
             pnpm run deploy --project-name=$project_name
             echo "Deploying prodcution for ${{ github.ref_name }}"
           fi
