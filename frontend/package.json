@@ -8,6 +8,7 @@
     "build": "vite build -m prod --emptyOutDir",
     "build:release": "vite build -m example --emptyOutDir",
     "preview": "vite preview",
+    "deploy:preview": "npm run build && wrangler pages deploy ./dist --branch preview",
     "deploy": "npm run build && wrangler pages deploy ./dist --branch production"
   },
   "dependencies": {

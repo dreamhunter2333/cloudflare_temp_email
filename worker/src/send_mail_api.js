@@ -9,7 +9,7 @@ api.post('/api/requset_send_mail_access', async (c) => {
     }
     try {
         const { success } = await c.env.DB.prepare(
-            `INSERT INTO address_sender (address, enabled) VALUES (?, 0)`
+            `INSERT INTO address_sender (address, enabled) VALUES (?, 1)`
         ).bind(address).run();
         if (!success) {
             return c.text("Failed to request send mail access", 500)

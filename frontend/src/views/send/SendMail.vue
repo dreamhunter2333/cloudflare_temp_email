@@ -84,7 +84,7 @@ const send = async () => {
         message.error(error.message || "error");
     } finally {
         message.success(t("successSend"));
-        router.push('/');
+        router.push('/sendbox');
     }
 }
 
@@ -97,6 +97,7 @@ const requestAccess = async () => {
             }
         )
         message.success(t("success"))
+        await api.getSettings();
     } catch (error) {
         message.error(error.message || "error");
     }
