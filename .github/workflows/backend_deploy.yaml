@@ -30,7 +30,7 @@ jobs:
       - name: Deploy Backend for ${{ github.ref_name }}
         run: |
           cd worker/
-          echo "${{ secrets.BACKEND_TOML }}" > wrangler.toml
+          echo '${{ secrets.BACKEND_TOML }}' > wrangler.toml
           pnpm install --no-frozen-lockfile
           pnpm run deploy
           echo "Deployed for tag ${{ github.ref_name }}"
