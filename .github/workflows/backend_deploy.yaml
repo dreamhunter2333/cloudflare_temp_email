@@ -32,7 +32,12 @@ jobs:
           cd worker/
           echo '${{ secrets.BACKEND_TOML }}' > wrangler.toml
           pnpm install --no-frozen-lockfile
-          pnpm run deploy
+          output=$(pnpm run deploy 2>&1)
+          if [ $? -ne 0 ]; then
+              code=$?
+              echo "Command failed with exit code $code"
+              exit $code
+          fi
           echo "Deployed for tag ${{ github.ref_name }}"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
