@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy:preview": "wrangler deploy --preview",
-    "deploy": "wrangler deploy --production",
+    "deploy": "wrangler deploy",
     "start": "wrangler dev",
     "build": "wrangler deploy src/worker.js --dry-run --outdir dist --minify"
   },
