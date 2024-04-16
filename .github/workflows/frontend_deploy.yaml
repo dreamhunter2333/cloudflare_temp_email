@@ -42,15 +42,16 @@ jobs:
           echo "${{ secrets.FRONTEND_ENV }}" > .env.prod
           export project_name=${{ secrets.FRONTEND_NAME }}
           pnpm install --no-frozen-lockfile
-          pnpm run deploy:preview --project-name=$project_name
           if [[ ${{ github.event.inputs.production }} == true ]]; then
             pnpm run deploy --project-name=$project_name
             echo "Deploying prodcution for ${{ github.ref_name }}"
           elif [[ ${{ github.ref }} == refs/tags/* ]]; then
             pnpm run deploy --project-name=$project_name
             echo "Deploying prodcution for ${{ github.ref_name }}"
+          else
+            pnpm run deploy:preview --project-name=$project_name
           fi
-          echo "Deploying docs for tag ${{ github.ref_name }}"
+          echo "Deployed for tag ${{ github.ref_name }}"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
