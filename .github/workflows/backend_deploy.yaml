@@ -31,9 +31,8 @@ jobs:
         run: |
           cd worker/
           echo "${{ secrets.BACKEND_TOML }}" > wrangler.toml
-          export project_name=${{ secrets.BACKEND_NAME }}
           pnpm install --no-frozen-lockfile
-          pnpm run deploy --project-name=$project_name
+          pnpm run deploy
           echo "Deployed for tag ${{ github.ref_name }}"
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
