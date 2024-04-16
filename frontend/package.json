@@ -33,6 +33,7 @@
     "vite-plugin-pwa": "^0.19.7",
     "vite-plugin-top-level-await": "^1.4.1",
     "vite-plugin-wasm": "^3.3.0",
-    "workbox-window": "^7.0.0"
+    "workbox-window": "^7.0.0",
+    "wrangler": "^3.50.0"
   }
 }
