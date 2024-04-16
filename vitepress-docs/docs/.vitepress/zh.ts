@@ -120,6 +120,13 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             ]
         },
         {
+            text: '通过 Github Actions 部署',
+            collapsed: false,
+            items: [
+                { text: '开发中', link: 'github-action' },
+            ]
+        },
+        {
             text: '功能简介',
             collapsed: false,
             items: [
