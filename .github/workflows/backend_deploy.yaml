@@ -1,0 +1,56 @@
+name: Deploy Backend
+
+on:
+  push:
+    paths:
+      - "worker/**"
+    branches:
+      - main
+    tags:
+      - "*"
+  workflow_dispatch:
+    inputs:
+      production:
+        description: "Deploy to production"
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      - name: Deploy Backend for ${{ github.ref_name }}
+        run: |
+          cd worker/
+          echo ${{ secrets.BACKEND_TOML }} > wrangler.toml
+          export project_name = ${{ secrets.BACKEND_NAME }}
+          pnpm install --no-frozen-lockfile
+          pnpm run deploy:preview --project-name=$project_name
+          if [[ ${{ github.event.inputs.production }} == true ]]; then
+            pnpm run deploy --project-name=$project_name
+            echo "Deploying prodcution for ${{ github.ref_name }}"
+          elif [[ ${{github.ref}} == refs/tags/* ]]; then
+            pnpm run deploy --project-name=$project_name
+            echo "Deploying prodcution for ${{ github.ref_name }}"
+          fi
+          echo "Deploying docs for tag ${{ github.ref_name }}"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
