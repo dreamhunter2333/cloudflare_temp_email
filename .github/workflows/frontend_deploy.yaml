@@ -39,7 +39,7 @@ jobs:
       - name: Deploy Frontend for ${{ github.ref_name }}
         run: |
           cd frontend/
-          echo ${{ secrets.FRONTEND_ENV }} > .env.prod
+          echo "${{ secrets.FRONTEND_ENV }}" > .env.prod
           export project_name=${{ secrets.FRONTEND_NAME }}
           pnpm install --no-frozen-lockfile
           pnpm run deploy:preview --project-name=$project_name

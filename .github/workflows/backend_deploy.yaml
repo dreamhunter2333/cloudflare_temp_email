@@ -39,7 +39,7 @@ jobs:
       - name: Deploy Backend for ${{ github.ref_name }}
         run: |
           cd worker/
-          echo ${{ secrets.BACKEND_TOML }} > wrangler.toml
+          echo "${{ secrets.BACKEND_TOML }}" > wrangler.toml
           export project_name=${{ secrets.BACKEND_NAME }}
           pnpm install --no-frozen-lockfile
           pnpm run deploy:preview --project-name=$project_name
