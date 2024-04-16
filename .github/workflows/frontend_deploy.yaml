@@ -40,7 +40,7 @@ jobs:
         run: |
           cd frontend/
           echo ${{ secrets.FRONTEND_ENV }} > .env.prod
-          export project_name = ${{ secrets.FRONTEND_NAME }}
+          export project_name=${{ secrets.FRONTEND_NAME }}
           pnpm install --no-frozen-lockfile
           pnpm run deploy:preview --project-name=$project_name
           if [[ ${{ github.event.inputs.production }} == true ]]; then
