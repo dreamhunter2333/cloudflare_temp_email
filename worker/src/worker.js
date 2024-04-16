@@ -20,12 +20,14 @@ app.use('/api/*', async (c, next) => {
 			return c.text("Need Password", 401)
 		}
 	}
-	if (c.req.path.startsWith("/api/new_address")) {
+	if (c.req.path.startsWith("/api/new_address") || c.req.path.startsWith("/api/send_mail")) {
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
-			const { success } = await c.env.RATE_LIMITER.limit({ key: reqIp })
+			const { success } = await c.env.RATE_LIMITER.limit(
+				{ key: `${c.req.path}|${reqIp}` }
+			)
 			if (!success) {
-				return c.text(`IP=${reqIp} Rate limit exceeded for /api/new_address`, 429)
+				return c.text(`IP=${reqIp} Rate limit exceeded for ${c.req.path}`, 429)
 			}
 		}
 		await next();
