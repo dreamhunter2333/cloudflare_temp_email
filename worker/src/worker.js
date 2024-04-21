@@ -30,9 +30,11 @@ app.use('/api/*', async (c, next) => {
 				return c.text(`IP=${reqIp} Rate limit exceeded for ${c.req.path}`, 429)
 			}
 		}
+	}
+	if (c.req.path.startsWith("/api/new_address")) {
 		await next();
 		return;
-	};
+	}
 	return jwt({ secret: c.env.JWT_SECRET })(c, next);
 });
 
