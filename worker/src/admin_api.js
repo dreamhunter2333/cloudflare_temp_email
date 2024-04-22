@@ -66,8 +66,11 @@ api.delete('/admin/delete_address/:id', async (c) => {
     if (!mailSuccess) {
         return c.text("Failed to delete mails", 500)
     }
+    const { success: sendAccess } = await c.env.DB.prepare(
+        `DELETE FROM address_sender WHERE address_id = ? `
+    ).bind(id).run();
     return c.json({
-        success: success
+        success: success && mailSuccess && sendAccess
     })
 })
 

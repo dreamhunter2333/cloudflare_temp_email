@@ -81,6 +81,7 @@ const deleteEmail = async () => {
         await fetchData()
     } catch (error) {
         message.error(error.message || "error");
+        showDelteAccount.value = false
     }
 }
 
@@ -214,7 +215,7 @@ onMounted(async () => {
             <template #action>
             </template>
         </n-modal>
-        <n-modal v-model:show="showDelteAccount" preset="dialog" title="Dialog">
+        <n-modal v-model:show="showDelteAccount" preset="dialog" :title="t('delteAccount')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
                 <n-button @click="deleteEmail" size="small" tertiary round type="error">

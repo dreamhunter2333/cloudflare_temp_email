@@ -220,8 +220,11 @@ api.delete('/api/delete_address', async (c) => {
     if (!mailSuccess) {
         return c.text("Failed to delete mails", 500)
     }
+    const { success: sendAccess } = await c.env.DB.prepare(
+        `DELETE FROM address_sender WHERE address = ? `
+    ).bind(address).run();
     return c.json({
-        success: success
+        success: success && mailSuccess && sendAccess
     })
 })
 
