@@ -1,6 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useStorage } from '@vueuse/core'
 
 import { useGlobalState } from '../../store'
@@ -102,6 +102,10 @@ const requestAccess = async () => {
         message.error(error.message || "error");
     }
 }
+
+onMounted(async () => {
+    await api.getSettings();
+})
 </script>
 
 <template>
