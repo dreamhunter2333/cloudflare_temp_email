@@ -35,7 +35,7 @@ onMounted(async () => {
 <template>
   <n-config-provider :locale="localeConfig" :theme="theme">
     <n-global-style />
-    <n-spin description="loading..." :show="loading">
+    <n-spin description="loading..." :show="loading" style="z-index: 9999;">
       <n-message-provider>
         <n-grid x-gap="12" :cols="12">
           <n-gi v-if="!isMobile" span="1"></n-gi>
