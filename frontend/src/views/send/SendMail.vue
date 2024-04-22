@@ -36,7 +36,7 @@ const { t } = useI18n({
             content: 'Content',
             send: 'Send',
             requestAccess: 'Request Access',
-            requestAccessTip: 'You need to request access to send mail',
+            requestAccessTip: 'You need to request access to send mail, if have request, please contact admin.',
             send_balance: 'Send Mail Balance Left',
         },
         zh: {
@@ -51,7 +51,7 @@ const { t } = useI18n({
             content: '内容',
             send: '发送',
             requestAccess: '申请权限',
-            requestAccessTip: '您需要申请权限才能发送邮件',
+            requestAccessTip: '您需要申请权限才能发送邮件, 如果已经申请过, 请联系管理员提升额度。',
             send_balance: '剩余发送邮件额度',
         }
     }
