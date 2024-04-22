@@ -35,6 +35,7 @@ jobs:
       - name: Deploy Docs for ${{github.ref_name}}
         run: |
           cd vitepress-docs/
+          wget https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/frontend.zip  -O public/ui_install/frontend.zip
           pnpm install --no-frozen-lockfile
           if [[ ${{github.ref}} == refs/tags/* ]]; then
             export TAG_NAME=${{github.ref_name}}
