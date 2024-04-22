@@ -60,6 +60,13 @@ const generate = async () => {
         <a v-if="downloadUrl" :href="downloadUrl" download="frontend.zip">{{ tip }}</a>
     </div>
 
+    > [!NOTE]
+    > 你也可以手动部署，从这里下载 zip, [frontend.zip](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/frontend.zip)
+    >
+    > 修改压缩包里面的 index-xxx.js 文件 ，xx 是随机的字符串
+    >
+    > 搜索 `https://temp-email-api.xxx.xxx` ，替换成你worker 的域名，然后部署新的zip文件
+
 4. 选择 `Pages`，点击 `Create Pages`, 修改名称，上传下载的 zip 包，然后点击 `Deploy`
 
     ![pages1](/ui_install/pages-1.png)
