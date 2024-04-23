@@ -29,24 +29,26 @@ const { t } = useI18n({
   locale: localeCache.value || 'zh',
   messages: {
     en: {
-      auth: 'Admin Auth',
-      authTip: 'Please enter the correct auth code',
+      accessHeader: 'Admin Password',
+      accessTip: 'Please enter the admin password',
       mails: 'Emails',
       account: 'Account',
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
       maintenance: 'Maintenance',
+      ok: 'OK',
     },
     zh: {
-      auth: 'Admin 授权',
-      authTip: '请输入正确的授权码',
+      accessHeader: 'Admin 密码',
+      accessTip: '请输入 Admin 密码',
       mails: '邮件',
       account: '账号',
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
       maintenance: '维护',
+      ok: '确定',
     }
   }
 });
@@ -64,13 +66,13 @@ onMounted(async () => {
     <n-modal v-model:show="showAdminAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
       title="Dialog">
       <template #header>
-        <div>{{ t('auth') }}</div>
+        <div>{{ t('accessHeader') }}</div>
       </template>
-      <p>{{ t('authTip') }}</p>
+      <p>{{ t('accessTip') }}</p>
       <n-input v-model:value="adminAuth" type="textarea" :autosize="{ minRows: 3 }" />
       <template #action>
-        <n-button @click="authFunc" size="small" tertiary round type="primary">
-          {{ t('auth') }}
+        <n-button @click="authFunc" type="primary">
+          {{ t('ok') }}
         </n-button>
       </template>
     </n-modal>
