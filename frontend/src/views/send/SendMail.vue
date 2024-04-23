@@ -1,6 +1,9 @@
 <script setup>
+import '@wangeditor/editor/dist/css/style.css'
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+import { DomEditor } from '@wangeditor/editor'
 import { useI18n } from 'vue-i18n'
-import { onMounted, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref, shallowRef } from 'vue'
 import { useStorage } from '@vueuse/core'
 
 import { useGlobalState } from '../../store'
@@ -9,13 +12,14 @@ import router from '../../router'
 
 const message = useMessage()
 const isPreview = ref(false)
+const editorRef = shallowRef()
 
 const mailModel = useStorage('mailModelCache', {
     fromName: "",
     toName: "",
     toMail: "",
     subject: "",
-    isHtml: false,
+    contentType: 'text',
     content: "",
 })
 
@@ -30,7 +34,6 @@ const { t } = useI18n({
             toName: 'Recipient Name and Address, leave Name blank to use email address',
             subject: 'Subject',
             options: 'Options',
-            isHtml: 'Enable HTML',
             edit: 'Edit',
             preview: 'Preview',
             content: 'Content',
@@ -38,6 +41,10 @@ const { t } = useI18n({
             requestAccess: 'Request Access',
             requestAccessTip: 'You need to request access to send mail, if have request, please contact admin.',
             send_balance: 'Send Mail Balance Left',
+            text: 'Text',
+            html: 'HTML',
+            'rich text': 'Rich Text',
+            tooLarge: 'Too large file, please upload file less than 1MB.',
         },
         zh: {
             successSend: '请查看您的发件箱, 如果失败, 请检查您的余额或稍后重试。',
@@ -45,7 +52,6 @@ const { t } = useI18n({
             toName: '收件人名称和地址，名称不填写则使用邮箱地址',
             subject: '主题',
             options: '选项',
-            isHtml: '启用HTML',
             edit: '编辑',
             preview: '预览',
             content: '内容',
@@ -53,9 +59,19 @@ const { t } = useI18n({
             requestAccess: '申请权限',
             requestAccessTip: '您需要申请权限才能发送邮件, 如果已经申请过, 请联系管理员提升额度。',
             send_balance: '剩余发送邮件额度',
+            text: '文本',
+            html: 'HTML',
+            'rich text': '富文本',
+            tooLarge: '文件过大, 请上传小于1MB的文件。',
         }
     }
 });
+
+const contentTypes = [
+    { label: t('text'), value: 'text' },
+    { label: t('html'), value: 'html' },
+    { label: t('rich text'), value: 'rich' },
+]
 
 const send = async () => {
     try {
@@ -68,7 +84,7 @@ const send = async () => {
                         to_name: mailModel.value.toName,
                         to_mail: mailModel.value.toMail,
                         subject: mailModel.value.subject,
-                        is_html: mailModel.value.isHtml,
+                        is_html: mailModel.value.contentType != 'text',
                         content: mailModel.value.content,
                     })
             })
@@ -77,7 +93,7 @@ const send = async () => {
             toName: "",
             toMail: "",
             subject: "",
-            isHtml: false,
+            contentType: 'text',
             content: "",
         }
     } catch (error) {
@@ -101,6 +117,33 @@ const requestAccess = async () => {
     } catch (error) {
         message.error(error.message || "error");
     }
+}
+
+const toolbarConfig = {
+    excludeKeys: ["uploadVideo"]
+}
+
+const editorConfig = {
+    MENU_CONF: {
+        'uploadImage': {
+            async customUpload() {
+                message.error(t('tooLarge'))
+            },
+            maxFileSize: 1 * 1024 * 1024,
+            base64LimitSize: 1 * 1024 * 1024,
+        }
+    }
+}
+
+onBeforeUnmount(() => {
+    const editor = editorRef.value
+    if (editor == null) return
+    editor.destroy()
+})
+
+const handleCreated = (editor) => {
+    editorRef.value = editor;
+    console.log(editor.getAllMenuKeys())
 }
 
 onMounted(async () => {
@@ -143,18 +186,29 @@ onMounted(async () => {
                             <n-input v-model:value="mailModel.subject" />
                         </n-form-item>
                         <n-form-item :label="t('options')" label-placement="top">
-                            <n-checkbox v-model:checked="mailModel.isHtml">
-                                {{ t('isHtml') }}
-                            </n-checkbox>
-                            <n-button v-if="mailModel.isHtml" @click="isPreview = !isPreview">
+                            <n-radio-group v-model:value="mailModel.contentType">
+                                <n-radio-button v-for="option in contentTypes" :key="option.value" :value="option.value"
+                                    :label="option.label" />
+                            </n-radio-group>
+                            <n-button v-if="mailModel.contentType != 'text'" @click="isPreview = !isPreview"
+                                style="margin-left: 10px;">
                                 {{ isPreview ? t('edit') : t('preview') }}
                             </n-button>
                         </n-form-item>
                         <n-form-item :label="t('content')" label-placement="top">
-                            <div v-if="isPreview" v-html="mailModel.content" />
+                            <n-card v-if="isPreview">
+                                <div v-html="mailModel.content" />
+                            </n-card>
+                            <div v-else-if="mailModel.contentType == 'rich'" style="border: 1px solid #ccc">
+                                <Toolbar style="border-bottom: 1px solid #ccc" :defaultConfig="toolbarConfig"
+                                    :editor="editorRef" mode="default" />
+                                <Editor style="height: 500px; overflow-y: hidden;" v-model="mailModel.content"
+                                    :defaultConfig="editorConfig" mode="default" @onCreated="handleCreated" />
+                            </div>
                             <n-input v-else type="textarea" v-model:value="mailModel.content" :autosize="{
                                 minRows: 3
                             }" />
+
                         </n-form-item>
                     </n-form>
                 </div>

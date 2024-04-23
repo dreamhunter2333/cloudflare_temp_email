@@ -14,6 +14,8 @@
   "dependencies": {
     "@vicons/material": "^0.12.0",
     "@vueuse/core": "^10.9.0",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.6.8",
     "mail-parser-wasm": "^0.1.6",
     "naive-ui": "^2.38.1",
