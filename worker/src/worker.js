@@ -57,6 +57,8 @@ app.route('/', adminApi)
 app.route('/', apiV1)
 app.route('/', apiSendMail)
 
+app.get('/', async c => c.text("OK"))
+app.get('/health_check', async c => c.text("OK"))
 app.all('/*', async c => c.text("Not Found", 404))
 
 

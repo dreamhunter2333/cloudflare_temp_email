@@ -67,8 +67,8 @@ const { t } = useI18n({
             logoutConfirm: 'Are you sure to logout?',
             delteAccount: "Delete Account",
             delteAccountConfirm: "Are you sure to delete your account and all emails for this account?",
-            auth: 'Auth',
-            authTip: 'Please enter the correct auth code',
+            accessHeader: 'Access Password',
+            accessTip: 'Please enter the correct password',
             settings: 'Settings',
             home: 'Home',
             menu: 'Menu',
@@ -100,8 +100,8 @@ const { t } = useI18n({
             logoutConfirm: '确定要登出吗？',
             delteAccount: "删除账户",
             delteAccountConfirm: "确定要删除你的账户和其中的所有邮件吗?",
-            auth: '授权',
-            authTip: '请输入正确的授权码',
+            accessHeader: '访问密码',
+            accessTip: '请输入站点访问密码',
             settings: '设置',
             home: '主页',
             menu: '菜单',
@@ -513,15 +513,15 @@ onMounted(async () => {
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
             title="Dialog">
             <template #header>
-                <div>{{ t('auth') }}</div>
+                <div>{{ t('accessHeader') }}</div>
             </template>
-            <p>{{ t('authTip') }}</p>
+            <p>{{ t('accessTip') }}</p>
             <n-input v-model:value="auth" type="textarea" :autosize="{
                 minRows: 3
             }" />
             <template #action>
-                <n-button @click="authFunc" size="small" tertiary round type="primary">
-                    {{ t('auth') }}
+                <n-button @click="authFunc" type="primary">
+                    {{ t('ok') }}
                 </n-button>
             </template>
         </n-modal>

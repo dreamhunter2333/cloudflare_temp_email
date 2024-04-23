@@ -59,3 +59,6 @@ pnpm run deploy
 部署成功之后再路由中可以看到 `worker` 的 `url`，控制台也会输出 `worker` 的 `url`
 
 ![worker](/readme_assets/worker.png)
+
+> [!NOTE]
+> 打开 `worker` 的 `url`，如果显示 `OK` 说明部署成功

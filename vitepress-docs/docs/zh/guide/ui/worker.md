@@ -14,7 +14,10 @@
 
     ![worker2](/ui_install/worker-2.png)
 
-5. 点击 `Settings` -> `Trggers`, 这里可以添加自己的域名，你也可以使用自动生成的 `*.workers.dev` 的域名。能打开域名说明部署成功，记录下这个域名，后面部署前端会用到。
+5. 点击 `Settings` -> `Trggers`, 这里可以添加自己的域名，你也可以使用自动生成的 `*.workers.dev` 的域名。记录下这个域名，后面部署前端会用到。
+
+    > [!NOTE]
+    > 打开 `worker` 的 `url`，如果显示 `OK` 说明部署成功
 
     ![worker3](/ui_install/worker-3.png)
 

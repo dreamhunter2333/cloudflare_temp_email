@@ -1,5 +1,20 @@
 # CHANGE LOG
 
+## v0.2.8
+
+- 允许用户删除邮件
+- admin 修改发件权限时邮件通知用户
+- 发件权限默认 1 条
+- 添加 RATE_LIMITER 限流 发送邮件 和 新建地址
+- 一些 bug 修复
+
+---
+- feat: allow user delete mail && notify when send access changed by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/132
+- feat: requset_send_mail_access default 1 balance by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/143
+- fix: RATE_LIMITER not call jwt by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/146
+- fix: delete_address not delete address_sender by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/153
+- fix: send_balance not update when click sendmail by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/155
+
 ## v0.2.7
 
 - Added user interface installation documentation

@@ -20,7 +20,7 @@ features:
   - title: 免费托管在 CloudFlare，无需服务器
     details: Cloudflare D1 数据库，Cloudflare Pages 前端，Cloudflare Workers 后端， Cloudflare Email Routing
   - title: 仅需域名即可私有部署
-    details: 支持 password 登录邮箱，访问授权可作为私人站点，支持附件功能
+    details: 支持 password 登录邮箱，使用访问密码可作为私人站点，支持附件功能
   - title:  使用 rust wasm 解析邮件
     details: 使用 rust wasm 解析邮件，支持邮件各种RFC标准，支持附件, 速度极快
   - title: 支持发送邮件
