@@ -13,7 +13,7 @@
     "wrangler": "^3.48.0"
   },
   "dependencies": {
-    "hono": "^4.2.2",
+    "hono": "^4.2.7",
     "mimetext": "^3.0.24"
   }
 }
