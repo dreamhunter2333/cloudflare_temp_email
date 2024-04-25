@@ -8,7 +8,7 @@ import { NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 
 const {
-    localeCache, adminAuth, showAdminAuth,
+    localeCache, adminAuth, showAdminAuth, loading,
     adminTab, adminMailTabAddress, adminSendBoxTabAddress
 } = useGlobalState()
 const message = useMessage()
@@ -218,7 +218,7 @@ onMounted(async () => {
         <n-modal v-model:show="showDelteAccount" preset="dialog" :title="t('delteAccount')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
-                <n-button @click="deleteEmail" size="small" tertiary round type="error">
+                <n-button :loading="loading" @click="deleteEmail" size="small" tertiary round type="error">
                     {{ t('delteAccount') }}
                 </n-button>
             </template>

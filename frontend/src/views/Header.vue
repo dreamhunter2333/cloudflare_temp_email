@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import { DarkModeFilled, LightModeFilled, MenuFilled, AdminPanelSettingsFilled, SendFilled } from '@vicons/material'
 import { GithubAlt, Language, User, Home, Copy } from '@vicons/fa'
+import AdminContact from './admin/AdminContact.vue'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -14,7 +15,7 @@ const message = useMessage()
 
 const {
     jwt, localeCache, toggleDark, isDark,
-    showAuth, adminAuth, auth
+    showAuth, adminAuth, auth, loading
 } = useGlobalState()
 const { showLogin, openSettings, settings } = useGlobalState()
 const route = useRoute()
@@ -22,6 +23,7 @@ const router = useRouter()
 const isMobile = useIsMobile()
 const isAdminRoute = computed(() => route.path.includes('admin'))
 
+const showMobileMenu = ref(false)
 const showNewEmail = ref(false)
 const showLogout = ref(false)
 const showDelteAccount = ref(false)
@@ -85,7 +87,8 @@ const { t } = useI18n({
             getNewEmailTip3: 'You can choose a domain from the dropdown list.',
             yourAddress: 'Your email address is',
             password: 'Password',
-            passwordTip: 'Please copy the password and you can use it to login to your email account.', cancel: 'Cancel',
+            passwordTip: 'Please copy the password and you can use it to login to your email account.',
+            cancel: 'Cancel',
             ok: 'OK',
             copy: 'Copy',
             copied: 'Copied',
@@ -138,10 +141,10 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                bordered: false,
-                ghost: true,
+                text: true,
                 size: "small",
-                onClick: () => router.push('/')
+                style: "width: 100%",
+                onClick: () => { router.push('/'); showMobileMenu.value = false; }
             },
             {
                 default: () => t('home'),
@@ -154,10 +157,10 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                bordered: false,
-                ghost: true,
+                text: true,
                 size: "small",
-                onClick: () => router.push('/admin')
+                style: "width: 100%",
+                onClick: () => { router.push('/admin'); showMobileMenu.value = false; }
             },
             {
                 default: () => "Admin",
@@ -171,9 +174,9 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                bordered: false,
-                ghost: true,
+                text: true,
                 size: "small",
+                style: "width: 100%",
             },
             {
                 default: () => t('user'),
@@ -187,10 +190,10 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        bordered: false,
-                        ghost: true,
+                        text: true,
                         size: "small",
-                        onClick: () => router.push('/sendbox')
+                        style: "width: 100%",
+                        onClick: () => { router.push('/sendbox'); showMobileMenu.value = false; }
                     },
                     { default: () => t('sendbox') }
                 ),
@@ -200,10 +203,10 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        bordered: false,
-                        ghost: true,
+                        text: true,
                         size: "small",
-                        onClick: () => { showPassword.value = true }
+                        style: "width: 100%",
+                        onClick: () => { showPassword.value = true; showMobileMenu.value = false; }
                     },
                     { default: () => t('showPassword') }
                 ),
@@ -213,10 +216,10 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        bordered: false,
-                        ghost: true,
+                        text: true,
                         size: "small",
-                        onClick: () => { router.push('/settings') }
+                        style: "width: 100%",
+                        onClick: () => { router.push('/settings'); showMobileMenu.value = false; }
                     },
                     { default: () => t('settings') }
                 ),
@@ -226,10 +229,10 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        bordered: false,
-                        ghost: true,
+                        text: true,
                         size: "small",
-                        onClick: () => { showLogout.value = true }
+                        style: "width: 100%",
+                        onClick: () => { showLogout.value = true; showMobileMenu.value = false; }
                     },
                     { default: () => t('logout') }
                 ),
@@ -239,10 +242,10 @@ const menuOptions = computed(() => [
                 label: () => h(
                     NButton,
                     {
-                        bordered: false,
-                        ghost: true,
+                        text: true,
                         size: "small",
-                        onClick: () => { showDelteAccount.value = true }
+                        style: "width: 100%",
+                        onClick: () => { showDelteAccount.value = true; showMobileMenu.value = false; }
                     },
                     { default: () => t('delteAccount') }
                 ),
@@ -254,10 +257,10 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                bordered: false,
-                ghost: true,
+                text: true,
                 size: "small",
-                onClick: () => toggleDark()
+                style: "width: 100%",
+                onClick: () => { toggleDark(); showMobileMenu.value = false; }
             },
             {
                 default: () => isDark.value ? t('light') : t('dark'),
@@ -272,10 +275,13 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                bordered: false,
-                ghost: true,
+                text: true,
                 size: "small",
-                onClick: () => localeCache.value == 'zh' ? changeLocale('en') : changeLocale('zh')
+                style: "width: 100%",
+                onClick: () => {
+                    localeCache.value == 'zh' ? changeLocale('en') : changeLocale('zh');
+                    showMobileMenu.value = false;
+                }
             },
             {
                 default: () => localeCache.value == 'zh' ? "English" : "中文",
@@ -290,9 +296,9 @@ const menuOptions = computed(() => [
         label: () => h(
             NButton,
             {
-                bordered: !isMobile.value,
-                ghost: true,
+                text: true,
                 size: "small",
+                style: "width: 100%",
                 tag: "a",
                 target: "_blank",
                 href: "https://github.com/dreamhunter2333/cloudflare_temp_email",
@@ -305,21 +311,6 @@ const menuOptions = computed(() => [
         key: "github"
     }
 ]);
-
-const menuOptionsMobile = computed(() => [
-    {
-        label: t('menu'),
-        icon: () => h(
-            NIcon,
-            {
-                component: MenuFilled
-            }
-        ),
-        key: "menu",
-        children: menuOptions.value
-    },
-]);
-
 
 const copy = async () => {
     try {
@@ -384,13 +375,30 @@ onMounted(async () => {
 
 <template>
     <div>
-        <n-layout-header>
-            <h2 style="display: inline-block; margin-left: 10px;">{{ t('title') }}</h2>
-            <div>
-                <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" />
-                <n-menu v-else mode="horizontal" :options="menuOptionsMobile" />
-            </div>
-        </n-layout-header>
+        <n-page-header>
+            <template #title>
+                <h3>{{ t('title') }}</h3>
+            </template>
+            <template #avatar>
+                <n-avatar style="margin-left: 10px;" src="/logo.png" />
+            </template>
+            <template #extra>
+                <n-space>
+                    <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" />
+                    <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu" style="margin-right: 10px;">
+                        <template #icon>
+                            <n-icon :component="MenuFilled" />
+                        </template>
+                        {{ t('menu') }}
+                    </n-button>
+                </n-space>
+            </template>
+        </n-page-header>
+        <n-drawer v-model:show="showMobileMenu" placement="top" style="height: 100vh;">
+            <n-drawer-content :title="t('menu')" closable>
+                <n-menu :options="menuOptions" />
+            </n-drawer-content>
+        </n-drawer>
         <div v-if="!isAdminRoute">
             <n-card v-if="!settings.fetched">
                 <n-skeleton style="height: 50vh" />
@@ -460,7 +468,7 @@ onMounted(async () => {
                 <n-button @click="showNewEmail = false">
                     {{ t('cancel') }}
                 </n-button>
-                <n-button @click="newEmail" type="primary">
+                <n-button @click="newEmail" type="primary" :loading="loading">
                     {{ t('ok') }}
                 </n-button>
             </template>
@@ -482,11 +490,12 @@ onMounted(async () => {
             <template #header>
                 <div>{{ t('login') }}</div>
             </template>
+            <AdminContact />
             <n-input v-model:value="password" type="textarea" :autosize="{
                 minRows: 3
             }" />
             <template #action>
-                <n-button @click="login" size="small" tertiary round type="primary">
+                <n-button @click="login" :loading="loading" size="small" tertiary round type="primary">
                     {{ t('login') }}
                 </n-button>
             </template>
@@ -497,7 +506,7 @@ onMounted(async () => {
             </template>
             <p>{{ t('logoutConfirm') }}</p>
             <template #action>
-                <n-button @click="logout" size="small" tertiary round type="primary">
+                <n-button :loading="loading" @click="logout" size="small" tertiary round type="primary">
                     {{ t('logout') }}
                 </n-button>
             </template>
@@ -508,7 +517,7 @@ onMounted(async () => {
             </template>
             <p>{{ t('delteAccountConfirm') }}</p>
             <template #action>
-                <n-button @click="deleteAccount" size="small" tertiary round type="error">
+                <n-button :loading="loading" @click="deleteAccount" size="small" tertiary round type="error">
                     {{ t('delteAccount') }}
                 </n-button>
             </template>
@@ -523,7 +532,7 @@ onMounted(async () => {
                 minRows: 3
             }" />
             <template #action>
-                <n-button @click="authFunc" type="primary">
+                <n-button :loading="loading" @click="authFunc" type="primary">
                     {{ t('ok') }}
                 </n-button>
             </template>
@@ -536,6 +545,11 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.mobile-menu-button {
+    width: 100%;
+    text-align: left;
 }
 
 .n-alert {

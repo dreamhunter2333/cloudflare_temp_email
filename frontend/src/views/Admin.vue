@@ -13,7 +13,7 @@ import MailsUnknow from './admin/MailsUnknow.vue';
 import Maintenance from './admin/Maintenance.vue';
 
 const {
-  localeCache, adminAuth, showAdminAuth, adminTab
+  localeCache, adminAuth, showAdminAuth, adminTab, loading
 } = useGlobalState()
 const message = useMessage()
 
@@ -71,7 +71,7 @@ onMounted(async () => {
       <p>{{ t('accessTip') }}</p>
       <n-input v-model:value="adminAuth" type="textarea" :autosize="{ minRows: 3 }" />
       <template #action>
-        <n-button @click="authFunc" type="primary">
+        <n-button @click="authFunc" type="primary" :loading="loading">
           {{ t('ok') }}
         </n-button>
       </template>

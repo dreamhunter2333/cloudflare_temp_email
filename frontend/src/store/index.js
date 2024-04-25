@@ -10,6 +10,7 @@ export const useGlobalState = createGlobalState(
         const openSettings = ref({
             prefix: '',
             needAuth: false,
+            adminContact: '',
             domains: [{
                 label: 'test.com',
                 value: 'test.com'

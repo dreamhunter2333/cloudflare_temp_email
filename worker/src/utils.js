@@ -23,13 +23,14 @@ export const getPasswords = (c) => {
     // check if PASSWORDS is an array, if not use json.parse
     if (!Array.isArray(c.env.PASSWORDS)) {
         try {
-            return JSON.parse(c.env.PASSWORDS);
+            let res = JSON.parse(c.env.PASSWORDS);
+            return res.filter((item) => item.length > 0);
         } catch (e) {
             console.error("Failed to parse PASSWORDS", e);
             return [];
         }
     }
-    return c.env.PASSWORDS;
+    return c.env.PASSWORDS.filter((item) => item.length > 0);
 }
 
 export const getAdminPasswords = (c) => {

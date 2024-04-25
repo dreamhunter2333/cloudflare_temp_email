@@ -127,7 +127,7 @@ onMounted(async () => {
     <n-layout v-if="settings.address">
       <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" :default-size="0.25">
         <template #1>
-          <div>
+          <div class="center">
             <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
               <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
             </div>
@@ -138,7 +138,7 @@ onMounted(async () => {
               <template #unchecked>
                 {{ t('autoRefresh') }}
               </template></n-switch>
-            <n-button class="center" @click="refresh" size="small" type="primary">
+            <n-button @click="refresh" size="small" type="primary">
               {{ t('refresh') }}
             </n-button>
           </div>
@@ -146,7 +146,7 @@ onMounted(async () => {
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
-                <n-thing class="center" :title="row.subject">
+                <n-thing :title="row.subject">
                   <template #description>
                     <n-tag type="info">
                       ID: {{ row.id }}
@@ -200,7 +200,7 @@ onMounted(async () => {
         </template>
       </n-split>
       <div class="left" v-else>
-        <div>
+        <div class="center">
           <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
             <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
           </div>
@@ -211,14 +211,14 @@ onMounted(async () => {
             <template #unchecked>
               {{ t('autoRefresh') }}
             </template></n-switch>
-          <n-button class="center" @click="refresh" size="small" type="primary">
+          <n-button @click="refresh" size="small" type="primary">
             {{ t('refresh') }}
           </n-button>
         </div>
         <div id="drawer-target" style="overflow: auto; height: 80vh;">
           <n-list hoverable clickable>
             <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
-              <n-thing class="center" :title="row.subject">
+              <n-thing :title="row.subject">
                 <template #description>
                   <n-tag type="info">
                     ID: {{ row.id }}
@@ -301,6 +301,10 @@ onMounted(async () => {
 <style scoped>
 .left {
   text-align: left;
+}
+
+.center {
+  text-align: center;
 }
 
 .overlay {

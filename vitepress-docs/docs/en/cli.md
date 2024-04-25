@@ -68,9 +68,13 @@ PREFIX = "tmp" # The mailbox name prefix to be processed
 # PASSWORDS = ["123", "456"]
 # admin console password, if not configured, access to the console is not allowed
 # ADMIN_PASSWORDS = ["123", "456"]
+# admin contact information. If not configured, it will not be displayed. Any string can be configured.
+# ADMIN_CONTACT = "xx@xx.xxx"
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # your domain name
 JWT_SECRET = "xxx" # Key used to generate jwt
 BLACK_LIST = "" # Blacklist, used to filter senders, comma separated
+# default send balance, if not set, it will be 0
+# DEFAULT_SEND_BALANCE = 1
 # dkim config
 # DKIM_SELECTOR = "mailchannels" # Refer to the DKIM section mailchannels._domainkey for mailchannels
 # DKIM_PRIVATE_KEY = "" # Refer to the contents of priv_key.txt in the DKIM section
