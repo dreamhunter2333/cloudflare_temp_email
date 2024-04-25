@@ -10,10 +10,10 @@
     "build": "wrangler deploy src/worker.js --dry-run --outdir dist --minify"
   },
   "devDependencies": {
-    "wrangler": "^3.48.0"
+    "wrangler": "^3.52.0"
   },
   "dependencies": {
-    "hono": "^4.2.2",
+    "hono": "^4.2.7",
     "mimetext": "^3.0.24"
   }
 }

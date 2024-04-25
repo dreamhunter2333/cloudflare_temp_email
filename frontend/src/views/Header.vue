@@ -12,7 +12,10 @@ import { api } from '../api'
 const { toClipboard } = useClipboard()
 const message = useMessage()
 
-const { jwt, localeCache, themeSwitch, showAuth, adminAuth, auth } = useGlobalState()
+const {
+    jwt, localeCache, toggleDark, isDark,
+    showAuth, adminAuth, auth
+} = useGlobalState()
 const { showLogin, openSettings, settings } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
@@ -254,12 +257,12 @@ const menuOptions = computed(() => [
                 bordered: false,
                 ghost: true,
                 size: "small",
-                onClick: () => { themeSwitch.value = !themeSwitch.value }
+                onClick: () => toggleDark()
             },
             {
-                default: () => themeSwitch.value ? t('light') : t('dark'),
+                default: () => isDark.value ? t('light') : t('dark'),
                 icon: () => h(
-                    NIcon, { component: themeSwitch.value ? LightModeFilled : DarkModeFilled }
+                    NIcon, { component: isDark.value ? LightModeFilled : DarkModeFilled }
                 )
             }
         ),
