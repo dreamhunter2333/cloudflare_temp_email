@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { localeCache } = useGlobalState()
+const { localeCache, loading } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
@@ -161,7 +161,7 @@ onMounted(async () => {
         <n-input-number v-model:value="senderBalance" :min="0" :max="1000" />
       </n-form-item>
       <template #action>
-        <n-button @click="updateData()" size="small" tertiary round type="primary">
+        <n-button :loading="loading" @click="updateData()" size="small" tertiary round type="primary">
           {{ t('ok') }}
         </n-button>
       </template>

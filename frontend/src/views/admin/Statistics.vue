@@ -59,34 +59,36 @@ onMounted(async () => {
 </script>
 
 <template>
-    <n-row>
-        <n-col :span="6">
-            <n-statistic :label="t('userCount')" :value="statistics.userCount">
-                <template #prefix>
-                    <n-icon :component="User" />
-                </template>
-            </n-statistic>
-        </n-col>
-        <n-col :span="6">
-            <n-statistic :label="t('activeUser')" :value="statistics.activeUserCount7days">
-                <template #prefix>
-                    <n-icon :component="UserCheck" />
-                </template>
-            </n-statistic>
-        </n-col>
-        <n-col :span="6">
-            <n-statistic :label="t('mailCount')" :value="statistics.mailCount">
-                <template #prefix>
-                    <n-icon :component="MailBulk" />
-                </template>
-            </n-statistic>
-        </n-col>
-        <n-col :span="6">
-            <n-statistic :label="t('sendMailCount')" :value="statistics.sendMailCount">
-                <template #prefix>
-                    <n-icon :component="SendOutlined" />
-                </template>
-            </n-statistic>
-        </n-col>
-    </n-row>
+    <n-card>
+        <n-row>
+            <n-col :span="6">
+                <n-statistic :label="t('userCount')" :value="statistics.userCount">
+                    <template #prefix>
+                        <n-icon :component="User" />
+                    </template>
+                </n-statistic>
+            </n-col>
+            <n-col :span="6">
+                <n-statistic :label="t('activeUser')" :value="statistics.activeUserCount7days">
+                    <template #prefix>
+                        <n-icon :component="UserCheck" />
+                    </template>
+                </n-statistic>
+            </n-col>
+            <n-col :span="6">
+                <n-statistic :label="t('mailCount')" :value="statistics.mailCount">
+                    <template #prefix>
+                        <n-icon :component="MailBulk" />
+                    </template>
+                </n-statistic>
+            </n-col>
+            <n-col :span="6">
+                <n-statistic :label="t('sendMailCount')" :value="statistics.sendMailCount">
+                    <template #prefix>
+                        <n-icon :component="SendOutlined" />
+                    </template>
+                </n-statistic>
+            </n-col>
+        </n-row>
+    </n-card>
 </template>

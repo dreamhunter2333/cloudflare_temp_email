@@ -146,6 +146,7 @@ api.get('/open_api/settings', async (c) => {
         "prefix": c.env.PREFIX,
         "domains": getDomains(c),
         "needAuth": needAuth,
+        "adminContact": c.env.ADMIN_CONTACT,
     });
 })
 

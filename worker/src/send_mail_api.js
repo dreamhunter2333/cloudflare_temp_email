@@ -8,9 +8,12 @@ api.post('/api/requset_send_mail_access', async (c) => {
         return c.text("No address", 400)
     }
     try {
+        const default_balance = c.env.DEFAULT_SEND_BALANCE || 0;
         const { success } = await c.env.DB.prepare(
-            `INSERT INTO address_sender (address, balance, enabled) VALUES (?, 1, 1)`
-        ).bind(address).run();
+            `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
+        ).bind(
+            address, default_balance, default_balance > 0 ? 1 : 0
+        ).run();
         if (!success) {
             return c.text("Failed to request send mail access", 500)
         }

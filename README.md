@@ -132,9 +132,13 @@ PREFIX = "tmp" # 要处理的邮箱名称前缀
 # PASSWORDS = ["123", "456"]
 # admin 控制台密码, 不配置则不允许访问控制台
 # ADMIN_PASSWORDS = ["123", "456"]
+# admin 联系方式，不配置则不显示，可配置任意字符串
+# ADMIN_CONTACT = "xx@xx.xxx"
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名
 JWT_SECRET = "xxx" # 用于生成 jwt 的密钥
 BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
+# 默认发送邮件余额，如果不设置，将为 0
+# DEFAULT_SEND_BALANCE = 1
 # dkim config
 # DKIM_SELECTOR = "mailchannels" # 参考 DKIM 部分 mailchannels._domainkey 的 mailchannels
 # DKIM_PRIVATE_KEY = "" # 参考 DKIM 部分 priv_key.txt 的内容

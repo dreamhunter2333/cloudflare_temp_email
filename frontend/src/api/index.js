@@ -57,7 +57,8 @@ const getOpenSettings = async (message) => {
                     label: domain,
                     value: domain
                 }
-            })
+            }),
+            adminContact: res["adminContact"] || "",
         };
         if (openSettings.value.needAuth) {
             showAuth.value = true;

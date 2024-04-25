@@ -5,6 +5,7 @@ import { DomEditor } from '@wangeditor/editor'
 import { useI18n } from 'vue-i18n'
 import { onMounted, onBeforeUnmount, ref, shallowRef } from 'vue'
 import { useStorage } from '@vueuse/core'
+import AdminContact from '../admin/AdminContact.vue'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
@@ -143,7 +144,6 @@ onBeforeUnmount(() => {
 
 const handleCreated = (editor) => {
     editorRef.value = editor;
-    console.log(editor.getAllMenuKeys())
 }
 
 onMounted(async () => {
@@ -160,6 +160,7 @@ onMounted(async () => {
                     <n-button type="primary" ghost @click="requestAccess">{{ t('requestAccess') }}</n-button>
                 </n-alert>
                 <br />
+                <AdminContact />
             </div>
             <div v-else>
                 <n-alert type="info" show-icon>
@@ -208,7 +209,6 @@ onMounted(async () => {
                             <n-input v-else type="textarea" v-model:value="mailModel.content" :autosize="{
                                 minRows: 3
                             }" />
-
                         </n-form-item>
                     </n-form>
                 </div>
