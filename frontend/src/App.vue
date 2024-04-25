@@ -1,14 +1,14 @@
 <script setup>
-import { darkTheme, NGlobalStyle } from 'naive-ui'
-import { zhCN } from 'naive-ui'
+import { darkTheme, NGlobalStyle, zhCN } from 'naive-ui'
 import { computed, onMounted } from 'vue'
+import { useDark, useToggle } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
 
-const { localeCache, themeSwitch, loading } = useGlobalState()
-const theme = computed(() => themeSwitch.value ? darkTheme : null)
+const { localeCache, isDark, loading } = useGlobalState()
+const theme = computed(() => isDark.value ? darkTheme : null)
 const localeConfig = computed(() => localeCache.value == 'zh' ? zhCN : null)
 const isMobile = useIsMobile()
 

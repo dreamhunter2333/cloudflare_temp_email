@@ -1,8 +1,11 @@
 import { ref } from "vue";
 import { createGlobalState, useStorage } from '@vueuse/core'
+import { useDark, useToggle } from '@vueuse/core'
 
 export const useGlobalState = createGlobalState(
     () => {
+        const isDark = useDark()
+        const toggleDark = useToggle(isDark)
         const loading = ref(false);
         const openSettings = ref({
             prefix: '',
@@ -37,6 +40,8 @@ export const useGlobalState = createGlobalState(
         const adminMailTabAddress = ref("");
         const adminSendBoxTabAddress = ref("");
         return {
+            isDark,
+            toggleDark,
             loading,
             settings,
             openSettings,
