@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+## v0.2.9
+
+- 添加富文本编辑器
+-  admin 联系方式，不配置则不显示，可配置任意字符串 `ADMIN_CONTACT = "xx@xx.xxx"`
+- 默认发送邮件余额，如果不设置，将为 0 `DEFAULT_SEND_BALANCE = 1`
+
 ## v0.2.8
 
 - 允许用户删除邮件
