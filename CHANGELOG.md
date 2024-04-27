@@ -1,5 +1,15 @@
 # CHANGE LOG
 
+## v0.2.10
+
+- `ENABLE_USER_DELETE_EMAIL` 是否允许用户删除账户和邮件
+- `ENABLE_AUTO_REPLY` 是否启用自动回复
+- fetchAddressError 提示改进
+- 自动刷新显示倒计时
+
+* feat: docs update by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/165
+* feat: add ENABLE_USER_DELETE_EMAIL && ENABLE_AUTO_REPLY && modify fetchAddressError i18n && UI: show autoRefreshInterval by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/169
+
 ## v0.2.9
 
 - 添加富文本编辑器
