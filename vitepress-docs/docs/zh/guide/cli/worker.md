@@ -66,3 +66,5 @@ pnpm run deploy
 
 > [!NOTE]
 > 打开 `worker` 的 `url`，如果显示 `OK` 说明部署成功
+>
+> 打开 `/health_check`，如果显示 `OK` 说明部署成功

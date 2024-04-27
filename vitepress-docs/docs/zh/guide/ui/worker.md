@@ -10,14 +10,24 @@
 
 3. 下载 [worker.js](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/worker.js)
 
-4. 回到 `Overview`，找到刚刚创建的 worker，点击 `Edit Code`, 上传 `worker.js`, 删除 `index.js`，然后重命名 `worker.js` 为 `index.js`, 点击 `Deploy`
+4. 回到 `Overview`，找到刚刚创建的 worker，点击 `Edit Code`, 删除原来的文件，上传 `worker.js`, 点击 `Deploy`
+
+    > [!NOTE]
+    > 上传需要先点击左侧菜单的 Explorer,
+    > 在文件列表的窗口里点击鼠标右键，在右键菜单里找到 `Upload`,
+    > 请参考下面的截图
+    >
+    > 参考: [issues156](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/156#issuecomment-2079453822)
 
     ![worker2](/ui_install/worker-2.png)
+    ![worker-upload](/ui_install/worker-upload.png)
 
 5. 点击 `Settings` -> `Trggers`, 这里可以添加自己的域名，你也可以使用自动生成的 `*.workers.dev` 的域名。记录下这个域名，后面部署前端会用到。
 
     > [!NOTE]
     > 打开 `worker` 的 `url`，如果显示 `OK` 说明部署成功
+    >
+    > 打开 `/health_check`，如果显示 `OK` 说明部署成功
 
     ![worker3](/ui_install/worker-3.png)
 
