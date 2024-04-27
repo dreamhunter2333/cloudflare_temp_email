@@ -22,33 +22,35 @@ async function email(message, env, ctx) {
         }
 
         // auto reply email
-        try {
-            const results = await env.DB.prepare(
-                `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
-            ).bind(message.to).first();
-            if (results && results.source_prefix && message.from.startsWith(results.source_prefix)) {
-                const msg = createMimeMessage();
-                msg.setHeader("In-Reply-To", message.headers.get("Message-ID"));
-                msg.setSender({
-                    name: results.name || results.address,
-                    addr: results.address
-                });
-                msg.setRecipient(message.from);
-                msg.setSubject(results.subject || "Auto-reply");
-                msg.addMessage({
-                    contentType: 'text/plain',
-                    data: results.message || "This is an auto-reply message, please reconact later."
-                });
+        if (env.ENABLE_AUTO_REPLY) {
+            try {
+                const results = await env.DB.prepare(
+                    `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
+                ).bind(message.to).first();
+                if (results && results.source_prefix && message.from.startsWith(results.source_prefix)) {
+                    const msg = createMimeMessage();
+                    msg.setHeader("In-Reply-To", message.headers.get("Message-ID"));
+                    msg.setSender({
+                        name: results.name || results.address,
+                        addr: results.address
+                    });
+                    msg.setRecipient(message.from);
+                    msg.setSubject(results.subject || "Auto-reply");
+                    msg.addMessage({
+                        contentType: 'text/plain',
+                        data: results.message || "This is an auto-reply message, please reconact later."
+                    });
 
-                const replyMessage = new EmailMessage(
-                    message.to,
-                    message.from,
-                    msg.asRaw()
-                );
-                await message.reply(replyMessage);
+                    const replyMessage = new EmailMessage(
+                        message.to,
+                        message.from,
+                        msg.asRaw()
+                    );
+                    await message.reply(replyMessage);
+                }
+            } catch (error) {
+                console.log("reply email error", error);
             }
-        } catch (error) {
-            console.log("reply email error", error);
         }
     } else {
         message.setReject(`Unknown address ${message.to}`);

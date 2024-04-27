@@ -93,7 +93,7 @@ const { t } = useI18n({
             copy: 'Copy',
             copied: 'Copied',
             showPassword: 'Show Password',
-            fetchAddressError: 'Fetch address error, maybe your jwt is invalid or network error.',
+            fetchAddressError: 'Login password is invalid or account not exist, it may be network connection issue, please try again later.',
             mailV1Alert: 'You have some mails in v1, please click here to login and visit your history mails.',
             generateName: 'Generate Fake Name',
         },
@@ -127,7 +127,7 @@ const { t } = useI18n({
             copy: '复制',
             copied: '已复制',
             showPassword: '查看密码',
-            fetchAddressError: '获取地址失败, 请检查你的 jwt 是否有效 或 网络是否正常。',
+            fetchAddressError: '登录密码无效或账号不存在，也可能是网络连接异常，请稍后再尝试。',
             mailV1Alert: '你有一些 v1 版本的邮件，请点击此处登录查看。',
             generateName: '生成随机名字',
         }
@@ -223,6 +223,7 @@ const menuOptions = computed(() => [
                     },
                     { default: () => t('settings') }
                 ),
+                show: openSettings.value.enableAutoReply,
                 key: "settings"
             },
             {
@@ -249,6 +250,7 @@ const menuOptions = computed(() => [
                     },
                     { default: () => t('delteAccount') }
                 ),
+                show: openSettings.value.enableUserDeleteEmail,
                 key: "delte_account"
             }
         ]

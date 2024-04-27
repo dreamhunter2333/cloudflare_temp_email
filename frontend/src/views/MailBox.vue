@@ -11,8 +11,9 @@ import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
 const message = useMessage()
 const isMobile = useIsMobile()
 
-const { settings, themeSwitch } = useGlobalState()
+const { settings, openSettings, themeSwitch } = useGlobalState()
 const autoRefresh = ref(false)
+const autoRefreshInterval = ref(30)
 const data = ref([])
 const timer = ref(null)
 
@@ -29,6 +30,7 @@ const { t } = useI18n({
   messages: {
     en: {
       autoRefresh: 'Auto Refresh',
+      refreshAfter: 'Refresh After {msg} Seconds',
       refresh: 'Refresh',
       attachments: 'Show Attachments',
       downloadMail: 'Download Mail',
@@ -38,6 +40,7 @@ const { t } = useI18n({
     },
     zh: {
       autoRefresh: '自动刷新',
+      refreshAfter: '{msg}秒后刷新',
       refresh: '刷新',
       downloadMail: '下载邮件',
       attachments: '查看附件',
@@ -49,10 +52,16 @@ const { t } = useI18n({
 });
 
 const setupAutoRefresh = async (autoRefresh) => {
+  // auto refresh every 30 seconds
+  autoRefreshInterval.value = 30;
   if (autoRefresh) {
     timer.value = setInterval(async () => {
-      await refresh();
-    }, 30000)
+      autoRefreshInterval.value--;
+      if (autoRefreshInterval.value <= 0) {
+        autoRefreshInterval.value = 30;
+        await refresh();
+      }
+    }, 1000)
   } else {
     clearInterval(timer.value)
     timer.value = null
@@ -125,19 +134,20 @@ onMounted(async () => {
 <template>
   <div>
     <n-layout v-if="settings.address">
-      <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" :default-size="0.25">
+      <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" :default-size="0.3">
         <template #1>
           <div class="center">
             <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
               <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
             </div>
-            <n-switch v-model:value="autoRefresh" size="small">
+            <n-switch v-model:value="autoRefresh" size="small" :round="false">
               <template #checked>
-                {{ t('autoRefresh') }}
+                {{ t('refreshAfter', { msg: autoRefreshInterval }) }}
               </template>
               <template #unchecked>
                 {{ t('autoRefresh') }}
-              </template></n-switch>
+              </template>
+            </n-switch>
             <n-button @click="refresh" size="small" type="primary">
               {{ t('refresh') }}
             </n-button>
@@ -175,7 +185,7 @@ onMounted(async () => {
               <n-tag type="info">
                 FROM: {{ curMail.source }}
               </n-tag>
-              <n-popconfirm @positive-click="deleteMail">
+              <n-popconfirm v-if="openSettings.enableUserDeleteEmail" @positive-click="deleteMail">
                 <template #trigger>
                   <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
                 </template>
