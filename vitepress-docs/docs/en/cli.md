@@ -73,6 +73,10 @@ PREFIX = "tmp" # The mailbox name prefix to be processed
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # your domain name
 JWT_SECRET = "xxx" # Key used to generate jwt
 BLACK_LIST = "" # Blacklist, used to filter senders, comma separated
+# Allow users to delete messages
+ENABLE_USER_DELETE_EMAIL = true
+# Allow automatic replies to emails
+ENABLE_AUTO_REPLY = false
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
 # dkim config

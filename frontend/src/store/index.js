@@ -11,6 +11,8 @@ export const useGlobalState = createGlobalState(
             prefix: '',
             needAuth: false,
             adminContact: '',
+            enableUserDeleteEmail: false,
+            enableAutoReply: false,
             domains: [{
                 label: 'test.com',
                 value: 'test.com'

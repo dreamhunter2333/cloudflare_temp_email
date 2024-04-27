@@ -34,6 +34,9 @@ api.get('/api/mails', async (c) => {
 })
 
 api.delete('/api/mails/:id', async (c) => {
+    if (c.env.ENABLE_USER_DELETE_EMAIL) {
+        return c.text("User delete email is disabled", 403)
+    }
     const { address } = c.get("jwtPayload")
     const { id } = c.req.param();
     const { success } = await c.env.DB.prepare(
@@ -82,16 +85,18 @@ api.get('/api/settings', async (c) => {
         }
     }
     let auto_reply = {};
-    const results = await c.env.DB.prepare(
-        `SELECT * FROM auto_reply_mails where address = ? `
-    ).bind(address).first();
-    if (results) {
-        auto_reply = {
-            subject: results.subject,
-            message: results.message,
-            enabled: results.enabled == 1,
-            source_prefix: results.source_prefix,
-            name: results.name,
+    if (c.env.ENABLE_AUTO_REPLY) {
+        const results = await c.env.DB.prepare(
+            `SELECT * FROM auto_reply_mails where address = ? `
+        ).bind(address).first();
+        if (results) {
+            auto_reply = {
+                subject: results.subject,
+                message: results.message,
+                enabled: results.enabled == 1,
+                source_prefix: results.source_prefix,
+                name: results.name,
+            }
         }
     }
     const { count: mailCountV1 } = await c.env.DB.prepare(
@@ -111,6 +116,9 @@ api.get('/api/settings', async (c) => {
 
 api.post('/api/settings', async (c) => {
     const { address } = c.get("jwtPayload")
+    if (!c.env.ENABLE_AUTO_REPLY) {
+        return c.text("Auto reply is disabled", 403)
+    }
     const { auto_reply } = await c.req.json();
     const { name, subject, source_prefix, message, enabled } = auto_reply;
     if ((!subject || !message) && enabled) {
@@ -147,6 +155,8 @@ api.get('/open_api/settings', async (c) => {
         "domains": getDomains(c),
         "needAuth": needAuth,
         "adminContact": c.env.ADMIN_CONTACT,
+        "enableUserDeleteEmail": c.env.ENABLE_USER_DELETE_EMAIL,
+        "enableAutoReply": c.env.ENABLE_AUTO_REPLY,
     });
 })
 
@@ -204,6 +214,9 @@ api.get('/api/new_address', async (c) => {
 })
 
 api.delete('/api/delete_address', async (c) => {
+    if (c.env.ENABLE_USER_DELETE_EMAIL) {
+        return c.text("User delete email is disabled", 403)
+    }
     const { address } = c.get("jwtPayload")
     let name = address;
     if (address.startsWith(c.env.PREFIX)) {
