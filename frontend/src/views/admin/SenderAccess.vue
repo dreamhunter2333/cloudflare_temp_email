@@ -22,7 +22,7 @@ const { t } = useI18n({
       itemCount: 'itemCount',
       modalTip: 'Please input the sender balance',
       balance: 'Balance',
-      refresh: 'Refresh',
+      query: 'Query',
       ok: 'OK'
     },
     zh: {
@@ -36,7 +36,7 @@ const { t } = useI18n({
       itemCount: '总数',
       modalTip: '请输入发件额度',
       balance: '余额',
-      refresh: '刷新',
+      query: '查询',
       ok: '确定'
     }
   }
@@ -51,6 +51,7 @@ const showModal = ref(false)
 const senderBalance = ref(0)
 const senderEnabled = ref(false)
 
+const addressQuery = ref('')
 
 const updateData = async () => {
   try {
@@ -77,6 +78,7 @@ const fetchData = async () => {
       `/admin/address_sender`
       + `?limit=${pageSize.value}`
       + `&offset=${(page.value - 1) * pageSize.value}`
+      + (addressQuery.value ? `&address=${addressQuery.value}` : '')
     );
     data.value = results;
     if (addressCount > 0) {
@@ -166,16 +168,17 @@ onMounted(async () => {
         </n-button>
       </template>
     </n-modal>
+    <n-input-group>
+      <n-input v-model:value="addressQuery" />
+      <n-button @click="fetchData" type="primary" ghost>
+        {{ t('query') }}
+      </n-button>
+    </n-input-group>
     <div style="display: inline-block;">
       <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" :page-sizes="[20, 50, 100]"
         show-size-picker>
         <template #prefix="{ itemCount }">
           {{ t('itemCount') }}: {{ itemCount }}
-        </template>
-        <template #suffix>
-          <n-button @click="fetchData" type="primary" size="small" ghost>
-            {{ t('refresh') }}
-          </n-button>
         </template>
       </n-pagination>
     </div>

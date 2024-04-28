@@ -44,15 +44,12 @@ const curRow = ref({})
 const showModal = ref(false)
 
 const fetchData = async () => {
-    if (!adminSendBoxTabAddress.value) {
-        return
-    }
     try {
         const { results, count: addressCount } = await api.fetch(
             `/admin/sendbox`
-            + `?address=${adminSendBoxTabAddress.value}`
-            + `&limit=${pageSize.value}`
+            + `?limit=${pageSize.value}`
             + `&offset=${(page.value - 1) * pageSize.value}`
+            + (adminSendBoxTabAddress.value ? `&address=${adminSendBoxTabAddress.value}` : '')
         );
         data.value = results.map((item) => {
             try {
