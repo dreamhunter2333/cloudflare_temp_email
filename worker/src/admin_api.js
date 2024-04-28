@@ -100,6 +100,22 @@ api.get('/admin/mails', async (c) => {
     if (!offset || offset < 0) {
         return c.text("Invalid offset", 400)
     }
+    if (!address) {
+        const { results } = await c.env.DB.prepare(
+            `SELECT * FROM raw_mails order by id desc limit ? offset ?`
+        ).bind(limit, offset).all();
+        let count = 0;
+        if (offset == 0) {
+            const { count: mailCount } = await c.env.DB.prepare(
+                `SELECT count(*) as count FROM raw_mails`
+            ).first();
+            count = mailCount;
+        }
+        return c.json({
+            results: results,
+            count: count
+        })
+    }
     const { results } = await c.env.DB.prepare(
         `SELECT * FROM raw_mails where address = ? order by id desc limit ? offset ?`
     ).bind(address, limit, offset).all();

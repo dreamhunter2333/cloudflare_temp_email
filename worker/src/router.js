@@ -18,7 +18,7 @@ api.get('/api/mails', async (c) => {
         return c.text("Invalid offset", 400)
     }
     const { results } = await c.env.DB.prepare(
-        `SELECT id, source, raw, created_at FROM raw_mails where address = ? order by id desc limit ? offset ?`
+        `SELECT * FROM raw_mails where address = ? order by id desc limit ? offset ?`
     ).bind(address, limit, offset).all();
     let count = 0;
     if (offset == 0) {
