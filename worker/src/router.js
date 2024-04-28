@@ -34,7 +34,7 @@ api.get('/api/mails', async (c) => {
 })
 
 api.delete('/api/mails/:id', async (c) => {
-    if (c.env.ENABLE_USER_DELETE_EMAIL) {
+    if (!c.env.ENABLE_USER_DELETE_EMAIL) {
         return c.text("User delete email is disabled", 403)
     }
     const { address } = c.get("jwtPayload")
@@ -61,28 +61,26 @@ api.get('/api/settings', async (c) => {
             return c.text("Invalid address", 400)
         }
     }
-    if (address.startsWith(c.env.PREFIX)) {
-        // check address id
-        try {
-            if (!address_id) {
-                const db_address_id = await c.env.DB.prepare(
-                    `SELECT id FROM address where name = ?`
-                ).bind(address.substring(c.env.PREFIX.length)).first("id");
-                if (!db_address_id) {
-                    return c.text("Invalid address", 400)
-                }
+    // check address id
+    try {
+        if (!address_id) {
+            const db_address_id = await c.env.DB.prepare(
+                `SELECT id FROM address where name = ?`
+            ).bind(address).first("id");
+            if (!db_address_id) {
+                return c.text("Invalid address", 400)
             }
-        } catch (error) {
-            return c.text("Invalid address", 400)
         }
-        // update address updated_at
-        try {
-            c.env.DB.prepare(
-                `UPDATE address SET updated_at = datetime('now') where name = ?`
-            ).bind(address.substring(c.env.PREFIX.length)).run();
-        } catch (e) {
-            console.warn("Failed to update address")
-        }
+    } catch (error) {
+        return c.text("Invalid address", 400)
+    }
+    // update address updated_at
+    try {
+        c.env.DB.prepare(
+            `UPDATE address SET updated_at = datetime('now') where name = ?`
+        ).bind(address).run();
+    } catch (e) {
+        console.warn("Failed to update address")
     }
     let auto_reply = {};
     if (c.env.ENABLE_AUTO_REPLY) {
@@ -181,11 +179,11 @@ api.get('/api/new_address', async (c) => {
         domain = domains[Math.floor(Math.random() * domains.length)];
     }
     // create address
-    const emailAddress = c.env.PREFIX + name + "@" + domain
+    name = c.env.PREFIX + name + "@" + domain
     try {
         const { success } = await c.env.DB.prepare(
             `INSERT INTO address(name) VALUES(?)`
-        ).bind(name + "@" + domain).run();
+        ).bind(name).run();
         if (!success) {
             return c.text("Failed to create address", 500)
         }
@@ -199,13 +197,13 @@ api.get('/api/new_address', async (c) => {
     try {
         address_id = await c.env.DB.prepare(
             `SELECT id FROM address where name = ?`
-        ).bind(name + "@" + domain).first("id");
+        ).bind(name).first("id");
     } catch (error) {
         console.log(error);
     }
     // create jwt
     const jwt = await Jwt.sign({
-        address: emailAddress,
+        address: name,
         address_id: address_id
     }, c.env.JWT_SECRET)
     return c.json({
@@ -214,14 +212,11 @@ api.get('/api/new_address', async (c) => {
 })
 
 api.delete('/api/delete_address', async (c) => {
-    if (c.env.ENABLE_USER_DELETE_EMAIL) {
+    if (!c.env.ENABLE_USER_DELETE_EMAIL) {
         return c.text("User delete email is disabled", 403)
     }
     const { address } = c.get("jwtPayload")
     let name = address;
-    if (address.startsWith(c.env.PREFIX)) {
-        name = address.substring(c.env.PREFIX.length);
-    }
     const { success } = await c.env.DB.prepare(
         `DELETE FROM address WHERE name = ? `
     ).bind(name).run();

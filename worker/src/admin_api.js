@@ -15,20 +15,17 @@ api.get('/admin/address', async (c) => {
     }
     if (query) {
         const { results } = await c.env.DB.prepare(
-            `SELECT * FROM address where concat('${c.env.PREFIX}', name) like ? order by id desc limit ? offset ? `
+            `SELECT * FROM address where name like ? order by id desc limit ? offset ? `
         ).bind(`%${query}%`, limit, offset).all();
         let count = 0;
         if (offset == 0) {
             const { count: addressCount } = await c.env.DB.prepare(
-                `SELECT count(*) as count FROM address where concat('${c.env.PREFIX}', name) like ?`
+                `SELECT count(*) as count FROM address where name like ?`
             ).bind(`%${query}%`).first();
             count = addressCount;
         }
         return c.json({
-            results: results.map((r) => {
-                r.name = c.env.PREFIX + r.name;
-                return r;
-            }),
+            results: results,
             count: count
         })
     }
@@ -43,10 +40,7 @@ api.get('/admin/address', async (c) => {
         count = addressCount;
     }
     return c.json({
-        results: results.map((r) => {
-            r.name = c.env.PREFIX + r.name;
-            return r;
-        }),
+        results: results,
         count: count
     })
 })
@@ -61,7 +55,7 @@ api.delete('/admin/delete_address/:id', async (c) => {
     }
     const { success: mailSuccess } = await c.env.DB.prepare(
         `DELETE FROM mails WHERE address IN
-        (select concat('${c.env.PREFIX}', name) from address where id = ?) `
+        (select name from address where id = ?) `
     ).bind(id).run();
     if (!mailSuccess) {
         return c.text("Failed to delete mails", 500)
@@ -79,10 +73,8 @@ api.get('/admin/show_password/:id', async (c) => {
     const name = await c.env.DB.prepare(
         `SELECT name FROM address WHERE id = ? `
     ).bind(id).first("name");
-    // compute address
-    const emailAddress = c.env.PREFIX + name
     const jwt = await Jwt.sign({
-        address: emailAddress,
+        address: name,
         address_id: id
     }, c.env.JWT_SECRET)
     return c.json({
@@ -125,7 +117,7 @@ api.get('/admin/mails_unknow', async (c) => {
     }
     const { results } = await c.env.DB.prepare(`
         SELECT * FROM raw_mails
-        where address NOT IN(select concat('${c.env.PREFIX}', name) from address)
+        where address NOT IN (select name from address)
         order by id desc limit ? offset ? `
     ).bind(limit, offset).all();
     let count = 0;
@@ -133,7 +125,7 @@ api.get('/admin/mails_unknow', async (c) => {
         const { count: mailCount } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM raw_mails
             where address NOT IN
-            (select concat('${c.env.PREFIX}', name) from address)`
+            (select name from address)`
         ).first();
         count = mailCount;
     }
@@ -232,7 +224,7 @@ api.post('/admin/cleanup', async (c) => {
         case "mails_unknow":
             await c.env.DB.prepare(`
                 DELETE FROM raw_mails WHERE address NOT IN
-                (select concat('${c.env.PREFIX}', name) from address) AND created_at < datetime('now', '-${cleanDays} day')`
+                (select name from address) AND created_at < datetime('now', '-${cleanDays} day')`
             ).run();
             break;
         case "address":
