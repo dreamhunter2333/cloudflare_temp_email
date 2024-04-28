@@ -59,6 +59,7 @@ const getOpenSettings = async (message) => {
                 }
             }),
             adminContact: res["adminContact"] || "",
+            enableUserCreateEmail: res["enableUserCreateEmail"] || false,
             enableUserDeleteEmail: res["enableUserDeleteEmail"] || false,
             enableAutoReply: res["enableAutoReply"] || false,
         };

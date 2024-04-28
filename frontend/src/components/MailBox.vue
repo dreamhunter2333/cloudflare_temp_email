@@ -1,5 +1,5 @@
 <script setup>
-import { watch, onMounted, ref } from "vue";
+import { watch, onMounted, ref, onBeforeUnmount } from "vue";
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
@@ -149,6 +149,10 @@ const deleteMail = async () => {
 onMounted(async () => {
   await refresh();
 });
+
+onBeforeUnmount(() => {
+  clearInterval(timer.value)
+})
 </script>
 
 <template>

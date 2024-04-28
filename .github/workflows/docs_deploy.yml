@@ -4,8 +4,6 @@ on:
   push:
     paths:
       - "vitepress-docs/**"
-    branches:
-      - main
     tags:
       - "*"
   workflow_dispatch:

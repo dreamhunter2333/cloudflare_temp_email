@@ -1,8 +1,13 @@
 # CHANGE LOG
 
+## main branch to be released
+
+- `ENABLE_USER_CREATE_EMAIL` 是否允许用户创建邮件
+- 允许 admin 创建无前缀的邮件
+
 ## v0.3.0
 
-### Breaking Changes:
+### Breaking Changes
 
 `address` 表的前缀将从代码中迁移到 db 中，请将下面 sql 中的 `tmp` 替换为你的前缀，然后执行。
 如果你的数据很重要，请先备份数据库。

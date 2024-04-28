@@ -11,12 +11,10 @@ export const useGlobalState = createGlobalState(
             prefix: '',
             needAuth: false,
             adminContact: '',
+            enableUserCreateEmail: false,
             enableUserDeleteEmail: false,
             enableAutoReply: false,
-            domains: [{
-                label: 'test.com',
-                value: 'test.com'
-            }]
+            domains: []
         })
         const settings = ref({
             fetched: false,
@@ -38,7 +36,6 @@ export const useGlobalState = createGlobalState(
         const jwt = useStorage('jwt', '');
         const localeCache = useStorage('locale', 'zh');
         const themeSwitch = useStorage('themeSwitch', false);
-        const showLogin = ref(false);
         const adminTab = ref("account");
         const adminMailTabAddress = ref("");
         const adminSendBoxTabAddress = ref("");
@@ -55,7 +52,6 @@ export const useGlobalState = createGlobalState(
             themeSwitch,
             adminAuth,
             showAdminAuth,
-            showLogin,
             adminTab,
             adminMailTabAddress,
             adminSendBoxTabAddress,

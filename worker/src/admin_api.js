@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
-import { getSendbox } from './send_mail_api'
 import { sendAdminInternalMail } from './utils'
+import { newAddress } from './common'
 
 const api = new Hono()
 
@@ -52,6 +52,14 @@ api.get('/admin/address', async (c) => {
         results: results,
         count: count
     })
+})
+
+api.post('/admin/new_address', async (c) => {
+    let { name, domain, enablePrefix } = await c.req.json();
+    if (!name) {
+        return c.text("Please provide a name", 400)
+    }
+    return newAddress(c, name, domain, enablePrefix);
 })
 
 api.delete('/admin/delete_address/:id', async (c) => {

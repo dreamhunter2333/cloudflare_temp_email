@@ -17,14 +17,14 @@ const {
     jwt, localeCache, toggleDark, isDark,
     showAuth, adminAuth, auth, loading
 } = useGlobalState()
-const { showLogin, openSettings, settings } = useGlobalState()
+const { openSettings, settings } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
 const isMobile = useIsMobile()
 const isAdminRoute = computed(() => route.path.includes('admin'))
 
 const showMobileMenu = ref(false)
-const showNewEmail = ref(false)
+const tabValue = ref('signin')
 const showLogout = ref(false)
 const showDelteAccount = ref(false)
 const password = ref('')
@@ -33,6 +33,10 @@ const emailName = ref("")
 const emailDomain = ref("")
 
 const login = async () => {
+    if (!password.value) {
+        message.error(t('passwordInput'));
+        return;
+    }
     try {
         jwt.value = password.value;
         await api.getSettings()
@@ -96,14 +100,16 @@ const { t } = useI18n({
             fetchAddressError: 'Login password is invalid or account not exist, it may be network connection issue, please try again later.',
             mailV1Alert: 'You have some mails in v1, please click here to login and visit your history mails.',
             generateName: 'Generate Fake Name',
+            help: 'Help',
+            passwordInput: 'Please input the password',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
             dark: '暗色',
             light: '亮色',
             login: '登录',
-            logout: '登出',
-            logoutConfirm: '确定要登出吗？',
+            logout: '退出登录',
+            logoutConfirm: '确定要退出登录吗？',
             delteAccount: "删除账户",
             delteAccountConfirm: "确定要删除你的账户和其中的所有邮件吗?",
             accessHeader: '访问密码',
@@ -115,7 +121,7 @@ const { t } = useI18n({
             sendbox: '发件箱',
             sendMail: '发送邮件',
             pleaseGetNewEmail: '请"登录"或点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
-            getNewEmail: '获取新邮箱',
+            getNewEmail: '注册新邮箱',
             getNewEmailTip1: '请输入你想要使用的邮箱地址, 只允许 ., a-z, A-Z, 0-9',
             getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
             getNewEmailTip3: '你可以从下拉列表中选择一个域名。',
@@ -130,6 +136,8 @@ const { t } = useI18n({
             fetchAddressError: '登录密码无效或账号不存在，也可能是网络连接异常，请稍后再尝试。',
             mailV1Alert: '你有一些 v1 版本的邮件，请点击此处登录查看。',
             generateName: '生成随机名字',
+            help: '帮助',
+            passwordInput: '请输入密码',
         }
     }
 });
@@ -349,7 +357,6 @@ const newEmail = async () => {
         );
         jwt.value = res["jwt"];
         await api.getSettings();
-        showNewEmail.value = false;
         showPassword.value = true;
     } catch (error) {
         message.error(error.message || "error");
@@ -417,68 +424,74 @@ onMounted(async () => {
                 <n-alert type="info" show-icon>
                     <span>
                         <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
-                        <n-button style="margin-left: 10px" @click="router.push('/send')" size="small" tertiary round
+                        <n-button style="margin-left: 10px" @click="router.push('/send')" size="small" tertiary
                             type="primary">
                             <n-icon :component="SendFilled" /> {{ t('sendMail') }}
                         </n-button>
-                        <n-button style="margin-left: 10px" @click="copy" size="small" tertiary round type="primary">
+                        <n-button style="margin-left: 10px" @click="copy" size="small" tertiary type="primary">
                             <n-icon :component="Copy" /> {{ t('copy') }}
                         </n-button>
                     </span>
                 </n-alert>
             </div>
-            <n-card v-else>
-                <n-result status="info" :description="t('pleaseGetNewEmail')">
-                    <template #footer>
-                        <n-alert v-if="jwt" type="warning" show-icon>
-                            <span>{{ t('fetchAddressError') }}</span>
-                        </n-alert>
-                        <n-button @click="showLogin = true" tertiary round type="primary">
-                            {{ t('login') }}
-                        </n-button>
-                        <n-button @click="showNewEmail = true" tertiary round type="primary">
-                            {{ t('getNewEmail') }}
-                        </n-button>
-                    </template>
-                </n-result>
-            </n-card>
+            <div v-else class="center">
+                <n-card style="max-width: 600px;">
+                    <n-alert v-if="jwt" type="warning" show-icon>
+                        <span>{{ t('fetchAddressError') }}</span>
+                    </n-alert>
+                    <n-tabs v-model:value="tabValue" size="large" justify-content="space-evenly">
+                        <n-tab-pane name="signin" :tab="t('login')">
+                            <n-form>
+                                <n-form-item-row :label="t('password')" required>
+                                    <n-input v-model:value="password" type="textarea" :autosize="{ minRows: 3 }" />
+                                </n-form-item-row>
+                                <n-button @click="login" :loading="loading" type="primary" block secondary strong>
+                                    {{ t('login') }}
+                                </n-button>
+                                <n-button v-if="openSettings.enableUserCreateEmail" @click="tabValue = 'register'" block
+                                    secondary strong>
+                                    {{ t('getNewEmail') }}
+                                </n-button>
+                            </n-form>
+                        </n-tab-pane>
+                        <n-tab-pane v-if="openSettings.enableUserCreateEmail" name="register" :tab="t('getNewEmail')">
+                            <n-spin :show="generateNameLoading">
+                                <n-form>
+                                    <span>
+                                        <p>{{ t("getNewEmailTip1") }}</p>
+                                        <p>{{ t("getNewEmailTip2") }}</p>
+                                        <p>{{ t("getNewEmailTip3") }}</p>
+                                    </span>
+                                    <n-button @click="generateName" style="margin-bottom: 10px;">
+                                        {{ t('generateName') }}
+                                    </n-button>
+                                    <n-input-group>
+                                        <n-input-group-label v-if="openSettings.prefix">
+                                            {{ openSettings.prefix }}
+                                        </n-input-group-label>
+                                        <n-input v-model:value="emailName" />
+                                        <n-input-group-label>@</n-input-group-label>
+                                        <n-select v-model:value="emailDomain" :consistent-menu-width="false"
+                                            :options="openSettings.domains" />
+                                    </n-input-group>
+                                    <n-button type="primary" block secondary strong @click="newEmail"
+                                        :loading="loading">
+                                        {{ t('ok') }}
+                                    </n-button>
+                                </n-form>
+                            </n-spin>
+                        </n-tab-pane>
+                        <n-tab-pane name="help" :tab="t('help')">
+                            <n-alert type="info" show-icon>
+                                <span>{{ t('pleaseGetNewEmail') }}</span>
+                            </n-alert>
+                            <AdminContact />
+                        </n-tab-pane>
+                    </n-tabs>
+                </n-card>
+            </div>
         </div>
-        <n-modal v-model:show="showNewEmail" preset="dialog" title="Dialog">
-            <template #header>
-                <div>{{ t('getNewEmail') }}</div>
-            </template>
-            <n-spin :show="generateNameLoading">
-                <span>
-                    <p>{{ t("getNewEmailTip1") }}</p>
-                    <p>{{ t("getNewEmailTip2") }}</p>
-                    <p>{{ t("getNewEmailTip3") }}</p>
-                </span>
-                <n-button @click="generateName" style="margin-bottom: 10px;">
-                    {{ t('generateName') }}
-                </n-button>
-                <n-input-group>
-                    <n-input-group-label v-if="openSettings.prefix">
-                        {{ openSettings.prefix }}
-                    </n-input-group-label>
-                    <n-input v-model:value="emailName" />
-                    <n-input-group-label>@</n-input-group-label>
-                    <n-select v-model:value="emailDomain" :consistent-menu-width="false"
-                        :options="openSettings.domains" />
-                </n-input-group>
-            </n-spin>
-            <template #action>
-                <n-button @click="showNewEmail = false">
-                    {{ t('cancel') }}
-                </n-button>
-                <n-button @click="newEmail" type="primary" :loading="loading">
-                    {{ t('ok') }}
-                </n-button>
-            </template>
-        </n-modal>
-        <n-modal v-model:show="showPassword" preset="dialog" title="Dialog">
-            <template #header>
-                <div>{{ t("password") }}</div>
-            </template>
+        <n-modal v-model:show="showPassword" preset="dialog" :title="t('password')">
             <span>
                 <p>{{ t("passwordTip") }}</p>
             </span>
@@ -488,51 +501,26 @@ onMounted(async () => {
             <template #action>
             </template>
         </n-modal>
-        <n-modal v-model:show="showLogin" preset="dialog" title="Dialog">
-            <template #header>
-                <div>{{ t('login') }}</div>
-            </template>
-            <AdminContact />
-            <n-input v-model:value="password" type="textarea" :autosize="{
-                minRows: 3
-            }" />
-            <template #action>
-                <n-button @click="login" :loading="loading" size="small" tertiary round type="primary">
-                    {{ t('login') }}
-                </n-button>
-            </template>
-        </n-modal>
-        <n-modal v-model:show="showLogout" preset="dialog" title="Dialog">
-            <template #header>
-                <div>{{ t('logout') }}</div>
-            </template>
+        <n-modal v-model:show="showLogout" preset="dialog" :title="t('logout')">
             <p>{{ t('logoutConfirm') }}</p>
             <template #action>
-                <n-button :loading="loading" @click="logout" size="small" tertiary round type="primary">
+                <n-button :loading="loading" @click="logout" size="small" tertiary type="primary">
                     {{ t('logout') }}
                 </n-button>
             </template>
         </n-modal>
-        <n-modal v-model:show="showDelteAccount" preset="dialog" title="Dialog">
-            <template #header>
-                <div>{{ t('delteAccount') }}</div>
-            </template>
+        <n-modal v-model:show="showDelteAccount" preset="dialog" :title="t('delteAccount')">
             <p>{{ t('delteAccountConfirm') }}</p>
             <template #action>
-                <n-button :loading="loading" @click="deleteAccount" size="small" tertiary round type="error">
+                <n-button :loading="loading" @click="deleteAccount" size="small" tertiary type="error">
                     {{ t('delteAccount') }}
                 </n-button>
             </template>
         </n-modal>
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
-            title="Dialog">
-            <template #header>
-                <div>{{ t('accessHeader') }}</div>
-            </template>
+            :title="t('accessHeader')">
             <p>{{ t('accessTip') }}</p>
-            <n-input v-model:value="auth" type="textarea" :autosize="{
-                minRows: 3
-            }" />
+            <n-input v-model:value="auth" type="textarea" :autosize="{ minRows: 3 }" />
             <template #action>
                 <n-button :loading="loading" @click="authFunc" type="primary">
                     {{ t('ok') }}
@@ -561,6 +549,18 @@ onMounted(async () => {
 }
 
 .n-card {
+    margin-top: 10px;
+}
+
+.center {
+    display: flex;
+    text-align: left;
+    place-items: center;
+    justify-content: center;
+    margin: 20px;
+}
+
+.n-form .n-button {
     margin-top: 10px;
 }
 </style>

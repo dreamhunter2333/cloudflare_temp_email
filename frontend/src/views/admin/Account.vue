@@ -277,7 +277,7 @@ onMounted(async () => {
         <n-modal v-model:show="showDelteAccount" preset="dialog" :title="t('delteAccount')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
-                <n-button :loading="loading" @click="deleteEmail" size="small" tertiary round type="error">
+                <n-button :loading="loading" @click="deleteEmail" size="small" tertiary type="error">
                     {{ t('delteAccount') }}
                 </n-button>
             </template>
