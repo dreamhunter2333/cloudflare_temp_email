@@ -37,15 +37,14 @@ api.get('/admin/v1/mails_unknow', async (c) => {
     }
     const { results } = await c.env.DB.prepare(`
         SELECT id, source, subject, message FROM mails
-        where address NOT IN(select concat('${c.env.PREFIX}', name) from address)
+        where address NOT IN(select name from address)
         order by id desc limit ? offset ? `
     ).bind(limit, offset).all();
     let count = 0;
     if (offset == 0) {
         const { count: mailCount } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM mails
-            where address NOT IN
-            (select concat('${c.env.PREFIX}', name) from address)`
+            where address NOT IN (select name from address)`
         ).first();
         count = mailCount;
     }
