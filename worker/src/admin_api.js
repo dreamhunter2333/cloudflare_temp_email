@@ -15,7 +15,12 @@ api.get('/admin/address', async (c) => {
     }
     if (query) {
         const { results } = await c.env.DB.prepare(
-            `SELECT * FROM address where name like ? order by id desc limit ? offset ? `
+            `SELECT a.*,`
+            + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
+            + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
+            + ` FROM address a`
+            + ` where name like ?`
+            + ` order by id desc limit ? offset ?`
         ).bind(`%${query}%`, limit, offset).all();
         let count = 0;
         if (offset == 0) {
@@ -30,7 +35,11 @@ api.get('/admin/address', async (c) => {
         })
     }
     const { results } = await c.env.DB.prepare(
-        `SELECT * FROM address order by id desc limit ? offset ? `
+        `SELECT a.*,`
+        + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
+        + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
+        + ` FROM address a`
+        + ` order by id desc limit ? offset ?`
     ).bind(limit, offset).all();
     let count = 0;
     if (offset == 0) {
@@ -136,12 +145,28 @@ api.get('/admin/mails_unknow', async (c) => {
 });
 
 api.get('/admin/address_sender', async (c) => {
-    const { limit, offset } = c.req.query();
+    const { address, limit, offset } = c.req.query();
     if (!limit || limit < 0 || limit > 100) {
         return c.text("Invalid limit", 400)
     }
     if (!offset || offset < 0) {
         return c.text("Invalid offset", 400)
+    }
+    if (address) {
+        const { results } = await c.env.DB.prepare(
+            `SELECT * FROM address_sender where address = ? order by id desc limit ? offset ?`
+        ).bind(address, limit, offset).all();
+        let count = 0;
+        if (offset == 0) {
+            const { count: addressCount } = await c.env.DB.prepare(
+                `SELECT count(*) as count FROM address_sender where address = ?`
+            ).bind(address).first();
+            count = addressCount;
+        }
+        return c.json({
+            results: results,
+            count: count
+        })
     }
     const { results } = await c.env.DB.prepare(
         `SELECT * FROM address_sender order by id desc limit ? offset ? `
@@ -182,7 +207,42 @@ api.post('/admin/address_sender', async (c) => {
 
 api.get('/admin/sendbox', async (c) => {
     const { address, limit, offset } = c.req.query();
-    return getSendbox(c, address, limit, offset);
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
+    if (!address) {
+        const { results } = await c.env.DB.prepare(
+            `SELECT * FROM sendbox order by id desc limit ? offset ?`
+        ).bind(limit, offset).all();
+        let count = 0;
+        if (offset == 0) {
+            const { count: mailCount } = await c.env.DB.prepare(
+                `SELECT count(*) as count FROM sendbox`
+            ).first();
+            count = mailCount;
+        }
+        return c.json({
+            results: results,
+            count: count
+        })
+    }
+    const { results } = await c.env.DB.prepare(
+        `SELECT * FROM sendbox where address = ? order by id desc limit ? offset ?`
+    ).bind(address, limit, offset).all();
+    let count = 0;
+    if (offset == 0) {
+        const { count: mailCount } = await c.env.DB.prepare(
+            `SELECT count(*) as count FROM sendbox where address = ?`
+        ).bind(address).first();
+        count = mailCount;
+    }
+    return c.json({
+        results: results,
+        count: count
+    })
 })
 
 api.get('/admin/statistics', async (c) => {

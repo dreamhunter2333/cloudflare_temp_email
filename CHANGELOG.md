@@ -1,5 +1,20 @@
 # CHANGE LOG
 
+## v0.3.0
+
+Breaking Changes:
+
+DB changes:
+
+`address` 表的前缀将从代码中迁移到 db 中，请将下面 sql 中的 `tmp` 替换为你的前缀，然后执行。
+
+```sql
+update
+    address
+set
+    name = 'tmp' || name;
+```
+
 ## v0.2.10
 
 - `ENABLE_USER_DELETE_EMAIL` 是否允许用户删除账户和邮件

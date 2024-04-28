@@ -1,10 +1,11 @@
 <script setup>
 import { ref, h, onMounted, watch } from 'vue';
+import { NBadge } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { NMenu } from 'naive-ui';
+import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 
 const {
@@ -19,6 +20,9 @@ const { t } = useI18n({
         en: {
             name: 'Name',
             created_at: 'Created At',
+            update_at: 'Update At',
+            mail_count: 'Mail Count',
+            send_count: 'Send Count',
             showPass: 'Show Passwrod',
             password: 'Password',
             passwordTip: 'Please copy the password and you can use it to login to your email account.',
@@ -35,6 +39,9 @@ const { t } = useI18n({
         zh: {
             name: '名称',
             created_at: '创建时间',
+            update_at: '更新时间',
+            mail_count: '邮件数量',
+            send_count: '发送数量',
             showPass: '显示密码',
             password: '密码',
             passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
@@ -117,6 +124,62 @@ const columns = [
         key: "created_at"
     },
     {
+        title: t('updated_at'),
+        key: "updated_at"
+    },
+    {
+        title: t('mail_count'),
+        key: "mail_count",
+        render(row) {
+            return h(NButton,
+                {
+                    text: true,
+                    onClick: () => {
+                        if (row.mail_count > 0) {
+                            adminMailTabAddress.value = row.name;
+                            adminTab.value = "mails";
+                        }
+                    }
+                },
+                {
+                    icon: () => h(NBadge, {
+                        value: row.mail_count,
+                        'show-zero': true,
+                        max: 99,
+                        type: "success"
+                    }),
+                    default: () => row.mail_count > 0 ? t('viewMails') : ""
+                }
+            )
+        }
+    },
+    {
+        title: t('send_count'),
+        key: "send_count",
+        render(row) {
+            return h(NButton,
+                {
+                    text: true,
+                    onClick: () => {
+                        if (row.send_count > 0) {
+                            adminSendBoxTabAddress.value = row.name;
+                            adminTab.value = "sendBox";
+                        }
+                    }
+                },
+                {
+                    icon: () => h(NBadge, {
+                        value: row.send_count,
+                        'show-zero': true,
+                        max: 99,
+                        type: "success"
+                    }),
+                    default: () => row.send_count > 0 ? t('viewSendBox') : ""
+                }
+            )
+        }
+    },
+    {
         title: t('actions'),
         key: 'actions',
         render(row) {
@@ -132,8 +195,7 @@ const columns = [
                                 {
                                     label: () => h(NButton,
                                         {
-                                            bordered: false,
-                                            ghost: true,
+                                            text: true,
                                             onClick: () => showPassword(row.id)
                                         },
                                         { default: () => t('showPass') }
@@ -142,8 +204,7 @@ const columns = [
                                 {
                                     label: () => h(NButton,
                                         {
-                                            bordered: false,
-                                            ghost: true,
+                                            text: true,
                                             onClick: () => {
                                                 adminMailTabAddress.value = row.name;
                                                 adminTab.value = "mails";
@@ -155,8 +216,7 @@ const columns = [
                                 {
                                     label: () => h(NButton,
                                         {
-                                            bordered: false,
-                                            ghost: true,
+                                            text: true,
                                             onClick: () => {
                                                 adminSendBoxTabAddress.value = row.name;
                                                 adminTab.value = "sendBox";
@@ -168,8 +228,7 @@ const columns = [
                                 {
                                     label: () => h(NButton,
                                         {
-                                            bordered: false,
-                                            ghost: true,
+                                            text: true,
                                             onClick: () => {
                                                 curDeleteAddressId.value = row.id;
                                                 showDelteAccount.value = true;
