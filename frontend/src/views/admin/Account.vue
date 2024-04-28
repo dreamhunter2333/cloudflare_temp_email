@@ -20,7 +20,7 @@ const { t } = useI18n({
         en: {
             name: 'Name',
             created_at: 'Created At',
-            update_at: 'Update At',
+            updated_at: 'Update At',
             mail_count: 'Mail Count',
             send_count: 'Send Count',
             showPass: 'Show Passwrod',
@@ -39,7 +39,7 @@ const { t } = useI18n({
         zh: {
             name: '名称',
             created_at: '创建时间',
-            update_at: '更新时间',
+            updated_at: '更新时间',
             mail_count: '邮件数量',
             send_count: '发送数量',
             showPass: '显示密码',
