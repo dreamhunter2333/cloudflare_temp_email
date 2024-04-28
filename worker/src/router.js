@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
 
 import { getDomains, getPasswords } from './utils';
+import { newAddress } from './common'
 
 const api = new Hono()
 
@@ -153,62 +153,22 @@ api.get('/open_api/settings', async (c) => {
         "domains": getDomains(c),
         "needAuth": needAuth,
         "adminContact": c.env.ADMIN_CONTACT,
+        "enableUserCreateEmail": c.env.ENABLE_USER_CREATE_EMAIL,
         "enableUserDeleteEmail": c.env.ENABLE_USER_DELETE_EMAIL,
         "enableAutoReply": c.env.ENABLE_AUTO_REPLY,
     });
 })
 
 api.get('/api/new_address', async (c) => {
+    if (!c.env.ENABLE_USER_CREATE_EMAIL) {
+        return c.text("New address is disabled", 403)
+    }
     let { name, domain } = c.req.query();
     // if no name, generate random name
     if (!name) {
         name = Math.random().toString(36).substring(2, 15);
     }
-    // remove special characters
-    name = name.replace(/[^a-zA-Z0-9.]/g, '')
-    // check name length
-    if (name.length < 0) {
-        return c.text("Name too short", 400)
-    }
-    if (name.length > 100) {
-        return c.text("Name too long (max 100)", 400)
-    }
-    // check domain, generate random domain
-    const domains = getDomains(c);
-    if (!domain || !domains.includes(domain)) {
-        domain = domains[Math.floor(Math.random() * domains.length)];
-    }
-    // create address
-    name = c.env.PREFIX + name + "@" + domain
-    try {
-        const { success } = await c.env.DB.prepare(
-            `INSERT INTO address(name) VALUES(?)`
-        ).bind(name).run();
-        if (!success) {
-            return c.text("Failed to create address", 500)
-        }
-    } catch (e) {
-        if (e.message && e.message.includes("UNIQUE")) {
-            return c.text("Please retry a new address", 400)
-        }
-        return c.text("Failed to create address", 500)
-    }
-    let address_id = 0;
-    try {
-        address_id = await c.env.DB.prepare(
-            `SELECT id FROM address where name = ?`
-        ).bind(name).first("id");
-    } catch (error) {
-        console.log(error);
-    }
-    // create jwt
-    const jwt = await Jwt.sign({
-        address: name,
-        address_id: address_id
-    }, c.env.JWT_SECRET)
-    return c.json({
-        jwt: jwt
-    })
+    return newAddress(c, name, domain, true);
 })
 
 api.delete('/api/delete_address', async (c) => {

@@ -31,6 +31,8 @@ PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名, 支持多个域名
 JWT_SECRET = "xxx" # 用于生成 jwt 的密钥, jwt 用于给用户登录以及鉴权
 BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
+# 是否允许用户创建邮件, 不配置则不允许
+ENABLE_USER_CREATE_EMAIL = true
 # 允许用户删除邮件, 不配置则不允许
 ENABLE_USER_DELETE_EMAIL = true
 # 允许自动回复邮件

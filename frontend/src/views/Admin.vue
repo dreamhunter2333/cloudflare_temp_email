@@ -8,6 +8,7 @@ import SenderAccess from './admin/SenderAccess.vue'
 import Statistics from "./admin/Statistics.vue"
 import SendBox from './admin/SendBox.vue';
 import Account from './admin/Account.vue';
+import CreateAccount from './admin/CreateAccount.vue';
 import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
 import Maintenance from './admin/Maintenance.vue';
@@ -33,6 +34,7 @@ const { t } = useI18n({
       accessTip: 'Please enter the admin password',
       mails: 'Emails',
       account: 'Account',
+      account_create: 'Create Account',
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
@@ -44,6 +46,7 @@ const { t } = useI18n({
       accessTip: '请输入 Admin 密码',
       mails: '邮件',
       account: '账号',
+      account_create: '创建账号',
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
@@ -64,10 +67,7 @@ onMounted(async () => {
 <template>
   <div>
     <n-modal v-model:show="showAdminAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
-      title="Dialog">
-      <template #header>
-        <div>{{ t('accessHeader') }}</div>
-      </template>
+      :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
       <n-input v-model:value="adminAuth" type="textarea" :autosize="{ minRows: 3 }" />
       <template #action>
@@ -80,6 +80,9 @@ onMounted(async () => {
     <n-tabs type="card" v-model:value="adminTab">
       <n-tab-pane name="account" :tab="t('account')">
         <Account />
+      </n-tab-pane>
+      <n-tab-pane name="account_create" :tab="t('account_create')">
+        <CreateAccount />
       </n-tab-pane>
       <n-tab-pane name="mails" :tab="t('mails')">
         <Mails />
