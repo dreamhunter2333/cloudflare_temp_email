@@ -2,11 +2,12 @@
 
 ## v0.3.0
 
-Breaking Changes:
-
-DB changes:
+### Breaking Changes:
 
 `address` 表的前缀将从代码中迁移到 db 中，请将下面 sql 中的 `tmp` 替换为你的前缀，然后执行。
+如果你的数据很重要，请先备份数据库。
+
+**注意替换前缀**
 
 ```sql
 update
@@ -14,6 +15,21 @@ update
 set
     name = 'tmp' || name;
 ```
+
+### Changes
+
+- `address` 表的前缀将从代码中迁移到 db 中
+- `admin` 账户页面添加收发邮件数量
+- `admin` 发件页面默认显示全部
+- `admin` 发件权限页面支持搜索地址
+- `admin` 邮件页面使用左右分栏 UI
+
+* feat: remove PREFIX logic in db by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/171
+* feat: admin page add account mail count && sendbox default all && sen… by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/172
+* feat: all mail use MailBox Component by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/173
+
+
+**Full Changelog**: https://github.com/dreamhunter2333/cloudflare_temp_email/compare/0.2.10...v0.3.0
 
 ## v0.2.10
 
