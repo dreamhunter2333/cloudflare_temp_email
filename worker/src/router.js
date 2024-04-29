@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 
-import { getDomains, getPasswords } from './utils';
+import { getDomains, getPasswords, getBooleanValue } from './utils';
 import { newAddress } from './common'
 
 const api = new Hono()
@@ -34,7 +34,7 @@ api.get('/api/mails', async (c) => {
 })
 
 api.delete('/api/mails/:id', async (c) => {
-    if (!c.env.ENABLE_USER_DELETE_EMAIL) {
+    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
         return c.text("User delete email is disabled", 403)
     }
     const { address } = c.get("jwtPayload")
@@ -83,7 +83,7 @@ api.get('/api/settings', async (c) => {
         console.warn("Failed to update address")
     }
     let auto_reply = {};
-    if (c.env.ENABLE_AUTO_REPLY) {
+    if (getBooleanValue(c.env.ENABLE_AUTO_REPLY)) {
         const results = await c.env.DB.prepare(
             `SELECT * FROM auto_reply_mails where address = ? `
         ).bind(address).first();
@@ -114,7 +114,7 @@ api.get('/api/settings', async (c) => {
 
 api.post('/api/settings', async (c) => {
     const { address } = c.get("jwtPayload")
-    if (!c.env.ENABLE_AUTO_REPLY) {
+    if (!getBooleanValue(c.env.ENABLE_AUTO_REPLY)) {
         return c.text("Auto reply is disabled", 403)
     }
     const { auto_reply } = await c.req.json();
@@ -153,14 +153,14 @@ api.get('/open_api/settings', async (c) => {
         "domains": getDomains(c),
         "needAuth": needAuth,
         "adminContact": c.env.ADMIN_CONTACT,
-        "enableUserCreateEmail": c.env.ENABLE_USER_CREATE_EMAIL,
-        "enableUserDeleteEmail": c.env.ENABLE_USER_DELETE_EMAIL,
-        "enableAutoReply": c.env.ENABLE_AUTO_REPLY,
+        "enableUserCreateEmail": getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
+        "enableUserDeleteEmail": getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),
+        "enableAutoReply": getBooleanValue(c.env.ENABLE_AUTO_REPLY),
     });
 })
 
 api.get('/api/new_address', async (c) => {
-    if (!c.env.ENABLE_USER_CREATE_EMAIL) {
+    if (!getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL)) {
         return c.text("New address is disabled", 403)
     }
     let { name, domain } = c.req.query();
@@ -172,7 +172,7 @@ api.get('/api/new_address', async (c) => {
 })
 
 api.delete('/api/delete_address', async (c) => {
-    if (!c.env.ENABLE_USER_DELETE_EMAIL) {
+    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
         return c.text("User delete email is disabled", 403)
     }
     const { address } = c.get("jwtPayload")

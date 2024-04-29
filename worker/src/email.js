@@ -1,5 +1,6 @@
 import { createMimeMessage } from "mimetext";
 import { EmailMessage } from "cloudflare:email";
+import { getBooleanValue } from "./utils";
 
 async function email(message, env, ctx) {
     if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => message.from.includes(word))) {
@@ -21,7 +22,7 @@ async function email(message, env, ctx) {
     }
 
     // auto reply email
-    if (env.ENABLE_AUTO_REPLY) {
+    if (getBooleanValue(env.ENABLE_AUTO_REPLY)) {
         try {
             const results = await env.DB.prepare(
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
