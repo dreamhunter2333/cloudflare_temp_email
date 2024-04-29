@@ -1,0 +1,12 @@
+services:
+  smtp_proxy_server:
+    image: ghcr.io/dreamhunter2333/cloudflare_temp_email/smtp_proxy_server:latest
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
+    container_name: "smtp_proxy_server"
+    ports:
+      - "8025:8025"
+    environment:
+      - proxy_url=https://temp-email-api.xxx.xxx
+      - port=8025
