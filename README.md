@@ -32,12 +32,14 @@
 - [x] 使用 Cloudflare Pages 部署前端
 - [x] 使用 Cloudflare Workers 部署后端
 - [x] email 转发使用 Cloudflare Email Routing
-- [x] 使用 password 重新登录之前的邮箱
+- [x] 使用 `password` 重新登录之前的邮箱
 - [x] 获取自定义名字的邮箱
 - [x] 支持多语言
 - [x] 增加访问密码，可作为私人站点
 - [x] 增加自动回复功能
-- [x] 增加查看附件功能
-- [x] 使用 rust wasm 解析邮件
+- [x] 增加查看 `附件` 功能
+- [x] 使用 `rust wasm` 解析邮件
 - [x] 支持发送邮件
-- [x] 支持 DKIM
+- [x] 支持 `DKIM`
+- [x] `admin` 后台创建无前缀邮箱
+- [x] 添加 `SMTP proxy server`，支持 SMTP 发送邮件

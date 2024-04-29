@@ -4,6 +4,7 @@
 
 - `ENABLE_USER_CREATE_EMAIL` 是否允许用户创建邮件
 - 允许 admin 创建无前缀的邮件
+- 添加 `SMTP proxy server`，支持 SMTP 发送邮件
 
 ## v0.3.0
 
