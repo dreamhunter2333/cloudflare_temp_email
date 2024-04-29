@@ -1,5 +1,16 @@
 import { createMimeMessage } from "mimetext";
 
+export const getBooleanValue = (value) => {
+    if (typeof value === "boolean") {
+        return value;
+    }
+    if (typeof value === "string") {
+        return value === "true";
+    }
+    console.error("Invalid boolean value", value);
+    return false;
+}
+
 export const getDomains = (c) => {
     if (!c.env.DOMAINS) {
         return [];
