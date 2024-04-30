@@ -79,6 +79,8 @@ ENABLE_USER_CREATE_EMAIL = true
 ENABLE_USER_DELETE_EMAIL = true
 # Allow automatic replies to emails
 ENABLE_AUTO_REPLY = false
+# Footer text
+# COPYRIGHT = "Dream Hunter"
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
 # dkim config

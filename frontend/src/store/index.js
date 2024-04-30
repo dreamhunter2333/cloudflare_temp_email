@@ -14,7 +14,8 @@ export const useGlobalState = createGlobalState(
             enableUserCreateEmail: false,
             enableUserDeleteEmail: false,
             enableAutoReply: false,
-            domains: []
+            domains: [],
+            copyright: 'Dream Hunter',
         })
         const settings = ref({
             fetched: false,
