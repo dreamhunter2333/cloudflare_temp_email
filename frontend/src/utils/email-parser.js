@@ -1,5 +1,4 @@
 import PostalMime from 'postal-mime';
-import { parse_message } from 'mail-parser-wasm'
 
 function humanFileSize(size) {
     const i = size === 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
@@ -9,6 +8,7 @@ function humanFileSize(size) {
 export async function processItem(item) {
     // Try to parse the email using mail-parser-wasm
     try {
+        const { parse_message } = await import('mail-parser-wasm');
         const parsedEmail = parse_message(item.raw);
         item.source = parsedEmail.sender || item.source;
         item.subject = parsedEmail.subject || '';
@@ -67,6 +67,7 @@ export async function processItem(item) {
         item.subject = 'No Subject';
         item.message = item.raw;
     }
+    return item;
 }
 
 export function getDownloadEmlUrl(raw) {
