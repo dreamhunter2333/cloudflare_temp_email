@@ -1,11 +1,12 @@
 <script setup>
 import { darkTheme, NGlobalStyle, zhCN } from 'naive-ui'
 import { computed, onMounted } from 'vue'
-import { useDark, useToggle } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
+import Footer from './views/Footer.vue';
+
 
 const { localeCache, isDark, loading } = useGlobalState()
 const theme = computed(() => isDark.value ? darkTheme : null)
@@ -42,8 +43,11 @@ onMounted(async () => {
           <n-gi :span="isMobile ? 12 : 10">
             <div class="main">
               <n-space vertical>
-                <Header />
-                <router-view></router-view>
+                <n-layout style="min-height: 80vh;">
+                  <Header />
+                  <router-view></router-view>
+                </n-layout>
+                <Footer />
               </n-space>
             </div>
           </n-gi>

@@ -49,7 +49,7 @@ const apiFetch = async (path, options = {}) => {
 const getOpenSettings = async (message) => {
     try {
         const res = await api.fetch("/open_api/settings");
-        openSettings.value = {
+        Object.assign(openSettings.value, {
             prefix: res["prefix"] || "",
             needAuth: res["needAuth"] || false,
             domains: res["domains"].map((domain) => {
@@ -62,7 +62,8 @@ const getOpenSettings = async (message) => {
             enableUserCreateEmail: res["enableUserCreateEmail"] || false,
             enableUserDeleteEmail: res["enableUserDeleteEmail"] || false,
             enableAutoReply: res["enableAutoReply"] || false,
-        };
+            copyright: res["copyright"] || openSettings.value.copyright,
+        });
         if (openSettings.value.needAuth) {
             showAuth.value = true;
         }
