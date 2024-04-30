@@ -122,6 +122,7 @@ settings = Settings()
 handler = CustomSMTPHandler()
 server = Controller(
     handler,
+    hostname="",
     port=settings.port,
     auth_require_tls=False,
     decode_data=True,
