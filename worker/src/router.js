@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 
 import { getDomains, getPasswords, getBooleanValue } from './utils';
 import { newAddress } from './common'
+import { CONSTANTS } from './constants'
 
 const api = new Hono()
 
@@ -168,6 +169,18 @@ api.get('/api/new_address', async (c) => {
     // if no name, generate random name
     if (!name) {
         name = Math.random().toString(36).substring(2, 15);
+    }
+    // check name block list
+    try {
+        const value = await c.env.DB.prepare(
+            `SELECT value FROM settings where key = ?`
+        ).bind(CONSTANTS.ADDRESS_BLOCK_LIST_KEY).first("value");
+        const blockList = value ? JSON.parse(value) : [];
+        if (blockList.some((item) => name.includes(item))) {
+            return c.text(`Name [${name}] is blocked`, 400)
+        }
+    } catch (error) {
+        console.error(error);
     }
     return newAddress(c, name, domain, true);
 })

@@ -25,15 +25,12 @@
   - [CHANGELOG](#changelog)
   - [在线演示](#在线演示)
   - [功能/TODO](#功能todo)
+  - [Reference](#reference)
 
 ## 功能/TODO
 
-- [x] Cloudflare D1 作为数据库
-- [x] 使用 Cloudflare Pages 部署前端
-- [x] 使用 Cloudflare Workers 部署后端
-- [x] email 转发使用 Cloudflare Email Routing
 - [x] 使用 `password` 重新登录之前的邮箱
-- [x] 获取自定义名字的邮箱
+- [x] 获取自定义名字的邮箱，`admin` 可配置黑名单
 - [x] 支持多语言
 - [x] 增加访问密码，可作为私人站点
 - [x] 增加自动回复功能
@@ -43,3 +40,10 @@
 - [x] 支持 `DKIM`
 - [x] `admin` 后台创建无前缀邮箱
 - [x] 添加 `SMTP proxy server`，支持 SMTP 发送邮件
+
+## Reference
+
+- Cloudflare D1 作为数据库
+- 使用 Cloudflare Pages 部署前端
+- 使用 Cloudflare Workers 部署后端
+- email 转发使用 Cloudflare Email Routing

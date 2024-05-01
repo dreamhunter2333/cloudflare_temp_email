@@ -91,11 +91,9 @@ onMounted(async () => {
                         :options="openSettings.domains" />
                 </n-input-group>
             </n-form-item-row>
-            <div class="right">
-                <n-button @click="newEmail" type="primary" :loading="loading">
-                    {{ t('creatNewEmail') }}
-                </n-button>
-            </div>
+            <n-button @click="newEmail" type="primary" block :loading="loading">
+                {{ t('creatNewEmail') }}
+            </n-button>
         </n-card>
     </div>
 </template>
@@ -107,11 +105,5 @@ onMounted(async () => {
     place-items: center;
     justify-content: center;
     margin: 20px;
-}
-
-.right {
-    text-align: right;
-    place-items: right;
-    justify-content: right;
 }
 </style>

@@ -2,11 +2,21 @@
 
 ## main branch to be released
 
+### DB Changes
+
+新增 `settings` 表，用于存储通用配置信息
+
+- `db/2024-05-01-patch.sql`
+
+### Changes
+
 - `ENABLE_USER_CREATE_EMAIL` 是否允许用户创建邮件
 - 允许 admin 创建无前缀的邮件
 - 添加 `SMTP proxy server`，支持 SMTP 发送邮件
 - 修复某些情况浏览器无法加载 `wasm` 时使用 js 解析邮件
 - 页脚添加 `COPYRIGHT`
+- UI 允许用户切换邮件展示模式 `v-html` / `iframe`
+- 添加 `admin` 账户配置页面，支持配置用户注册名称黑名单
 
 ## v0.3.0
 
@@ -36,7 +46,6 @@ set
 * feat: admin page add account mail count && sendbox default all && sen… by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/172
 * feat: all mail use MailBox Component by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/173
 
-
 **Full Changelog**: https://github.com/dreamhunter2333/cloudflare_temp_email/compare/0.2.10...v0.3.0
 
 ## v0.2.10
@@ -52,7 +61,7 @@ set
 ## v0.2.9
 
 - 添加富文本编辑器
--  admin 联系方式，不配置则不显示，可配置任意字符串 `ADMIN_CONTACT = "xx@xx.xxx"`
+- admin 联系方式，不配置则不显示，可配置任意字符串 `ADMIN_CONTACT = "xx@xx.xxx"`
 - 默认发送邮件余额，如果不设置，将为 0 `DEFAULT_SEND_BALANCE = 1`
 
 ## v0.2.8

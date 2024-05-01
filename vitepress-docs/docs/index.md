@@ -23,6 +23,6 @@ features:
     details: 支持 password 登录邮箱，使用访问密码可作为私人站点，支持附件功能
   - title:  使用 rust wasm 解析邮件
     details: 使用 rust wasm 解析邮件，支持邮件各种RFC标准，支持附件, 速度极快
-  - title: 支持发送邮件
-    details: 支持通过域名邮箱发送 txt 或者 html 邮件，支持 DKIM 签名
+  - title: 支持发送邮件(UI/API/SMTP)
+    details: 支持通过域名邮箱发送 txt 或者 html 邮件，支持 DKIM 签名, UI/API/SMTP 发送邮件
 ---
