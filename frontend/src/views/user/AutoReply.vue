@@ -2,8 +2,8 @@
 import { useI18n } from 'vue-i18n'
 import { onMounted, ref } from 'vue'
 
-import { useGlobalState } from '../store'
-import { api } from '../api'
+import { useGlobalState } from '../../store'
+import { api } from '../../api'
 
 const message = useMessage()
 const sourcePrefix = ref("")

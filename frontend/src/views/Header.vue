@@ -4,9 +4,13 @@ import { ref, h, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
-import { DarkModeFilled, LightModeFilled, MenuFilled, AdminPanelSettingsFilled, SendFilled } from '@vicons/material'
+import {
+    DarkModeFilled, LightModeFilled, MenuFilled,
+    AdminPanelSettingsFilled, SendFilled
+} from '@vicons/material'
 import { GithubAlt, Language, User, Home, Copy } from '@vicons/fa'
-import AdminContact from './admin/AdminContact.vue'
+
+import Login from './Login.vue'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -14,42 +18,15 @@ const { toClipboard } = useClipboard()
 const message = useMessage()
 
 const {
-    jwt, localeCache, toggleDark, isDark,
+    jwt, localeCache, toggleDark, isDark, settings,
     showAuth, adminAuth, auth, loading
 } = useGlobalState()
-const { openSettings, settings } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
 const isMobile = useIsMobile()
 const isAdminRoute = computed(() => route.path.includes('admin'))
 
 const showMobileMenu = ref(false)
-const tabValue = ref('signin')
-const showLogout = ref(false)
-const showDelteAccount = ref(false)
-const password = ref('')
-const showPassword = ref(false)
-const emailName = ref("")
-const emailDomain = ref("")
-
-const login = async () => {
-    if (!password.value) {
-        message.error(t('passwordInput'));
-        return;
-    }
-    try {
-        jwt.value = password.value;
-        await api.getSettings()
-        location.reload()
-    } catch (error) {
-        message.error(error.message || "error");
-    }
-}
-
-const logout = () => {
-    jwt.value = '';
-    location.reload()
-}
 
 const authFunc = async () => {
     try {
@@ -71,73 +48,35 @@ const { t } = useI18n({
             title: 'Cloudflare Temp Email',
             dark: 'Dark',
             light: 'Light',
-            login: 'Login',
-            logout: 'Logout',
-            logoutConfirm: 'Are you sure to logout?',
-            delteAccount: "Delete Account",
-            delteAccountConfirm: "Are you sure to delete your account and all emails for this account?",
             accessHeader: 'Access Password',
             accessTip: 'Please enter the correct password',
-            settings: 'Settings',
             home: 'Home',
             menu: 'Menu',
             user: 'User',
-            sendbox: 'Send Box',
             sendMail: 'Send Mail',
-            pleaseGetNewEmail: 'Please login or click "Get New Email" button to get a new email address',
-            getNewEmail: 'Get New Email',
-            getNewEmailTip1: 'Please input the email you want to use. only allow ., a-z, A-Z and 0-9',
-            getNewEmailTip2: 'Levaing it blank will generate a random email address.',
-            getNewEmailTip3: 'You can choose a domain from the dropdown list.',
             yourAddress: 'Your email address is',
-            password: 'Password',
-            passwordTip: 'Please copy the password and you can use it to login to your email account.',
-            cancel: 'Cancel',
             ok: 'OK',
             copy: 'Copy',
             copied: 'Copied',
-            showPassword: 'Show Password',
             fetchAddressError: 'Login password is invalid or account not exist, it may be network connection issue, please try again later.',
             mailV1Alert: 'You have some mails in v1, please click here to login and visit your history mails.',
-            generateName: 'Generate Fake Name',
-            help: 'Help',
-            passwordInput: 'Please input the password',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
             dark: '暗色',
             light: '亮色',
-            login: '登录',
-            logout: '退出登录',
-            logoutConfirm: '确定要退出登录吗？',
-            delteAccount: "删除账户",
-            delteAccountConfirm: "确定要删除你的账户和其中的所有邮件吗?",
             accessHeader: '访问密码',
             accessTip: '请输入站点访问密码',
-            settings: '设置',
             home: '主页',
             menu: '菜单',
             user: '用户',
-            sendbox: '发件箱',
             sendMail: '发送邮件',
-            pleaseGetNewEmail: '请"登录"或点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
-            getNewEmail: '注册新邮箱',
-            getNewEmailTip1: '请输入你想要使用的邮箱地址, 只允许 ., a-z, A-Z, 0-9',
-            getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
-            getNewEmailTip3: '你可以从下拉列表中选择一个域名。',
             yourAddress: '你的邮箱地址是',
-            password: '密码',
-            passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
-            cancel: '取消',
             ok: '确定',
             copy: '复制',
             copied: '已复制',
-            showPassword: '查看密码',
             fetchAddressError: '登录密码无效或账号不存在，也可能是网络连接异常，请稍后再尝试。',
             mailV1Alert: '你有一些 v1 版本的邮件，请点击此处登录查看。',
-            generateName: '生成随机名字',
-            help: '帮助',
-            passwordInput: '请输入密码',
         }
     }
 });
@@ -185,6 +124,7 @@ const menuOptions = computed(() => [
                 text: true,
                 size: "small",
                 style: "width: 100%",
+                onClick: () => { router.push("/user"); showMobileMenu.value = false; }
             },
             {
                 default: () => t('user'),
@@ -193,75 +133,6 @@ const menuOptions = computed(() => [
         ),
         show: showUserMenu.value,
         key: "user",
-        children: [
-            {
-                label: () => h(
-                    NButton,
-                    {
-                        text: true,
-                        size: "small",
-                        style: "width: 100%",
-                        onClick: () => { router.push('/sendbox'); showMobileMenu.value = false; }
-                    },
-                    { default: () => t('sendbox') }
-                ),
-                key: "sendbox"
-            },
-            {
-                label: () => h(
-                    NButton,
-                    {
-                        text: true,
-                        size: "small",
-                        style: "width: 100%",
-                        onClick: () => { showPassword.value = true; showMobileMenu.value = false; }
-                    },
-                    { default: () => t('showPassword') }
-                ),
-                key: "showPassword"
-            },
-            {
-                label: () => h(
-                    NButton,
-                    {
-                        text: true,
-                        size: "small",
-                        style: "width: 100%",
-                        onClick: () => { router.push('/settings'); showMobileMenu.value = false; }
-                    },
-                    { default: () => t('settings') }
-                ),
-                show: openSettings.value.enableAutoReply,
-                key: "settings"
-            },
-            {
-                label: () => h(
-                    NButton,
-                    {
-                        text: true,
-                        size: "small",
-                        style: "width: 100%",
-                        onClick: () => { showLogout.value = true; showMobileMenu.value = false; }
-                    },
-                    { default: () => t('logout') }
-                ),
-                key: "logout"
-            },
-            {
-                label: () => h(
-                    NButton,
-                    {
-                        text: true,
-                        size: "small",
-                        style: "width: 100%",
-                        onClick: () => { showDelteAccount.value = true; showMobileMenu.value = false; }
-                    },
-                    { default: () => t('delteAccount') }
-                ),
-                show: openSettings.value.enableUserDeleteEmail,
-                key: "delte_account"
-            }
-        ]
     },
     {
         label: () => h(
@@ -331,53 +202,8 @@ const copy = async () => {
     }
 }
 
-const generateNameLoading = ref(false);
-const generateName = async () => {
-    try {
-        generateNameLoading.value = true;
-        const { faker } = await import('https://esm.sh/@faker-js/faker');
-        emailName.value = faker.person
-            .fullName()
-            .replace(/\s+/g, '.')
-            .replace(/[^a-zA-Z0-9.]/g, '')
-            .toLowerCase();
-    } catch (error) {
-        message.error(error.message || "error");
-    } finally {
-        generateNameLoading.value = false;
-    }
-};
-
-const newEmail = async () => {
-    try {
-        const res = await api.fetch(
-            `/api/new_address`
-            + `?name=${emailName.value || ''}`
-            + `&domain=${emailDomain.value || ''}`
-        );
-        jwt.value = res["jwt"];
-        await api.getSettings();
-        showPassword.value = true;
-    } catch (error) {
-        message.error(error.message || "error");
-    }
-};
-
-const deleteAccount = async () => {
-    try {
-        await api.fetch(`/api/delete_address`, {
-            method: 'DELETE'
-        });
-        jwt.value = '';
-        location.reload()
-    } catch (error) {
-        message.error(error.message || "error");
-    }
-};
-
 onMounted(async () => {
     await api.getOpenSettings(message);
-    emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
     await api.getSettings();
 });
 </script>
@@ -439,84 +265,10 @@ onMounted(async () => {
                     <n-alert v-if="jwt" type="warning" show-icon>
                         <span>{{ t('fetchAddressError') }}</span>
                     </n-alert>
-                    <n-tabs v-model:value="tabValue" size="large" justify-content="space-evenly">
-                        <n-tab-pane name="signin" :tab="t('login')">
-                            <n-form>
-                                <n-form-item-row :label="t('password')" required>
-                                    <n-input v-model:value="password" type="textarea" :autosize="{ minRows: 3 }" />
-                                </n-form-item-row>
-                                <n-button @click="login" :loading="loading" type="primary" block secondary strong>
-                                    {{ t('login') }}
-                                </n-button>
-                                <n-button v-if="openSettings.enableUserCreateEmail" @click="tabValue = 'register'" block
-                                    secondary strong>
-                                    {{ t('getNewEmail') }}
-                                </n-button>
-                            </n-form>
-                        </n-tab-pane>
-                        <n-tab-pane v-if="openSettings.enableUserCreateEmail" name="register" :tab="t('getNewEmail')">
-                            <n-spin :show="generateNameLoading">
-                                <n-form>
-                                    <span>
-                                        <p>{{ t("getNewEmailTip1") }}</p>
-                                        <p>{{ t("getNewEmailTip2") }}</p>
-                                        <p>{{ t("getNewEmailTip3") }}</p>
-                                    </span>
-                                    <n-button @click="generateName" style="margin-bottom: 10px;">
-                                        {{ t('generateName') }}
-                                    </n-button>
-                                    <n-input-group>
-                                        <n-input-group-label v-if="openSettings.prefix">
-                                            {{ openSettings.prefix }}
-                                        </n-input-group-label>
-                                        <n-input v-model:value="emailName" />
-                                        <n-input-group-label>@</n-input-group-label>
-                                        <n-select v-model:value="emailDomain" :consistent-menu-width="false"
-                                            :options="openSettings.domains" />
-                                    </n-input-group>
-                                    <n-button type="primary" block secondary strong @click="newEmail"
-                                        :loading="loading">
-                                        {{ t('ok') }}
-                                    </n-button>
-                                </n-form>
-                            </n-spin>
-                        </n-tab-pane>
-                        <n-tab-pane name="help" :tab="t('help')">
-                            <n-alert type="info" show-icon>
-                                <span>{{ t('pleaseGetNewEmail') }}</span>
-                            </n-alert>
-                            <AdminContact />
-                        </n-tab-pane>
-                    </n-tabs>
+                    <Login />
                 </n-card>
             </div>
         </div>
-        <n-modal v-model:show="showPassword" preset="dialog" :title="t('password')">
-            <span>
-                <p>{{ t("passwordTip") }}</p>
-            </span>
-            <n-card>
-                <b>{{ jwt }}</b>
-            </n-card>
-            <template #action>
-            </template>
-        </n-modal>
-        <n-modal v-model:show="showLogout" preset="dialog" :title="t('logout')">
-            <p>{{ t('logoutConfirm') }}</p>
-            <template #action>
-                <n-button :loading="loading" @click="logout" size="small" tertiary type="primary">
-                    {{ t('logout') }}
-                </n-button>
-            </template>
-        </n-modal>
-        <n-modal v-model:show="showDelteAccount" preset="dialog" :title="t('delteAccount')">
-            <p>{{ t('delteAccountConfirm') }}</p>
-            <template #action>
-                <n-button :loading="loading" @click="deleteAccount" size="small" tertiary type="error">
-                    {{ t('delteAccount') }}
-                </n-button>
-            </template>
-        </n-modal>
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
             :title="t('accessHeader')">
             <p>{{ t('accessTip') }}</p>
@@ -535,11 +287,6 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-
-.mobile-menu-button {
-    width: 100%;
-    text-align: left;
 }
 
 .n-alert {
