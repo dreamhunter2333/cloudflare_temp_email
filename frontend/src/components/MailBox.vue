@@ -33,7 +33,7 @@ const props = defineProps({
   },
 })
 
-const { themeSwitch } = useGlobalState()
+const { themeSwitch, mailboxSplitSize, useIframeShowMail } = useGlobalState()
 const autoRefresh = ref(false)
 const autoRefreshInterval = ref(30)
 const data = ref([])
@@ -146,6 +146,10 @@ const deleteMail = async () => {
   }
 };
 
+const onSpiltSizeChange = (size) => {
+  mailboxSplitSize.value = size;
+}
+
 onMounted(async () => {
   await refresh();
 });
@@ -157,7 +161,8 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25" :default-size="0.3">
+    <n-split class="left" v-if="!isMobile" direction="horizontal" :max="0.75" :min="0.25"
+      :default-size="mailboxSplitSize" :on-update:size="onSpiltSizeChange">
       <template #1>
         <div class="center">
           <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
@@ -230,8 +235,10 @@ onBeforeUnmount(() => {
               {{ t('downloadMail') }}
             </n-button>
           </n-space>
-          <div v-html="curMail.message" style="margin-top: 10px;"></div>
-          <!-- <iframe :srcdoc="curMail.message" style="width: 100%; height: 100%;"></iframe> -->
+          <iframe v-if="useIframeShowMail" :srcdoc="curMail.message"
+            style="margin-top: 10px;width: 100%; height: 100%;">
+          </iframe>
+          <div v-else v-html="curMail.message" style="margin-top: 10px;"></div>
         </n-card>
         <n-card class="mail-item" v-else>
           <n-result status="info" :title="t('pleaseSelectMail')">

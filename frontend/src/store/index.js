@@ -31,6 +31,7 @@ export const useGlobalState = createGlobalState(
             }
         })
         const showAuth = ref(false);
+        const showPassword = ref(false);
         const showAdminAuth = ref(false);
         const auth = useStorage('auth', '');
         const adminAuth = useStorage('adminAuth', '');
@@ -40,6 +41,8 @@ export const useGlobalState = createGlobalState(
         const adminTab = ref("account");
         const adminMailTabAddress = ref("");
         const adminSendBoxTabAddress = ref("");
+        const mailboxSplitSize = useStorage('mailboxSplitSize', 0.25);
+        const useIframeShowMail = useStorage('useIframeShowMail', false);
         return {
             isDark,
             toggleDark,
@@ -47,6 +50,7 @@ export const useGlobalState = createGlobalState(
             settings,
             openSettings,
             showAuth,
+            showPassword,
             auth,
             jwt,
             localeCache,
@@ -56,6 +60,8 @@ export const useGlobalState = createGlobalState(
             adminTab,
             adminMailTabAddress,
             adminSendBoxTabAddress,
+            mailboxSplitSize,
+            useIframeShowMail,
         }
     },
 )
