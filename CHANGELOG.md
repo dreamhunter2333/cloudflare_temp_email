@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## main branch to be released
+
+- UI: 添加回复邮件按钮
+
 ## v0.3.1
 
 ### DB Changes

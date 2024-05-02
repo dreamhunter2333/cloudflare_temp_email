@@ -7,6 +7,7 @@ function humanFileSize(size) {
 
 export async function processItem(item) {
     // Try to parse the email using mail-parser-wasm
+    item.originalSource = item.source;
     try {
         const { parse_message } = await import('mail-parser-wasm');
         const parsedEmail = parse_message(item.raw);

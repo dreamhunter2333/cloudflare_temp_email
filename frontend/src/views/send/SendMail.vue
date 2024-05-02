@@ -1,10 +1,8 @@
 <script setup>
 import '@wangeditor/editor/dist/css/style.css'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { DomEditor } from '@wangeditor/editor'
 import { useI18n } from 'vue-i18n'
 import { onMounted, onBeforeUnmount, ref, shallowRef } from 'vue'
-import { useStorage } from '@vueuse/core'
 import AdminContact from '../admin/AdminContact.vue'
 
 import { useGlobalState } from '../../store'
@@ -15,16 +13,8 @@ const message = useMessage()
 const isPreview = ref(false)
 const editorRef = shallowRef()
 
-const mailModel = useStorage('mailModelCache', {
-    fromName: "",
-    toName: "",
-    toMail: "",
-    subject: "",
-    contentType: 'text',
-    content: "",
-})
 
-const { settings } = useGlobalState()
+const { settings, sendMailModel } = useGlobalState()
 
 const { t } = useI18n({
     locale: 'zh',
@@ -81,15 +71,15 @@ const send = async () => {
                 method: 'POST',
                 body:
                     JSON.stringify({
-                        from_name: mailModel.value.fromName,
-                        to_name: mailModel.value.toName,
-                        to_mail: mailModel.value.toMail,
-                        subject: mailModel.value.subject,
-                        is_html: mailModel.value.contentType != 'text',
-                        content: mailModel.value.content,
+                        from_name: sendMailModel.value.fromName,
+                        to_name: sendMailModel.value.toName,
+                        to_mail: sendMailModel.value.toMail,
+                        subject: sendMailModel.value.subject,
+                        is_html: sendMailModel.value.contentType != 'text',
+                        content: sendMailModel.value.content,
                     })
             })
-        mailModel.value = {
+        sendMailModel.value = {
             fromName: "",
             toName: "",
             toMail: "",
@@ -170,43 +160,43 @@ onMounted(async () => {
                     <n-button type="primary" @click="send">{{ t('send') }}</n-button>
                 </div>
                 <div class="left">
-                    <n-form :model="mailModel">
+                    <n-form :model="sendMailModel">
                         <n-form-item :label="t('fromName')" label-placement="top">
                             <n-input-group>
-                                <n-input v-model:value="mailModel.fromName" />
+                                <n-input v-model:value="sendMailModel.fromName" />
                                 <n-input :value="settings.address" disabled />
                             </n-input-group>
                         </n-form-item>
                         <n-form-item :label="t('toName')" label-placement="top">
                             <n-input-group>
-                                <n-input v-model:value="mailModel.toName" />
-                                <n-input v-model:value="mailModel.toMail" />
+                                <n-input v-model:value="sendMailModel.toName" />
+                                <n-input v-model:value="sendMailModel.toMail" />
                             </n-input-group>
                         </n-form-item>
                         <n-form-item :label="t('subject')" label-placement="top">
-                            <n-input v-model:value="mailModel.subject" />
+                            <n-input v-model:value="sendMailModel.subject" />
                         </n-form-item>
                         <n-form-item :label="t('options')" label-placement="top">
-                            <n-radio-group v-model:value="mailModel.contentType">
+                            <n-radio-group v-model:value="sendMailModel.contentType">
                                 <n-radio-button v-for="option in contentTypes" :key="option.value" :value="option.value"
                                     :label="option.label" />
                             </n-radio-group>
-                            <n-button v-if="mailModel.contentType != 'text'" @click="isPreview = !isPreview"
+                            <n-button v-if="sendMailModel.contentType != 'text'" @click="isPreview = !isPreview"
                                 style="margin-left: 10px;">
                                 {{ isPreview ? t('edit') : t('preview') }}
                             </n-button>
                         </n-form-item>
                         <n-form-item :label="t('content')" label-placement="top">
                             <n-card v-if="isPreview">
-                                <div v-html="mailModel.content" />
+                                <div v-html="sendMailModel.content" />
                             </n-card>
-                            <div v-else-if="mailModel.contentType == 'rich'" style="border: 1px solid #ccc">
+                            <div v-else-if="sendMailModel.contentType == 'rich'" style="border: 1px solid #ccc">
                                 <Toolbar style="border-bottom: 1px solid #ccc" :defaultConfig="toolbarConfig"
                                     :editor="editorRef" mode="default" />
-                                <Editor style="height: 500px; overflow-y: hidden;" v-model="mailModel.content"
+                                <Editor style="height: 500px; overflow-y: hidden;" v-model="sendMailModel.content"
                                     :defaultConfig="editorConfig" mode="default" @onCreated="handleCreated" />
                             </div>
-                            <n-input v-else type="textarea" v-model:value="mailModel.content" :autosize="{
+                            <n-input v-else type="textarea" v-model:value="sendMailModel.content" :autosize="{
                                 minRows: 3
                             }" />
                         </n-form-item>
