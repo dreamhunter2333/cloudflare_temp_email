@@ -1,14 +1,16 @@
 <script setup>
 import { watch, onMounted, ref, onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
-import { CloudDownloadRound } from '@vicons/material'
+import { CloudDownloadRound, ReplyFilled } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
 import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
 
 const message = useMessage()
 const isMobile = useIsMobile()
+const router = useRouter()
 
 const props = defineProps({
   enableUserDeleteEmail: {
@@ -31,9 +33,16 @@ const props = defineProps({
     default: () => { },
     requried: false
   },
+  showReply: {
+    type: Boolean,
+    default: false,
+    requried: false
+  }
 })
 
-const { themeSwitch, mailboxSplitSize, useIframeShowMail } = useGlobalState()
+const {
+  localeCache, isDark, mailboxSplitSize, useIframeShowMail, sendMailModel
+} = useGlobalState()
 const autoRefresh = ref(false)
 const autoRefreshInterval = ref(30)
 const data = ref([])
@@ -48,7 +57,7 @@ const curAttachments = ref([])
 const curMail = ref(null);
 
 const { t } = useI18n({
-  locale: 'zh',
+  locale: localeCache.value || 'zh',
   messages: {
     en: {
       success: 'Success',
@@ -59,7 +68,8 @@ const { t } = useI18n({
       downloadMail: 'Download Mail',
       pleaseSelectMail: "Please select a mail to view.",
       delete: 'Delete',
-      deleteMailTip: 'Are you sure you want to delete this mail?'
+      deleteMailTip: 'Are you sure you want to delete this mail?',
+      reply: 'Reply'
     },
     zh: {
       success: '成功',
@@ -70,7 +80,8 @@ const { t } = useI18n({
       attachments: '查看附件',
       pleaseSelectMail: "请选择一封邮件查看。",
       delete: '删除',
-      deleteMailTip: '确定要删除这封邮件吗？'
+      deleteMailTip: '确定要删除这封邮件吗?',
+      reply: '回复'
     }
   }
 });
@@ -132,7 +143,7 @@ const getAttachments = (attachments) => {
 };
 
 const mailItemClass = (row) => {
-  return curMail.value && row.id == curMail.value.id ? (themeSwitch.value ? 'overlay overlay-dark-backgroud' : 'overlay overlay-light-backgroud') : '';
+  return curMail.value && row.id == curMail.value.id ? (isDark.value ? 'overlay overlay-dark-backgroud' : 'overlay overlay-light-backgroud') : '';
 };
 
 const deleteMail = async () => {
@@ -144,6 +155,25 @@ const deleteMail = async () => {
   } catch (error) {
     message.error(error.message || "error");
   }
+};
+
+const replyMail = async () => {
+  const emailRegex = /(.+?) <(.+?)>/;
+  let toMail = curMail.value.originalSource;
+  let toName = ""
+  const match = emailRegex.exec(curMail.value.source);
+  if (match) {
+    toName = match[1];
+    toMail = match[2];
+  }
+  Object.assign(sendMailModel.value, {
+    toName: toName,
+    toMail: toMail,
+    subject: localeCache.value == 'zh' ? `回复: ${curMail.value.subject}` : `Re: ${curMail.value.subject}`,
+    contentType: 'text',
+    content: "",
+  });
+  await router.push('/send');
 };
 
 const onSpiltSizeChange = (size) => {
@@ -231,8 +261,16 @@ onBeforeUnmount(() => {
             </n-button>
             <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="curMail.id + '.eml'"
               :href="getDownloadEmlUrl(curMail.raw)">
-              <n-icon :component="CloudDownloadRound" />
+              <template #icon>
+                <n-icon :component="CloudDownloadRound" />
+              </template>
               {{ t('downloadMail') }}
+            </n-button>
+            <n-button v-if="showReply" size="small" tertiary type="info" @click="replyMail">
+              <template #icon>
+                <n-icon :component="ReplyFilled" />
+              </template>
+              {{ t('reply') }}
             </n-button>
           </n-space>
           <iframe v-if="useIframeShowMail" :srcdoc="curMail.message"
@@ -251,13 +289,14 @@ onBeforeUnmount(() => {
         <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
         </div>
-        <n-switch v-model:value="autoRefresh" size="small">
+        <n-switch v-model:value="autoRefresh" size="small" :round="false">
           <template #checked>
-            {{ t('autoRefresh') }}
+            {{ t('refreshAfter', { msg: autoRefreshInterval }) }}
           </template>
           <template #unchecked>
             {{ t('autoRefresh') }}
-          </template></n-switch>
+          </template>
+        </n-switch>
         <n-button @click="refresh" size="small" type="primary">
           {{ t('refresh') }}
         </n-button>
@@ -315,6 +354,12 @@ onBeforeUnmount(() => {
                 :href="getDownloadEmlUrl(curMail)">
                 <n-icon :component="CloudDownloadRound" />
                 {{ t('downloadMail') }}
+              </n-button>
+              <n-button v-if="showReply" size="small" tertiary type="info" @click="replyMail">
+                <template #icon>
+                  <n-icon :component="ReplyFilled" />
+                </template>
+                {{ t('reply') }}
               </n-button>
             </n-space>
             <div v-html="curMail.message" style="margin-top: 10px;"></div>

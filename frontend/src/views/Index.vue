@@ -16,7 +16,7 @@ const deleteMail = async (curMailId) => {
 
 <template>
   <div v-if="settings.address">
-    <MailBox :showEMailTo="false" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
+    <MailBox :showEMailTo="false" :showReply="true" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
       :fetchMailData="fetchMailData" :deleteMail="deleteMail" />
   </div>
 </template>
