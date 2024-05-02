@@ -25,7 +25,7 @@ res = requests.post(
 
 ## 通过 SMTP 发送邮件
 
-请先参考 [配置 SMTP 代理](/zh/guide/config-smtp-proxy.html)。
+请先参考 [配置 SMTP 代理](/zh/guide/feature/config-smtp-proxy.html)。
 
 这是一个 `python` 的例子，使用 `smtplib` 库发送邮件。
 
