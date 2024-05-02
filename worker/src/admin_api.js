@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 import { sendAdminInternalMail } from './utils'
 import { newAddress } from './common'
+import { CONSTANTS } from './constants'
 
 const api = new Hono()
 
@@ -324,6 +325,38 @@ api.post('/admin/cleanup', async (c) => {
         default:
             return c.text("Invalid cleanType", 400)
     }
+    return c.json({
+        success: true
+    })
+})
+
+api.get('/admin/account_settings', async (c) => {
+    try {
+        const value = await c.env.DB.prepare(
+            `SELECT value FROM settings where key = ?`
+        ).bind(CONSTANTS.ADDRESS_BLOCK_LIST_KEY).first("value");
+        return c.json({
+            blockList: value ? JSON.parse(value) : []
+        })
+    } catch (error) {
+        console.error(error);
+        return c.json({})
+    }
+})
+
+api.post('/admin/account_settings', async (c) => {
+    const { blockList } = await c.req.json();
+    if (!blockList) {
+        return c.text("Invalid blockList", 400)
+    }
+    await c.env.DB.prepare(
+        `INSERT or REPLACE INTO settings (key, value) VALUES (?, ?)`
+        + ` ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = datetime('now')`
+    ).bind(
+        CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
+        JSON.stringify(blockList),
+        JSON.stringify(blockList)
+    ).run();
     return c.json({
         success: true
     })

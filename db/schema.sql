@@ -70,3 +70,10 @@ CREATE TABLE IF NOT EXISTS sendbox (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sendbox_address ON sendbox(address);
+
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
