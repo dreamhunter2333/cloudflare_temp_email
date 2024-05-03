@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
-import { sendAdminInternalMail } from './utils'
+import { sendAdminInternalMail, getJsonSetting, saveSetting } from './utils'
 import { newAddress } from './common'
 import { CONSTANTS } from './constants'
+import cleanup_api from './admin/cleanup_api'
 
 const api = new Hono()
 
@@ -294,49 +295,16 @@ api.get('/admin/statistics', async (c) => {
     })
 });
 
-api.post('/admin/cleanup', async (c) => {
-    const { cleanType, cleanDays } = await c.req.json();
-    if (!cleanType || !cleanDays || cleanDays < 0 || cleanDays > 30) {
-        return c.text("Invalid cleanType or cleanDays", 400)
-    }
-    console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
-    switch (cleanType) {
-        case "mails":
-            await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
-            break;
-        case "mails_unknow":
-            await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE address NOT IN
-                (select name from address) AND created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
-            break;
-        case "address":
-            await c.env.DB.prepare(`
-                DELETE FROM address WHERE updated_at < datetime('now', '-${cleanDays} day')`
-            ).run();
-            break;
-        case "sendbox":
-            await c.env.DB.prepare(`
-                DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
-            break;
-        default:
-            return c.text("Invalid cleanType", 400)
-    }
-    return c.json({
-        success: true
-    })
-})
+api.post('/admin/cleanup', cleanup_api.cleanup)
+api.get('/admin/auto_cleanup', cleanup_api.getCleanup)
+api.post('/admin/auto_cleanup', cleanup_api.saveCleanup)
+
 
 api.get('/admin/account_settings', async (c) => {
     try {
-        const value = await c.env.DB.prepare(
-            `SELECT value FROM settings where key = ?`
-        ).bind(CONSTANTS.ADDRESS_BLOCK_LIST_KEY).first("value");
+        const value = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
         return c.json({
-            blockList: value ? JSON.parse(value) : []
+            blockList: value || []
         })
     } catch (error) {
         console.error(error);
@@ -349,14 +317,10 @@ api.post('/admin/account_settings', async (c) => {
     if (!blockList) {
         return c.text("Invalid blockList", 400)
     }
-    await c.env.DB.prepare(
-        `INSERT or REPLACE INTO settings (key, value) VALUES (?, ?)`
-        + ` ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = datetime('now')`
-    ).bind(
-        CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
-        JSON.stringify(blockList),
+    await saveSetting(
+        c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
         JSON.stringify(blockList)
-    ).run();
+    );
     return c.json({
         success: true
     })

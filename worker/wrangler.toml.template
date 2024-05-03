@@ -7,6 +7,10 @@ node_compat = true
 # 	{ pattern = "temp-email-api.xxxxx.xyz", custom_domain = true },
 # ]
 
+# enable cron if you want set auto clean up
+# [triggers]
+# crons = [ "0 0 * * *" ]
+
 [vars]
 PREFIX = "tmp"
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES

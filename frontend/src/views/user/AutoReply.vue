@@ -41,17 +41,22 @@ const { t } = useI18n({
     }
 });
 
-const getSettings = async () => {
-    sourcePrefix.value = settings.value.auto_reply.source_prefix || ""
-    enableAutoReply.value = settings.value.auto_reply.enabled || false
-    name.value = settings.value.auto_reply.name || ""
-    autoReplyMessage.value = settings.value.auto_reply.message || ""
-    subject.value = settings.value.auto_reply.subject || ""
+const fetchData = async () => {
+    try {
+        const res = await api.fetch("/api/auto_reply")
+        sourcePrefix.value = res.source_prefix || ""
+        enableAutoReply.value = res.enabled || false
+        name.value = res.name || ""
+        autoReplyMessage.value = res.message || ""
+        subject.value = res.subject || ""
+    } catch (error) {
+        message.error(error.message || "error");
+    }
 }
 
-const saveSettings = async () => {
+const saveData = async () => {
     try {
-        await api.fetch("/api/settings", {
+        await api.fetch("/api/auto_reply", {
             method: "POST",
             body: JSON.stringify({
                 auto_reply: {
@@ -70,7 +75,7 @@ const saveSettings = async () => {
 }
 
 onMounted(async () => {
-    await getSettings()
+    await fetchData()
 })
 </script>
 
@@ -78,7 +83,7 @@ onMounted(async () => {
     <div class="center">
         <n-card v-if="settings.address" :title='t("settings")'>
             <div class="right">
-                <n-button type="primary" @click="saveSettings">{{ t('save') }}</n-button>
+                <n-button type="primary" @click="saveData">{{ t('save') }}</n-button>
             </div>
             <div class="left">
                 <n-form-item :label="t('enableAutoReply')" label-placement="left">

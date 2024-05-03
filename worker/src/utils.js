@@ -1,5 +1,45 @@
 import { createMimeMessage } from "mimetext";
 
+export const getJsonSetting = async (c, key) => {
+    const value = await getSetting(c, key);
+    if (!value) {
+        return null;
+    }
+    try {
+        return JSON.parse(value);
+    } catch (e) {
+        console.error(`GetJsonSetting: Failed to parse ${key}`, e);
+    }
+    return null;
+}
+
+export const getSetting = async (c, key) => {
+    try {
+        const value = await c.env.DB.prepare(
+            `SELECT value FROM settings where key = ?`
+        ).bind(key).first("value");
+        return value;
+    } catch (error) {
+        console.error(`GetSetting: Failed to get ${key}`, error);
+    }
+    return null;
+}
+
+export const saveSetting = async (c, key, value) => {
+    await c.env.DB.prepare(
+        `INSERT or REPLACE INTO settings (key, value) VALUES (?, ?)`
+        + ` ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = datetime('now')`
+    ).bind(key, value, value).run();
+    return true;
+}
+
+export const getStringValue = (value) => {
+    if (typeof value === "string") {
+        return value;
+    }
+    return "";
+}
+
 export const getBooleanValue = (value) => {
     if (typeof value === "boolean") {
         return value;
