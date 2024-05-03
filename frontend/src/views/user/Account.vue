@@ -9,6 +9,7 @@ const {
     jwt, localeCache, settings, showPassword, mailboxSplitSize, useIframeShowMail
 } = useGlobalState()
 const router = useRouter()
+const message = useMessage()
 
 const showLogout = ref(false)
 const showDelteAccount = ref(false)
