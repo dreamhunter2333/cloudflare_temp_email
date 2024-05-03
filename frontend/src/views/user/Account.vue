@@ -89,14 +89,6 @@ const deleteAccount = async () => {
                 {{ t('delteAccount') }}
             </n-button>
         </n-card>
-        <n-modal v-model:show="showPassword" preset="dialog" :title="t('password')">
-            <span>
-                <p>{{ t("passwordTip") }}</p>
-            </span>
-            <n-card>
-                <b>{{ jwt }}</b>
-            </n-card>
-        </n-modal>
         <n-modal v-model:show="showLogout" preset="dialog" :title="t('logout')">
             <p>{{ t('logoutConfirm') }}</p>
             <template #action>

@@ -18,7 +18,7 @@ const { toClipboard } = useClipboard()
 const message = useMessage()
 
 const {
-    jwt, localeCache, toggleDark, isDark, settings,
+    jwt, localeCache, toggleDark, isDark, settings, showPassword,
     showAuth, adminAuth, auth, loading
 } = useGlobalState()
 const route = useRoute()
@@ -269,6 +269,14 @@ onMounted(async () => {
                 </n-card>
             </div>
         </div>
+        <n-modal v-model:show="showPassword" preset="dialog" :title="t('password')">
+            <span>
+                <p>{{ t("passwordTip") }}</p>
+            </span>
+            <n-card>
+                <b>{{ jwt }}</b>
+            </n-card>
+        </n-modal>
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
             :title="t('accessHeader')">
             <p>{{ t('accessTip') }}</p>
