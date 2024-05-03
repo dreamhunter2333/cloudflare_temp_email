@@ -1,8 +1,16 @@
 # CHANGE LOG
 
-## main branch to be released
+## v0.3.2
+
+## What's Changed
 
 - UI: 添加回复邮件按钮
+- 添加定时清理功能，可在 admin 页面配置（需要在配置文件启用定时任务）
+- 修复删除账户无反应的问题
+
+* feat: UI: MailBox add reply button by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/187
+* feat: add cron auto clean up by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/189
+* fix: delete account by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/190
 
 ## v0.3.1
 
