@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../../store'
+import { api } from '../../api'
 
 const {
     jwt, localeCache, settings, showPassword, mailboxSplitSize, useIframeShowMail
