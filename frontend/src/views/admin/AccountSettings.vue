@@ -5,9 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const {
-    localeCache, loading, openSettings,
-} = useGlobalState()
+const { localeCache, loading } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({

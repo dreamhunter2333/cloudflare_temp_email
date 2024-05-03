@@ -20,6 +20,10 @@ compatibility_date = "2023-12-01"
 # ]
 node_compat = true
 
+# 如果你想要使用定时任务清理邮件，取消下面的注释，并修改 cron 表达式
+# [triggers]
+# crons = [ "0 0 * * *" ]
+
 [vars]
 PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空字符串
 # 如果你想要你的网站私有，取消下面的注释，并修改密码

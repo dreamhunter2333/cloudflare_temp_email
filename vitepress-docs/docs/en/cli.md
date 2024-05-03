@@ -56,11 +56,15 @@ pnpm run deploy
 
 `wrangler.toml`
 
-```bash
+```toml
 name = "cloudflare_temp_email"
 main = "src/worker.js"
 compatibility_date = "2023-08-14"
 node_compat = true
+
+# enable cron if you want set auto clean up
+# [triggers]
+# crons = [ "0 0 * * *" ]
 
 [vars]
 PREFIX = "tmp" # The mailbox name prefix to be processed

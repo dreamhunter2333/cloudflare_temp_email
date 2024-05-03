@@ -3,10 +3,12 @@ import { cors } from 'hono/cors';
 import { jwt } from 'hono/jwt'
 
 import { api } from './router';
+import { api as userApi } from './user_api';
 import { api as adminApi } from './admin_api';
 import { api as apiV1 } from './api_v1';
 import { api as apiSendMail } from './send_mail_api'
 import { email } from './email';
+import { scheduled } from './scheduled';
 import { getAdminPasswords, getPasswords } from './utils';
 
 const app = new Hono()
@@ -53,6 +55,7 @@ app.use('/admin/*', async (c, next) => {
 
 
 app.route('/', api)
+app.route('/', userApi)
 app.route('/', adminApi)
 app.route('/', apiV1)
 app.route('/', apiSendMail)
@@ -65,4 +68,5 @@ app.all('/*', async c => c.text("Not Found", 404))
 export default {
 	fetch: app.fetch,
 	email: email,
+	scheduled: scheduled,
 }

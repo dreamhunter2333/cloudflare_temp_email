@@ -1,6 +1,6 @@
 import { Jwt } from 'hono/utils/jwt'
 
-import { getDomains } from './utils';
+import { getDomains, getStringValue } from './utils';
 
 export const newAddress = async (c, name, domain, enablePrefix) => {
     // remove special characters
@@ -19,7 +19,7 @@ export const newAddress = async (c, name, domain, enablePrefix) => {
     }
     // create address
     if (enablePrefix) {
-        name = c.env.PREFIX + name + "@" + domain;
+        name = getStringValue(c.env.PREFIX) + name + "@" + domain;
     } else {
         name = name + "@" + domain;
     }
@@ -52,4 +52,37 @@ export const newAddress = async (c, name, domain, enablePrefix) => {
     return c.json({
         jwt: jwt
     })
+}
+
+export const cleanup = async (c, cleanType, cleanDays) => {
+    if (!cleanType || !cleanDays || cleanDays < 0 || cleanDays > 30) {
+        throw new Error("Invalid cleanType or cleanDays")
+    }
+    console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
+    switch (cleanType) {
+        case "mails":
+            await c.env.DB.prepare(`
+                DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
+            ).run();
+            break;
+        case "mails_unknow":
+            await c.env.DB.prepare(`
+                DELETE FROM raw_mails WHERE address NOT IN
+                (select name from address) AND created_at < datetime('now', '-${cleanDays} day')`
+            ).run();
+            break;
+        case "address":
+            await c.env.DB.prepare(`
+                DELETE FROM address WHERE updated_at < datetime('now', '-${cleanDays} day')`
+            ).run();
+            break;
+        case "sendbox":
+            await c.env.DB.prepare(`
+                DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
+            ).run();
+            break;
+        default:
+            throw new Error("Invalid cleanType")
+    }
+    return true;
 }
