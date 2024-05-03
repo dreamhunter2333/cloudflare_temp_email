@@ -60,6 +60,8 @@ const { t } = useI18n({
             copied: 'Copied',
             fetchAddressError: 'Login password is invalid or account not exist, it may be network connection issue, please try again later.',
             mailV1Alert: 'You have some mails in v1, please click here to login and visit your history mails.',
+            password: 'Password',
+            passwordTip: 'Please copy the password and you can use it to login to your email account.',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
@@ -77,6 +79,8 @@ const { t } = useI18n({
             copied: '已复制',
             fetchAddressError: '登录密码无效或账号不存在，也可能是网络连接异常，请稍后再尝试。',
             mailV1Alert: '你有一些 v1 版本的邮件，请点击此处登录查看。',
+            password: '密码',
+            passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
         }
     }
 });
