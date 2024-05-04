@@ -7,7 +7,8 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
 const {
-    jwt, localeCache, settings, showPassword, mailboxSplitSize, useIframeShowMail
+    jwt, localeCache, settings, showPassword, loading,
+    mailboxSplitSize, useIframeShowMail
 } = useGlobalState()
 const router = useRouter()
 const message = useMessage()
