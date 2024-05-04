@@ -1,12 +1,12 @@
 # CHANGE LOG
 
-## main branch
+## v0.3.3
 
 - 修复 Admin 删除邮件报错
-- UI: 回复邮件按钮, 引用原始邮件文本
+- UI: 回复邮件按钮, 引用原始邮件文本  #186 
 - 添加发送邮件地址黑名单
 - 添加 `CF Turnstile` 人机验证配置
-- 添加 `/external/api/send_mail` 发送邮件 api, 使用 body 验证
+- 添加 `/external/api/send_mail` 发送邮件 api, 使用 body 验证 #194
 
 ## v0.3.2
 
