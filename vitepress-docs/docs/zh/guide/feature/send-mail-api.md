@@ -17,7 +17,25 @@ send_body = {
 res = requests.post(
     "http://localhost:8787/api/send_mail",
     json=send_body, headers={
-        "Authorization": f"Bearer {session.auth_data.password.decode()}",
+        "Authorization": f"Bearer {你的JWT密码}",
+        "x-custom-auth": "<你的网站密码>",
+        "Content-Type": "application/json"
+    }
+)
+
+# 使用 body 验证
+send_body = {
+    "token": "<你的JWT密码>
+    "from_name": "发件人名字",
+    "to_name": "收件人名字",
+    "to_mail": "收件人地址",
+    "subject": "邮件主题",
+    "is_html": False,  # 根据内容设置是否为 HTML
+    "content": "<邮件内容：html 或者 文本>",
+}
+res = requests.post(
+    "http://localhost:8787/external/api/send_mail",
+    json=send_body, headers={
         "Content-Type": "application/json"
     }
 )
