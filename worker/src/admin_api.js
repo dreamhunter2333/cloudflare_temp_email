@@ -303,9 +303,11 @@ api.post('/admin/auto_cleanup', cleanup_api.saveCleanup)
 
 api.get('/admin/account_settings', async (c) => {
     try {
-        const value = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
+        const blockList = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
+        const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
         return c.json({
-            blockList: value || []
+            blockList: blockList || [],
+            sendBlockList: sendBlockList || []
         })
     } catch (error) {
         console.error(error);
@@ -314,13 +316,17 @@ api.get('/admin/account_settings', async (c) => {
 })
 
 api.post('/admin/account_settings', async (c) => {
-    const { blockList } = await c.req.json();
-    if (!blockList) {
-        return c.text("Invalid blockList", 400)
+    const { blockList, sendBlockList } = await c.req.json();
+    if (!blockList || !sendBlockList) {
+        return c.text("Invalid blockList or sendBlockList", 400)
     }
     await saveSetting(
         c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
         JSON.stringify(blockList)
+    );
+    await saveSetting(
+        c, CONSTANTS.SEND_BLOCK_LIST_KEY,
+        JSON.stringify(sendBlockList)
     );
     return c.json({
         success: true
