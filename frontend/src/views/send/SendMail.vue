@@ -91,7 +91,7 @@ const send = async () => {
         message.error(error.message || "error");
     } finally {
         message.success(t("successSend"));
-        router.push('/sendbox');
+        router.push('/user');
     }
 }
 

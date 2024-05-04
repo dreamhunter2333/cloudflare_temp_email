@@ -128,8 +128,8 @@ onMounted(async () => {
 
 <template>
     <div v-if="settings.address">
-        <n-modal v-model:show="showModal" preset="dialog">
-            <pre>{{ curRow.raw }}</pre>
+        <n-modal v-model:show="showModal" preset="dialog" style="width: 100%;">
+            <pre style="overflow: auto;">{{ curRow.raw }}</pre>
         </n-modal>
         <div style="display: inline-block;">
             <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"

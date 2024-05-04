@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { localeCache, settings, adminAuth, adminSendBoxTabAddress } = useGlobalState()
+const { localeCache, adminAuth, adminSendBoxTabAddress } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
@@ -129,9 +129,9 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div v-if="settings.address">
-        <n-modal v-model:show="showModal" preset="dialog">
-            <pre>{{ curRow.raw }}</pre>
+    <div>
+        <n-modal v-model:show="showModal" preset="dialog" style="width: 100%;">
+            <pre style="overflow: auto;">{{ curRow.raw }}</pre>
         </n-modal>
         <n-input-group>
             <n-input v-model:value="adminSendBoxTabAddress" />
