@@ -37,7 +37,7 @@ const { t } = useI18n({
             tip: '请输入清理天数',
             mailBoxLabel: '收件箱清理天数',
             mailUnknowLabel: "无收件人邮件清理天数",
-            addressUnActiveLabel: "未激活地址清理天数",
+            addressUnActiveLabel: "未活跃地址清理天数",
             sendBoxLabel: "发件箱清理天数",
             autoCleanup: "自动清理",
             cleanupSuccess: "清理成功",

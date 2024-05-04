@@ -87,6 +87,9 @@ ENABLE_AUTO_REPLY = false
 # COPYRIGHT = "Dream Hunter"
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
+# Turnstile verification configuration
+# CF_TURNSTILE_SITE_KEY = ""
+# CF_TURNSTILE_SECRET_KEY = ""
 # dkim config
 # DKIM_SELECTOR = "mailchannels" # Refer to the DKIM section mailchannels._domainkey for mailchannels
 # DKIM_PRIVATE_KEY = "" # Refer to the contents of priv_key.txt in the DKIM section

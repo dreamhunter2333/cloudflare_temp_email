@@ -1,6 +1,5 @@
 import { ref } from "vue";
-import { createGlobalState, useStorage } from '@vueuse/core'
-import { useDark, useToggle } from '@vueuse/core'
+import { createGlobalState, useStorage, useDark, useToggle } from '@vueuse/core'
 
 export const useGlobalState = createGlobalState(
     () => {
@@ -16,6 +15,7 @@ export const useGlobalState = createGlobalState(
             enableAutoReply: false,
             domains: [],
             copyright: 'Dream Hunter',
+            cfTurnstileSiteKey: '',
         })
         const settings = ref({
             fetched: false,

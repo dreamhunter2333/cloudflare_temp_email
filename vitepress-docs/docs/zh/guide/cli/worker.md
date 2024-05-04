@@ -45,6 +45,9 @@ ENABLE_AUTO_REPLY = false
 # COPYRIGHT = "Dream Hunter"
 # 默认发送邮件余额，如果不设置，将为 0
 # DEFAULT_SEND_BALANCE = 1
+# Turnstile 人机验证配置
+# CF_TURNSTILE_SITE_KEY = ""
+# CF_TURNSTILE_SECRET_KEY = ""
 # dkim config
 # DKIM_SELECTOR = "mailchannels" # 参考 DKIM 部分 mailchannels._domainkey 的 mailchannels
 # DKIM_PRIVATE_KEY = "" # 参考 DKIM 部分 priv_key.txt 的内容

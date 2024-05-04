@@ -32,6 +32,9 @@ ENABLE_AUTO_REPLY = false
 # COPYRIGHT = "Dream Hunter"
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
+# Turnstile verification
+# CF_TURNSTILE_SITE_KEY = ""
+# CF_TURNSTILE_SECRET_KEY = ""
 # dkim config
 # DKIM_SELECTOR = ""
 # DKIM_PRIVATE_KEY = ""
