@@ -88,6 +88,7 @@ const deleteEmail = async () => {
         await fetchData()
     } catch (error) {
         message.error(error.message || "error");
+    } finally {
         showDelteAccount.value = false
     }
 }
