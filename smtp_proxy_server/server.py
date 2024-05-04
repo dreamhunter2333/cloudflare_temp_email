@@ -87,6 +87,7 @@ class CustomSMTPHandler:
         _logger.info(f"Parsed mail from {from_name} to {to_mail_map}")
         # Send mail
         send_body = {
+            "token": session.auth_data.password.decode(),
             "from_name": from_name,
             "to_name": to_mail_map.get(to_mail),
             "to_mail": to_mail,
@@ -99,9 +100,8 @@ class CustomSMTPHandler:
         _logger.info(f"Send mail {send_body}")
         try:
             res = requests.post(
-                f"{settings.proxy_url}/api/send_mail",
+                f"{settings.proxy_url}/external/api/send_mail",
                 json=send_body, headers={
-                    "Authorization": f"Bearer {session.auth_data.password.decode()}",
                     "Content-Type": "application/json"
                 }
             )

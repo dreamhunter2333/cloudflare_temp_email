@@ -134,6 +134,9 @@ export const checkCfTurnstile = async (c, token) => {
     if (!c.env.CF_TURNSTILE_SITE_KEY) {
         return;
     }
+    if (!token) {
+        throw new Error("Captcha token is required");
+    }
     const reqIp = c.req.raw.headers.get("cf-connecting-ip")
     let formData = new FormData();
     formData.append('secret', c.env.CF_TURNSTILE_SECRET_KEY);

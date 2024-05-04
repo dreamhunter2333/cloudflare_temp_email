@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { Jwt } from 'hono/utils/jwt'
 import { CONSTANTS } from './constants'
 import { getJsonSetting } from './utils';
 
@@ -28,9 +29,7 @@ api.post('/api/requset_send_mail_access', async (c) => {
     return c.json({ status: "ok" })
 })
 
-
-api.post('/api/send_mail', async (c) => {
-    const { address } = c.get("jwtPayload")
+const sendMail = async (c, address) => {
     // check permission
     const balance = await c.env.DB.prepare(
         `SELECT balance FROM address_sender
@@ -132,6 +131,25 @@ api.post('/api/send_mail', async (c) => {
         console.warn(`Failed to save to sendbox for ${address}`);
     }
     return c.json({ status: "ok" });
+}
+
+api.post('/api/send_mail', async (c) => {
+    const { address } = c.get("jwtPayload")
+    return await sendMail(c, address);
+})
+
+api.post('/external/api/send_mail', async (c) => {
+    const { token } = await c.req.json();
+    try {
+        const { address } = await Jwt.verify(token, c.env.JWT_SECRET);
+        if (!address) {
+            return c.text("No address", 400)
+        }
+        return await sendMail(c, address);
+    } catch (e) {
+        console.error("Failed to verify token", e);
+        return c.text("Unauthorized", 401)
+    }
 })
 
 const getSendbox = async (c, address, limit, offset) => {
