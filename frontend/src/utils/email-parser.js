@@ -14,6 +14,7 @@ export async function processItem(item) {
         item.source = parsedEmail.sender || item.source;
         item.subject = parsedEmail.subject || '';
         item.message = parsedEmail.body_html || parsedEmail.text || '';
+        item.text = parsedEmail.text || '';
         item.attachments = parsedEmail.attachments?.map((a_item) => {
             const blob_url = URL.createObjectURL(
                 new Blob(
@@ -46,6 +47,7 @@ export async function processItem(item) {
         }
         item.subject = parsedEmail.subject || 'No Subject';
         item.message = parsedEmail.html || parsedEmail.text || item.raw;
+        item.text = parsedEmail.text || '';
         item.attachments = parsedEmail.attachments?.map((a_item) => {
             const blob_url = URL.createObjectURL(
                 new Blob(
