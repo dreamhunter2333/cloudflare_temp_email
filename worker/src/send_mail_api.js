@@ -1,4 +1,6 @@
 import { Hono } from 'hono'
+import { CONSTANTS } from './constants'
+import { getJsonSetting } from './utils';
 
 const api = new Hono()
 
@@ -46,6 +48,11 @@ api.post('/api/send_mail', async (c) => {
     }
     if (!to_mail) {
         return c.text("Invalid to mail", 400)
+    }
+    // check SEND_BLOCK_LIST_KEY
+    const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
+    if (sendBlockList && sendBlockList.some((item) => to_mail.includes(item))) {
+        return c.text("to_mail address is blocked", 400);
     }
     from_name = from_name || address;
     to_name = to_name || to_mail;

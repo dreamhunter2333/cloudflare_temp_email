@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+## main branch
+
+- 修复 Admin 删除邮件报错
+- UI: 回复邮件按钮, 引用原始邮件文本
+- 添加发送邮件地址黑名单
+
 ## v0.3.2
 
 ## What's Changed

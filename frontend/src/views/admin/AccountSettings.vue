@@ -16,22 +16,26 @@ const { t } = useI18n({
             successTip: 'Save Success',
             address_block_list: 'Address Block Keywords for Users(Admin can skip)',
             address_block_list_placeholder: 'Please enter the keywords you want to block',
+            send_address_block_list: 'Address Block Keywords for send email',
         },
         zh: {
             save: '保存',
             successTip: '保存成功',
             address_block_list: '用户地址屏蔽关键词(管理员可跳过检查)',
             address_block_list_placeholder: '请输入您想要屏蔽的关键词',
+            send_address_block_list: '发送邮件地址屏蔽关键词',
         }
     }
 });
 
 const addressBlockList = ref([])
+const sendAddressBlockList = ref([])
 
 const fetchData = async () => {
     try {
         const res = await api.fetch(`/admin/account_settings`)
         addressBlockList.value = res.blockList || []
+        sendAddressBlockList.value = res.sendBlockList || []
     } catch (error) {
         message.error(error.message || "error");
     }
@@ -42,7 +46,8 @@ const save = async () => {
         await api.fetch(`/admin/account_settings`, {
             method: 'POST',
             body: JSON.stringify({
-                blockList: addressBlockList.value || []
+                blockList: addressBlockList.value || [],
+                sendBlockList: sendAddressBlockList.value || []
             })
         })
         message.success(t('successTip'))
@@ -62,6 +67,10 @@ onMounted(async () => {
         <n-card style="max-width: 600px;">
             <n-form-item-row :label="t('address_block_list')">
                 <n-select v-model:value="addressBlockList" filterable multiple tag
+                    :placeholder="t('address_block_list_placeholder')" />
+            </n-form-item-row>
+            <n-form-item-row :label="t('send_address_block_list')">
+                <n-select v-model:value="sendAddressBlockList" filterable multiple tag
                     :placeholder="t('address_block_list_placeholder')" />
             </n-form-item-row>
             <n-button @click="save" type="primary" block :loading="loading">
