@@ -1,5 +1,7 @@
 # 使用 cloudflare 免费服务，搭建临时邮箱
 
+> 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
+
 ## [查看部署文档](https://temp-mail-docs.awsl.uk)
 
 ## [English Docs](https://temp-mail-docs.awsl.uk/en/)
