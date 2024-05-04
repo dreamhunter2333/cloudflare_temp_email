@@ -14,14 +14,14 @@ const { t } = useI18n({
     locale: localeCache.value || 'zh',
     messages: {
         en: {
-            userCount: 'User Count',
-            activeUser: '7 days Active User',
+            userCount: 'Account Count',
+            activeUser: '7 days Active Mail Account',
             mailCount: 'Mail Count',
             sendMailCount: 'Send Mail Count'
         },
         zh: {
-            userCount: '用户总数',
-            activeUser: '周活跃用户',
+            userCount: '地址总数',
+            activeUser: '周活跃邮箱地址',
             mailCount: '邮件总数',
             sendMailCount: '发送邮件总数'
         }

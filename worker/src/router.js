@@ -1,7 +1,8 @@
 import { Hono } from 'hono'
 
 import {
-    getDomains, getPasswords, getBooleanValue, getJsonSetting
+    getDomains, getPasswords, getBooleanValue, getJsonSetting,
+    checkCfTurnstile
 } from './utils';
 import { newAddress } from './common'
 import { CONSTANTS } from './constants'
@@ -116,14 +117,21 @@ api.get('/open_api/settings', async (c) => {
         "enableUserDeleteEmail": getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),
         "enableAutoReply": getBooleanValue(c.env.ENABLE_AUTO_REPLY),
         "copyright": c.env.COPYRIGHT,
+        "cfTurnstileSiteKey": c.env.CF_TURNSTILE_SITE_KEY,
     });
 })
 
-api.get('/api/new_address', async (c) => {
+api.post('/api/new_address', async (c) => {
     if (!getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL)) {
         return c.text("New address is disabled", 403)
     }
-    let { name, domain } = c.req.query();
+    let { name, domain, cf_token } = await c.req.json();
+    // check cf turnstile
+    try {
+        await checkCfTurnstile(c, cf_token);
+    } catch (error) {
+        return c.text("Failed to check cf turnstile", 500)
+    }
     // if no name, generate random name
     if (!name) {
         name = Math.random().toString(36).substring(2, 15);

@@ -21,7 +21,7 @@ const { t } = useI18n({
         zh: {
             save: '保存',
             successTip: '保存成功',
-            address_block_list: '用户地址屏蔽关键词(管理员可跳过检查)',
+            address_block_list: '邮件地址屏蔽关键词(管理员可跳过检查)',
             address_block_list_placeholder: '请输入您想要屏蔽的关键词',
             send_address_block_list: '发送邮件地址屏蔽关键词',
         }

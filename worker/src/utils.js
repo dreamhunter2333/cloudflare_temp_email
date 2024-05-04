@@ -129,3 +129,24 @@ export const sendAdminInternalMail = async (c, toMail, subject, text) => {
         return false;
     }
 };
+
+export const checkCfTurnstile = async (c, token) => {
+    if (!c.env.CF_TURNSTILE_SITE_KEY) {
+        return;
+    }
+    const reqIp = c.req.raw.headers.get("cf-connecting-ip")
+    let formData = new FormData();
+    formData.append('secret', c.env.CF_TURNSTILE_SECRET_KEY);
+    formData.append('response', token);
+    formData.append('remoteip', reqIp);
+    const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+    const result = await fetch(url, {
+        body: formData,
+        method: 'POST',
+    });
+    const captchaRes = await result.json();
+    if (!captchaRes.success) {
+        console.log("Captcha failed", captchaRes);
+        throw new Error("Captcha failed");
+    }
+}

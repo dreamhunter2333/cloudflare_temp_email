@@ -1,11 +1,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import AdminContact from './admin/AdminContact.vue'
+import Turnstile from '../components/Turnstile.vue'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
 const message = useMessage()
+const router = useRouter()
 
 const {
     jwt, localeCache, loading, openSettings, showPassword
@@ -15,6 +18,7 @@ const tabValue = ref('signin')
 const password = ref('')
 const emailName = ref("")
 const emailDomain = ref("")
+const cfToken = ref("")
 
 const login = async () => {
     if (!password.value) {
@@ -81,11 +85,14 @@ const generateName = async () => {
 
 const newEmail = async () => {
     try {
-        const res = await api.fetch(
-            `/api/new_address`
-            + `?name=${emailName.value || ''}`
-            + `&domain=${emailDomain.value || ''}`
-        );
+        const res = await api.fetch(`/api/new_address`, {
+            method: "POST",
+            body: JSON.stringify({
+                name: emailName.value,
+                domain: emailDomain.value,
+                cf_token: cfToken.value,
+            }),
+        });
         jwt.value = res["jwt"];
         await api.getSettings();
         showPassword.value = true;
@@ -95,7 +102,7 @@ const newEmail = async () => {
 };
 
 onMounted(async () => {
-    emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0].value : "";
+    emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0]?.value : "";
 });
 </script>
 
@@ -136,6 +143,7 @@ onMounted(async () => {
                             <n-select v-model:value="emailDomain" :consistent-menu-width="false"
                                 :options="openSettings.domains" />
                         </n-input-group>
+                        <Turnstile v-model:value="cfToken" />
                         <n-button type="primary" block secondary strong @click="newEmail" :loading="loading">
                             {{ t('ok') }}
                         </n-button>
