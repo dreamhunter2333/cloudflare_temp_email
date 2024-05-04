@@ -120,6 +120,8 @@ api.post('/api/send_mail', async (c) => {
         if (body?.personalizations?.[0]?.dkim_private_key) {
             delete body.personalizations[0].dkim_private_key;
         }
+        const reqIp = c.req.raw.headers.get("cf-connecting-ip")
+        body.reqIp = reqIp;
         const { success: success2 } = await c.env.DB.prepare(
             `INSERT INTO sendbox (address, raw) VALUES (?, ?)`
         ).bind(address, JSON.stringify(body)).run();
