@@ -169,9 +169,9 @@ const replyMail = async () => {
   Object.assign(sendMailModel.value, {
     toName: toName,
     toMail: toMail,
-    subject: localeCache.value == 'zh' ? `回复: ${curMail.value.subject}` : `Re: ${curMail.value.subject}`,
-    contentType: 'text',
-    content: "",
+    subject: `${t('reply')}: ${curMail.value.subject}`,
+    contentType: 'rich',
+    content: curMail.value.text ? `<p><br></p><blockquote>${curMail.value.text}</blockquote><p><br></p>` : '',
   });
   await router.push('/send');
 };
