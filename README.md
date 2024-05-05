@@ -4,7 +4,11 @@
 
 ## [查看部署文档](https://temp-mail-docs.awsl.uk)
 
-## [English Docs](https://temp-mail-docs.awsl.uk/en/)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/dreamhunter2333/cloudflare_temp_email)
+
+[Github Action 部署文档](https://temp-mail-docs.awsl.uk/zh/guide/github-action.html)
+
+[English Docs](https://temp-mail-docs.awsl.uk/en/)
 
 ## [CHANGELOG](CHANGELOG.md)
 
@@ -23,7 +27,6 @@
 
 - [使用 cloudflare 免费服务，搭建临时邮箱](#使用-cloudflare-免费服务搭建临时邮箱)
   - [查看部署文档](#查看部署文档)
-  - [English Docs](#english-docs)
   - [CHANGELOG](#changelog)
   - [在线演示](#在线演示)
   - [功能/TODO](#功能todo)
