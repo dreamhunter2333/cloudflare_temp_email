@@ -18,14 +18,14 @@ res = requests.post(
     "http://localhost:8787/api/send_mail",
     json=send_body, headers={
         "Authorization": f"Bearer {你的JWT密码}",
-        "x-custom-auth": "<你的网站密码>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了自定义密码
         "Content-Type": "application/json"
     }
 )
 
 # 使用 body 验证
 send_body = {
-    "token": "<你的JWT密码>
+    "token": "<你的JWT密码>",
     "from_name": "发件人名字",
     "to_name": "收件人名字",
     "to_mail": "收件人地址",

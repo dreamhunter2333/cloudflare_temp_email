@@ -132,6 +132,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: '配置 SMTP 代理服务', link: 'feature/config-smtp-proxy' },
                 { text: '发送邮件 API', link: 'feature/send-mail-api' },
+                { text: '查看邮件 API', link: 'feature/mail-api' },
                 { text: '配置子域名邮箱', link: 'feature/subdomain' },
             ]
         },
