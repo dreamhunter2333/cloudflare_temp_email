@@ -25,7 +25,7 @@ res = requests.post(
 
 # 使用 body 验证
 send_body = {
-    "token": "<你的JWT密码>
+    "token": "<你的JWT密码>",
     "from_name": "发件人名字",
     "to_name": "收件人名字",
     "to_mail": "收件人地址",
