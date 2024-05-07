@@ -8,6 +8,17 @@ pnpm install
 cp wrangler.toml.template wrangler.toml
 ```
 
+## 创建 KV 缓存
+
+> [!NOTE]
+> 如果你要启用注册用户功能，并需要发送邮件验证，则需要创建 `KV` 缓存, 不需要可跳过此步骤
+
+通过命令行创建 KV 缓存，或者在 Cloudflare 控制台创建，然后复制对应配置到 `wrangler.toml` 文件中
+
+```bash
+wrangler kv:namespace create DEV
+```
+
 ## 修改 `wrangler.toml` 配置文件
 
 ```toml
@@ -57,6 +68,11 @@ ENABLE_AUTO_REPLY = false
 binding = "DB"
 database_name = "xxx" # D1 数据库名称
 database_id = "xxx" # D1 数据库 ID
+
+# kv config 用于用户注册发送邮件验证码，如果不启用用户注册或不启用注册验证，可以不配置
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "xxxx"
 
 # 新建地址限流配置 /api/new_address
 # [[unsafe.bindings]]

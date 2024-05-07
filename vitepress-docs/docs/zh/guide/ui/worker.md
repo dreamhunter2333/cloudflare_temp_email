@@ -38,3 +38,10 @@
 7. 点击 `Settings` -> `Variables`, 下拉找到 `D1 Database`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 D1 数据库，点击 `Deploy`
 
     ![worker-d1](/ui_install/worker-d1.png)
+
+8. 如果你要启用注册用户功能，并需要发送邮件验证，则需要创建 `KV` 缓存, 不需要可跳过此步骤，点击 `Workers & Pages` -> `KV` -> `Create Namespace`, 如图，点击 `Create Namespace`，然后在 `Settings` -> `Variables`, 下拉找到 `KV`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 `KV` 缓存，点击 `Deploy`
+    > [!NOTE]
+    > 如果你要启用注册用户功能，并需要发送邮件验证，则需要创建 `KV` 缓存, 不需要可跳过此步骤
+
+    ![worker-kv](/ui_install/worker-kv.png)
+    ![worker-kv-bind](/ui_install/worker-kv-bind.png)

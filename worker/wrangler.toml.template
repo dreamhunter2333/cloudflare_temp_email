@@ -44,6 +44,11 @@ binding = "DB"
 database_name = "xxx"
 database_id = "xxx"
 
+# kv config for send email verification code
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "xxxx"
+
 # ratelimit config for /api/new_address
 # [[unsafe.bindings]]
 # name = "RATE_LIMITER"

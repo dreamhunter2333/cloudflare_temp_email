@@ -138,7 +138,7 @@ onMounted(async () => {
                     {{ t('itemCount') }}: {{ itemCount }}
                 </template>
                 <template #suffix>
-                    <n-button @click="fetchData" type="primary" size="small" ghost>
+                    <n-button @click="fetchData" type="primary" size="small" tertiary>
                         {{ t('refresh') }}
                     </n-button>
                 </template>

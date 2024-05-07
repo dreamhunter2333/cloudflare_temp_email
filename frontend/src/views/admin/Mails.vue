@@ -52,7 +52,7 @@ onMounted(async () => {
     <div>
         <n-input-group>
             <n-input v-model:value="adminMailTabAddress" :placeholder="t('addressQueryTip')" />
-            <n-button @click="queryAddress" type="primary" ghost>
+            <n-button @click="queryAddress" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>
         </n-input-group>

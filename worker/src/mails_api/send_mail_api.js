@@ -1,7 +1,8 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
-import { CONSTANTS } from './constants'
-import { getJsonSetting } from './utils';
+import { CONSTANTS } from '../constants'
+import { getJsonSetting, getDomains } from '../utils';
+import { GeoData } from '../models'
 
 const api = new Hono()
 
@@ -29,37 +30,43 @@ api.post('/api/requset_send_mail_access', async (c) => {
     return c.json({ status: "ok" })
 })
 
-const sendMail = async (c, address) => {
+export const sendMail = async (c, address, reqJson) => {
+    if (!address) {
+        throw new Error("No address")
+    }
+    // check domain
+    const mailDomain = address.split("@")[1];
+    const domains = getDomains(c);
+    if (!domains.includes(mailDomain)) {
+        throw new Error("Invalid domain")
+    }
     // check permission
     const balance = await c.env.DB.prepare(
         `SELECT balance FROM address_sender
             where address = ? and enabled = 1`
     ).bind(address).first("balance");
     if (!balance || balance <= 0) {
-        return c.text("No balance", 400);
+        throw new Error("No balance")
     }
     let {
         from_name, to_mail, to_name,
         subject, content, is_html
-    } = await c.req.json();
-    if (!address) {
-        return c.text("No address", 400)
-    }
+    } = reqJson;
     if (!to_mail) {
-        return c.text("Invalid to mail", 400)
+        throw new Error("Invalid to mail")
     }
     // check SEND_BLOCK_LIST_KEY
     const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
     if (sendBlockList && sendBlockList.some((item) => to_mail.includes(item))) {
-        return c.text("to_mail address is blocked", 400);
+        throw new Error("to_mail address is blocked")
     }
     from_name = from_name || address;
     to_name = to_name || to_mail;
     if (!subject) {
-        return c.text("Invalid subject", 400)
+        throw new Error("Invalid subject")
     }
     if (!content) {
-        return c.text("Invalid content", 400)
+        throw new Error("Invalid content")
     }
     let dmikBody = {}
     if (c.env.DKIM_SELECTOR && c.env.DKIM_PRIVATE_KEY && address.includes("@")) {
@@ -100,7 +107,7 @@ const sendMail = async (c, address) => {
     const respText = await resp.text();
     console.log(resp.status + " " + resp.statusText + ": " + respText);
     if (resp.status >= 300) {
-        return c.text("Failed to send mail", 500)
+        throw new Error(`Mailchannels error: ${resp.status} ${respText}`);
     }
     // update balance
     try {
@@ -120,7 +127,8 @@ const sendMail = async (c, address) => {
             delete body.personalizations[0].dkim_private_key;
         }
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
-        body.reqIp = reqIp;
+        const geoData = new GeoData(reqIp, c.req.raw.cf);
+        body.geoData = geoData;
         const { success: success2 } = await c.env.DB.prepare(
             `INSERT INTO sendbox (address, raw) VALUES (?, ?)`
         ).bind(address, JSON.stringify(body)).run();
@@ -130,12 +138,18 @@ const sendMail = async (c, address) => {
     } catch (e) {
         console.warn(`Failed to save to sendbox for ${address}`);
     }
-    return c.json({ status: "ok" });
 }
 
 api.post('/api/send_mail', async (c) => {
     const { address } = c.get("jwtPayload")
-    return await sendMail(c, address);
+    const reqJson = await c.req.json();
+    try {
+        await sendMail(c, address, reqJson);
+    } catch (e) {
+        console.error("Failed to send mail", e);
+        return c.text(`Failed to send mail ${e.message}`, 400)
+    }
+    return c.json({ status: "ok" })
 })
 
 api.post('/external/api/send_mail', async (c) => {
@@ -145,10 +159,11 @@ api.post('/external/api/send_mail', async (c) => {
         if (!address) {
             return c.text("No address", 400)
         }
-        return await sendMail(c, address);
+        const reqJson = await c.req.json();
+        return await sendMail(c, address, reqJson);
     } catch (e) {
-        console.error("Failed to verify token", e);
-        return c.text("Unauthorized", 401)
+        console.error("Failed to send mail", e);
+        return c.text(`Failed to send mail ${e.message}`, 400)
     }
 })
 

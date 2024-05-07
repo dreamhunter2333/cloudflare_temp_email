@@ -23,9 +23,9 @@ const { t } = useI18n({
             updated_at: 'Update At',
             mail_count: 'Mail Count',
             send_count: 'Send Count',
-            showPass: 'Show Passwrod',
-            password: 'Password',
-            passwordTip: 'Please copy the password and you can use it to login to your email account.',
+            showCredential: 'Show Mail Address Credential',
+            addressCredential: 'Mail Address Credential',
+            addressCredentialTip: 'Please copy the Mail Address Credential and you can use it to login to your email account.',
             delete: 'Delete',
             deleteTip: 'Are you sure to delete this email?',
             delteAccount: 'Delete Account',
@@ -42,9 +42,9 @@ const { t } = useI18n({
             updated_at: '更新时间',
             mail_count: '邮件数量',
             send_count: '发送数量',
-            showPass: '显示密码',
-            password: '密码',
-            passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
+            showCredential: '查看邮箱地址凭证',
+            addressCredential: '邮箱地址凭证',
+            addressCredentialTip: '请复制邮箱地址凭证，你可以使用它登录你的邮箱。',
             delete: '删除',
             deleteTip: '确定要删除这个邮箱吗？',
             delteAccount: '删除邮箱',
@@ -58,8 +58,8 @@ const { t } = useI18n({
     }
 });
 
-const showEmailPassword = ref(false)
-const curEmailPassword = ref("")
+const showEmailCredential = ref(false)
+const curEmailCredential = ref("")
 const curDeleteAddressId = ref(0);
 
 const addressQuery = ref("")
@@ -68,16 +68,16 @@ const data = ref([])
 const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
-const showDelteAccount = ref(false)
+const showDeleteAccount = ref(false)
 
-const showPassword = async (id) => {
+const showCredential = async (id) => {
     try {
-        curEmailPassword.value = await api.adminShowPassword(id)
-        showEmailPassword.value = true
+        curEmailCredential.value = await api.adminShowAddressCredential(id)
+        showEmailCredential.value = true
     } catch (error) {
         message.error(error.message || "error");
-        showEmailPassword.value = false
-        curEmailPassword.value = ""
+        showEmailCredential.value = false
+        curEmailCredential.value = ""
     }
 }
 
@@ -89,7 +89,7 @@ const deleteEmail = async () => {
     } catch (error) {
         message.error(error.message || "error");
     } finally {
-        showDelteAccount.value = false
+        showDeleteAccount.value = false
     }
 }
 
@@ -197,9 +197,9 @@ const columns = [
                                     label: () => h(NButton,
                                         {
                                             text: true,
-                                            onClick: () => showPassword(row.id)
+                                            onClick: () => showCredential(row.id)
                                         },
-                                        { default: () => t('showPass') }
+                                        { default: () => t('showCredential') }
                                     ),
                                 },
                                 {
@@ -232,7 +232,7 @@ const columns = [
                                             text: true,
                                             onClick: () => {
                                                 curDeleteAddressId.value = row.id;
-                                                showDelteAccount.value = true;
+                                                showDeleteAccount.value = true;
                                             }
                                         },
                                         { default: () => t('delete') }
@@ -262,20 +262,20 @@ onMounted(async () => {
 
 <template>
     <div>
-        <n-modal v-model:show="showEmailPassword" preset="dialog" title="Dialog">
+        <n-modal v-model:show="showEmailCredential" preset="dialog" title="Dialog">
             <template #header>
-                <div>{{ t("password") }}</div>
+                <div>{{ t("addressCredential") }}</div>
             </template>
             <span>
-                <p>{{ t("passwordTip") }}</p>
+                <p>{{ t("addressCredentialTip") }}</p>
             </span>
             <n-card>
-                <b>{{ curEmailPassword }}</b>
+                <b>{{ curEmailCredential }}</b>
             </n-card>
             <template #action>
             </template>
         </n-modal>
-        <n-modal v-model:show="showDelteAccount" preset="dialog" :title="t('delteAccount')">
+        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('delteAccount')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
                 <n-button :loading="loading" @click="deleteEmail" size="small" tertiary type="error">
@@ -285,7 +285,7 @@ onMounted(async () => {
         </n-modal>
         <n-input-group>
             <n-input v-model:value="addressQuery" clearable :placeholder="t('addressQueryTip')" />
-            <n-button @click="fetchData" type="primary" ghost>
+            <n-button @click="fetchData" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>
         </n-input-group>

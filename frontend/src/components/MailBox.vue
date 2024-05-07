@@ -41,7 +41,8 @@ const props = defineProps({
 })
 
 const {
-  localeCache, isDark, mailboxSplitSize, useIframeShowMail, sendMailModel
+  localeCache, isDark, mailboxSplitSize, indexTab,
+  useIframeShowMail, sendMailModel, preferShowTextMail
 } = useGlobalState()
 const autoRefresh = ref(false)
 const autoRefreshInterval = ref(30)
@@ -55,6 +56,7 @@ const pageSize = ref(20)
 const showAttachments = ref(false)
 const curAttachments = ref([])
 const curMail = ref(null);
+const showTextMail = ref(preferShowTextMail.value)
 
 const { t } = useI18n({
   locale: localeCache.value || 'zh',
@@ -69,7 +71,9 @@ const { t } = useI18n({
       pleaseSelectMail: "Please select a mail to view.",
       delete: 'Delete',
       deleteMailTip: 'Are you sure you want to delete this mail?',
-      reply: 'Reply'
+      reply: 'Reply',
+      showTextMail: 'Show Text Mail',
+      showHtmlMail: 'Show Html Mail'
     },
     zh: {
       success: '成功',
@@ -81,7 +85,9 @@ const { t } = useI18n({
       pleaseSelectMail: "请选择一封邮件查看。",
       delete: '删除',
       deleteMailTip: '确定要删除这封邮件吗?',
-      reply: '回复'
+      reply: '回复',
+      showTextMail: '显示纯文本邮件',
+      showHtmlMail: '显示HTML邮件'
     }
   }
 });
@@ -173,7 +179,7 @@ const replyMail = async () => {
     contentType: 'rich',
     content: curMail.value.text ? `<p><br></p><blockquote>${curMail.value.text}</blockquote><p><br></p>` : '',
   });
-  await router.push('/send');
+  indexTab.value = 'sendmail';
 };
 
 const onSpiltSizeChange = (size) => {
@@ -206,7 +212,7 @@ onBeforeUnmount(() => {
               {{ t('autoRefresh') }}
             </template>
           </n-switch>
-          <n-button @click="refresh" size="small" type="primary">
+          <n-button @click="refresh" size="small" type="primary" tertiary>
             {{ t('refresh') }}
           </n-button>
         </div>
@@ -272,8 +278,12 @@ onBeforeUnmount(() => {
               </template>
               {{ t('reply') }}
             </n-button>
+            <n-button size="small" tertiary type="info" @click="showTextMail = !showTextMail">
+              {{ showTextMail ? t('showHtmlMail') : t('showTextMail') }}
+            </n-button>
           </n-space>
-          <iframe v-if="useIframeShowMail" :srcdoc="curMail.message"
+          <pre v-if="showTextMail" style="margin-top: 10px;">{{ curMail.text }}</pre>
+          <iframe v-else-if="useIframeShowMail" :srcdoc="curMail.message"
             style="margin-top: 10px;width: 100%; height: 100%;">
           </iframe>
           <div v-else v-html="curMail.message" style="margin-top: 10px;"></div>
@@ -419,5 +429,10 @@ onBeforeUnmount(() => {
 
 .mail-item {
   height: 100%;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 </style>

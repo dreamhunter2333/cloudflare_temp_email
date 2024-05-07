@@ -14,6 +14,7 @@ const { t } = useI18n({
     en: {
       address: 'Address',
       success: 'Success',
+      is_enabled: 'Is Enabled',
       enable: 'Enable',
       disable: 'Disable',
       modify: 'Modify',
@@ -28,6 +29,7 @@ const { t } = useI18n({
     zh: {
       address: '地址',
       success: '成功',
+      is_enabled: '是否启用',
       enable: '启用',
       disable: '禁用',
       modify: '修改',
@@ -108,7 +110,7 @@ const columns = [
     key: "balance"
   },
   {
-    title: "Enabled",
+    title: t('is_enabled'),
     key: "enabled",
     render(row) {
       return h('div', [
@@ -124,7 +126,7 @@ const columns = [
         h(NButton,
           {
             type: 'success',
-            ghost: true,
+            tertiary: true,
             onClick: () => {
               showModal.value = true;
               curRow.value = row;
@@ -170,7 +172,7 @@ onMounted(async () => {
     </n-modal>
     <n-input-group>
       <n-input v-model:value="addressQuery" />
-      <n-button @click="fetchData" type="primary" ghost>
+      <n-button @click="fetchData" type="primary" tertiary>
         {{ t('query') }}
       </n-button>
     </n-input-group>

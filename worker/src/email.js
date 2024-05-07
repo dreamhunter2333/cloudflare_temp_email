@@ -1,5 +1,4 @@
 import { createMimeMessage } from "mimetext";
-import { EmailMessage } from "cloudflare:email";
 import { getBooleanValue } from "./utils";
 
 async function email(message, env, ctx) {
@@ -40,7 +39,7 @@ async function email(message, env, ctx) {
                     contentType: 'text/plain',
                     data: results.message || "This is an auto-reply message, please reconact later."
                 });
-
+                const { EmailMessage } = await import('cloudflare:email');
                 const replyMessage = new EmailMessage(
                     message.to,
                     message.from,

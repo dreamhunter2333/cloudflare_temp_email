@@ -39,7 +39,7 @@ export const useGlobalState = createGlobalState(
             content: "",
         });
         const showAuth = ref(false);
-        const showPassword = ref(false);
+        const showAddressCredential = ref(false);
         const showAdminAuth = ref(false);
         const auth = useStorage('auth', '');
         const adminAuth = useStorage('adminAuth', '');
@@ -50,6 +50,22 @@ export const useGlobalState = createGlobalState(
         const adminSendBoxTabAddress = ref("");
         const mailboxSplitSize = useStorage('mailboxSplitSize', 0.25);
         const useIframeShowMail = useStorage('useIframeShowMail', false);
+        const preferShowTextMail = useStorage('preferShowTextMail', false);
+        const userJwt = useStorage('userJwt', '');
+        const userTab = useStorage('userTab', 'user_settings');
+        const indexTab = useStorage('indexTab', 'mailbox');
+        const userOpenSettings = ref({
+            enable: false,
+            enableMailVerify: false,
+        });
+        const userSettings = ref({
+            /** @type {boolean} */
+            fetched: false,
+            /** @type {string} */
+            user_email: '',
+            /** @type {number} */
+            user_id: 0,
+        });
         return {
             isDark,
             toggleDark,
@@ -58,7 +74,7 @@ export const useGlobalState = createGlobalState(
             sendMailModel,
             openSettings,
             showAuth,
-            showPassword,
+            showAddressCredential,
             auth,
             jwt,
             localeCache,
@@ -69,6 +85,12 @@ export const useGlobalState = createGlobalState(
             adminSendBoxTabAddress,
             mailboxSplitSize,
             useIframeShowMail,
+            preferShowTextMail,
+            userJwt,
+            userTab,
+            indexTab,
+            userOpenSettings,
+            userSettings,
         }
     },
 )

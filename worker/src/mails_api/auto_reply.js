@@ -25,7 +25,7 @@ export default {
         if (!getBooleanValue(c.env.ENABLE_AUTO_REPLY)) {
             return c.text("Auto reply is disabled", 403)
         }
-        const { address } = c.get("jwtPayload")
+        const { address } = c.get("jwtPayload");
         const { auto_reply } = await c.req.json();
         const { name, subject, source_prefix, message, enabled } = auto_reply;
         if ((!subject || !message) && enabled) {

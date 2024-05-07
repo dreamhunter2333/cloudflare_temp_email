@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 
-import auto_reply from './user/auto_reply'
+import auto_reply from './auto_reply'
 
 const api = new Hono()
 

@@ -153,7 +153,7 @@ api.delete('/api/delete_address', async (c) => {
     if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
         return c.text("User delete email is disabled", 403)
     }
-    const { address } = c.get("jwtPayload")
+    const { address, address_id } = c.get("jwtPayload")
     let name = address;
     const { success } = await c.env.DB.prepare(
         `DELETE FROM address WHERE name = ? `
@@ -170,8 +170,11 @@ api.delete('/api/delete_address', async (c) => {
     const { success: sendAccess } = await c.env.DB.prepare(
         `DELETE FROM address_sender WHERE address = ? `
     ).bind(address).run();
+    const { success: addressSuccess } = await c.env.DB.prepare(
+        `DELETE FROM users_address WHERE address_id = ?`
+    ).bind(address_id).run();
     return c.json({
-        success: success && mailSuccess && sendAccess
+        success: success && mailSuccess && sendAccess && addressSuccess
     })
 })
 

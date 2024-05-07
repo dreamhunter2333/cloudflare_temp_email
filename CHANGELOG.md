@@ -1,9 +1,30 @@
 # CHANGE LOG
 
+## main branch
+
+### DB Changes
+
+新增 user 相关表，用于存储用户信息
+
+- `db/2024-05-08-patch.sql`
+
+### config changs
+
+```toml
+# kv config for send email verification code
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "xxxx"
+```
+
+### function changs
+
+- 增加用户注册功能，可绑定邮箱地址，绑定后可自动获取邮箱JWT凭证
+
 ## v0.3.3
 
 - 修复 Admin 删除邮件报错
-- UI: 回复邮件按钮, 引用原始邮件文本  #186 
+- UI: 回复邮件按钮, 引用原始邮件文本  #186
 - 添加发送邮件地址黑名单
 - 添加 `CF Turnstile` 人机验证配置
 - 添加 `/external/api/send_mail` 发送邮件 api, 使用 body 验证 #194

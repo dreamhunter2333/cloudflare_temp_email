@@ -10,6 +10,8 @@ import SendBox from './admin/SendBox.vue';
 import Account from './admin/Account.vue';
 import CreateAccount from './admin/CreateAccount.vue';
 import AccountSettings from './admin/AccountSettings.vue';
+import UserManagement from './admin/UserManagement.vue';
+import UserSettings from './admin/UserSettings.vue';
 import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
 import Maintenance from './admin/Maintenance.vue';
@@ -37,6 +39,8 @@ const { t } = useI18n({
       account: 'Account',
       account_create: 'Create Account',
       account_settings: 'Account Settings',
+      user_management: 'User Management',
+      user_settings: 'User Settings',
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
@@ -50,6 +54,8 @@ const { t } = useI18n({
       account: '账号',
       account_create: '创建账号',
       account_settings: '账号设置',
+      user_management: '用户管理',
+      user_settings: '用户设置',
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
@@ -89,6 +95,12 @@ onMounted(async () => {
       </n-tab-pane>
       <n-tab-pane name="account_settings" :tab="t('account_settings')">
         <AccountSettings />
+      </n-tab-pane>
+      <n-tab-pane name="user_management" :tab="t('user_management')">
+        <UserManagement />
+      </n-tab-pane>
+      <n-tab-pane name="user_settings" :tab="t('user_settings')">
+        <UserSettings />
       </n-tab-pane>
       <n-tab-pane name="mails" :tab="t('mails')">
         <Mails />
