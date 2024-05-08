@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { localeCache, adminAuth, adminSendBoxTabAddress } = useGlobalState()
+const { localeCache, adminAuth, adminSendBoxTabAddress, showAdminAuth } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
@@ -102,7 +102,7 @@ const columns = [
                 h(NButton,
                     {
                         type: 'success',
-                        ghost: true,
+                        tertiary: true,
                         onClick: () => {
                             showModal.value = true;
                             curRow.value = row;
@@ -135,7 +135,7 @@ onMounted(async () => {
         </n-modal>
         <n-input-group>
             <n-input v-model:value="adminSendBoxTabAddress" />
-            <n-button @click="fetchData" type="primary" ghost>
+            <n-button @click="fetchData" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>
         </n-input-group>

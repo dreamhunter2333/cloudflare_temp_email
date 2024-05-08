@@ -1,28 +1,29 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { useStorage } from '@vueuse/core'
 
 import { useGlobalState } from '../store'
 
-import AutoReply from './user/AutoReply.vue';
-import SendBox from './send/SendBox.vue';
-import Account from './user/Account.vue';
+import AddressMangement from './user/AddressManagement.vue';
+import UserSettingsPage from './user/UserSettings.vue';
+import UserBar from './user/UserBar.vue';
+import BindAddress from './user/BindAddress.vue';
 
-const { localeCache, settings, openSettings } = useGlobalState()
-const userTab = useStorage('userTab', 'account')
+const {
+    localeCache, userTab, userOpenSettings, userSettings
+} = useGlobalState()
 
 const { t } = useI18n({
     locale: localeCache.value || 'zh',
     messages: {
         en: {
-            sendbox: 'Send Box',
-            auto_reply: 'Auto Reply',
-            account: 'Account',
+            address_management: 'Address Management',
+            user_settings: 'User Settings',
+            bind_address: 'Bind Mail Address',
         },
         zh: {
-            sendbox: '发件箱',
-            auto_reply: '自动回复',
-            account: '账户',
+            address_management: '地址管理',
+            user_settings: '用户设置',
+            bind_address: '绑定邮箱地址',
         }
     }
 });
@@ -30,16 +31,17 @@ const { t } = useI18n({
 </script>
 
 <template>
-    <div v-if="settings.address">
-        <n-tabs type="card" v-model:value="userTab">
-            <n-tab-pane name="account" :tab="t('account')">
-                <Account />
+    <div>
+        <UserBar />
+        <n-tabs v-if="userSettings.user_email" type="card" v-model:value="userTab">
+            <n-tab-pane name="address_management" :tab="t('address_management')">
+                <AddressMangement />
             </n-tab-pane>
-            <n-tab-pane name="sendbox" :tab="t('sendbox')">
-                <SendBox />
+            <n-tab-pane name="user_settings" :tab="t('user_settings')">
+                <UserSettingsPage />
             </n-tab-pane>
-            <n-tab-pane v-if="openSettings.enableAutoReply" name="auto_reply" :tab="t('auto_reply')">
-                <AutoReply />
+            <n-tab-pane name="bind_address" :tab="t('bind_address')">
+                <BindAddress />
             </n-tab-pane>
         </n-tabs>
     </div>

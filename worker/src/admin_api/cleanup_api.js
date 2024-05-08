@@ -1,6 +1,7 @@
 import { cleanup } from '../common';
 import { CONSTANTS } from '../constants';
 import { getJsonSetting, saveSetting } from '../utils';
+import { CleanupSettings } from '../models';
 
 export default {
     cleanup: async (c) => {
@@ -15,11 +16,13 @@ export default {
     },
     getCleanup: async (c) => {
         const value = await getJsonSetting(c, CONSTANTS.AUTO_CLEANUP_KEY);
-        return c.json(value || {})
+        const cleanupSetting = new CleanupSettings(value);
+        return c.json(cleanupSetting)
     },
     saveCleanup: async (c) => {
         const value = await c.req.json();
-        await saveSetting(c, CONSTANTS.AUTO_CLEANUP_KEY, JSON.stringify(value));
+        const cleanupSetting = new CleanupSettings(value);
+        await saveSetting(c, CONSTANTS.AUTO_CLEANUP_KEY, JSON.stringify(cleanupSetting));
         return c.json({ success: true })
     }
 }

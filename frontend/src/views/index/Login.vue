@@ -2,33 +2,41 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import AdminContact from './admin/AdminContact.vue'
-import Turnstile from '../components/Turnstile.vue'
+import { NewLabelOutlined, EmailOutlined } from '@vicons/material'
 
-import { useGlobalState } from '../store'
-import { api } from '../api'
+import AdminContact from '../admin/AdminContact.vue'
+import Turnstile from '../../components/Turnstile.vue'
+
+import { useGlobalState } from '../../store'
+import { api } from '../../api'
 const message = useMessage()
 const router = useRouter()
 
 const {
-    jwt, localeCache, loading, openSettings, showPassword
+    jwt, localeCache, loading, openSettings,
+    showAddressCredential, userSettings
 } = useGlobalState()
 
 const tabValue = ref('signin')
-const password = ref('')
+const credential = ref('')
 const emailName = ref("")
 const emailDomain = ref("")
 const cfToken = ref("")
 
 const login = async () => {
-    if (!password.value) {
-        message.error(t('passwordInput'));
+    if (!credential.value) {
+        message.error(t('credentialInput'));
         return;
     }
     try {
-        jwt.value = password.value;
-        await api.getSettings()
-        location.reload()
+        jwt.value = credential.value;
+        await api.getSettings();
+        try {
+            await api.bindUserAddress();
+        } catch (error) {
+            message.error(`${t('bindUserAddressError')}: ${error.message}`);
+        }
+        await router.push("/");
     } catch (error) {
         message.error(error.message || "error");
     }
@@ -40,28 +48,32 @@ const { t } = useI18n({
         en: {
             login: 'Login',
             pleaseGetNewEmail: 'Please login or click "Get New Email" button to get a new email address',
-            getNewEmail: 'Get New Email',
+            getNewEmail: 'Create New Email',
             getNewEmailTip1: 'Please input the email you want to use. only allow ., a-z, A-Z and 0-9',
             getNewEmailTip2: 'Levaing it blank will generate a random email address.',
             getNewEmailTip3: 'You can choose a domain from the dropdown list.',
-            password: 'Password',
+            credential: 'Email Address Credential',
             ok: 'OK',
             generateName: 'Generate Fake Name',
             help: 'Help',
-            passwordInput: 'Please input the password',
+            credentialInput: 'Please input the Mail Address Credential',
+            bindUserInfo: 'Logged in user, login without binding email or create new email address will bind to current user',
+            bindUserAddressError: 'Error when bind email address to user',
         },
         zh: {
             login: '登录',
-            pleaseGetNewEmail: '请"登录"或点击 "获取新邮箱" 按钮来获取一个新的邮箱地址',
-            getNewEmail: '注册新邮箱',
+            pleaseGetNewEmail: '请"登录"或点击 "注册新邮箱" 按钮来获取一个新的邮箱地址',
+            getNewEmail: '创建新邮箱',
             getNewEmailTip1: '请输入你想要使用的邮箱地址, 只允许 ., a-z, A-Z, 0-9',
             getNewEmailTip2: '留空将会生成一个随机的邮箱地址。',
             getNewEmailTip3: '你可以从下拉列表中选择一个域名。',
-            password: '密码',
+            credential: '邮箱地址凭据',
             ok: '确定',
             generateName: '生成随机名字',
             help: '帮助',
-            passwordInput: '请输入密码',
+            credentialInput: '请输入邮箱地址凭据',
+            bindUserInfo: '已登录用户, 登录未绑定邮箱或创建新邮箱地址将绑定到当前用户',
+            bindUserAddressError: '绑定邮箱地址到用户时错误',
         }
     }
 });
@@ -95,7 +107,13 @@ const newEmail = async () => {
         });
         jwt.value = res["jwt"];
         await api.getSettings();
-        showPassword.value = true;
+        await router.push("/");
+        showAddressCredential.value = true;
+        try {
+            await api.bindUserAddress();
+        } catch (error) {
+            message.error(`${t('bindUserAddressError')}: ${error.message}`);
+        }
     } catch (error) {
         message.error(error.message || "error");
     }
@@ -108,17 +126,26 @@ onMounted(async () => {
 
 <template>
     <div>
+        <n-alert v-if="userSettings.user_email" :show-icon="false" closable>
+            <span>{{ t('bindUserInfo') }}</span>
+        </n-alert>
         <n-tabs v-model:value="tabValue" size="large" justify-content="space-evenly">
             <n-tab-pane name="signin" :tab="t('login')">
                 <n-form>
-                    <n-form-item-row :label="t('password')" required>
-                        <n-input v-model:value="password" type="textarea" :autosize="{ minRows: 3 }" />
+                    <n-form-item-row :label="t('credential')" required>
+                        <n-input v-model:value="credential" type="textarea" :autosize="{ minRows: 3 }" />
                     </n-form-item-row>
                     <n-button @click="login" :loading="loading" type="primary" block secondary strong>
+                        <template #icon>
+                            <n-icon :component="EmailOutlined" />
+                        </template>
                         {{ t('login') }}
                     </n-button>
                     <n-button v-if="openSettings.enableUserCreateEmail" @click="tabValue = 'register'" block secondary
                         strong>
+                        <template #icon>
+                            <n-icon :component="NewLabelOutlined" />
+                        </template>
                         {{ t('getNewEmail') }}
                     </n-button>
                 </n-form>
@@ -145,13 +172,16 @@ onMounted(async () => {
                         </n-input-group>
                         <Turnstile v-model:value="cfToken" />
                         <n-button type="primary" block secondary strong @click="newEmail" :loading="loading">
-                            {{ t('ok') }}
+                            <template #icon>
+                                <n-icon :component="NewLabelOutlined" />
+                            </template>
+                            {{ t('getNewEmail') }}
                         </n-button>
                     </n-form>
                 </n-spin>
             </n-tab-pane>
             <n-tab-pane name="help" :tab="t('help')">
-                <n-alert type="info" show-icon>
+                <n-alert :show-icon="false">
                     <span>{{ t('pleaseGetNewEmail') }}</span>
                 </n-alert>
                 <AdminContact />
@@ -170,5 +200,9 @@ onMounted(async () => {
 
 .n-form .n-button {
     margin-top: 10px;
+}
+
+.n-form {
+    text-align: left;
 }
 </style>

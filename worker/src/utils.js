@@ -153,3 +153,10 @@ export const checkCfTurnstile = async (c, token) => {
         throw new Error("Captcha failed");
     }
 }
+
+export const checkUserPassword = (password) => {
+    if (!password || password.length < 1 || password.length > 100) {
+        throw new Error("Invalid password")
+    }
+    return true;
+}

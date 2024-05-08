@@ -1,9 +1,10 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
-import { sendAdminInternalMail, getJsonSetting, saveSetting } from './utils'
-import { newAddress } from './common'
-import { CONSTANTS } from './constants'
-import cleanup_api from './admin/cleanup_api'
+import { sendAdminInternalMail, getJsonSetting, saveSetting } from '../utils'
+import { newAddress } from '../common'
+import { CONSTANTS } from '../constants'
+import cleanup_api from './cleanup_api'
+import admin_user_api from './admin_user_api'
 
 const api = new Hono()
 
@@ -83,8 +84,11 @@ api.delete('/admin/delete_address/:id', async (c) => {
         `DELETE FROM address_sender WHERE address IN`
         + ` (select name from address where id = ?) `
     ).bind(id).run();
+    const { success: usersAddressSuccess } = await c.env.DB.prepare(
+        `DELETE FROM users_address WHERE address_id = ?`
+    ).bind(id).run();
     return c.json({
-        success: success && mailSuccess && sendAccess
+        success: success && mailSuccess && sendAccess && usersAddressSuccess
     })
 })
 
@@ -98,10 +102,9 @@ api.get('/admin/show_password/:id', async (c) => {
         address_id: id
     }, c.env.JWT_SECRET)
     return c.json({
-        password: jwt
+        jwt: jwt
     })
 })
-
 
 api.get('/admin/mails', async (c) => {
     const { address, limit, offset } = c.req.query();
@@ -296,14 +299,11 @@ api.get('/admin/statistics', async (c) => {
     })
 });
 
-api.post('/admin/cleanup', cleanup_api.cleanup)
-api.get('/admin/auto_cleanup', cleanup_api.getCleanup)
-api.post('/admin/auto_cleanup', cleanup_api.saveCleanup)
-
-
 api.get('/admin/account_settings', async (c) => {
     try {
+        /** @type {Array<string>|undefined|null} */
         const blockList = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
+        /** @type {Array<string>|undefined|null} */
         const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
         return c.json({
             blockList: blockList || [],
@@ -316,6 +316,7 @@ api.get('/admin/account_settings', async (c) => {
 })
 
 api.post('/admin/account_settings', async (c) => {
+    /** @type {{ blockList: Array<string>, sendBlockList: Array<string> }} */
     const { blockList, sendBlockList } = await c.req.json();
     if (!blockList || !sendBlockList) {
         return c.text("Invalid blockList or sendBlockList", 400)
@@ -332,5 +333,15 @@ api.post('/admin/account_settings', async (c) => {
         success: true
     })
 })
+
+api.post('/admin/cleanup', cleanup_api.cleanup)
+api.get('/admin/auto_cleanup', cleanup_api.getCleanup)
+api.post('/admin/auto_cleanup', cleanup_api.saveCleanup)
+api.get('/admin/user_settings', admin_user_api.getSetting)
+api.post('/admin/user_settings', admin_user_api.saveSetting)
+api.get('/admin/users', admin_user_api.getUsers)
+api.delete('/admin/users/:user_id', admin_user_api.deleteUser)
+api.post('/admin/users', admin_user_api.createUser)
+api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
 
 export { api }

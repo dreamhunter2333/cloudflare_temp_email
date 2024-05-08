@@ -7,14 +7,13 @@ import AdminContact from '../admin/AdminContact.vue'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import router from '../../router'
 
 const message = useMessage()
 const isPreview = ref(false)
 const editorRef = shallowRef()
 
 
-const { settings, sendMailModel } = useGlobalState()
+const { settings, sendMailModel, indexTab } = useGlobalState()
 
 const { t } = useI18n({
     locale: 'zh',
@@ -91,7 +90,7 @@ const send = async () => {
         message.error(error.message || "error");
     } finally {
         message.success(t("successSend"));
-        router.push('/user');
+        indexTab.value = 'sendbox'
     }
 }
 
@@ -145,15 +144,16 @@ onMounted(async () => {
     <div class="center" v-if="settings.address">
         <n-card>
             <div v-if="!settings.send_balance || settings.send_balance <= 0">
-                <n-alert type="warning" show-icon>
+                <n-alert type="warning" :show-icon="false">
                     {{ t('requestAccessTip') }}
-                    <n-button type="primary" ghost @click="requestAccess">{{ t('requestAccess') }}</n-button>
+                    <n-button type="primary" tertiary @click="requestAccess" size="small">{{ t('requestAccess')
+                        }}</n-button>
                 </n-alert>
                 <br />
                 <AdminContact />
             </div>
             <div v-else>
-                <n-alert type="info" show-icon>
+                <n-alert type="info" :show-icon="false">
                     {{ t('send_balance') }}: {{ settings.send_balance }}
                 </n-alert>
                 <div class="right">

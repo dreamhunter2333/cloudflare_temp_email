@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/Index.vue'
+import UserLogin from '../views/user/UserLogin.vue'
 import User from '../views/User.vue'
-import SendMail from '../views/send/SendMail.vue'
+import SendMail from '../views/index/SendMail.vue'
 import Admin from '../views/Admin.vue'
 
 const router = createRouter({
@@ -14,10 +15,6 @@ const router = createRouter({
         {
             path: '/user',
             component: User
-        },
-        {
-            path: '/send',
-            component: SendMail
         },
         {
             path: '/admin',

@@ -19,7 +19,7 @@ const { t } = useI18n({
             creatNewEmail: 'Get New Email',
             fillInAllFields: 'Please fill in all fields',
             successTip: 'Success Created',
-            password: 'Password',
+            addressCredential: 'Mail Address Credential',
         },
         zh: {
             address: '地址',
@@ -27,7 +27,7 @@ const { t } = useI18n({
             creatNewEmail: '创建新邮箱',
             fillInAllFields: '请填写完整信息',
             successTip: '创建成功',
-            password: '密码',
+            addressCredential: '邮箱地址凭证',
         }
     }
 });
@@ -70,8 +70,8 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-modal v-model:show="showReultModal" preset="dialog" :title="t('password')">
-            <p>{{ t('password') }}</p>
+        <n-modal v-model:show="showReultModal" preset="dialog" :title="t('addressCredential')">
+            <p>{{ t('addressCredential') }}</p>
             <n-card>
                 <b>{{ result }}</b>
             </n-card>

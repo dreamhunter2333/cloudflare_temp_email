@@ -38,6 +38,8 @@ wrangler d1 execute dev --file=db/schema.sql
 # schema update, if you have initialized the database before this date, you can execute this command to update
 # wrangler d1 execute dev --file=db/2024-01-13-patch.sql
 # wrangler d1 execute dev --file=db/2024-04-03-patch.sql
+# create a namespace, and copy the output to wrangler.toml in the next step
+wrangler kv:namespace create DEV
 ```
 
 ![d1](/readme_assets/d1.png)
@@ -98,6 +100,11 @@ ENABLE_AUTO_REPLY = false
 binding = "DB"
 database_name = "xxx" # D1 database name
 database_id = "xxx" # D1 database ID
+
+# kv config for send email verification code
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "xxxx"
 
 # Create a new address current limiting configuration
 # [[unsafe.bindings]]

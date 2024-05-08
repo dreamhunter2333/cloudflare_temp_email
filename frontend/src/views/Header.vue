@@ -1,32 +1,32 @@
 <script setup>
-import useClipboard from 'vue-clipboard3'
 import { ref, h, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
-    AdminPanelSettingsFilled, SendFilled
+    AdminPanelSettingsFilled
 } from '@vicons/material'
-import { GithubAlt, Language, User, Home, Copy } from '@vicons/fa'
-
-import Login from './Login.vue'
+import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-const { toClipboard } = useClipboard()
 const message = useMessage()
 
 const {
-    jwt, localeCache, toggleDark, isDark, settings, showPassword,
+    localeCache, toggleDark, isDark, openSettings,
     showAuth, adminAuth, auth, loading
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
 const isMobile = useIsMobile()
-const isAdminRoute = computed(() => route.path.includes('admin'))
 
 const showMobileMenu = ref(false)
+const menuValue = computed(() => {
+    if (route.path.includes("user")) return "user";
+    if (route.path.includes("admin")) return "admin";
+    return "home";
+});
 
 const authFunc = async () => {
     try {
@@ -49,19 +49,11 @@ const { t } = useI18n({
             dark: 'Dark',
             light: 'Light',
             accessHeader: 'Access Password',
-            accessTip: 'Please enter the correct password',
+            accessTip: 'Please enter the correct access password',
             home: 'Home',
             menu: 'Menu',
             user: 'User',
-            sendMail: 'Send Mail',
-            yourAddress: 'Your email address is',
             ok: 'OK',
-            copy: 'Copy',
-            copied: 'Copied',
-            fetchAddressError: 'Login password is invalid or account not exist, it may be network connection issue, please try again later.',
-            mailV1Alert: 'You have some mails in v1, please click here to login and visit your history mails.',
-            password: 'Password',
-            passwordTip: 'Please copy the password and you can use it to login to your email account.',
         },
         zh: {
             title: 'Cloudflare 临时邮件',
@@ -72,36 +64,25 @@ const { t } = useI18n({
             home: '主页',
             menu: '菜单',
             user: '用户',
-            sendMail: '发送邮件',
-            yourAddress: '你的邮箱地址是',
             ok: '确定',
-            copy: '复制',
-            copied: '已复制',
-            fetchAddressError: '登录密码无效或账号不存在，也可能是网络连接异常，请稍后再尝试。',
-            mailV1Alert: '你有一些 v1 版本的邮件，请点击此处登录查看。',
-            password: '密码',
-            passwordTip: '请复制密码，你可以使用它登录你的邮箱。',
         }
     }
 });
 
-const showUserMenu = computed(() => !!settings.value.address)
-
 const menuOptions = computed(() => [
     {
-        label: () => h(
-            NButton,
+        label: () => h(NButton,
             {
                 text: true,
                 size: "small",
+                type: menuValue.value == "home" ? "primary" : "default",
                 style: "width: 100%",
-                onClick: () => { router.push('/'); showMobileMenu.value = false; }
+                onClick: async () => { await router.push('/'); showMobileMenu.value = false; }
             },
             {
                 default: () => t('home'),
                 icon: () => h(NIcon, { component: Home })
-            }
-        ),
+            }),
         key: "home"
     },
     {
@@ -110,8 +91,26 @@ const menuOptions = computed(() => [
             {
                 text: true,
                 size: "small",
+                type: menuValue.value == "user" ? "primary" : "default",
                 style: "width: 100%",
-                onClick: () => { router.push('/admin'); showMobileMenu.value = false; }
+                onClick: async () => { await router.push("/user"); showMobileMenu.value = false; }
+            },
+            {
+                default: () => t('user'),
+                icon: () => h(NIcon, { component: User }),
+            }
+        ),
+        key: "user",
+    },
+    {
+        label: () => h(
+            NButton,
+            {
+                text: true,
+                size: "small",
+                type: menuValue.value == "admin" ? "primary" : "default",
+                style: "width: 100%",
+                onClick: async () => { await router.push('/admin'); showMobileMenu.value = false; }
             },
             {
                 default: () => "Admin",
@@ -120,23 +119,6 @@ const menuOptions = computed(() => [
         ),
         show: !!adminAuth.value,
         key: "admin"
-    },
-    {
-        label: () => h(
-            NButton,
-            {
-                text: true,
-                size: "small",
-                style: "width: 100%",
-                onClick: () => { router.push("/user"); showMobileMenu.value = false; }
-            },
-            {
-                default: () => t('user'),
-                icon: () => h(NIcon, { component: User }),
-            }
-        ),
-        show: showUserMenu.value,
-        key: "user",
     },
     {
         label: () => h(
@@ -197,18 +179,8 @@ const menuOptions = computed(() => [
     }
 ]);
 
-const copy = async () => {
-    try {
-        await toClipboard(settings.value.address)
-        message.success(t('copied'));
-    } catch (e) {
-        message.error(e.message || "error");
-    }
-}
-
 onMounted(async () => {
     await api.getOpenSettings(message);
-    await api.getSettings();
 });
 </script>
 
@@ -223,7 +195,7 @@ onMounted(async () => {
             </template>
             <template #extra>
                 <n-space>
-                    <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" />
+                    <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" responsive />
                     <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu" style="margin-right: 10px;">
                         <template #icon>
                             <n-icon :component="MenuFilled" />
@@ -238,49 +210,6 @@ onMounted(async () => {
                 <n-menu :options="menuOptions" />
             </n-drawer-content>
         </n-drawer>
-        <div v-if="!isAdminRoute">
-            <n-card v-if="!settings.fetched">
-                <n-skeleton style="height: 50vh" />
-            </n-card>
-            <div v-else-if="settings.address">
-                <n-alert v-if="settings.has_v1_mails" type="warning" show-icon closable>
-                    <span>
-                        <n-button tag="a" target="_blank" tertiary type="info" size="small"
-                            href="https://mail-v1.awsl.uk">
-                            <b>{{ t('mailV1Alert') }} </b>
-                        </n-button>
-                    </span>
-                </n-alert>
-                <n-alert type="info" show-icon>
-                    <span>
-                        <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
-                        <n-button style="margin-left: 10px" @click="router.push('/send')" size="small" tertiary
-                            type="primary">
-                            <n-icon :component="SendFilled" /> {{ t('sendMail') }}
-                        </n-button>
-                        <n-button style="margin-left: 10px" @click="copy" size="small" tertiary type="primary">
-                            <n-icon :component="Copy" /> {{ t('copy') }}
-                        </n-button>
-                    </span>
-                </n-alert>
-            </div>
-            <div v-else class="center">
-                <n-card style="max-width: 600px;">
-                    <n-alert v-if="jwt" type="warning" show-icon>
-                        <span>{{ t('fetchAddressError') }}</span>
-                    </n-alert>
-                    <Login />
-                </n-card>
-            </div>
-        </div>
-        <n-modal v-model:show="showPassword" preset="dialog" :title="t('password')">
-            <span>
-                <p>{{ t("passwordTip") }}</p>
-            </span>
-            <n-card>
-                <b>{{ jwt }}</b>
-            </n-card>
-        </n-modal>
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
             :title="t('accessHeader')">
             <p>{{ t('accessTip') }}</p>
