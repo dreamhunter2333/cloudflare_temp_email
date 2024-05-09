@@ -1,14 +1,16 @@
 # CHANGE LOG
 
-## main branch
+## v0.4.0
 
-### DB Changes
+### DB Changes/Breaking changes
 
 新增 user 相关表，用于存储用户信息
 
 - `db/2024-05-08-patch.sql`
 
 ### config changs
+
+启用用户注册邮箱验证需要 `KV`
 
 ```toml
 # kv config for send email verification code
@@ -25,6 +27,15 @@
 - `admin` 邮件页面支持邮件内容搜索 #210
 - 修复删除地址时邮件未删除的BUG #213
 - UI 增加全局标签页位置配置, 侧边距配置
+
+* feat: update docs by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/204
+* feat: add Deploy to Cloudflare Workers button by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/205
+* feat: add Deploy to Cloudflare Workers docs by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/206
+* feat: add UserLogin by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/209
+* feat: admin search mailbox && fix generateName multi dot && user jwt exp in 30 days && UI globalTabplacement && useSideMargin by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/214
+* feat: UI check openSettings in Login page by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/215
+* feat: UI move AdminContact to common by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/217
+* feat: docs by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/218
 
 ## v0.3.3
 
