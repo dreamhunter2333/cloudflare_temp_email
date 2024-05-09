@@ -141,6 +141,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             collapsed: false,
             items: [
                 { text: 'Admin 控制台', link: 'feature/admin' },
+                { text: 'Admin 用户管理', link: 'feature/admin-user-management' },
             ]
         },
         { text: '参考', base: "/", link: 'reference' }
