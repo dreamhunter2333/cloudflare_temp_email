@@ -8,10 +8,11 @@ import Header from './views/Header.vue';
 import Footer from './views/Footer.vue';
 
 
-const { localeCache, isDark, loading } = useGlobalState()
+const { localeCache, isDark, loading, useSideMargin } = useGlobalState()
 const theme = computed(() => isDark.value ? darkTheme : null)
 const localeConfig = computed(() => localeCache.value == 'zh' ? zhCN : null)
 const isMobile = useIsMobile()
+const showSideMargin = computed(() => !isMobile.value && !useSideMargin.value);
 
 const { locale } = useI18n({
   useScope: 'global',
@@ -39,8 +40,8 @@ onMounted(async () => {
     <n-spin description="loading..." :show="loading">
       <n-message-provider>
         <n-grid x-gap="12" :cols="12">
-          <n-gi v-if="!isMobile" span="1"></n-gi>
-          <n-gi :span="isMobile ? 12 : 10">
+          <n-gi v-if="!showSideMargin" span="1"></n-gi>
+          <n-gi :span="showSideMargin ? 12 : 10">
             <div class="main">
               <n-space vertical>
                 <n-layout style="min-height: 80vh;">
@@ -51,7 +52,7 @@ onMounted(async () => {
               </n-space>
             </div>
           </n-gi>
-          <n-gi v-if="!isMobile" span="1"></n-gi>
+          <n-gi v-if="!showSideMargin" span="1"></n-gi>
         </n-grid>
         <n-back-top />
       </n-message-provider>

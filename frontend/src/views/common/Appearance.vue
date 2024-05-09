@@ -5,7 +5,7 @@ import { useGlobalState } from '../../store'
 
 const {
     localeCache, mailboxSplitSize, useIframeShowMail, preferShowTextMail,
-    globalTabplacement
+    globalTabplacement, useSideMargin
 } = useGlobalState()
 
 const { t } = useI18n({
@@ -15,6 +15,7 @@ const { t } = useI18n({
             mailboxSplitSize: 'Mailbox Split Size',
             useIframeShowMail: 'Use iframe Show HTML Mail',
             preferShowTextMail: 'Display text Mail by default',
+            useSideMargin: 'Turn on the side margins on the left and right sides of the page',
             globalTabplacement: 'Global Tab Placement',
             left: 'left',
             top: 'top',
@@ -26,6 +27,7 @@ const { t } = useI18n({
             preferShowTextMail: '默认以文本显示邮件',
             useIframeShowMail: '使用iframe显示HTML邮件',
             globalTabplacement: '全局选项卡位置',
+            useSideMargin: '开启页面左右两侧侧边距',
             left: '左侧',
             top: '顶部',
             right: '右侧',
@@ -50,6 +52,9 @@ const { t } = useI18n({
             </n-form-item-row>
             <n-form-item-row :label="t('useIframeShowMail')">
                 <n-switch v-model:value="useIframeShowMail" :round="false" />
+            </n-form-item-row>
+            <n-form-item-row :label="t('useSideMargin')">
+                <n-switch v-model:value="useSideMargin" :round="false" />
             </n-form-item-row>
             <n-form-item-row :label="t('globalTabplacement')">
                 <n-radio-group v-model:value="globalTabplacement">

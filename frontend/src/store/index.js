@@ -55,6 +55,7 @@ export const useGlobalState = createGlobalState(
         const userTab = useStorage('userTab', 'user_settings');
         const indexTab = useStorage('indexTab', 'mailbox');
         const globalTabplacement = useStorage('globalTabplacement', 'top');
+        const useSideMargin = useStorage('useSideMargin', true);
         const userOpenSettings = ref({
             enable: false,
             enableMailVerify: false,
@@ -93,6 +94,7 @@ export const useGlobalState = createGlobalState(
             userOpenSettings,
             userSettings,
             globalTabplacement,
+            useSideMargin,
         }
     },
 )
