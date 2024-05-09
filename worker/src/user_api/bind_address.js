@@ -131,7 +131,7 @@ export default {
         const jwt = await Jwt.sign({
             address: name,
             address_id: address_id
-        }, c.env.JWT_SECRET)
+        }, c.env.JWT_SECRET, "HS256")
         return c.json({
             jwt: jwt
         })

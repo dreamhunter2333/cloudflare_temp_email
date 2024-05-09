@@ -3,6 +3,8 @@ import { Jwt } from 'hono/utils/jwt'
 import { CONSTANTS } from '../constants'
 import { getJsonSetting, getDomains } from '../utils';
 import { GeoData } from '../models'
+import { handleListQuery } from '../common'
+
 
 const api = new Hono()
 
@@ -112,8 +114,7 @@ export const sendMail = async (c, address, reqJson) => {
     // update balance
     try {
         const { success } = await c.env.DB.prepare(
-            `UPDATE address_sender SET balance = balance - 1
-        where address = ?`
+            `UPDATE address_sender SET balance = balance - 1 where address = ?`
         ).bind(address).run();
         if (!success) {
             console.warn(`Failed to update balance for ${address}`);
@@ -171,27 +172,11 @@ const getSendbox = async (c, address, limit, offset) => {
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
-    }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
-    const { results } = await c.env.DB.prepare(
-        `SELECT * FROM sendbox where address = ?
-         order by id desc limit ? offset ?`
-    ).bind(address, limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: mailCount } = await c.env.DB.prepare(
-            `SELECT count(*) as count FROM sendbox where address = ?`
-        ).bind(address).first();
-        count = mailCount;
-    }
-    return c.json({
-        results: results,
-        count: count
-    })
+    return await handleListQuery(c,
+        `SELECT * FROM sendbox where address = ? `,
+        `SELECT count(*) as count FROM sendbox where address = ? `,
+        [address], limit, offset
+    );
 }
 
 api.get('/api/sendbox', async (c) => {

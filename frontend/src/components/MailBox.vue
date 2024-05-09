@@ -371,8 +371,15 @@ onBeforeUnmount(() => {
                 </template>
                 {{ t('reply') }}
               </n-button>
+              <n-button size="small" tertiary type="info" @click="showTextMail = !showTextMail">
+                {{ showTextMail ? t('showHtmlMail') : t('showTextMail') }}
+              </n-button>
             </n-space>
-            <div v-html="curMail.message" style="margin-top: 10px;"></div>
+            <pre v-if="showTextMail" style="margin-top: 10px;">{{ curMail.text }}</pre>
+            <iframe v-else-if="useIframeShowMail" :srcdoc="curMail.message"
+              style="margin-top: 10px;width: 100%; height: 100%;">
+            </iframe>
+            <div v-else v-html="curMail.message" style="margin-top: 10px;"></div>
           </n-card>
         </n-drawer-content>
       </n-drawer>
