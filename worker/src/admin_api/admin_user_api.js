@@ -1,6 +1,7 @@
 import { CONSTANTS } from '../constants';
 import { getJsonSetting, saveSetting, checkUserPassword, getDomains } from '../utils';
 import { UserSettings, GeoData, UserInfo } from "../models";
+import { handleListQuery } from '../common'
 
 export default {
     getSetting: async (c) => {
@@ -29,49 +30,23 @@ export default {
     },
     getUsers: async (c) => {
         const { limit, offset, query } = c.req.query();
-        if (!limit || limit < 0 || limit > 100) {
-            return c.text("Invalid limit", 400)
-        }
-        if (!offset || offset < 0) {
-            return c.text("Invalid offset", 400)
-        }
         if (query) {
-            const { results } = await c.env.DB.prepare(
+            return await handleListQuery(c,
                 `SELECT u.id, u.user_email, u.created_at, u.updated_at,`
                 + ` (SELECT COUNT(*) FROM users_address WHERE user_id = u.id) AS address_count`
                 + ` FROM users u`
-                + ` where u.user_email like ?`
-                + ` order by u.id desc limit ? offset ?`
-            ).bind(`%${query}%`, limit, offset).all();
-            let count = 0;
-            if (offset == 0) {
-                const { count: userCount } = await c.env.DB.prepare(
-                    `SELECT count(*) as count FROM users where user_email like ?`
-                ).bind(`%${query}%`).first();
-                count = userCount;
-            }
-            return c.json({
-                results: results,
-                count: count
-            })
+                + ` where u.user_email like ?`,
+                `SELECT count(*) as count FROM users where user_email like ?`,
+                [`%${query}%`], limit, offset
+            );
         }
-        const { results } = await c.env.DB.prepare(
+        return await handleListQuery(c,
             `SELECT u.id, u.user_email, u.created_at, u.updated_at,`
             + ` (SELECT COUNT(*) FROM users_address WHERE user_id = u.id) AS address_count`
-            + ` FROM users u`
-            + ` order by u.id desc limit ? offset ?`
-        ).bind(limit, offset).all();
-        let count = 0;
-        if (offset == 0) {
-            const { count: userCount } = await c.env.DB.prepare(
-                `SELECT count(*) as count FROM users`
-            ).first();
-            count = userCount;
-        }
-        return c.json({
-            results: results,
-            count: count
-        })
+            + ` FROM users u`,
+            `SELECT count(*) as count FROM users`,
+            [], limit, offset
+        );
     },
     createUser: async (c) => {
         const { email, password } = await c.req.json();

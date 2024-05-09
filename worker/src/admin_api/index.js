@@ -10,51 +10,25 @@ const api = new Hono()
 
 api.get('/admin/address', async (c) => {
     const { limit, offset, query } = c.req.query();
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
-    }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
     if (query) {
-        const { results } = await c.env.DB.prepare(
+        return await handleListQuery(c,
             `SELECT a.*,`
             + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
             + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
             + ` FROM address a`
-            + ` where name like ?`
-            + ` order by id desc limit ? offset ?`
-        ).bind(`%${query}%`, limit, offset).all();
-        let count = 0;
-        if (offset == 0) {
-            const { count: addressCount } = await c.env.DB.prepare(
-                `SELECT count(*) as count FROM address where name like ?`
-            ).bind(`%${query}%`).first();
-            count = addressCount;
-        }
-        return c.json({
-            results: results,
-            count: count
-        })
+            + ` where name like ?`,
+            `SELECT count(*) as count FROM address where name like ?`,
+            [`%${query}%`], limit, offset
+        );
     }
-    const { results } = await c.env.DB.prepare(
+    return await handleListQuery(c,
         `SELECT a.*,`
         + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
         + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
-        + ` FROM address a`
-        + ` order by id desc limit ? offset ?`
-    ).bind(limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: addressCount } = await c.env.DB.prepare(
-            `SELECT count(*) as count FROM address`
-        ).first();
-        count = addressCount;
-    }
-    return c.json({
-        results: results,
-        count: count
-    })
+        + ` FROM address a`,
+        `SELECT count(*) as count FROM address`,
+        [], limit, offset
+    );
 })
 
 api.post('/admin/new_address', async (c) => {
@@ -100,7 +74,7 @@ api.get('/admin/show_password/:id', async (c) => {
     const jwt = await Jwt.sign({
         address: name,
         address_id: id
-    }, c.env.JWT_SECRET)
+    }, c.env.JWT_SECRET, "HS256")
     return c.json({
         jwt: jwt
     })
@@ -184,42 +158,18 @@ api.post('/admin/address_sender', async (c) => {
 
 api.get('/admin/sendbox', async (c) => {
     const { address, limit, offset } = c.req.query();
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
+    if (address) {
+        return await handleListQuery(c,
+            `SELECT * FROM sendbox where address = ? `,
+            `SELECT count(*) as count FROM sendbox where address = ? `,
+            [address], limit, offset
+        );
     }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
-    if (!address) {
-        const { results } = await c.env.DB.prepare(
-            `SELECT * FROM sendbox order by id desc limit ? offset ?`
-        ).bind(limit, offset).all();
-        let count = 0;
-        if (offset == 0) {
-            const { count: mailCount } = await c.env.DB.prepare(
-                `SELECT count(*) as count FROM sendbox`
-            ).first();
-            count = mailCount;
-        }
-        return c.json({
-            results: results,
-            count: count
-        })
-    }
-    const { results } = await c.env.DB.prepare(
-        `SELECT * FROM sendbox where address = ? order by id desc limit ? offset ?`
-    ).bind(address, limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: mailCount } = await c.env.DB.prepare(
-            `SELECT count(*) as count FROM sendbox where address = ?`
-        ).bind(address).first();
-        count = mailCount;
-    }
-    return c.json({
-        results: results,
-        count: count
-    })
+    return await handleListQuery(c,
+        `SELECT * FROM sendbox `,
+        `SELECT count(*) as count FROM sendbox `,
+        [], limit, offset
+    );
 })
 
 api.get('/admin/statistics', async (c) => {
