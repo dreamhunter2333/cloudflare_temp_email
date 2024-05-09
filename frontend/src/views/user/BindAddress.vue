@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../../store'
-import Login from '../index/Login.vue'
+import Login from '../common/Login.vue'
 
 const { userJwt, localeCache, userSettings, } = useGlobalState()
 
