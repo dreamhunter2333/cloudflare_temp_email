@@ -9,7 +9,7 @@ import UserBar from './user/UserBar.vue';
 import BindAddress from './user/BindAddress.vue';
 
 const {
-    localeCache, userTab, userOpenSettings, userSettings
+    localeCache, userTab, globalTabplacement, userSettings
 } = useGlobalState()
 
 const { t } = useI18n({
@@ -33,7 +33,7 @@ const { t } = useI18n({
 <template>
     <div>
         <UserBar />
-        <n-tabs v-if="userSettings.user_email" type="card" v-model:value="userTab">
+        <n-tabs v-if="userSettings.user_email" type="card" v-model:value="userTab" :placement="globalTabplacement">
             <n-tab-pane name="address_management" :tab="t('address_management')">
                 <AddressMangement />
             </n-tab-pane>

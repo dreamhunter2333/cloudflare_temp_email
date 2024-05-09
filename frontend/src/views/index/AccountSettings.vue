@@ -5,10 +5,10 @@ import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import Appearance from '../common/Appearance.vue'
 
 const {
-    jwt, localeCache, settings, showAddressCredential, loading,
-    mailboxSplitSize, useIframeShowMail, preferShowTextMail
+    jwt, localeCache, settings, showAddressCredential, loading
 } = useGlobalState()
 const router = useRouter()
 const message = useMessage()
@@ -19,9 +19,6 @@ const { t } = useI18n({
     locale: localeCache.value || 'zh',
     messages: {
         en: {
-            mailboxSplitSize: 'Mailbox Split Size',
-            useIframeShowMail: 'Use iframe Show HTML Mail',
-            preferShowTextMail: 'Display text Mail by default',
             logout: "Logout",
             delteAccount: "Delete Account",
             showAddressCredential: 'Show Address Credential',
@@ -30,9 +27,6 @@ const { t } = useI18n({
             delteAccountConfirm: "Are you sure to delete your account and all emails for this account?",
         },
         zh: {
-            mailboxSplitSize: '邮箱界面分栏大小',
-            preferShowTextMail: '默认以文本显示邮件',
-            useIframeShowMail: '使用iframe显示HTML邮件',
             logout: '退出登录',
             delteAccount: "删除账户",
             showAddressCredential: '查看邮箱地址凭证',
@@ -66,21 +60,7 @@ const deleteAccount = async () => {
 <template>
     <div class="center" v-if="settings.address">
         <n-card>
-            <n-card>
-                <n-form-item-row :label="t('mailboxSplitSize')">
-                    <n-slider v-model:value="mailboxSplitSize" :min="0.25" :max="0.75" :step="0.01" :marks="{
-                        0.25: '0.25',
-                        0.5: '0.5',
-                        0.75: '0.75'
-                    }" />
-                </n-form-item-row>
-                <n-form-item-row :label="t('preferShowTextMail')">
-                    <n-switch v-model:value="preferShowTextMail" :round="false" />
-                </n-form-item-row>
-                <n-form-item-row :label="t('useIframeShowMail')">
-                    <n-switch v-model:value="useIframeShowMail" :round="false" />
-                </n-form-item-row>
-            </n-card>
+            <Appearance />
             <n-button @click="showAddressCredential = true" type="primary" secondary block strong>
                 {{ t('showAddressCredential') }}
             </n-button>

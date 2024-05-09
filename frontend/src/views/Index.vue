@@ -11,7 +11,7 @@ import SendBox from './index/SendBox.vue';
 import SendMail from './index/SendMail.vue';
 import AccountSettings from './index/AccountSettings.vue';
 
-const { localeCache, settings, openSettings, indexTab } = useGlobalState()
+const { localeCache, settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
 
 const { t } = useI18n({
   locale: localeCache.value || 'zh',
@@ -45,7 +45,7 @@ const deleteMail = async (curMailId) => {
 <template>
   <div>
     <AddressBar />
-    <n-tabs v-if="settings.address" type="card" v-model:value="indexTab">
+    <n-tabs v-if="settings.address" type="card" v-model:value="indexTab" :placement="globalTabplacement">
       <n-tab-pane name="mailbox" :tab="t('mailbox')">
         <MailBox :showEMailTo="false" :showReply="true" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
           :fetchMailData="fetchMailData" :deleteMail="deleteMail" />

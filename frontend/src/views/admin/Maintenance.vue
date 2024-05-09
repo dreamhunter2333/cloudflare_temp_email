@@ -32,6 +32,7 @@ const { t } = useI18n({
             autoCleanup: "Auto cleanup",
             cleanupSuccess: "Cleanup success",
             save: "Save",
+            cronTip: "Enable cron cleanup, need to configure [crons] in worker, please refer to the document",
         },
         zh: {
             tip: '请输入清理天数',
@@ -43,6 +44,7 @@ const { t } = useI18n({
             cleanupSuccess: "清理成功",
             cleanupNow: "立即清理",
             save: "保存",
+            cronTip: "启用定时清理, 需在 worker 配置 [crons] 参数, 请参考文档",
         }
     }
 });
@@ -93,6 +95,9 @@ onMounted(async () => {
 <template>
     <div class="center">
         <n-card>
+            <n-alert :show-icon="false">
+                <span>{{ t('cronTip') }}</span>
+            </n-alert>
             <n-form :model="cleanupModel">
                 <n-form-item-row :label="t('mailBoxLabel')">
                     <n-checkbox v-model:checked="cleanupModel.enableMailsAutoCleanup">
@@ -160,6 +165,10 @@ onMounted(async () => {
     text-align: center;
     place-items: center;
     justify-content: center;
+}
+
+.n-alert {
+    margin-bottom: 20px;
 }
 
 .item {
