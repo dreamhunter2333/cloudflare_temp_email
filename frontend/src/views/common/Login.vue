@@ -121,6 +121,9 @@ const newEmail = async () => {
 };
 
 onMounted(async () => {
+    if (!openSettings.value.domains || openSettings.value.domains.length === 0) {
+        await api.getOpenSettings();
+    }
     emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0]?.value : "";
 });
 </script>

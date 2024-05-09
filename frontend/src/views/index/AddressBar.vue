@@ -7,7 +7,7 @@ import { Copy, User } from '@vicons/fa'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import Login from './Login.vue'
+import Login from '../common/Login.vue'
 
 const { toClipboard } = useClipboard()
 const message = useMessage()
