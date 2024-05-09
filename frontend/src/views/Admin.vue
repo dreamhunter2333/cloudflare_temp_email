@@ -15,9 +15,10 @@ import UserSettings from './admin/UserSettings.vue';
 import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
 import Maintenance from './admin/Maintenance.vue';
+import Appearance from './common/Appearance.vue';
 
 const {
-  localeCache, adminAuth, showAdminAuth, adminTab, loading
+  localeCache, adminAuth, showAdminAuth, adminTab, loading, globalTabplacement
 } = useGlobalState()
 const message = useMessage()
 
@@ -44,7 +45,9 @@ const { t } = useI18n({
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
+      statistics: 'Statistics',
       maintenance: 'Maintenance',
+      appearance: 'Appearance',
       ok: 'OK',
     },
     zh: {
@@ -59,7 +62,9 @@ const { t } = useI18n({
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
+      statistics: '统计',
       maintenance: '维护',
+      appearance: '外观',
       ok: '确定',
     }
   }
@@ -85,8 +90,7 @@ onMounted(async () => {
         </n-button>
       </template>
     </n-modal>
-    <Statistics />
-    <n-tabs type="card" v-model:value="adminTab">
+    <n-tabs type="card" v-model:value="adminTab" :placement="globalTabplacement">
       <n-tab-pane name="account" :tab="t('account')">
         <Account />
       </n-tab-pane>
@@ -114,8 +118,14 @@ onMounted(async () => {
       <n-tab-pane name="sendBox" :tab="t('sendBox')">
         <SendBox />
       </n-tab-pane>
+      <n-tab-pane name="statistics" :tab="t('statistics')">
+        <Statistics />
+      </n-tab-pane>
       <n-tab-pane name="maintenance" :tab="t('maintenance')">
         <Maintenance />
+      </n-tab-pane>
+      <n-tab-pane name="appearance" :tab="t('appearance')">
+        <Appearance />
       </n-tab-pane>
     </n-tabs>
   </div>

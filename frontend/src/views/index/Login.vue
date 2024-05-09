@@ -83,9 +83,10 @@ const generateName = async () => {
     try {
         generateNameLoading.value = true;
         const { faker } = await import('https://esm.sh/@faker-js/faker');
-        emailName.value = faker.person
-            .fullName()
+        emailName.value = faker.internet.email()
+            .split('@')[0]
             .replace(/\s+/g, '.')
+            .replace(/\.{2,}/g, '.')
             .replace(/[^a-zA-Z0-9.]/g, '')
             .toLowerCase();
     } catch (error) {

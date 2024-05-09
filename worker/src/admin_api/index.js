@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 import { sendAdminInternalMail, getJsonSetting, saveSetting } from '../utils'
-import { newAddress } from '../common'
+import { newAddress, handleListQuery } from '../common'
 import { CONSTANTS } from '../constants'
 import cleanup_api from './cleanup_api'
 import admin_user_api from './admin_user_api'
@@ -74,7 +74,7 @@ api.delete('/admin/delete_address/:id', async (c) => {
         return c.text("Failed to delete address", 500)
     }
     const { success: mailSuccess } = await c.env.DB.prepare(
-        `DELETE FROM mails WHERE address IN`
+        `DELETE FROM raw_mails WHERE address IN`
         + ` (select name from address where id = ?) `
     ).bind(id).run();
     if (!mailSuccess) {
@@ -107,111 +107,58 @@ api.get('/admin/show_password/:id', async (c) => {
 })
 
 api.get('/admin/mails', async (c) => {
-    const { address, limit, offset } = c.req.query();
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
+    const { address, limit, offset, keyword } = c.req.query();
+    if (address && keyword) {
+        return await handleListQuery(c,
+            `SELECT * FROM raw_mails where address = ? and raw like ? `,
+            `SELECT count(*) as count FROM raw_mails where address = ? and raw like ? `,
+            [address, `%${keyword}%`], limit, offset
+        );
+    } else if (keyword) {
+        return await handleListQuery(c,
+            `SELECT * FROM raw_mails where raw like ? `,
+            `SELECT count(*) as count FROM raw_mails where raw like ? `,
+            [`%${keyword}%`], limit, offset
+        );
+    } else if (address) {
+        return await handleListQuery(c,
+            `SELECT * FROM raw_mails where address = ? `,
+            `SELECT count(*) as count FROM raw_mails where address = ? `,
+            [address], limit, offset
+        );
+    } else {
+        return await handleListQuery(c,
+            `SELECT * FROM raw_mails `,
+            `SELECT count(*) as count FROM raw_mails `,
+            [], limit, offset
+        );
     }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
-    if (!address) {
-        const { results } = await c.env.DB.prepare(
-            `SELECT * FROM raw_mails order by id desc limit ? offset ?`
-        ).bind(limit, offset).all();
-        let count = 0;
-        if (offset == 0) {
-            const { count: mailCount } = await c.env.DB.prepare(
-                `SELECT count(*) as count FROM raw_mails`
-            ).first();
-            count = mailCount;
-        }
-        return c.json({
-            results: results,
-            count: count
-        })
-    }
-    const { results } = await c.env.DB.prepare(
-        `SELECT * FROM raw_mails where address = ? order by id desc limit ? offset ?`
-    ).bind(address, limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: mailCount } = await c.env.DB.prepare(
-            `SELECT count(*) as count FROM raw_mails where address = ? `
-        ).bind(address).first();
-        count = mailCount;
-    }
-    return c.json({
-        results: results,
-        count: count
-    })
 });
 
 api.get('/admin/mails_unknow', async (c) => {
     const { limit, offset } = c.req.query();
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
-    }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
-    const { results } = await c.env.DB.prepare(`
-        SELECT * FROM raw_mails
-        where address NOT IN (select name from address)
-        order by id desc limit ? offset ? `
-    ).bind(limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: mailCount } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM raw_mails
-            where address NOT IN
-            (select name from address)`
-        ).first();
-        count = mailCount;
-    }
-    return c.json({
-        results: results,
-        count: count
-    })
+    return await handleListQuery(c,
+        `SELECT * FROM raw_mails where address NOT IN (select name from address) `,
+        `SELECT count(*) as count FROM raw_mails`
+        + ` where address NOT IN (select name from address) `,
+        [], limit, offset
+    );
 });
 
 api.get('/admin/address_sender', async (c) => {
     const { address, limit, offset } = c.req.query();
-    if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
-    }
-    if (!offset || offset < 0) {
-        return c.text("Invalid offset", 400)
-    }
     if (address) {
-        const { results } = await c.env.DB.prepare(
-            `SELECT * FROM address_sender where address = ? order by id desc limit ? offset ?`
-        ).bind(address, limit, offset).all();
-        let count = 0;
-        if (offset == 0) {
-            const { count: addressCount } = await c.env.DB.prepare(
-                `SELECT count(*) as count FROM address_sender where address = ?`
-            ).bind(address).first();
-            count = addressCount;
-        }
-        return c.json({
-            results: results,
-            count: count
-        })
+        return await handleListQuery(c,
+            `SELECT * FROM address_sender where address = ? `,
+            `SELECT count(*) as count FROM address_sender where address = ? `,
+            [address], limit, offset
+        );
     }
-    const { results } = await c.env.DB.prepare(
-        `SELECT * FROM address_sender order by id desc limit ? offset ? `
-    ).bind(limit, offset).all();
-    let count = 0;
-    if (offset == 0) {
-        const { count: addressCount } = await c.env.DB.prepare(
-            `SELECT count(*) as count FROM address_sender`
-        ).first();
-        count = addressCount;
-    }
-    return c.json({
-        results: results,
-        count: count
-    })
+    return await handleListQuery(c,
+        `SELECT * FROM address_sender `,
+        `SELECT count(*) as count FROM address_sender `,
+        [], limit, offset
+    );
 })
 
 api.post('/admin/address_sender', async (c) => {
@@ -276,9 +223,6 @@ api.get('/admin/sendbox', async (c) => {
 })
 
 api.get('/admin/statistics', async (c) => {
-    const { count: mailCountV1 } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM mails`
-    ).first();
     const { count: mailCount } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM raw_mails`
     ).first();
@@ -292,7 +236,7 @@ api.get('/admin/statistics', async (c) => {
             SELECT count(*) as count FROM sendbox`
     ).first();
     return c.json({
-        mailCount: (mailCountV1 || 0) + (mailCount || 0),
+        mailCount: mailCount,
         userCount: addressCount,
         activeUserCount7days: activeUserCount7days,
         sendMailCount: sendMailCount

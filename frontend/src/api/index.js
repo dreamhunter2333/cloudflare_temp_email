@@ -10,7 +10,7 @@ const {
 
 const instance = axios.create({
     baseURL: API_BASE,
-    timeout: 10000
+    timeout: 30000
 });
 
 const apiFetch = async (path, options = {}) => {

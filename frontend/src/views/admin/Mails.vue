@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n'
 
 import { useGlobalState } from '../../store'
@@ -16,19 +16,27 @@ const { t } = useI18n({
     messages: {
         en: {
             addressQueryTip: 'Leave blank to query all addresses',
+            keywordQueryTip: 'Leave blank to not query by keyword',
             query: 'Query',
         },
         zh: {
             addressQueryTip: '留空查询所有地址',
+            keywordQueryTip: '留空不按关键字查询',
             query: '查询',
         }
     }
 });
 
 const mailBoxKey = ref("")
+const mailKeyword = ref("")
 
-const queryAddress = () => {
-    mailBoxKey.value = adminMailTabAddress.value;
+watch([adminMailTabAddress, mailKeyword], () => {
+    adminMailTabAddress.value = adminMailTabAddress.value.trim();
+    mailKeyword.value = mailKeyword.value.trim();
+});
+
+const queryMail = () => {
+    mailBoxKey.value = Date.now();
 }
 
 const fetchMailData = async (limit, offset) => {
@@ -37,6 +45,7 @@ const fetchMailData = async (limit, offset) => {
         + `?limit=${limit}`
         + `&offset=${offset}`
         + (adminMailTabAddress.value ? `&address=${adminMailTabAddress.value}` : '')
+        + (mailKeyword.value ? `&keyword=${mailKeyword.value}` : '')
     );
 }
 
@@ -52,7 +61,8 @@ onMounted(async () => {
     <div>
         <n-input-group>
             <n-input v-model:value="adminMailTabAddress" :placeholder="t('addressQueryTip')" />
-            <n-button @click="queryAddress" type="primary" tertiary>
+            <n-input v-model:value="mailKeyword" :placeholder="t('keywordQueryTip')" />
+            <n-button @click="queryMail" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>
         </n-input-group>
