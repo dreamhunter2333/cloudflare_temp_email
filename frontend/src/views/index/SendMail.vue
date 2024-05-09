@@ -3,7 +3,7 @@ import '@wangeditor/editor/dist/css/style.css'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { useI18n } from 'vue-i18n'
 import { onMounted, onBeforeUnmount, ref, shallowRef } from 'vue'
-import AdminContact from '../admin/AdminContact.vue'
+import AdminContact from '../common/AdminContact.vue'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
