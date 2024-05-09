@@ -162,7 +162,7 @@ api.delete('/api/delete_address', async (c) => {
         return c.text("Failed to delete address", 500)
     }
     const { success: mailSuccess } = await c.env.DB.prepare(
-        `DELETE FROM mails WHERE address = ? `
+        `DELETE FROM raw_mails WHERE address = ? `
     ).bind(address).run();
     if (!mailSuccess) {
         return c.text("Failed to delete mails", 500)

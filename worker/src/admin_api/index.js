@@ -74,7 +74,7 @@ api.delete('/admin/delete_address/:id', async (c) => {
         return c.text("Failed to delete address", 500)
     }
     const { success: mailSuccess } = await c.env.DB.prepare(
-        `DELETE FROM mails WHERE address IN`
+        `DELETE FROM raw_mails WHERE address IN`
         + ` (select name from address where id = ?) `
     ).bind(id).run();
     if (!mailSuccess) {
@@ -223,9 +223,6 @@ api.get('/admin/sendbox', async (c) => {
 })
 
 api.get('/admin/statistics', async (c) => {
-    const { count: mailCountV1 } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM mails`
-    ).first();
     const { count: mailCount } = await c.env.DB.prepare(`
             SELECT count(*) as count FROM raw_mails`
     ).first();
@@ -239,7 +236,7 @@ api.get('/admin/statistics', async (c) => {
             SELECT count(*) as count FROM sendbox`
     ).first();
     return c.json({
-        mailCount: (mailCountV1 || 0) + (mailCount || 0),
+        mailCount: mailCount,
         userCount: addressCount,
         activeUserCount7days: activeUserCount7days,
         sendMailCount: sendMailCount
