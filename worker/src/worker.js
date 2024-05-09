@@ -52,7 +52,7 @@ app.use('/api/*', async (c, next) => {
 		await next();
 		return;
 	}
-	return jwt({ secret: c.env.JWT_SECRET })(c, next);
+	return jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
 });
 // user_api auth
 app.use('/user_api/*', async (c, next) => {
@@ -67,7 +67,13 @@ app.use('/user_api/*', async (c, next) => {
 	}
 	try {
 		const token = c.req.raw.headers.get("x-user-token");
-		const payload = await Jwt.verify(token, c.env.JWT_SECRET);
+		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
+		// check expired
+		if (!payload.exp) return c.text("Invalid Token", 401);
+		// exp is in seconds
+		if (payload.exp < Math.floor(Date.now() / 1000)) {
+			return c.text("Token Expired", 401)
+		}
 		c.set("userPayload", payload);
 	} catch (e) {
 		console.error(e);
@@ -76,7 +82,7 @@ app.use('/user_api/*', async (c, next) => {
 	if (c.req.path.startsWith('/user_api/bind_address')
 		&& c.req.method === 'POST'
 	) {
-		return jwt({ secret: c.env.JWT_SECRET })(c, next);
+		return jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
 	}
 	await next();
 });
