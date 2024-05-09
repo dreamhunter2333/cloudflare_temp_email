@@ -74,6 +74,7 @@ export const cleanup = async (c, cleanType, cleanDays) => {
         case "address":
             await c.env.DB.prepare(`
                 DELETE FROM address WHERE updated_at < datetime('now', '-${cleanDays} day')`
+                + ` AND id NOT IN (SELECT address_id FROM users_address)`
             ).run();
             break;
         case "sendbox":
@@ -85,4 +86,32 @@ export const cleanup = async (c, cleanType, cleanDays) => {
             throw new Error("Invalid cleanType")
     }
     return true;
+}
+
+/**
+ *
+ * @param {*} c context
+ * @param {*} query @type {string} query
+ * @param {*} countQuery @type {string} countQuery
+ * @param {*} limit @type {number} limit
+ * @param {*} offset @type {number} offset
+ * @returns {Promise} Promise
+ */
+export const handleListQuery = async (
+    c, query, countQuery, params, limit, offset
+) => {
+    if (!limit || limit < 0 || limit > 100) {
+        return c.text("Invalid limit", 400)
+    }
+    if (!offset || offset < 0) {
+        return c.text("Invalid offset", 400)
+    }
+    const resultsQuery = `${query} order by id desc limit ? offset ?`;
+    const { results } = await c.env.DB.prepare(resultsQuery).bind(
+        ...params, limit, offset
+    ).all();
+    const count = offset == 0 ? await c.env.DB.prepare(
+        countQuery
+    ).bind(...params).first("count") : 0;
+    return c.json({ results, count });
 }
