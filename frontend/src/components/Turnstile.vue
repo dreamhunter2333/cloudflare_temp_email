@@ -68,12 +68,15 @@ onMounted(() => {
     <div v-if="openSettings.cfTurnstileSiteKey" class="center">
         <n-spin description="loading..." :show="turnstileLoading">
             <n-form-item-row>
-                <div id="cf-turnstile"></div>
-                <n-button text @click="checkCfTurnstile(true)">
-                    {{ t('refresh') }}
-                </n-button>
+                <n-flex vertical>
+                    <div id="cf-turnstile"></div>
+                    <n-button text @click="checkCfTurnstile(true)">
+                        {{ t('refresh') }}
+                    </n-button>
+                </n-flex>
             </n-form-item-row>
         </n-spin>
+
     </div>
 </template>
 
