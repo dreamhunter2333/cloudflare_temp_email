@@ -161,7 +161,8 @@ api.post('/external/api/send_mail', async (c) => {
             return c.text("No address", 400)
         }
         const reqJson = await c.req.json();
-        return await sendMail(c, address, reqJson);
+        await sendMail(c, address, reqJson);
+        return c.json({ status: "ok" })
     } catch (e) {
         console.error("Failed to send mail", e);
         return c.text(`Failed to send mail ${e.message}`, 400)

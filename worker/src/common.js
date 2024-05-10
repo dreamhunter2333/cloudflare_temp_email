@@ -9,8 +9,12 @@ export const newAddress = async (c, name, domain, enablePrefix) => {
     if (name.length < 0) {
         return c.text("Name too short", 400)
     }
-    if (name.length > 100) {
-        return c.text("Name too long (max 100)", 400)
+    // create address
+    if (enablePrefix) {
+        name = getStringValue(c.env.PREFIX) + name;
+    }
+    if (name.length >= 30) {
+        return c.text("Name too long (max 30)", 400)
     }
     // check domain, generate random domain
     const domains = getDomains(c);
@@ -18,11 +22,7 @@ export const newAddress = async (c, name, domain, enablePrefix) => {
         domain = domains[Math.floor(Math.random() * domains.length)];
     }
     // create address
-    if (enablePrefix) {
-        name = getStringValue(c.env.PREFIX) + name + "@" + domain;
-    } else {
-        name = name + "@" + domain;
-    }
+    name = name + "@" + domain;
     try {
         const { success } = await c.env.DB.prepare(
             `INSERT INTO address(name) VALUES(?)`
