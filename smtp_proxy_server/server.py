@@ -51,6 +51,7 @@ class CustomSMTPHandler:
         if msg.is_multipart():
             for part in msg.walk():
                 content_type = part.get_content_type()
+                charset = part.get_content_charset()
                 payload = part.get_payload(decode=True)
                 if content_type not in ["text/plain", "text/html"]:
                     _logger.warning(f"Skipping {content_type}")
@@ -59,7 +60,7 @@ class CustomSMTPHandler:
                     continue
                 content_list.append({
                     "type": content_type,
-                    "value": payload.decode()
+                    "value": payload.decode(charset)
                 })
         elif msg.get_content_type() in ["text/plain", "text/html"] and msg.get_payload(decode=True):
             content_list.append({
@@ -97,7 +98,7 @@ class CustomSMTPHandler:
             "is_html": body["type"] == "text/html",
             "content": body["value"],
         }
-        _logger.info(f"Send mail {send_body}")
+        _logger.info(f"Send mail {dict(send_body, token='***')}")
         try:
             res = requests.post(
                 f"{settings.proxy_url}/external/api/send_mail",
