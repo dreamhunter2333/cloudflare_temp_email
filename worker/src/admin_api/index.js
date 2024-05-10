@@ -149,7 +149,7 @@ api.post('/admin/address_sender', async (c) => {
     }
     await sendAdminInternalMail(
         c, address, "Account Send Access Updated",
-        `You send access has been ${enabled ? "enabled" : "disabled"}, balance: ${balance}`
+        `Your send access has been ${enabled ? "enabled" : "disabled"}, balance: ${balance}`
     );
     return c.json({
         success: success
