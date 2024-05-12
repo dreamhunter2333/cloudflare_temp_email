@@ -123,14 +123,14 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             text: '通过 Github Actions 部署',
             collapsed: false,
             items: [
-                { text: '开发中', link: 'github-action' },
+                { text: '通过 Github Actions 部署', link: 'github-action' },
             ]
         },
         {
             text: '附加功能',
             collapsed: false,
             items: [
-                { text: '配置 SMTP 代理服务', link: 'feature/config-smtp-proxy' },
+                { text: '配置 SMTP IMAP 代理服务', link: 'feature/config-smtp-proxy' },
                 { text: '发送邮件 API', link: 'feature/send-mail-api' },
                 { text: '查看邮件 API', link: 'feature/mail-api' },
                 { text: '配置子域名邮箱', link: 'feature/subdomain' },
