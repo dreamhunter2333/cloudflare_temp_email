@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "0.0.0",
+  "version": "0.4.2",
   "private": true,
   "type": "module",
   "scripts": {

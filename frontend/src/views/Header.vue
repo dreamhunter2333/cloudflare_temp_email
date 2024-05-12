@@ -69,6 +69,8 @@ const { t } = useI18n({
     }
 });
 
+const version = import.meta.env.PACKAGE_VERSION ? `v${import.meta.env.PACKAGE_VERSION}` : "";
+
 const menuOptions = computed(() => [
     {
         label: () => h(NButton,
@@ -171,7 +173,7 @@ const menuOptions = computed(() => [
                 href: "https://github.com/dreamhunter2333/cloudflare_temp_email",
             },
             {
-                default: () => import.meta.env.VITE_VERSION || "Github",
+                default: () => version || "Github",
                 icon: () => h(NIcon, { component: GithubAlt })
             }
         ),
