@@ -49,4 +49,6 @@ services:
 
 下载 [Thunderbird](https://www.thunderbird.net/en-US/)
 
+密码填写 `邮箱地址凭证`
+
 ![imap](/feature/imap.png)
