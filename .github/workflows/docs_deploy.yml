@@ -31,6 +31,22 @@ jobs:
           version: 8
           run_install: false
 
+      - name: check github release done
+        run: |
+          for ((attempt=1; attempt<=10; attempt++)); do
+              if wget -q --spider "https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/frontend.zip"; then
+                  echo "frontend.zip found."
+                  break
+              else
+                  if [ $attempt -eq 10 ]; then
+                      echo "Exceeded maximum retries. frontend.zip not found."
+                  else
+                      echo "frontend.zip not found. Retrying in 30 seconds..."
+                      sleep 30
+                  fi
+              fi
+          done
+
       - name: Deploy Docs for ${{github.ref_name}}
         run: |
           cd vitepress-docs/
