@@ -135,7 +135,7 @@ onMounted(async () => {
                         {{ t('cleanupNow') }}
                     </n-button>
                 </n-form-item-row>
-                <n-form-item-row :label="t('mailBoxLabel')">
+                <n-form-item-row :label="t('sendBoxLabel')">
                     <n-checkbox v-model:checked="cleanupModel.enableSendBoxAutoCleanup">
                         {{ t('autoCleanup') }}
                     </n-checkbox>
