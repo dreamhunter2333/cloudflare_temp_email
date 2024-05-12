@@ -1,11 +1,22 @@
 # CHANGE LOG
 
-## main branch
+### v0.4.1
 
 - 用户名限制最长30个字符
 - 修复 `/external/api/send_mail` 未返回的 bug (#222)
 - 添加 `IMAP proxy` 服务，支持 `IMAP` 查看邮件
 - UI 界面增加版本号显示
+
+* feat: use common function handleListQuery when query by page by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/220
+* fix: typos by @lwd-temp in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/221
+* fix: name max 30 && /external/api/send_mail not return result by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/222
+* fix: smtp_proxy_server support decode from mail charset by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/223
+* feat: add imap proxy server by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/225
+* feat: UI show version by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/226
+
+### New Contributors
+
+* @lwd-temp made their first contribution in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/221
 
 ## v0.4.0
 
