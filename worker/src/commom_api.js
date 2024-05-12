@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 
 import { getDomains, getPasswords, getBooleanValue } from './utils';
+import { CONSTANTS } from './constants';
 
 const api = new Hono()
 
@@ -22,6 +23,7 @@ api.get('/open_api/settings', async (c) => {
         "enableAutoReply": getBooleanValue(c.env.ENABLE_AUTO_REPLY),
         "copyright": c.env.COPYRIGHT,
         "cfTurnstileSiteKey": c.env.CF_TURNSTILE_SITE_KEY,
+        "version": CONSTANTS.VERSION,
     });
 })
 

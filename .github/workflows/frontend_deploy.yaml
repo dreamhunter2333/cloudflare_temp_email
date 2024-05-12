@@ -34,7 +34,6 @@ jobs:
           cd frontend/
           echo "${{ secrets.FRONTEND_ENV }}" > .env.prod
           export project_name=${{ secrets.FRONTEND_NAME }}
-          export VITE_VERSION=${{ github.ref_name }}
           pnpm install --no-frozen-lockfile
           pnpm run deploy --project-name=$project_name
           echo "Deploying prodcution for ${{ github.ref_name }}"
