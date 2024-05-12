@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+## main branch
+
+- 用户名限制最长30个字符
+- 修复 `/external/api/send_mail` 未返回的 bug (#222)
+- 添加 `IMAP proxy` 服务，支持 `IMAP` 查看邮件
+
 ## v0.4.0
 
 ### DB Changes/Breaking changes

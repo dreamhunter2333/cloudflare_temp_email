@@ -1,10 +1,10 @@
-# 搭建 SMTP 代理服务
+# 搭建 SMTP IMAP 代理服务
 
-## 为什么需要 SMTP 代理服务
+## 为什么需要 SMTP IMAP 代理服务
 
-SMTP 的应用场景更加广泛
+`SMTP` `IMAP` 的应用场景更加广泛
 
-## 如何搭建 SMTP 代理服务
+## 如何搭建 SMTP IMAP 代理服务
 
 ### Local Run
 
@@ -16,7 +16,7 @@ cd smtp_proxy_server/
 cp .env.example .env
 python3 -m venv venv
 ./venv/bin/python3 -m pip install -r requirements.txt
-./venv/bin/python3 server.py
+./venv/bin/python3 main.py
 ```
 
 ### Docker Run
@@ -32,10 +32,21 @@ docker-compose up -d
 services:
   smtp_proxy_server:
     image: ghcr.io/dreamhunter2333/cloudflare_temp_email/smtp_proxy_server:latest
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
     container_name: "smtp_proxy_server"
     ports:
       - "8025:8025"
+      - "11143:11143"
     environment:
       - proxy_url=https://temp-email-api.xxx.xxx
       - port=8025
+      - imap_port=11143
 ```
+
+## 使用 Thunderbird 登录
+
+下载 [Thunderbird](https://www.thunderbird.net/en-US/)
+
+![imap](/feature/imap.png)

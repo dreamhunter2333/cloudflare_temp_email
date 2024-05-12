@@ -7,6 +7,8 @@ services:
     container_name: "smtp_proxy_server"
     ports:
       - "8025:8025"
+      - "11143:11143"
     environment:
       - proxy_url=https://temp-email-api.xxx.xxx
       - port=8025
+      - imap_port=11143
