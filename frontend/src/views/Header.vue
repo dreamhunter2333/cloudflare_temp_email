@@ -171,7 +171,7 @@ const menuOptions = computed(() => [
                 href: "https://github.com/dreamhunter2333/cloudflare_temp_email",
             },
             {
-                default: () => "Github",
+                default: () => import.meta.env.VITE_VERSION || "Github",
                 icon: () => h(NIcon, { component: GithubAlt })
             }
         ),
