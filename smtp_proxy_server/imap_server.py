@@ -103,7 +103,7 @@ class SimpleMailbox:
     def fetch(self, messages, uid):
         start, end = messages.ranges[0]
         start = max(start, 1)
-        if start > self.message_count:
+        if self.message_count > 0 and start > self.message_count:
             return []
         res = requests.get(
             f"{settings.proxy_url}/api/mails?limit=20&offset={start - 1}", headers={

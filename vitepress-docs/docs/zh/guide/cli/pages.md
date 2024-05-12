@@ -15,6 +15,8 @@ cp .env.example .env.prod
 例如: `VITE_API_BASE=https://xxx.xxx.workers.dev`
 
 ```bash
+# 请修改为你的版本号, 可以不填
+# export VITE_VERSION=0.0.0
 pnpm build --emptyOutDir
 # 根据提示创建 pages
 pnpm run deploy
