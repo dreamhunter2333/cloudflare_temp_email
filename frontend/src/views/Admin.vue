@@ -14,6 +14,7 @@ import UserManagement from './admin/UserManagement.vue';
 import UserSettings from './admin/UserSettings.vue';
 import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
+import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
 import Appearance from './common/Appearance.vue';
 
@@ -48,6 +49,7 @@ const { t } = useI18n({
       statistics: 'Statistics',
       maintenance: 'Maintenance',
       appearance: 'Appearance',
+      about: 'About',
       ok: 'OK',
     },
     zh: {
@@ -65,6 +67,7 @@ const { t } = useI18n({
       statistics: '统计',
       maintenance: '维护',
       appearance: '外观',
+      about: '关于',
       ok: '确定',
     }
   }
@@ -126,6 +129,9 @@ onMounted(async () => {
       </n-tab-pane>
       <n-tab-pane name="appearance" :tab="t('appearance')">
         <Appearance />
+      </n-tab-pane>
+      <n-tab-pane name="about" :tab="t('about')">
+        <About />
       </n-tab-pane>
     </n-tabs>
   </div>

@@ -13,6 +13,7 @@ export const useGlobalState = createGlobalState(
             enableUserCreateEmail: false,
             enableUserDeleteEmail: false,
             enableAutoReply: false,
+            enableIndexAbout: false,
             domains: [],
             copyright: 'Dream Hunter',
             cfTurnstileSiteKey: '',

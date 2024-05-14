@@ -10,6 +10,7 @@ import AutoReply from './index/AutoReply.vue';
 import SendBox from './index/SendBox.vue';
 import SendMail from './index/SendMail.vue';
 import AccountSettings from './index/AccountSettings.vue';
+import About from './common/About.vue';
 
 const { localeCache, settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
 
@@ -22,6 +23,7 @@ const { t } = useI18n({
       sendmail: 'Send Mail',
       auto_reply: 'Auto Reply',
       accountSettings: 'Account Settings',
+      about: 'About',
     },
     zh: {
       mailbox: '收件箱',
@@ -29,6 +31,7 @@ const { t } = useI18n({
       sendmail: '发送邮件',
       auto_reply: '自动回复',
       accountSettings: '账户设置',
+      about: '关于',
     }
   }
 });
@@ -61,6 +64,9 @@ const deleteMail = async (curMailId) => {
       </n-tab-pane>
       <n-tab-pane v-if="openSettings.enableAutoReply" name="auto_reply" :tab="t('auto_reply')">
         <AutoReply />
+      </n-tab-pane>
+      <n-tab-pane v-if="openSettings.enableIndexAbout" name="about" :tab="t('about')">
+        <About />
       </n-tab-pane>
     </n-tabs>
   </div>
