@@ -1,5 +1,11 @@
 # Cloudflare Pages 前端
 
+::: warning
+下面两种方式选择一种即可
+:::
+
+## 前后端分离部署
+
 第一次部署会提示创建项目, `production` 分支请填写 `production`
 
 ```bash
@@ -23,3 +29,19 @@ pnpm run deploy
 部署完成之后你可以在 Cloudflare 控制台看到你的项目, 可以为 `pages` 配置自定义域名
 
 ![pages](/readme_assets/pages.png)
+
+## 通过 page functions 转发后端请求
+
+从 page functions 转发请求到 worker 后端, 可以获取更快的响应速度
+
+第一次部署会提示创建项目, `production` 分支请填写 `production`
+
+如果你的 worker 后端 名称不为 `cloudflare_temp_email` 请修改 `pages/wrangler.toml`
+
+```bash
+cd frontend
+pnpm install
+pnpm build:pages
+cd ../pages
+pnpm run deploy
+```

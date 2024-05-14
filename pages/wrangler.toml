@@ -1,0 +1,8 @@
+name = "temp-email-pages"
+pages_build_output_dir = "../frontend/dist"
+compatibility_date = "2024-05-13"
+
+[[services]]
+binding = "BACKEND"
+service = "cloudflare_temp_email"
+environment = "production"
