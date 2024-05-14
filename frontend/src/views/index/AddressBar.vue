@@ -26,7 +26,6 @@ const { t } = useI18n({
             copy: 'Copy',
             copied: 'Copied',
             fetchAddressError: 'Mail address credential is invalid or account not exist, it may be network connection issue, please try again later.',
-            mailV1Alert: 'You have some mails in v1, please click here to login and visit your history mails.',
             addressCredential: 'Mail Address Credential',
             addressCredentialTip: 'Please copy the Mail Address Credential and you can use it to login to your email account.',
             userLogin: 'User Login',
@@ -37,7 +36,6 @@ const { t } = useI18n({
             copy: '复制',
             copied: '已复制',
             fetchAddressError: '邮箱地址凭证无效或邮箱地址不存在，也可能是网络连接异常，请稍后再尝试。',
-            mailV1Alert: '你有一些 v1 版本的邮件，请点击此处登录查看。',
             addressCredential: '邮箱地址凭证',
             addressCredentialTip: '请复制邮箱地址凭证，你可以使用它登录你的邮箱。',
             userLogin: '用户登录',
@@ -65,13 +63,6 @@ onMounted(async () => {
             <n-skeleton style="height: 50vh" />
         </n-card>
         <div v-else-if="settings.address">
-            <n-alert v-if="settings.has_v1_mails" type="warning" :show-icon="false" closable>
-                <span>
-                    <n-button tag="a" target="_blank" tertiary type="info" size="small" href="https://mail-v1.awsl.uk">
-                        <b>{{ t('mailV1Alert') }} </b>
-                    </n-button>
-                </span>
-            </n-alert>
             <n-alert type="info" :show-icon="false">
                 <span>
                     <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
