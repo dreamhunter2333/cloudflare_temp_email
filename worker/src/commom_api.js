@@ -21,6 +21,7 @@ api.get('/open_api/settings', async (c) => {
         "enableUserCreateEmail": getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
         "enableUserDeleteEmail": getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),
         "enableAutoReply": getBooleanValue(c.env.ENABLE_AUTO_REPLY),
+        "enableIndexAbout": getBooleanValue(c.env.ENABLE_INDEX_ABOUT),
         "copyright": c.env.COPYRIGHT,
         "cfTurnstileSiteKey": c.env.CF_TURNSTILE_SITE_KEY,
         "version": CONSTANTS.VERSION,

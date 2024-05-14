@@ -66,6 +66,7 @@ const getOpenSettings = async (message) => {
             enableUserCreateEmail: res["enableUserCreateEmail"] || false,
             enableUserDeleteEmail: res["enableUserDeleteEmail"] || false,
             enableAutoReply: res["enableAutoReply"] || false,
+            enableIndexAbout: res["enableIndexAbout"] || false,
             copyright: res["copyright"] || openSettings.value.copyright,
             cfTurnstileSiteKey: res["cfTurnstileSiteKey"] || "",
         });
