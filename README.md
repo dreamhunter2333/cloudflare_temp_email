@@ -73,4 +73,4 @@
 ## Join Community
 
 - [Discord](https://discord.gg/dQEwTWhA6Q)
-- [Telegram](https://t.me/+Na5HZiP1TY1kMjc1)
+- [Telegram](https://t.me/cloudflare_temp_email)
