@@ -28,7 +28,7 @@ coverage
 *.sw?
 
 .env.*
-!.env.example
-!.env.pages
 *-dist/
 components.d.ts
+.wrangler/
+pnpm-lock.yaml
