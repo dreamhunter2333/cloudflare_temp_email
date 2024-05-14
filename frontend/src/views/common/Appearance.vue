@@ -1,12 +1,14 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 
+import { useIsMobile } from '../../utils/composables'
 import { useGlobalState } from '../../store'
 
 const {
     localeCache, mailboxSplitSize, useIframeShowMail, preferShowTextMail,
     globalTabplacement, useSideMargin
 } = useGlobalState()
+const isMobile = useIsMobile()
 
 const { t } = useI18n({
     locale: localeCache.value || 'zh',
@@ -40,7 +42,7 @@ const { t } = useI18n({
 <template>
     <div class="center">
         <n-card>
-            <n-form-item-row :label="t('mailboxSplitSize')">
+            <n-form-item-row v-if="!isMobile" :label="t('mailboxSplitSize')">
                 <n-slider v-model:value="mailboxSplitSize" :min="0.25" :max="0.75" :step="0.01" :marks="{
                     0.25: '0.25',
                     0.5: '0.5',
@@ -53,7 +55,7 @@ const { t } = useI18n({
             <n-form-item-row :label="t('useIframeShowMail')">
                 <n-switch v-model:value="useIframeShowMail" :round="false" />
             </n-form-item-row>
-            <n-form-item-row :label="t('useSideMargin')">
+            <n-form-item-row v-if="!isMobile" :label="t('useSideMargin')">
                 <n-switch v-model:value="useSideMargin" :round="false" />
             </n-form-item-row>
             <n-form-item-row :label="t('globalTabplacement')">
