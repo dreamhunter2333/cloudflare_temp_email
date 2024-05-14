@@ -73,3 +73,4 @@
 ## Join Community
 
 - [Discord](https://discord.gg/dQEwTWhA6Q)
+- [Telegram](https://t.me/+Na5HZiP1TY1kMjc1)
