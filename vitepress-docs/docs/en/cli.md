@@ -95,6 +95,8 @@ ENABLE_AUTO_REPLY = false
 # dkim config
 # DKIM_SELECTOR = "mailchannels" # Refer to the DKIM section mailchannels._domainkey for mailchannels
 # DKIM_PRIVATE_KEY = "" # Refer to the contents of priv_key.txt in the DKIM section
+# telegram bot
+# TG_MAX_ACCOUNTS = 5
 
 [[d1_databases]]
 binding = "DB"

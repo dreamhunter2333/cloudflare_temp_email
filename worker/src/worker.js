@@ -9,6 +9,7 @@ import { api as userApi } from './user_api';
 import { api as adminApi } from './admin_api';
 import { api as apiV1 } from './deprecated';
 import { api as apiSendMail } from './mails_api/send_mail_api'
+import { api as telegramApi } from './telegram_api'
 
 import { email } from './email';
 import { scheduled } from './scheduled';
@@ -107,6 +108,7 @@ app.route('/', userApi)
 app.route('/', adminApi)
 app.route('/', apiV1)
 app.route('/', apiSendMail)
+app.route('/', telegramApi)
 
 app.get('/', async c => c.text("OK"))
 app.get('/health_check', async c => c.text("OK"))

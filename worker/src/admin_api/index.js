@@ -36,7 +36,12 @@ api.post('/admin/new_address', async (c) => {
     if (!name) {
         return c.text("Please provide a name", 400)
     }
-    return newAddress(c, name, domain, enablePrefix);
+    try {
+        const res = await newAddress(c, name, domain, enablePrefix);
+        return c.json(res);
+    } catch (e) {
+        return c.text(`Failed create address: ${e.message}`, 400)
+    }
 })
 
 api.delete('/admin/delete_address/:id', async (c) => {

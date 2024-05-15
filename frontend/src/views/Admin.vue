@@ -17,6 +17,7 @@ import MailsUnknow from './admin/MailsUnknow.vue';
 import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
 import Appearance from './common/Appearance.vue';
+import Telegram from './admin/Telegram.vue';
 
 const {
   localeCache, adminAuth, showAdminAuth, adminTab, loading, globalTabplacement
@@ -46,6 +47,7 @@ const { t } = useI18n({
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
+      telegram: 'Telegram Bot',
       statistics: 'Statistics',
       maintenance: 'Maintenance',
       appearance: 'Appearance',
@@ -64,6 +66,7 @@ const { t } = useI18n({
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
+      telegram: '电报机器人',
       statistics: '统计',
       maintenance: '维护',
       appearance: '外观',
@@ -120,6 +123,9 @@ onMounted(async () => {
       </n-tab-pane>
       <n-tab-pane name="sendBox" :tab="t('sendBox')">
         <SendBox />
+      </n-tab-pane>
+      <n-tab-pane name="telegram" :tab="t('telegram')">
+        <Telegram />
       </n-tab-pane>
       <n-tab-pane name="statistics" :tab="t('statistics')">
         <Statistics />

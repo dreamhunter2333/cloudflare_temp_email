@@ -7,14 +7,14 @@ export const newAddress = async (c, name, domain, enablePrefix) => {
     name = name.replace(/[^a-zA-Z0-9.]/g, '')
     // check name length
     if (name.length < 0) {
-        return c.text("Name too short", 400)
+        throw new Error("Name too short")
     }
     // create address
     if (enablePrefix) {
         name = getStringValue(c.env.PREFIX) + name;
     }
     if (name.length >= 30) {
-        return c.text("Name too long (max 30)", 400)
+        throw new Error("Name too long (max 30)")
     }
     // check domain, generate random domain
     const domains = getDomains(c);
@@ -28,30 +28,27 @@ export const newAddress = async (c, name, domain, enablePrefix) => {
             `INSERT INTO address(name) VALUES(?)`
         ).bind(name).run();
         if (!success) {
-            return c.text("Failed to create address", 500)
+            throw new Error("Failed to create address")
         }
     } catch (e) {
         if (e.message && e.message.includes("UNIQUE")) {
-            return c.text("Address already exists, please retry a new address", 400)
+            throw new Error("Address already exists")
         }
-        return c.text("Failed to create address", 500)
+        throw new Error("Failed to create address")
     }
     let address_id = 0;
-    try {
-        address_id = await c.env.DB.prepare(
-            `SELECT id FROM address where name = ?`
-        ).bind(name).first("id");
-    } catch (error) {
-        console.log(error);
-    }
+    address_id = await c.env.DB.prepare(
+        `SELECT id FROM address where name = ?`
+    ).bind(name).first("id");
     // create jwt
     const jwt = await Jwt.sign({
         address: name,
         address_id: address_id
     }, c.env.JWT_SECRET, "HS256")
-    return c.json({
-        jwt: jwt
-    })
+    return {
+        jwt: jwt,
+        address: name,
+    }
 }
 
 export const cleanup = async (c, cleanType, cleanDays) => {

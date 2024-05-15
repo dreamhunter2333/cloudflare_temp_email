@@ -38,6 +38,8 @@ ENABLE_AUTO_REPLY = false
 # dkim config
 # DKIM_SELECTOR = ""
 # DKIM_PRIVATE_KEY = ""
+# telegram bot
+# TG_MAX_ACCOUNTS = 5
 
 [[d1_databases]]
 binding = "DB"
