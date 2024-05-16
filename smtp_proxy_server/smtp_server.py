@@ -41,20 +41,33 @@ class CustomSMTPHandler:
             for part in msg.walk():
                 content_type = part.get_content_type()
                 charset = part.get_content_charset()
-                payload = part.get_payload(decode=True)
+                cte = str(part.get('content-transfer-encoding', '')).lower()
                 if content_type not in ["text/plain", "text/html"]:
                     _logger.warning(f"Skipping {content_type}")
                     continue
-                if not payload:
+                if cte == "8bit":
+                    value = part.get_payload(decode=False)
+                else:
+                    payload = part.get_payload(decode=True)
+                    value = payload.decode(charset) if charset else payload
+                if not value:
                     continue
                 content_list.append({
                     "type": content_type,
-                    "value": payload.decode(charset)
+                    "value": value
                 })
         elif msg.get_content_type() in ["text/plain", "text/html"] and msg.get_payload(decode=True):
+            cte = str(msg.get('content-transfer-encoding', '')).lower()
+            charset = msg.get_content_charset()
+            if cte == "8bit":
+                value = msg.get_payload(decode=False)
+            else:
+                payload = msg.get_payload(decode=True)
+                value = payload.decode(charset) if charset else payload
+            _logger.info(f"Payload {msg._payload} charset {charset}")
             content_list.append({
                 "type": msg.get_content_type(),
-                "value": msg.get_payload(decode=True).decode()
+                "value": value
             })
 
         if not content_list:

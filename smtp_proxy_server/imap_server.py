@@ -51,6 +51,9 @@ class SimpleMessage:
     def getFlags(self):
         return ["\\Seen"]
 
+    def getInternalDate(self):
+        return self.email.headers.get("Date", "Mon, 1 Jan 1900 00:00:00 +0000")
+
 
 @implementer(imap4.IMailboxInfo, imap4.IMailbox)
 class SimpleMailbox:
@@ -129,7 +132,7 @@ class SimpleMailbox:
 
     def store(self, messages, flags, mode, uid):
         # IMailboxIMAP.store
-        pass
+        raise NotImplementedError
 
 
 class Account(imap4.MemoryAccount):
@@ -141,7 +144,7 @@ class Account(imap4.MemoryAccount):
     def _emptyMailbox(self, name, id):
         _logger.info(f"New mailbox: {name}, {id}")
         if name != "INBOX":
-            raise imap4.NoSuchMailbox(name)
+            raise Exception("Mailbox not found")
         return SimpleMailbox(self.password)
 
     def select(self, name, rw=1):
