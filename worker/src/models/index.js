@@ -29,7 +29,6 @@ export class CleanupSettings {
         const {
             enableMailsAutoCleanup, cleanMailsDays,
             enableUnknowMailsAutoCleanup, cleanUnknowMailsDays,
-            enableAddressAutoCleanup, cleanAddressDays,
             enableSendBoxAutoCleanup, cleanSendBoxDays
         } = data || {};
         /** @type {boolean|undefined} */
@@ -40,10 +39,6 @@ export class CleanupSettings {
         this.enableUnknowMailsAutoCleanup = enableUnknowMailsAutoCleanup;
         /** @type {number|undefined} */
         this.cleanUnknowMailsDays = cleanUnknowMailsDays;
-        /** @type {boolean|undefined} */
-        this.enableAddressAutoCleanup = enableAddressAutoCleanup;
-        /** @type {number|undefined} */
-        this.cleanAddressDays = cleanAddressDays;
         /** @type {boolean|undefined} */
         this.enableSendBoxAutoCleanup = enableSendBoxAutoCleanup;
         /** @type {number|undefined} */

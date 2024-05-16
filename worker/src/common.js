@@ -68,12 +68,6 @@ export const cleanup = async (c, cleanType, cleanDays) => {
                 (select name from address) AND created_at < datetime('now', '-${cleanDays} day')`
             ).run();
             break;
-        case "address":
-            await c.env.DB.prepare(`
-                DELETE FROM address WHERE updated_at < datetime('now', '-${cleanDays} day')`
-                + ` AND id NOT IN (SELECT address_id FROM users_address)`
-            ).run();
-            break;
         case "sendbox":
             await c.env.DB.prepare(`
                 DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`

@@ -26,7 +26,6 @@ const { t } = useI18n({
             tip: 'Please input the cleanup days',
             mailBoxLabel: 'Clean up days for mailbox',
             mailUnknowLabel: "Clean up days for unknow receiver",
-            addressUnActiveLabel: "Clean up days for unactive address",
             sendBoxLabel: "Clean up days for sendbox",
             cleanupNow: "Cleanup now",
             autoCleanup: "Auto cleanup",
@@ -38,7 +37,6 @@ const { t } = useI18n({
             tip: '请输入清理天数',
             mailBoxLabel: '收件箱清理天数',
             mailUnknowLabel: "无收件人邮件清理天数",
-            addressUnActiveLabel: "未活跃地址清理天数",
             sendBoxLabel: "发件箱清理天数",
             autoCleanup: "自动清理",
             cleanupSuccess: "清理成功",
@@ -117,18 +115,6 @@ onMounted(async () => {
                     </n-checkbox>
                     <n-input-number v-model:value="cleanupModel.cleanUnknowMailsDays" :placeholder="t('tip')" />
                     <n-button @click="cleanup('mails_unknow', cleanupModel.cleanUnknowMailsDays)">
-                        <template #icon>
-                            <n-icon :component="CleaningServicesFilled" />
-                        </template>
-                        {{ t('cleanupNow') }}
-                    </n-button>
-                </n-form-item-row>
-                <n-form-item-row :label="t('addressUnActiveLabel')">
-                    <n-checkbox v-model:checked="cleanupModel.enableAddressAutoCleanup">
-                        {{ t('autoCleanup') }}
-                    </n-checkbox>
-                    <n-input-number v-model:value="cleanupModel.cleanAddressDays" :placeholder="t('tip')" />
-                    <n-button @click="cleanup('address', cleanupModel.cleanAddressDays)">
                         <template #icon>
                             <n-icon :component="CleaningServicesFilled" />
                         </template>

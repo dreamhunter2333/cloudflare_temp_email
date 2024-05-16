@@ -25,13 +25,6 @@ export async function scheduled(event, env, ctx) {
             autoCleanupSetting.cleanUnknowMailsDays
         );
     }
-    if (autoCleanupSetting.enableAddressAutoCleanup && autoCleanupSetting.cleanAddressDays > 0) {
-        await cleanup(
-            { env: env, },
-            "address",
-            autoCleanupSetting.cleanAddressDays
-        );
-    }
     if (autoCleanupSetting.enableSendBoxAutoCleanup && autoCleanupSetting.cleanSendBoxDays > 0) {
         await cleanup(
             { env: env, },
