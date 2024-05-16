@@ -61,11 +61,16 @@ export function newTelegramBot(c: Context, token: string): Telegraf {
             return await ctx.reply("无法获取用户信息");
         }
         try {
-            // @ts-ignore
-            const address = ctx?.message?.text.slice("/new".length).trim();
-            if (!address) {
-                return await ctx.reply("请输入邮箱地址");
+            if (c.env.RATE_LIMITER) {
+                const { success } = await c.env.RATE_LIMITER.limit(
+                    { key: `${CONSTANTS.TG_KV_PREFIX}:${userId}` }
+                )
+                if (!success) {
+                    return await ctx.reply("操作过于频繁");
+                }
             }
+            // @ts-ignore
+            const address = ctx?.message?.text.slice("/new".length).trim() || Math.random().toString(36).substring(2, 15);
             const [name, domain] = address.includes("@") ? address.split("@") : [address, null];
             const jwtList = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, { type: 'json' }) || [];
             if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
