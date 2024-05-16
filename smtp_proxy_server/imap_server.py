@@ -144,7 +144,7 @@ class Account(imap4.MemoryAccount):
     def _emptyMailbox(self, name, id):
         _logger.info(f"New mailbox: {name}, {id}")
         if name != "INBOX":
-            raise Exception("Mailbox not found")
+            raise imap4.NoSuchMailbox(name.encode("utf-8"))
         return SimpleMailbox(self.password)
 
     def select(self, name, rw=1):
