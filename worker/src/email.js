@@ -1,5 +1,6 @@
 import { createMimeMessage } from "mimetext";
 import { getBooleanValue } from "./utils";
+import { sendMailToTelegram } from "./telegram_api";
 
 async function email(message, env, ctx) {
     if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => message.from.includes(word))) {
@@ -18,6 +19,15 @@ async function email(message, env, ctx) {
     if (!success) {
         message.setReject(`Failed save message to ${message.to}`);
         console.log(`Failed save message from ${message.from} to ${message.to}`);
+    }
+
+    // send email to telegram
+    try {
+        await sendMailToTelegram({
+            env: env,
+        }, message.to, rawEmail);
+    } catch (error) {
+        console.log("send mail to telegram error", error);
     }
 
     // auto reply email

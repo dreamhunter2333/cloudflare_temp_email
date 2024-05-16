@@ -106,7 +106,12 @@ api.post('/api/new_address', async (c) => {
     } catch (error) {
         console.error(error);
     }
-    return newAddress(c, name, domain, true);
+    try {
+        const res = await newAddress(c, name, domain, true);
+        return c.json(res);
+    } catch (e) {
+        return c.text(`Failed create address: ${e.message}`, 400)
+    }
 })
 
 api.delete('/api/delete_address', async (c) => {

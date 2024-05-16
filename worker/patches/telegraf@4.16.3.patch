@@ -1,0 +1,163 @@
+diff --git a/lib/core/network/client.js b/lib/core/network/client.js
+index 25fbbbb47c7f88e83ae26f629e5ae1a0c141725c..209d4a6bf05352f44eeb082eb327581d698de5ce 100644
+--- a/lib/core/network/client.js
++++ b/lib/core/network/client.js
+@@ -1,18 +1,18 @@
+ "use strict";
+-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
++var __createBinding = (this && this.__createBinding) || (Object.create ? (function (o, m, k, k2) {
+     if (k2 === undefined) k2 = k;
+     var desc = Object.getOwnPropertyDescriptor(m, k);
+     if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+-      desc = { enumerable: true, get: function() { return m[k]; } };
++        desc = { enumerable: true, get: function () { return m[k]; } };
+     }
+     Object.defineProperty(o, k2, desc);
+-}) : (function(o, m, k, k2) {
++}) : (function (o, m, k, k2) {
+     if (k2 === undefined) k2 = k;
+     o[k2] = m[k];
+ }));
+-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
++var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function (o, v) {
+     Object.defineProperty(o, "default", { enumerable: true, value: v });
+-}) : function(o, v) {
++}) : function (o, v) {
+     o["default"] = v;
+ });
+ var __importStar = (this && this.__importStar) || function (mod) {
+@@ -29,8 +29,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ /* eslint @typescript-eslint/restrict-template-expressions: [ "error", { "allowNumber": true, "allowBoolean": true } ] */
+ const crypto = __importStar(require("crypto"));
+ const fs = __importStar(require("fs"));
+-const promises_1 = require("fs/promises");
+-const https = __importStar(require("https"));
++// const promises_1 = require("fs/promises");
++// const https = __importStar(require("https"));
+ const path = __importStar(require("path"));
+ const node_fetch_1 = __importDefault(require("node-fetch"));
+ const check_1 = require("../helpers/check");
+@@ -61,10 +61,10 @@ const DEFAULT_OPTIONS = {
+     apiRoot: 'https://api.telegram.org',
+     apiMode: 'bot',
+     webhookReply: true,
+-    agent: new https.Agent({
+-        keepAlive: true,
+-        keepAliveMsecs: 10000,
+-    }),
++    // agent: new https.Agent({
++    //     keepAlive: true,
++    //     keepAliveMsecs: 10000,
++    // }),
+     attachmentAgent: undefined,
+     testEnv: false,
+ };
+@@ -112,9 +112,9 @@ async function buildFormDataConfig(payload, agent) {
+     }
+     const boundary = crypto.randomBytes(32).toString('hex');
+     const formData = new multipart_stream_1.default(boundary);
+-    await Promise.all(Object.keys(payload).map((key) => 
+-    // @ts-expect-error payload[key] can obviously index payload, but TS doesn't trust us
+-    attachFormValue(formData, key, payload[key], agent)));
++    await Promise.all(Object.keys(payload).map((key) =>
++        // @ts-expect-error payload[key] can obviously index payload, but TS doesn't trust us
++        attachFormValue(formData, key, payload[key], agent)));
+     return {
+         method: 'POST',
+         compress: true,
+@@ -205,14 +205,15 @@ async function attachFormMedia(form, media, id, agent) {
+     if ('source' in media && media.source) {
+         let mediaSource = media.source;
+         if (typeof media.source === 'string') {
+-            const source = await (0, promises_1.realpath)(media.source);
+-            if ((await (0, promises_1.stat)(source)).isFile()) {
+-                fileName = (_c = media.filename) !== null && _c !== void 0 ? _c : path.basename(media.source);
+-                mediaSource = await fs.createReadStream(media.source);
+-            }
+-            else {
+-                throw new TypeError(`Unable to upload '${media.source}', not a file`);
+-            }
++            throw new TypeError(`Unable to upload '${media.source}', not a file`);
++            // const source = await (0, promises_1.realpath)(media.source);
++            // if ((await (0, promises_1.stat)(source)).isFile()) {
++            //     fileName = (_c = media.filename) !== null && _c !== void 0 ? _c : path.basename(media.source);
++            //     mediaSource = await fs.createReadStream(media.source);
++            // }
++            // else {
++            //     throw new TypeError(`Unable to upload '${media.source}', not a file`);
++            // }
+         }
+         if (isStream(mediaSource) || Buffer.isBuffer(mediaSource)) {
+             form.addPart({
+diff --git a/lib/core/network/polling.js b/lib/core/network/polling.js
+index 42f20a5090304c56d0970da56eeaaacaa518ca92..0ae889c32d46e33440c62ad6d27a290c0fe3dda2 100644
+--- a/lib/core/network/polling.js
++++ b/lib/core/network/polling.js
+@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Polling = void 0;
+ const abort_controller_1 = __importDefault(require("abort-controller"));
+ const debug_1 = __importDefault(require("debug"));
+-const util_1 = require("util");
++// const util_1 = require("util");
+ const error_1 = require("./error");
+ const debug = (0, debug_1.default)('telegraf:polling');
+-const wait = (0, util_1.promisify)(setTimeout);
++// const wait = (0, util_1.promisify)(setTimeout);
+ function always(x) {
+     return () => x;
+ }
+@@ -47,7 +47,8 @@ class Polling {
+                     (err instanceof error_1.TelegramError && err.code >= 500)) {
+                     const retryAfter = (_b = (_a = err.parameters) === null || _a === void 0 ? void 0 : _a.retry_after) !== null && _b !== void 0 ? _b : 5;
+                     debug('Failed to fetch updates, retrying after %ds.', retryAfter, err);
+-                    await wait(retryAfter * 1000);
++                    // await wait(retryAfter * 1000);
++                    await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+                     continue;
+                 }
+                 if (err instanceof error_1.TelegramError &&
+diff --git a/lib/telegraf.js b/lib/telegraf.js
+index 23d021c3d5f98493bd714a2114ec8fa853560e5c..90094d18316138b7e12eab42f722e69ccc9b6c1f 100644
+--- a/lib/telegraf.js
++++ b/lib/telegraf.js
+@@ -28,8 +28,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Telegraf = void 0;
+ const crypto = __importStar(require("crypto"));
+-const http = __importStar(require("http"));
+-const https = __importStar(require("https"));
++// const http = __importStar(require("http"));
++// const https = __importStar(require("https"));
+ const composer_1 = require("./composer");
+ const compact_1 = require("./core/helpers/compact");
+ const context_1 = __importDefault(require("./context"));
+@@ -157,13 +157,13 @@ class Telegraf extends composer_1.Composer {
+         const callback = typeof cb === 'function'
+             ? (req, res) => webhookCb(req, res, () => cb(req, res))
+             : webhookCb;
+-        this.webhookServer =
+-            tlsOptions != null
+-                ? https.createServer(tlsOptions, callback)
+-                : http.createServer(callback);
+-        this.webhookServer.listen(port, host, () => {
+-            debug('Webhook listening on port: %s', port);
+-        });
++        // this.webhookServer =
++        //     tlsOptions != null
++        //         ? https.createServer(tlsOptions, callback)
++        //         : http.createServer(callback);
++        // this.webhookServer.listen(port, host, () => {
++        //     debug('Webhook listening on port: %s', port);
++        // });
+         return this;
+     }
+     secretPathComponent() {
+@@ -176,7 +176,7 @@ class Telegraf extends composer_1.Composer {
+     /**
+      * @see https://github.com/telegraf/telegraf/discussions/1344#discussioncomment-335700
+      */
+-    async launch(config = {}, 
++    async launch(config = {},
+     /** @experimental */
+     onLaunch) {
+         var _a, _b;

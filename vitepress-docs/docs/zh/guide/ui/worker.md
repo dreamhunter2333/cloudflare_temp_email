@@ -45,3 +45,10 @@
 
     ![worker-kv](/ui_install/worker-kv.png)
     ![worker-kv-bind](/ui_install/worker-kv-bind.png)
+
+9. Telegram Bot 配置
+
+    > [!NOTE]
+    > 如果不需要 Telegram Bot, 可跳过此步骤
+
+    请先创建一个 Telegram Bot，然后获取 `token`，然后执行下面的命令，将 `token` 添加到 `Variables` 中, Name: `TELEGRAM_BOT_TOKEN`

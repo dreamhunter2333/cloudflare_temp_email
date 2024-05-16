@@ -47,8 +47,22 @@ export const getBooleanValue = (value) => {
     if (typeof value === "string") {
         return value === "true";
     }
-    console.error("Invalid boolean value", value);
+    console.error(`Failed to parse boolean value: ${value}`);
     return false;
+}
+
+export const getIntValue = (value, defaultValue = 0) => {
+    if (typeof value === "number") {
+        return value;
+    }
+    if (typeof value === "string") {
+        try {
+            return parseInt(value);
+        } catch (e) {
+            console.error(`Failed to parse int value: ${value}`);
+        }
+    }
+    return defaultValue;
 }
 
 export const getDomains = (c) => {

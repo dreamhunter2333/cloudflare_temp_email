@@ -12,6 +12,7 @@ cp wrangler.toml.template wrangler.toml
 
 > [!NOTE]
 > 如果你要启用注册用户功能，并需要发送邮件验证，则需要创建 `KV` 缓存, 不需要可跳过此步骤
+> 如果需要 Telegram Bot，需要创建 `KV` 缓存，不需要可跳过此步骤
 
 通过命令行创建 KV 缓存，或者在 Cloudflare 控制台创建，然后复制对应配置到 `wrangler.toml` 文件中
 
@@ -62,6 +63,8 @@ ENABLE_AUTO_REPLY = false
 # dkim config
 # DKIM_SELECTOR = "mailchannels" # 参考 DKIM 部分 mailchannels._domainkey 的 mailchannels
 # DKIM_PRIVATE_KEY = "" # 参考 DKIM 部分 priv_key.txt 的内容
+# telegram bot 最多绑定邮箱数量
+# TG_MAX_ACCOUNTS = 5
 
 # D1 数据库的名称和 ID 可以在 cloudflare 控制台查看
 [[d1_databases]]
@@ -81,6 +84,17 @@ database_id = "xxx" # D1 数据库 ID
 # namespace_id = "1001"
 # # 10 requests per minute
 # simple = { limit = 10, period = 60 }
+```
+
+## Telegram Bot 配置
+
+> [!NOTE]
+> 如果不需要 Telegram Bot, 可跳过此步骤
+
+请先创建一个 Telegram Bot，然后获取 `token`，然后执行下面的命令，将 `token` 添加到 secrets 中
+
+```bash
+pnpm wrangler secret put TELEGRAM_BOT_TOKEN
 ```
 
 ## 部署

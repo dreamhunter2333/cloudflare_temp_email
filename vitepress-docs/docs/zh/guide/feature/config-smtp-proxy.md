@@ -28,6 +28,8 @@ docker-compose up -d
 
 修改 docker-compose.yaml 中的环境变量, 注意选择合适的 `tag`
 
+`proxy_url` 为 `worker` 的 URL 地址
+
 ```yaml
 services:
   smtp_proxy_server:
