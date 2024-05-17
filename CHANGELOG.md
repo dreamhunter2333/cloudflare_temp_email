@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## main branch
+
+- `telegram bot`  白名单配置
+
 ## v0.4.2
 
 - 修复 smtp imap proxy sever 的一些 bug

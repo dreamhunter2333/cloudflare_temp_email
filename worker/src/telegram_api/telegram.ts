@@ -10,6 +10,8 @@ import { CONSTANTS } from "../constants";
 import { getIntValue, getDomains, getStringValue } from '../utils';
 // @ts-ignore
 import { newAddress } from '../common'
+import { Bindings } from "../types";
+import { TelegramSettings } from "./settings";
 
 const COMMANDS = [
     {
@@ -34,12 +36,30 @@ const COMMANDS = [
     },
 ]
 
-export function newTelegramBot(c: Context, token: string): Telegraf {
+export function newTelegramBot(c: Context<{ Bindings: Bindings }>, token: string): Telegraf {
     const bot = new Telegraf(token);
-    bot.command("start", async (ctx: TgContext) => {
+
+    bot.use(async (ctx, next) => {
         if (ctx.chat?.type !== "private") {
             return await ctx.reply("请在私聊中使用");
         }
+
+        const userId = ctx?.message?.from?.id || ctx.callbackQuery?.message?.chat?.id;
+        if (!userId) {
+            return await ctx.reply("无法获取用户信息");
+        }
+
+        const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
+        if (settings?.enableAllowList && settings?.enableAllowList
+            && !settings.allowList.includes(userId.toString())
+        ) {
+            return await ctx.reply("您没有权限使用此机器人");
+        }
+
+        await next();
+    })
+
+    bot.command("start", async (ctx: TgContext) => {
         const prefix = getStringValue(c.env.PREFIX)
         const domains = getDomains(c);
         return await ctx.reply(
@@ -53,9 +73,6 @@ export function newTelegramBot(c: Context, token: string): Telegraf {
         );
     });
     bot.command("new", async (ctx: TgContext) => {
-        if (ctx.chat?.type !== "private") {
-            return await ctx.reply("请在私聊中使用");
-        }
         const userId = ctx?.message?.from?.id;
         if (!userId) {
             return await ctx.reply("无法获取用户信息");
@@ -72,14 +89,14 @@ export function newTelegramBot(c: Context, token: string): Telegraf {
             // @ts-ignore
             const address = ctx?.message?.text.slice("/new".length).trim() || Math.random().toString(36).substring(2, 15);
             const [name, domain] = address.includes("@") ? address.split("@") : [address, null];
-            const jwtList = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, { type: 'json' }) || [];
+            const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
             if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
                 return await ctx.reply("绑定地址数量已达上限");
             }
             const res = await newAddress(c, name, domain, true);
             // for mail push to telegram
             await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, res.jwt]));
-            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${res.address}`, userId);
+            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${res.address}`, userId.toString());
             return await ctx.reply(`创建地址成功:\n`
                 + `地址: ${res.address}\n`
                 + `凭证: ${res.jwt}\n`
@@ -90,9 +107,6 @@ export function newTelegramBot(c: Context, token: string): Telegraf {
     });
 
     bot.command("bind", async (ctx: TgContext) => {
-        if (ctx.chat?.type !== "private") {
-            return await ctx.reply("请在私聊中使用");
-        }
         const userId = ctx?.message?.from?.id;
         if (!userId) {
             return await ctx.reply("无法获取用户信息");
@@ -107,13 +121,13 @@ export function newTelegramBot(c: Context, token: string): Telegraf {
             if (!address) {
                 return await ctx.reply("凭证无效");
             }
-            const jwtList = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, { type: 'json' }) || [];
+            const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
             if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
                 return await ctx.reply("绑定地址数量已达上限");
             }
             await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, jwt]));
             // for mail push to telegram
-            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${address}`, userId);
+            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${address}`, userId.toString());
             return await ctx.reply(`绑定成功:\n`
                 + `地址: ${address}`
             );
@@ -123,16 +137,13 @@ export function newTelegramBot(c: Context, token: string): Telegraf {
         }
     });
 
-    bot.command("address", async (ctx: TgContext) => {
-        if (ctx.chat?.type !== "private") {
-            return await ctx.reply("请在私聊中使用");
-        }
+    bot.command("address", async (ctx) => {
         const userId = ctx?.message?.from?.id;
         if (!userId) {
             return await ctx.reply("无法获取用户信息");
         }
         try {
-            const jwtList = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, { type: 'json' }) || [];
+            const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
             const addressList = [];
             for (const jwt of jwtList) {
                 try {
@@ -156,7 +167,7 @@ export function newTelegramBot(c: Context, token: string): Telegraf {
         if (!userId) {
             return await ctx.reply("无法获取用户信息");
         }
-        const jwtList = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, { type: 'json' }) || [];
+        const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
         const addressList = [];
         for (const jwt of jwtList) {
             try {
@@ -178,7 +189,7 @@ export function newTelegramBot(c: Context, token: string): Telegraf {
             + ` order by id desc limit 1 offset ?`
         ).bind(
             queryAddress, mailIndex
-        ).first("raw");
+        ).first<string>("raw");
         const { mail } = await parseMail(raw);
         if (edit) {
             return await ctx.editMessageText(mail || "无邮件",
@@ -234,7 +245,7 @@ export async function initTelegramBotCommands(bot: Telegraf) {
     await bot.telegram.setMyCommands(COMMANDS);
 }
 
-const parseMail = async (raw_mail: string) => {
+const parseMail = async (raw_mail: string | undefined | null) => {
     if (!raw_mail) {
         return {};
     }
@@ -257,7 +268,7 @@ const parseMail = async (raw_mail: string) => {
 }
 
 
-export async function sendMailToTelegram(c: Context, address: string, raw_mail: string) {
+export async function sendMailToTelegram(c: Context<{ Bindings: Bindings }>, address: string, raw_mail: string) {
     if (!c.env.TELEGRAM_BOT_TOKEN || !c.env.KV) {
         return;
     }
