@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## main branch
+
+- telegram mini app
+
 ## v0.4.3
 
 ### Breaking Changes

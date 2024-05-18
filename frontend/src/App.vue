@@ -8,7 +8,10 @@ import Header from './views/Header.vue';
 import Footer from './views/Footer.vue';
 
 
-const { localeCache, isDark, loading, useSideMargin } = useGlobalState()
+const {
+  localeCache, isDark, loading, useSideMargin,
+  telegramApp, isTelegram
+} = useGlobalState()
 const theme = computed(() => isDark.value ? darkTheme : null)
 const localeConfig = computed(() => localeCache.value == 'zh' ? zhCN : null)
 const isMobile = useIsMobile()
@@ -31,6 +34,23 @@ onMounted(async () => {
     document.body.appendChild(script);
   }
 
+  // check if telegram is enabled
+  const enableTelegram = import.meta.env.VITE_IS_TELEGRAM;
+  if (
+    (typeof enableTelegram === 'boolean' && enableTelegram === true)
+    ||
+    (typeof enableTelegram === 'string' && enableTelegram === 'true')
+  ) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://telegram.org/js/telegram-web-app.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.body.appendChild(script);
+    });
+    telegramApp.value = window.Telegram?.WebApp || {};
+    isTelegram.value = !!window.Telegram?.WebApp?.initData;
+  }
 });
 </script>
 

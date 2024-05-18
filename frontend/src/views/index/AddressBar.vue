@@ -9,13 +9,15 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import Login from '../common/Login.vue'
 import AddressManagement from '../user/AddressManagement.vue'
+import TelegramAddress from './TelegramAddress.vue'
 
 const { toClipboard } = useClipboard()
 const message = useMessage()
 const router = useRouter()
 
 const {
-    jwt, localeCache, settings, showAddressCredential, userJwt
+    jwt, localeCache, settings, showAddressCredential, userJwt,
+    isTelegram
 } = useGlobalState()
 
 const { t } = useI18n({
@@ -45,6 +47,7 @@ const { t } = useI18n({
 });
 
 const showChangeAddress = ref(false)
+const showTelegramChangeAddress = ref(false)
 
 const copy = async () => {
     try {
@@ -69,8 +72,12 @@ onMounted(async () => {
             <n-alert type="info" :show-icon="false">
                 <span>
                     <b>{{ settings.address }}</b>
-                    <n-button v-if="userJwt" style="margin-left: 10px" @click="showChangeAddress = true" size="small"
-                        tertiary type="primary">
+                    <n-button v-if="isTelegram" style="margin-left: 10px" @click="showTelegramChangeAddress = true"
+                        size="small" tertiary type="primary">
+                        <n-icon :component="ExchangeAlt" /> {{ t('changeAddress') }}
+                    </n-button>
+                    <n-button v-else-if="userJwt" style="margin-left: 10px" @click="showChangeAddress = true"
+                        size="small" tertiary type="primary">
                         <n-icon :component="ExchangeAlt" /> {{ t('changeAddress') }}
                     </n-button>
                     <n-button style="margin-left: 10px" @click="copy" size="small" tertiary type="primary">
@@ -78,6 +85,9 @@ onMounted(async () => {
                     </n-button>
                 </span>
             </n-alert>
+        </div>
+        <div v-else-if="isTelegram">
+            <TelegramAddress />
         </div>
         <div v-else class="center">
             <n-card style="max-width: 600px;">
@@ -94,6 +104,9 @@ onMounted(async () => {
                 </n-button>
             </n-card>
         </div>
+        <n-modal v-model:show="showTelegramChangeAddress" preset="card" :title="t('changeAddress')">
+            <TelegramAddress />
+        </n-modal>
         <n-modal v-model:show="showChangeAddress" preset="card" :title="t('changeAddress')">
             <AddressManagement />
         </n-modal>

@@ -14,7 +14,7 @@ import { api } from '../api'
 const message = useMessage()
 
 const {
-    localeCache, toggleDark, isDark, openSettings,
+    localeCache, toggleDark, isDark, isTelegram,
     showAuth, adminAuth, auth, loading
 } = useGlobalState()
 const route = useRoute()
@@ -103,6 +103,7 @@ const menuOptions = computed(() => [
             }
         ),
         key: "user",
+        show: !isTelegram.value
     },
     {
         label: () => h(
