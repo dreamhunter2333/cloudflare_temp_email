@@ -5,6 +5,7 @@ import { Writable } from 'node:stream'
 import { Bindings } from '../types'
 import { newTelegramBot, initTelegramBotCommands, sendMailToTelegram } from './telegram'
 import settings from './settings'
+import miniapp from './miniapp'
 
 export const api = new Hono<{ Bindings: Bindings }>();
 export { sendMailToTelegram }
@@ -67,3 +68,4 @@ api.get("/admin/telegram/status", async (c) => {
 
 api.get("/admin/telegram/settings", settings.getTelegramSettings);
 api.post("/admin/telegram/settings", settings.saveTelegramSettings);
+api.post("/telegram/bind_address", miniapp.getTelegramBindAddress);

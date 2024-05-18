@@ -68,6 +68,8 @@ export const useGlobalState = createGlobalState(
             /** @type {number} */
             user_id: 0,
         });
+        const telegramApp = ref(window.Telegram?.WebApp || {});
+        const isTelegram = ref(!!window.Telegram?.WebApp?.initData);
         return {
             isDark,
             toggleDark,
@@ -95,6 +97,8 @@ export const useGlobalState = createGlobalState(
             userSettings,
             globalTabplacement,
             useSideMargin,
+            telegramApp,
+            isTelegram,
         }
     },
 )

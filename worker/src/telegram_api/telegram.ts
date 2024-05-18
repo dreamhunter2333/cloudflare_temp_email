@@ -63,7 +63,7 @@ export function newTelegramBot(c: Context<{ Bindings: Bindings }>, token: string
         const prefix = getStringValue(c.env.PREFIX)
         const domains = getDomains(c);
         return await ctx.reply(
-            "欢迎使用本机器人\n\n"
+            "欢迎使用本机器人, 您可以点击左下角打开 mini app \n\n"
             + (prefix ? `当前已启用前缀: ${prefix}\n` : '')
             + "新建邮箱地址, 如果要自定义邮箱地址, "
             + "请输入 /new <name>@<domain>, name [a-zA-Z0-9.] 有效\n"
@@ -241,7 +241,6 @@ export function newTelegramBot(c: Context<{ Bindings: Bindings }>, token: string
 
 
 export async function initTelegramBotCommands(bot: Telegraf) {
-    bot.telegram.sendMessage
     await bot.telegram.setMyCommands(COMMANDS);
 }
 
@@ -251,13 +250,16 @@ const parseMail = async (raw_mail: string | undefined | null) => {
     }
     try {
         const parsedEmail = await PostalMime.parse(raw_mail);
+        if (parsedEmail?.text?.length && parsedEmail?.text?.length > 1000) {
+            parsedEmail.text = parsedEmail.text.substring(0, 1000) + "...";
+        }
         return {
             isHtml: false,
             mail: `From: ${parsedEmail.from ? `${parsedEmail.from.name}[${parsedEmail.from.address}]` : "无发件人"}\n`
                 + `To: ${parsedEmail.to?.map(t => `${t.name}[${t.address}]`).join(" ")}\n`
                 + `Subject: ${parsedEmail.subject}\n`
                 + `Date: ${parsedEmail.date}\n`
-                + `Content:\n${parsedEmail.text?.substring(0, 100) || "解析失败"}`
+                + `Content:\n${parsedEmail.text || "解析失败，请点击左下角打开 mini app 查看"}`
         };
     } catch (e) {
         return {
