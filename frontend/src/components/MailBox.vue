@@ -201,7 +201,7 @@ onBeforeUnmount(() => {
       :default-size="mailboxSplitSize" :on-update:size="onSpiltSizeChange">
       <template #1>
         <div class="center">
-          <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
+          <div style="display: inline-block;">
             <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
           </div>
           <n-switch v-model:value="autoRefresh" size="small" :round="false">
@@ -296,7 +296,7 @@ onBeforeUnmount(() => {
     </n-split>
     <div class="left" v-else>
       <div class="center">
-        <div style="display: inline-block; margin-top: 10px; margin-bottom: 10px;">
+        <div style="display: inline-block;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
         </div>
         <n-switch v-model:value="autoRefresh" size="small" :round="false">

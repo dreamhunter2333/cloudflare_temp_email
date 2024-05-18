@@ -12,6 +12,8 @@
 - `ENABLE_WEBHOOK` 添加 webhook
 - UI: admin 页面使用双层 tab
 - UI: 登录后可直接主页切换地址
+- UI: 发件箱也采用左右分栏显示(类似收件箱)
+- `SMTP IMAP Proxy` 添加发件箱查看
 
 ## v0.4.2
 

@@ -6,8 +6,8 @@ import { api } from '../api'
 
 import AddressBar from './index/AddressBar.vue';
 import MailBox from '../components/MailBox.vue';
+import SendBox from '../components/SendBox.vue';
 import AutoReply from './index/AutoReply.vue';
-import SendBox from './index/SendBox.vue';
 import SendMail from './index/SendMail.vue';
 import AccountSettings from './index/AccountSettings.vue';
 import WenHook from './index/Webhook.vue';
@@ -44,6 +44,10 @@ const fetchMailData = async (limit, offset) => {
 const deleteMail = async (curMailId) => {
   await api.fetch(`/api/mails/${curMailId}`, { method: 'DELETE' });
 };
+
+const fetchSenboxData = async (limit, offset) => {
+  return await api.fetch(`/api/sendbox?limit=${limit}&offset=${offset}`);
+};
 </script>
 
 <template>
@@ -55,7 +59,7 @@ const deleteMail = async (curMailId) => {
           :fetchMailData="fetchMailData" :deleteMail="deleteMail" />
       </n-tab-pane>
       <n-tab-pane name="sendbox" :tab="t('sendbox')">
-        <SendBox />
+        <SendBox :fetchMailData="fetchSenboxData" />
       </n-tab-pane>
       <n-tab-pane name="sendmail" :tab="t('sendmail')">
         <SendMail />
