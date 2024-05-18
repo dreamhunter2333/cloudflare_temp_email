@@ -1,27 +1,28 @@
 <script setup>
 import useClipboard from 'vue-clipboard3'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { Copy, User } from '@vicons/fa'
+import { Copy, User, ExchangeAlt } from '@vicons/fa'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import Login from '../common/Login.vue'
+import AddressManagement from '../user/AddressManagement.vue'
 
 const { toClipboard } = useClipboard()
 const message = useMessage()
 const router = useRouter()
 
 const {
-    jwt, localeCache, settings, showAddressCredential, openSettings
+    jwt, localeCache, settings, showAddressCredential, userJwt
 } = useGlobalState()
 
 const { t } = useI18n({
     locale: localeCache.value || 'zh',
     messages: {
         en: {
-            yourAddress: 'Your email address is',
+            changeAddress: 'Change Address',
             ok: 'OK',
             copy: 'Copy',
             copied: 'Copied',
@@ -31,7 +32,7 @@ const { t } = useI18n({
             userLogin: 'User Login',
         },
         zh: {
-            yourAddress: '你的邮箱地址是',
+            changeAddress: '更换地址',
             ok: '确定',
             copy: '复制',
             copied: '已复制',
@@ -42,6 +43,8 @@ const { t } = useI18n({
         }
     }
 });
+
+const showChangeAddress = ref(false)
 
 const copy = async () => {
     try {
@@ -65,7 +68,11 @@ onMounted(async () => {
         <div v-else-if="settings.address">
             <n-alert type="info" :show-icon="false">
                 <span>
-                    <b>{{ t('yourAddress') }} <b>{{ settings.address }}</b></b>
+                    <b>{{ settings.address }}</b>
+                    <n-button v-if="userJwt" style="margin-left: 10px" @click="showChangeAddress = true" size="small"
+                        tertiary type="primary">
+                        <n-icon :component="ExchangeAlt" /> {{ t('changeAddress') }}
+                    </n-button>
                     <n-button style="margin-left: 10px" @click="copy" size="small" tertiary type="primary">
                         <n-icon :component="Copy" /> {{ t('copy') }}
                     </n-button>
@@ -87,6 +94,9 @@ onMounted(async () => {
                 </n-button>
             </n-card>
         </div>
+        <n-modal v-model:show="showChangeAddress" preset="card" :title="t('changeAddress')">
+            <AddressManagement />
+        </n-modal>
         <n-modal v-model:show="showAddressCredential" preset="dialog" :title="t('addressCredential')">
             <span>
                 <p>{{ t("addressCredentialTip") }}</p>

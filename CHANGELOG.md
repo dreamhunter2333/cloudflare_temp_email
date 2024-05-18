@@ -10,7 +10,8 @@
 
 - `telegram bot`  白名单配置
 - `ENABLE_WEBHOOK` 添加 webhook
-- admin 页面使用双层 tab
+- UI: admin 页面使用双层 tab
+- UI: 登录后可直接主页切换地址
 
 ## v0.4.2
 
