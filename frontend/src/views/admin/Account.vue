@@ -261,7 +261,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <div style="margin-top: 10px;">
         <n-modal v-model:show="showEmailCredential" preset="dialog" title="Dialog">
             <template #header>
                 <div>{{ t("addressCredential") }}</div>

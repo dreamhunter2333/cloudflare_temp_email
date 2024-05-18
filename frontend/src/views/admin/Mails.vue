@@ -58,7 +58,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <div style="margin-top: 10px;">
         <n-input-group>
             <n-input v-model:value="adminMailTabAddress" :placeholder="t('addressQueryTip')" />
             <n-input v-model:value="mailKeyword" :placeholder="t('keywordQueryTip')" />

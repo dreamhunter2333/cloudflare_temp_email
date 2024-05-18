@@ -76,7 +76,6 @@ const getSettings = async () => {
     try {
         const res = await api.fetch(`/admin/telegram/settings`)
         Object.assign(settings.value, res)
-        console.log(settings.value)
     } catch (error) {
         message.error((error as Error).message || "error");
     }

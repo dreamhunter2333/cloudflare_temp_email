@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
 
+// @ts-ignore
 import { getDomains, getPasswords, getBooleanValue } from './utils';
 import { CONSTANTS } from './constants';
+import { Bindings } from './types';
 
-const api = new Hono()
+const api = new Hono<{ Bindings: Bindings }>
 
 api.get('/open_api/settings', async (c) => {
     // check header x-custom-auth
@@ -24,6 +26,7 @@ api.get('/open_api/settings', async (c) => {
         "enableIndexAbout": getBooleanValue(c.env.ENABLE_INDEX_ABOUT),
         "copyright": c.env.COPYRIGHT,
         "cfTurnstileSiteKey": c.env.CF_TURNSTILE_SITE_KEY,
+        "enableWebhook": getBooleanValue(c.env.ENABLE_WEBHOOK),
         "version": CONSTANTS.VERSION,
     });
 })

@@ -3,19 +3,28 @@ import { cors } from 'hono/cors';
 import { jwt } from 'hono/jwt'
 import { Jwt } from 'hono/utils/jwt'
 
+// @ts-ignore
 import { api as commonApi } from './commom_api';
+// @ts-ignore
 import { api as mailsApi } from './mails_api'
+// @ts-ignore
 import { api as userApi } from './user_api';
+// @ts-ignore
 import { api as adminApi } from './admin_api';
+// @ts-ignore
 import { api as apiV1 } from './deprecated';
+// @ts-ignore
 import { api as apiSendMail } from './mails_api/send_mail_api'
 import { api as telegramApi } from './telegram_api'
 
 import { email } from './email';
+// @ts-ignore
 import { scheduled } from './scheduled';
-import { getAdminPasswords, getPasswords } from './utils';
+// @ts-ignore
+import { getAdminPasswords, getPasswords, getBooleanValue } from './utils';
+import { Bindings } from './types';
 
-const app = new Hono()
+const app = new Hono<{ Bindings: Bindings }>()
 //cors
 app.use('/*', cors());
 // rate limit
@@ -35,6 +44,17 @@ app.use('/*', async (c, next) => {
 			if (!success) {
 				return c.text(`IP=${reqIp} Rate limit exceeded for ${c.req.path}`, 429)
 			}
+		}
+	}
+	if (
+		c.req.path.startsWith("/api/webhook")
+		|| c.req.path.startsWith("/admin/webhook")
+	) {
+		if (!c.env.KV) {
+			return c.text("KV is not available", 400);
+		}
+		if (!getBooleanValue(c.env.ENABLE_WEBHOOK)) {
+			return c.text("Webhook is disabled", 403);
 		}
 	}
 	await next()

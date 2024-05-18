@@ -7,7 +7,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
     "start": "wrangler dev",
-    "build": "wrangler deploy src/worker.js --dry-run --outdir dist --minify"
+    "build": "wrangler deploy --dry-run --outdir dist --minify"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240512.0",

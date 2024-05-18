@@ -3,6 +3,8 @@
 ## main branch
 
 - `telegram bot`  白名单配置
+- `ENABLE_WEBHOOK` 添加 webhook
+- admin 页面使用双层 tab
 
 ## v0.4.2
 

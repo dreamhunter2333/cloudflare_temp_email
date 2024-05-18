@@ -69,6 +69,7 @@ const getOpenSettings = async (message) => {
             enableIndexAbout: res["enableIndexAbout"] || false,
             copyright: res["copyright"] || openSettings.value.copyright,
             cfTurnstileSiteKey: res["cfTurnstileSiteKey"] || "",
+            enableWebhook: res["enableWebhook"] || false,
         });
         if (openSettings.value.needAuth) {
             showAuth.value = true;

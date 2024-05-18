@@ -10,4 +10,6 @@ export const CONSTANTS = {
     // KV
     TG_KV_PREFIX: "temp-mail-telegram",
     TG_KV_SETTINGS_KEY: "temp-mail-telegram-settings",
+    WEBHOOK_KV_SETTINGS_KEY: "temp-mail-webhook-settings",
+    WEBHOOK_KV_USER_SETTINGS_KEY: "temp-mail-webhook-user-settings",
 }

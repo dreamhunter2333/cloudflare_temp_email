@@ -10,6 +10,7 @@ import AutoReply from './index/AutoReply.vue';
 import SendBox from './index/SendBox.vue';
 import SendMail from './index/SendMail.vue';
 import AccountSettings from './index/AccountSettings.vue';
+import WenHook from './index/Webhook.vue';
 import About from './common/About.vue';
 
 const { localeCache, settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
@@ -64,6 +65,9 @@ const deleteMail = async (curMailId) => {
       </n-tab-pane>
       <n-tab-pane v-if="openSettings.enableAutoReply" name="auto_reply" :tab="t('auto_reply')">
         <AutoReply />
+      </n-tab-pane>
+      <n-tab-pane v-if="openSettings.enableWebhook" name="webhook" :tab="t('webhook')">
+        <WenHook />
       </n-tab-pane>
       <n-tab-pane v-if="openSettings.enableIndexAbout" name="about" :tab="t('about')">
         <About />

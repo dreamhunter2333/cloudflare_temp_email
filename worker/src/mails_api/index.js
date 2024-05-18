@@ -4,11 +4,15 @@ import { getBooleanValue, getJsonSetting, checkCfTurnstile } from '../utils';
 import { newAddress, handleListQuery } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
+import webhook_settings from './webhook_settings';
 
 const api = new Hono()
 
 api.get('/api/auto_reply', auto_reply.getAutoReply)
 api.post('/api/auto_reply', auto_reply.saveAutoReply)
+api.get('/api/webhook/settings', webhook_settings.getWebhookSettings)
+api.post('/api/webhook/settings', webhook_settings.saveWebhookSettings)
+api.post('/api/webhook/test', webhook_settings.testWebhookSettings)
 
 api.get('/api/mails', async (c) => {
     const { address } = c.get("jwtPayload")
