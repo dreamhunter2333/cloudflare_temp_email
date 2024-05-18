@@ -1,6 +1,6 @@
 # CHANGE LOG
 
-## main branch
+## v0.4.3
 
 ### Breaking Changes
 
@@ -14,6 +14,12 @@
 - UI: 登录后可直接主页切换地址
 - UI: 发件箱也采用左右分栏显示(类似收件箱)
 - `SMTP IMAP Proxy` 添加发件箱查看
+
+
+* feat: telegram bot TelegramSettings && webhook by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/244
+* fix build by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/245
+* feat: UI changes by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/247
+* feat: SMTP IMAP Proxy: add sendbox && UI: sendbox use split view by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/248
 
 ## v0.4.2
 
