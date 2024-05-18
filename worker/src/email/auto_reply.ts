@@ -1,44 +1,19 @@
 import { createMimeMessage } from "mimetext";
-import { getBooleanValue } from "./utils";
-import { sendMailToTelegram } from "./telegram_api";
+// @ts-ignore
+import { getBooleanValue } from "../utils";
+import { Bindings } from "../types";
 
-async function email(message, env, ctx) {
-    if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => message.from.includes(word))) {
-        message.setReject("Missing from address");
-        console.log(`Reject message from ${message.from} to ${message.to}`);
-        return;
-    }
-    const rawEmail = await new Response(message.raw).text();
+export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings): Promise<void> => {
     const message_id = message.headers.get("Message-ID");
-    // save email
-    const { success } = await env.DB.prepare(
-        `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
-    ).bind(
-        message.from, message.to, rawEmail, message_id
-    ).run();
-    if (!success) {
-        message.setReject(`Failed save message to ${message.to}`);
-        console.log(`Failed save message from ${message.from} to ${message.to}`);
-    }
-
-    // send email to telegram
-    try {
-        await sendMailToTelegram({
-            env: env,
-        }, message.to, rawEmail);
-    } catch (error) {
-        console.log("send mail to telegram error", error);
-    }
-
     // auto reply email
-    if (getBooleanValue(env.ENABLE_AUTO_REPLY)) {
+    if (getBooleanValue(env.ENABLE_AUTO_REPLY) && message_id) {
         try {
             const results = await env.DB.prepare(
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
-            ).bind(message.to).first();
+            ).bind(message.to).first<Record<string, string>>();
             if (results && results.source_prefix && message.from.startsWith(results.source_prefix)) {
                 const msg = createMimeMessage();
-                msg.setHeader("In-Reply-To", message.headers.get("Message-ID"));
+                msg.setHeader("In-Reply-To", message_id);
                 msg.setSender({
                     name: results.name || results.address,
                     addr: results.address
@@ -55,6 +30,7 @@ async function email(message, env, ctx) {
                     message.from,
                     msg.asRaw()
                 );
+                // @ts-ignore
                 await message.reply(replyMessage);
             }
         } catch (error) {
@@ -62,5 +38,3 @@ async function email(message, env, ctx) {
         }
     }
 }
-
-export { email }

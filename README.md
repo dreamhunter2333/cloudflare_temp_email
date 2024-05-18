@@ -62,6 +62,7 @@
 - [x] `admin` 后台创建无前缀邮箱
 - [x] 添加 `SMTP proxy server`，支持 `SMTP` 发送邮件, `IMAP` 查看邮件
 - [x] 添加完整的用户注册登录功能，可绑定邮箱地址，绑定后可自动获取邮箱JWT凭证切换不同邮箱
+- [x] `Telegram Bot` 使用，以及 `Telegram` 推送
 
 ## Reference
 

@@ -18,6 +18,7 @@ import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
 import Appearance from './common/Appearance.vue';
 import Telegram from './admin/Telegram.vue';
+import Webhook from './admin/Webhook.vue';
 
 const {
   localeCache, adminAuth, showAdminAuth, adminTab, loading, globalTabplacement
@@ -42,12 +43,14 @@ const { t } = useI18n({
       account: 'Account',
       account_create: 'Create Account',
       account_settings: 'Account Settings',
+      user: 'User',
       user_management: 'User Management',
       user_settings: 'User Settings',
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
       telegram: 'Telegram Bot',
+      webhook: 'Webhook',
       statistics: 'Statistics',
       maintenance: 'Maintenance',
       appearance: 'Appearance',
@@ -61,12 +64,14 @@ const { t } = useI18n({
       account: '账号',
       account_create: '创建账号',
       account_settings: '账号设置',
+      user: '用户',
       user_management: '用户管理',
       user_settings: '用户设置',
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
       telegram: '电报机器人',
+      webhook: 'Webhook',
       statistics: '统计',
       maintenance: '维护',
       appearance: '外观',
@@ -98,28 +103,43 @@ onMounted(async () => {
     </n-modal>
     <n-tabs type="card" v-model:value="adminTab" :placement="globalTabplacement">
       <n-tab-pane name="account" :tab="t('account')">
-        <Account />
+        <n-tabs type="bar" animated>
+          <n-tab-pane name="account" :tab="t('account')">
+            <Account />
+          </n-tab-pane>
+          <n-tab-pane name="account_create" :tab="t('account_create')">
+            <CreateAccount />
+          </n-tab-pane>
+          <n-tab-pane name="account_settings" :tab="t('account_settings')">
+            <AccountSettings />
+          </n-tab-pane>
+          <n-tab-pane name="senderAccess" :tab="t('senderAccess')">
+            <SenderAccess />
+          </n-tab-pane>
+          <n-tab-pane name="webhook" :tab="t('webhook')">
+            <Webhook />
+          </n-tab-pane>
+        </n-tabs>
       </n-tab-pane>
-      <n-tab-pane name="account_create" :tab="t('account_create')">
-        <CreateAccount />
-      </n-tab-pane>
-      <n-tab-pane name="account_settings" :tab="t('account_settings')">
-        <AccountSettings />
-      </n-tab-pane>
-      <n-tab-pane name="user_management" :tab="t('user_management')">
-        <UserManagement />
-      </n-tab-pane>
-      <n-tab-pane name="user_settings" :tab="t('user_settings')">
-        <UserSettings />
+      <n-tab-pane name="user" :tab="t('user')">
+        <n-tabs type="bar" animated>
+          <n-tab-pane name="user_management" :tab="t('user_management')">
+            <UserManagement />
+          </n-tab-pane>
+          <n-tab-pane name="user_settings" :tab="t('user_settings')">
+            <UserSettings />
+          </n-tab-pane>
+        </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="mails" :tab="t('mails')">
-        <Mails />
-      </n-tab-pane>
-      <n-tab-pane name="unknow" :tab="t('unknow')">
-        <MailsUnknow />
-      </n-tab-pane>
-      <n-tab-pane name="senderAccess" :tab="t('senderAccess')">
-        <SenderAccess />
+        <n-tabs type="bar" animated>
+          <n-tab-pane name="mails" :tab="t('mails')">
+            <Mails />
+          </n-tab-pane>
+          <n-tab-pane name="unknow" :tab="t('unknow')">
+            <MailsUnknow />
+          </n-tab-pane>
+        </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="sendBox" :tab="t('sendBox')">
         <SendBox />

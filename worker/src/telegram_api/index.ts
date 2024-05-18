@@ -1,12 +1,35 @@
-import { Hono, Context } from 'hono'
+import { Hono } from 'hono'
 import { ServerResponse } from 'node:http'
 import { Writable } from 'node:stream'
-import { newTelegramBot, initTelegramBotCommands, sendMailToTelegram } from './telegram'
 
-export const api = new Hono()
+import { Bindings } from '../types'
+import { newTelegramBot, initTelegramBotCommands, sendMailToTelegram } from './telegram'
+import settings from './settings'
+
+export const api = new Hono<{ Bindings: Bindings }>();
 export { sendMailToTelegram }
 
-api.post("/telegram/webhook", async (c: Context) => {
+api.use("/telegram/*", async (c, next) => {
+    if (!c.env.TELEGRAM_BOT_TOKEN) {
+        return c.text("TELEGRAM_BOT_TOKEN is required", 400);
+    }
+    if (!c.env.KV) {
+        return c.text("KV is required", 400);
+    }
+    return await next();
+});
+
+api.use("/admin/telegram/*", async (c, next) => {
+    if (!c.env.TELEGRAM_BOT_TOKEN) {
+        return c.text("TELEGRAM_BOT_TOKEN is required", 400);
+    }
+    if (!c.env.KV) {
+        return c.text("KV is required", 400);
+    }
+    return await next();
+});
+
+api.post("/telegram/webhook", async (c) => {
     const token = c.env.TELEGRAM_BOT_TOKEN;
     const bot = newTelegramBot(c, token);
     let body = null;
@@ -21,10 +44,7 @@ api.post("/telegram/webhook", async (c: Context) => {
     return c.body(body);
 });
 
-api.post("/admin/telegram/init", async (c: Context) => {
-    if (!c.env.TELEGRAM_BOT_TOKEN || !c.env.KV) {
-        return c.text("TELEGRAM_BOT_TOKEN and KV are required", 400);
-    }
+api.post("/admin/telegram/init", async (c) => {
     const domain = new URL(c.req.url).host;
     const token = c.env.TELEGRAM_BOT_TOKEN;
     const webhookUrl = `https://${domain}/telegram/webhook`;
@@ -37,13 +57,13 @@ api.post("/admin/telegram/init", async (c: Context) => {
     });
 });
 
-api.get("/admin/telegram/status", async (c: Context) => {
-    if (!c.env.TELEGRAM_BOT_TOKEN || !c.env.KV) {
-        return c.text("TELEGRAM_BOT_TOKEN and KV are required", 400);
-    }
+api.get("/admin/telegram/status", async (c) => {
     const token = c.env.TELEGRAM_BOT_TOKEN;
     const bot = newTelegramBot(c, token);
     const info = await bot.telegram.getWebhookInfo()
     const commands = await bot.telegram.getMyCommands()
     return c.json({ info, commands });
 });
+
+api.get("/admin/telegram/settings", settings.getTelegramSettings);
+api.post("/admin/telegram/settings", settings.saveTelegramSettings);

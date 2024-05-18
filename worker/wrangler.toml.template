@@ -28,6 +28,8 @@ ENABLE_USER_CREATE_EMAIL = true
 ENABLE_USER_DELETE_EMAIL = true
 # Allow automatic replies to emails
 ENABLE_AUTO_REPLY = false
+# Allow webhook
+# ENABLE_WEBHOOK = true
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # default send balance, if not set, it will be 0

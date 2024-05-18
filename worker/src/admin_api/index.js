@@ -5,6 +5,7 @@ import { newAddress, handleListQuery } from '../common'
 import { CONSTANTS } from '../constants'
 import cleanup_api from './cleanup_api'
 import admin_user_api from './admin_user_api'
+import webhook_settings from './webhook_settings'
 
 const api = new Hono()
 
@@ -178,17 +179,17 @@ api.get('/admin/sendbox', async (c) => {
 })
 
 api.get('/admin/statistics', async (c) => {
-    const { count: mailCount } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM raw_mails`
+    const { count: mailCount } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM raw_mails`
     ).first();
-    const { count: addressCount } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM address`
+    const { count: addressCount } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM address`
     ).first();
-    const { count: activeUserCount7days } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
+    const { count: activeUserCount7days } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
     ).first();
-    const { count: sendMailCount } = await c.env.DB.prepare(`
-            SELECT count(*) as count FROM sendbox`
+    const { count: sendMailCount } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM sendbox`
     ).first();
     return c.json({
         mailCount: mailCount,
@@ -242,5 +243,7 @@ api.get('/admin/users', admin_user_api.getUsers)
 api.delete('/admin/users/:user_id', admin_user_api.deleteUser)
 api.post('/admin/users', admin_user_api.createUser)
 api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
+api.get("/admin/webhook/settings", webhook_settings.getWebhookSettings);
+api.post("/admin/webhook/settings", webhook_settings.saveWebhookSettings);
 
 export { api }

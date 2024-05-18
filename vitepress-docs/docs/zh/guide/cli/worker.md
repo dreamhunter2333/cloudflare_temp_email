@@ -53,6 +53,8 @@ ENABLE_USER_CREATE_EMAIL = true
 ENABLE_USER_DELETE_EMAIL = true
 # 允许自动回复邮件
 ENABLE_AUTO_REPLY = false
+# 是否启用 webhook
+# ENABLE_WEBHOOK = true
 # 前端界面页脚文本
 # COPYRIGHT = "Dream Hunter"
 # 默认发送邮件余额，如果不设置，将为 0

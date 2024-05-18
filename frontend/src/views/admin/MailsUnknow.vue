@@ -24,7 +24,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div v-if="adminAuth">
+    <div v-if="adminAuth" style="margin-top: 10px;">
         <MailBox :enableUserDeleteEmail="false" :fetchMailData="fetchMailUnknowData" />
     </div>
 </template>

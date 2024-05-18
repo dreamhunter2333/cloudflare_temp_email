@@ -223,7 +223,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <div style="margin-top: 10px;">
         <n-modal v-model:show="showCreateUser" preset="dialog" :title="t('createUser')">
             <n-form>
                 <n-form-item-row :label="t('email')" required>
