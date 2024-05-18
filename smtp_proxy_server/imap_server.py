@@ -10,7 +10,7 @@ from twisted.internet import protocol, reactor, defer
 from twisted.cred.checkers import ICredentialsChecker, IUsernamePassword
 
 from config import settings
-from parse_email import parse_email
+from parse_email import generate_email_model, parse_email
 from models import EmailModel
 
 _logger = logging.getLogger(__name__)
@@ -58,7 +58,8 @@ class SimpleMessage:
 @implementer(imap4.IMailboxInfo, imap4.IMailbox)
 class SimpleMailbox:
 
-    def __init__(self, password):
+    def __init__(self, name, password):
+        self.name = name
         self.password = password
         self.listeners = []
         self.addListener = self.listeners.append
@@ -104,6 +105,13 @@ class SimpleMailbox:
         return defer.succeed(r)
 
     def fetch(self, messages, uid):
+        if self.name == "INBOX":
+            return self.fetchINBOX(messages)
+        if self.name == "SENT":
+            return self.fetchSENT(messages)
+        return []
+
+    def fetchINBOX(self, messages):
         start, end = messages.ranges[0]
         start = max(start, 1)
         if self.message_count > 0 and start > self.message_count:
@@ -127,6 +135,30 @@ class SimpleMailbox:
             for uid, item in enumerate(reversed(res.json()["results"]))
         ]
 
+    def fetchSENT(self, messages):
+        start, end = messages.ranges[0]
+        start = max(start, 1)
+        if self.message_count > 0 and start > self.message_count:
+            return []
+        res = requests.get(
+            f"{settings.proxy_url}/api/sendbox?limit=20&offset={start - 1}", headers={
+                "Authorization": f"Bearer {self.password}",
+                "Content-Type": "application/json"
+            }
+        )
+        if res.status_code != 200:
+            _logger.error(
+                "Failed: "
+                f"code=[{res.status_code}] text=[{res.text}]"
+            )
+            raise Exception("Failed to fetch emails")
+        if res.json()["count"] > 0:
+            self.message_count = res.json()["count"]
+        return [
+            (start + uid, SimpleMessage(start + uid, generate_email_model(item)))
+            for uid, item in enumerate(reversed(res.json()["results"]))
+        ]
+
     def getUID(self, message):
         return message.uid
 
@@ -141,11 +173,16 @@ class Account(imap4.MemoryAccount):
         self.password = password
         super().__init__(user)
 
+    def isSubscribed(self, name):
+        return name.upper() in ["INBOX", "SENT"]
+
     def _emptyMailbox(self, name, id):
         _logger.info(f"New mailbox: {name}, {id}")
-        if name != "INBOX":
-            raise imap4.NoSuchMailbox(name.encode("utf-8"))
-        return SimpleMailbox(self.password)
+        if name == "INBOX":
+            return SimpleMailbox(name, self.password)
+        if name == "SENT":
+            return SimpleMailbox(name, self.password)
+        raise imap4.NoSuchMailbox(name.encode("utf-8"))
 
     def select(self, name, rw=1):
         return imap4.MemoryAccount.select(self, name)
@@ -166,6 +203,7 @@ class SimpleRealm:
         res = json.loads(avatarId)
         account = Account(res["username"], res["password"])
         account.addMailbox("INBOX")
+        account.addMailbox("SENT")
         return imap4.IAccount, account, lambda: None
 
 

@@ -1,6 +1,13 @@
-import email
-from email.message import Message
+import datetime
+import json
 import logging
+import email
+
+from email.header import Header
+from email.message import Message
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 
 from models import EmailModel
 
@@ -36,3 +43,21 @@ def parse_email(raw: str) -> EmailModel:
             size=len("could not parse email"),
             subparts=[],
         )
+
+
+def generate_email_model(item: dict) -> EmailModel:
+    email_json = json.loads(item["raw"])
+    message = MIMEMultipart()
+    message['From'] = f"{email_json["from"]['name']} <{
+        email_json["from"]['email']}>"
+    message['To'] = ", ".join(
+        [f"{to['name']} <{to['email']}>" for to in email_json["personalizations"][0]["to"]])
+    message['Subject'] = email_json["subject"]
+    message["Date"] = datetime.datetime.strptime(
+        item["created_at"], "%Y-%m-%d %H:%M:%S"
+    ).strftime("%a, %d %b %Y %H:%M:%S +0000")
+    message.attach(MIMEText(
+        email_json["content"][0]["value"],
+        "html" if "html" in email_json["content"][0]["type"] else "plain"
+    ))
+    return parse_email(message.as_string())
