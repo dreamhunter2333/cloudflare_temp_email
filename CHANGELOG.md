@@ -2,6 +2,12 @@
 
 ## main branch
 
+### Breaking Changes
+
+配置文件 `main = "src/worker.js"` 改为 `main = "src/worker.ts"`
+
+### Changes
+
 - `telegram bot`  白名单配置
 - `ENABLE_WEBHOOK` 添加 webhook
 - admin 页面使用双层 tab

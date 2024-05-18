@@ -24,7 +24,7 @@ wrangler kv:namespace create DEV
 
 ```toml
 name = "cloudflare_temp_email"
-main = "src/worker.js"
+main = "src/worker.ts"
 compatibility_date = "2023-12-01"
 # 如果你想使用自定义域名，你需要添加 routes 配置
 # routes = [

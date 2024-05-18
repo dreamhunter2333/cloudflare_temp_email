@@ -60,7 +60,7 @@ pnpm run deploy
 
 ```toml
 name = "cloudflare_temp_email"
-main = "src/worker.js"
+main = "src/worker.ts"
 compatibility_date = "2023-08-14"
 node_compat = true
 

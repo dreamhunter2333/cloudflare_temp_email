@@ -11,10 +11,10 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240512.0",
-    "wrangler": "^3.55.0"
+    "wrangler": "^3.57.0"
   },
   "dependencies": {
-    "hono": "^4.3.6",
+    "hono": "^4.3.7",
     "mimetext": "^3.0.24",
     "postal-mime": "^2.2.5",
     "telegraf": "4.16.3"
