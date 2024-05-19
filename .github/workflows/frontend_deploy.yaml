@@ -38,6 +38,8 @@ jobs:
           pnpm run deploy --project-name=$project_name
           echo "Deploying prodcution for ${{ github.ref_name }}"
           echo "Deployed for tag ${{ github.ref_name }}"
+
+          export tg_mini_app_project_name=${{ secrets.TG_FRONTEND_NAME }}
           if [ -n "$tg_mini_app_project_name" ]; then
             echo "Deploying telegram mini app $tg_mini_app_project_name"
             pnpm run deploy:telegram --project-name=$tg_mini_app_project_name
