@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, h, onMounted } from 'vue';
-import { useStorage } from '@vueuse/core';
+import { useSessionStorage } from '@vueuse/core';
 import { useI18n } from 'vue-i18n'
 import { NPopconfirm, NButton } from 'naive-ui'
 
@@ -31,7 +31,7 @@ const { t } = useI18n({
     }
 });
 
-const data = useStorage("telegram-bind-address", [])
+const data = useSessionStorage("telegram-bind-address", [])
 
 const fetchData = async () => {
     try {
