@@ -1,6 +1,10 @@
+import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
+import { HonoCustomType } from "./types";
 
-export const getJsonSetting = async (c, key) => {
+export const getJsonSetting = async (
+    c: Context<HonoCustomType>, key: string
+): Promise<any> => {
     const value = await getSetting(c, key);
     if (!value) {
         return null;
@@ -13,11 +17,13 @@ export const getJsonSetting = async (c, key) => {
     return null;
 }
 
-export const getSetting = async (c, key) => {
+export const getSetting = async (
+    c: Context<HonoCustomType>, key: string
+): Promise<string | null> => {
     try {
         const value = await c.env.DB.prepare(
             `SELECT value FROM settings where key = ?`
-        ).bind(key).first("value");
+        ).bind(key).first<string>("value");
         return value;
     } catch (error) {
         console.error(`GetSetting: Failed to get ${key}`, error);
@@ -25,7 +31,10 @@ export const getSetting = async (c, key) => {
     return null;
 }
 
-export const saveSetting = async (c, key, value) => {
+export const saveSetting = async (
+    c: Context<HonoCustomType>,
+    key: string, value: string
+) => {
     await c.env.DB.prepare(
         `INSERT or REPLACE INTO settings (key, value) VALUES (?, ?)`
         + ` ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = datetime('now')`
@@ -33,14 +42,16 @@ export const saveSetting = async (c, key, value) => {
     return true;
 }
 
-export const getStringValue = (value) => {
+export const getStringValue = (value: any): string => {
     if (typeof value === "string") {
         return value;
     }
     return "";
 }
 
-export const getBooleanValue = (value) => {
+export const getBooleanValue = (
+    value: boolean | string | any
+): boolean => {
     if (typeof value === "boolean") {
         return value;
     }
@@ -51,7 +62,10 @@ export const getBooleanValue = (value) => {
     return false;
 }
 
-export const getIntValue = (value, defaultValue = 0) => {
+export const getIntValue = (
+    value: number | string | any,
+    defaultValue: number = 0
+): number => {
     if (typeof value === "number") {
         return value;
     }
@@ -65,7 +79,7 @@ export const getIntValue = (value, defaultValue = 0) => {
     return defaultValue;
 }
 
-export const getDomains = (c) => {
+export const getDomains = (c: Context<HonoCustomType>): string[] => {
     if (!c.env.DOMAINS) {
         return [];
     }
@@ -81,14 +95,14 @@ export const getDomains = (c) => {
     return c.env.DOMAINS;
 }
 
-export const getPasswords = (c) => {
+export const getPasswords = (c: Context<HonoCustomType>): string[] => {
     if (!c.env.PASSWORDS) {
         return [];
     }
     // check if PASSWORDS is an array, if not use json.parse
     if (!Array.isArray(c.env.PASSWORDS)) {
         try {
-            let res = JSON.parse(c.env.PASSWORDS);
+            const res = JSON.parse(c.env.PASSWORDS) as string[];
             return res.filter((item) => item.length > 0);
         } catch (e) {
             console.error("Failed to parse PASSWORDS", e);
@@ -98,23 +112,26 @@ export const getPasswords = (c) => {
     return c.env.PASSWORDS.filter((item) => item.length > 0);
 }
 
-export const getAdminPasswords = (c) => {
+export const getAdminPasswords = (c: Context<HonoCustomType>): string[] => {
     if (!c.env.ADMIN_PASSWORDS) {
         return [];
     }
     // check if ADMIN_PASSWORDS is an array, if not use json.parse
     if (!Array.isArray(c.env.ADMIN_PASSWORDS)) {
         try {
-            return JSON.parse(c.env.ADMIN_PASSWORDS);
+            const res = JSON.parse(c.env.ADMIN_PASSWORDS) as string[];
+            return res.filter((item) => item.length > 0);
         } catch (e) {
             console.error("Failed to parse ADMIN_PASSWORDS", e);
             return [];
         }
     }
-    return c.env.ADMIN_PASSWORDS;
+    return c.env.ADMIN_PASSWORDS.filter((item) => item.length > 0);
 }
 
-export const sendAdminInternalMail = async (c, toMail, subject, text) => {
+export const sendAdminInternalMail = async (
+    c: Context<HonoCustomType>, toMail: string, subject: string, text: string
+): Promise<boolean> => {
     try {
 
         const msg = createMimeMessage();
@@ -144,31 +161,33 @@ export const sendAdminInternalMail = async (c, toMail, subject, text) => {
     }
 };
 
-export const checkCfTurnstile = async (c, token) => {
-    if (!c.env.CF_TURNSTILE_SITE_KEY) {
+export const checkCfTurnstile = async (
+    c: Context<HonoCustomType>, token: string | undefined | null
+): Promise<void> => {
+    if (!c.env.CF_TURNSTILE_SITE_KEY || !c.env.CF_TURNSTILE_SECRET_KEY) {
         return;
     }
     if (!token) {
         throw new Error("Captcha token is required");
     }
-    const reqIp = c.req.raw.headers.get("cf-connecting-ip")
+    const reqIp = c.req.raw.headers.get("cf-connecting-ip");
     let formData = new FormData();
     formData.append('secret', c.env.CF_TURNSTILE_SECRET_KEY);
     formData.append('response', token);
-    formData.append('remoteip', reqIp);
+    if (reqIp) formData.append('remoteip', reqIp);
     const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
     const result = await fetch(url, {
         body: formData,
         method: 'POST',
     });
-    const captchaRes = await result.json();
+    const captchaRes: any = await result.json();
     if (!captchaRes.success) {
         console.log("Captcha failed", captchaRes);
         throw new Error("Captcha failed");
     }
 }
 
-export const checkUserPassword = (password) => {
+export const checkUserPassword = (password: string) => {
     if (!password || password.length < 1 || password.length > 100) {
         throw new Error("Invalid password")
     }

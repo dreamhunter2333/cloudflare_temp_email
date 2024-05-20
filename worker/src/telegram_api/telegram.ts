@@ -6,12 +6,12 @@ import { callbackQuery } from "telegraf/filters";
 import PostalMime from 'postal-mime';
 
 import { CONSTANTS } from "../constants";
-// @ts-ignore
 import { getIntValue, getDomains, getStringValue } from '../utils';
 // @ts-ignore
-import { newAddress } from '../common'
-import { Bindings } from "../types";
+import { deleteAddressWithData, newAddress } from '../common'
+import { HonoCustomType } from "../types";
 import { TelegramSettings } from "./settings";
+import { unbindTelegramAddress } from "./common";
 
 const COMMANDS = [
     {
@@ -31,12 +31,20 @@ const COMMANDS = [
         description: "绑定邮箱地址, 请输入 /bind <邮箱地址凭证>"
     },
     {
+        command: "unbind",
+        description: "解绑邮箱地址, 请输入 /unbind <邮箱地址>"
+    },
+    {
+        command: "delete",
+        description: "删除邮箱地址, 请输入 /delete <邮箱地址>"
+    },
+    {
         command: "mails",
         description: "查看邮件, 请输入 /mails <邮箱地址>, 不输入地址默认查看第一个地址"
     },
 ]
 
-export function newTelegramBot(c: Context<{ Bindings: Bindings }>, token: string): Telegraf {
+export function newTelegramBot(c: Context<HonoCustomType>, token: string): Telegraf {
     const bot = new Telegraf(token);
 
     bot.use(async (ctx, next) => {
@@ -55,8 +63,12 @@ export function newTelegramBot(c: Context<{ Bindings: Bindings }>, token: string
         ) {
             return await ctx.reply("您没有权限使用此机器人");
         }
-
-        await next();
+        try {
+            await next();
+        } catch (error) {
+            console.error(`Error: ${error}`);
+            return await ctx.reply(`Error: ${error}`);
+        }
     })
 
     bot.command("start", async (ctx: TgContext) => {
@@ -65,8 +77,6 @@ export function newTelegramBot(c: Context<{ Bindings: Bindings }>, token: string
         return await ctx.reply(
             "欢迎使用本机器人, 您可以点击左下角打开 mini app \n\n"
             + (prefix ? `当前已启用前缀: ${prefix}\n` : '')
-            + "新建邮箱地址, 如果要自定义邮箱地址, "
-            + "请输入 /new <name>@<domain>, name [a-zA-Z0-9.] 有效\n"
             + `当前可用域名: ${JSON.stringify(domains)}\n`
             + "请使用以下命令:\n"
             + COMMANDS.map(c => `/${c.command}: ${c.description}`).join("\n")
@@ -134,6 +144,40 @@ export function newTelegramBot(c: Context<{ Bindings: Bindings }>, token: string
         }
         catch (e) {
             return await ctx.reply(`绑定失败: ${(e as Error).message}`);
+        }
+    });
+
+    bot.command("unbind", async (ctx: TgContext) => {
+        const userId = ctx?.message?.from?.id;
+        if (!userId) {
+            return await ctx.reply("无法获取用户信息");
+        }
+        try {
+            // @ts-ignore
+            const address = ctx?.message?.text.slice("/unbind".length).trim();
+            if (!address) {
+                return await ctx.reply("请输入地址");
+            }
+            await unbindTelegramAddress(c, userId.toString(), address);
+            return await ctx.reply(`解绑成功:\n地址: ${address}`
+            );
+        }
+        catch (e) {
+            return await ctx.reply(`解绑失败: ${(e as Error).message}`);
+        }
+    })
+
+    bot.command("delete", async (ctx: TgContext) => {
+        try {
+            // @ts-ignore
+            const address = ctx?.message?.text.slice("/unbind".length).trim();
+            if (!address) {
+                return await ctx.reply("请输入地址");
+            }
+            await deleteAddressWithData(c, address, null)
+            return await ctx.reply(`删除成功: ${address}`);
+        } catch (e) {
+            return await ctx.reply(`删除失败: ${(e as Error).message}`);
         }
     });
 
@@ -251,7 +295,7 @@ const parseMail = async (raw_mail: string | undefined | null) => {
     try {
         const parsedEmail = await PostalMime.parse(raw_mail);
         if (parsedEmail?.text?.length && parsedEmail?.text?.length > 1000) {
-            parsedEmail.text = parsedEmail.text.substring(0, 1000) + "...";
+            parsedEmail.text = parsedEmail.text.substring(0, 1000) + "...消息过长请到miniapp查看";
         }
         return {
             isHtml: false,
@@ -270,7 +314,7 @@ const parseMail = async (raw_mail: string | undefined | null) => {
 }
 
 
-export async function sendMailToTelegram(c: Context<{ Bindings: Bindings }>, address: string, raw_mail: string) {
+export async function sendMailToTelegram(c: Context<HonoCustomType>, address: string, raw_mail: string) {
     if (!c.env.TELEGRAM_BOT_TOKEN || !c.env.KV) {
         return;
     }

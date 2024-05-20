@@ -6,6 +6,9 @@ export type Bindings = {
 
     // config
     PREFIX: string | undefined
+    DOMAINS: string | string[] | undefined
+    PASSWORDS: string | string[] | undefined
+    ADMIN_PASSWORDS: string | string[] | undefined
     JWT_SECRET: string
     BLACK_LIST: string | undefined
     ENABLE_AUTO_REPLY: string | boolean | undefined
@@ -18,6 +21,7 @@ export type Bindings = {
 
     // cf turnstile
     CF_TURNSTILE_SITE_KEY: string | undefined
+    CF_TURNSTILE_SECRET_KEY: string | undefined
 
     // telegram config
     TELEGRAM_BOT_TOKEN: string
@@ -39,4 +43,9 @@ type UserPayload = {
 type Variables = {
     userPayload: UserPayload,
     jwtPayload: JwtPayload
+}
+
+type HonoCustomType = {
+    "Bindings": Bindings;
+    "Variables": Variables;
 }

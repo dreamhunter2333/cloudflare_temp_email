@@ -3,7 +3,6 @@ import { cors } from 'hono/cors';
 import { jwt } from 'hono/jwt'
 import { Jwt } from 'hono/utils/jwt'
 
-// @ts-ignore
 import { api as commonApi } from './commom_api';
 // @ts-ignore
 import { api as mailsApi } from './mails_api'
@@ -18,13 +17,11 @@ import { api as apiSendMail } from './mails_api/send_mail_api'
 import { api as telegramApi } from './telegram_api'
 
 import { email } from './email';
-// @ts-ignore
 import { scheduled } from './scheduled';
-// @ts-ignore
 import { getAdminPasswords, getPasswords, getBooleanValue } from './utils';
-import { Bindings } from './types';
+import { HonoCustomType } from './types';
 
-const app = new Hono<{ Bindings: Bindings }>()
+const app = new Hono<HonoCustomType>()
 //cors
 app.use('/*', cors());
 // rate limit
@@ -88,6 +85,7 @@ app.use('/user_api/*', async (c, next) => {
 	}
 	try {
 		const token = c.req.raw.headers.get("x-user-token");
+		if (!token) return c.text("Need User Token", 401)
 		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
 		// check expired
 		if (!payload.exp) return c.text("Invalid Token", 401);

@@ -1,8 +1,16 @@
+import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import { getDomains, getStringValue } from './utils';
+import { HonoCustomType } from './types';
+import { CONSTANTS } from './constants';
+import { unbindTelegramByAddress } from './telegram_api/common';
 
-export const newAddress = async (c, name, domain, enablePrefix) => {
+export const newAddress = async (
+    c: Context<HonoCustomType>,
+    name: string, domain: string | undefined | null,
+    enablePrefix: boolean
+): Promise<{ address: string, jwt: string }> => {
     // remove special characters
     name = name.replace(/[^a-zA-Z0-9.]/g, '')
     // check name length
@@ -36,10 +44,9 @@ export const newAddress = async (c, name, domain, enablePrefix) => {
         }
         throw new Error("Failed to create address")
     }
-    let address_id = 0;
-    address_id = await c.env.DB.prepare(
+    const address_id = await c.env.DB.prepare(
         `SELECT id FROM address where name = ?`
-    ).bind(name).first("id");
+    ).bind(name).first<number>("id");
     // create jwt
     const jwt = await Jwt.sign({
         address: name,
@@ -51,7 +58,11 @@ export const newAddress = async (c, name, domain, enablePrefix) => {
     }
 }
 
-export const cleanup = async (c, cleanType, cleanDays) => {
+export const cleanup = async (
+    c: Context<HonoCustomType>,
+    cleanType: string | undefined | null,
+    cleanDays: number | undefined | null
+): Promise<boolean> => {
     if (!cleanType || !cleanDays || cleanDays < 0 || cleanDays > 30) {
         throw new Error("Invalid cleanType or cleanDays")
     }
@@ -80,17 +91,57 @@ export const cleanup = async (c, cleanType, cleanDays) => {
 }
 
 /**
- *
- * @param {*} c context
- * @param {*} query @type {string} query
- * @param {*} countQuery @type {string} countQuery
- * @param {*} limit @type {number} limit
- * @param {*} offset @type {number} offset
- * @returns {Promise} Promise
+ * TODO: need senbox delete?
  */
+export const deleteAddressWithData = async (
+    c: Context<HonoCustomType>,
+    address: string | undefined | null,
+    address_id: number | undefined | null
+): Promise<boolean> => {
+    if (!address && !address_id) {
+        throw new Error("Address or address_id required")
+    }
+    // get address_id or address
+    if (!address_id) {
+        address_id = await c.env.DB.prepare(
+            `SELECT id FROM address where name = ?`
+        ).bind(address).first<number>("id");
+    } else if (!address) {
+        address = await c.env.DB.prepare(
+            `SELECT name FROM address where id = ?`
+        ).bind(address_id).first<string>("name");
+    }
+    // check address again
+    if (!address || !address_id) {
+        throw new Error("Can't find address");
+    }
+    // unbind telegram
+    await unbindTelegramByAddress(c, address);
+    // delete address and related data
+    const { success: mailSuccess } = await c.env.DB.prepare(
+        `DELETE FROM raw_mails WHERE address = ? `
+    ).bind(address).run();
+    const { success: sendAccess } = await c.env.DB.prepare(
+        `DELETE FROM address_sender WHERE address = ? `
+    ).bind(address).run();
+    const { success: addressSuccess } = await c.env.DB.prepare(
+        `DELETE FROM users_address WHERE address_id = ? `
+    ).bind(address_id).run();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM address WHERE name = ? `
+    ).bind(address).run();
+    if (!success || !mailSuccess || !addressSuccess || !sendAccess) {
+        throw new Error("Failed to delete address")
+    }
+    return true;
+}
+
 export const handleListQuery = async (
-    c, query, countQuery, params, limit, offset
-) => {
+    c: Context<HonoCustomType>,
+    query: string, countQuery: string, params: string[],
+    limit: number | undefined | null,
+    offset: number | undefined | null
+): Promise<Response> => {
     if (!limit || limit < 0 || limit > 100) {
         return c.text("Invalid limit", 400)
     }

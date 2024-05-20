@@ -3,6 +3,7 @@
 ## main branch
 
 - telegram mini app
+- telegram mini 增加 `ubind`, `delete` 指令
 
 ## v0.4.3
 
