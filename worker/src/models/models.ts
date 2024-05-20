@@ -38,3 +38,35 @@ export class CleanupSettings {
         this.cleanSendBoxDays = cleanSendBoxDays || 0;
     }
 }
+
+
+export class GeoData {
+
+    ip: string;
+    country: string | undefined;
+    city: string | undefined;
+    timezone: string | undefined;
+    postalCode: string | undefined;
+    region: string | undefined;
+    latitude: number | undefined;
+    longitude: number | undefined;
+    regionCode: string | undefined;
+    asOrganization: string | undefined;
+
+    constructor(ip: string | null, data: GeoData | undefined | null) {
+        const {
+            country, city, timezone, postalCode, region,
+            latitude, longitude, regionCode, asOrganization
+        } = data || {};
+        this.ip = ip || "unknown";
+        this.country = country;
+        this.city = city;
+        this.timezone = timezone;
+        this.postalCode = postalCode;
+        this.region = region;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.regionCode = regionCode;
+        this.asOrganization = asOrganization;
+    }
+}

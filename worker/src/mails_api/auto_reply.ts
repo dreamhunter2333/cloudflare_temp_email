@@ -1,8 +1,10 @@
+import { Context } from "hono";
 import { getBooleanValue } from "../utils";
+import { HonoCustomType } from "../types";
 
 
 export default {
-    getAutoReply: async (c) => {
+    getAutoReply: async (c: Context<HonoCustomType>) => {
         if (!getBooleanValue(c.env.ENABLE_AUTO_REPLY)) {
             return c.text("Auto reply is disabled", 403)
         }
@@ -21,7 +23,7 @@ export default {
             name: results.name,
         })
     },
-    saveAutoReply: async (c) => {
+    saveAutoReply: async (c: Context<HonoCustomType>) => {
         if (!getBooleanValue(c.env.ENABLE_AUTO_REPLY)) {
             return c.text("Auto reply is disabled", 403)
         }

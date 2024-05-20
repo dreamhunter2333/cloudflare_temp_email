@@ -3,16 +3,14 @@ import { cors } from 'hono/cors';
 import { jwt } from 'hono/jwt'
 import { Jwt } from 'hono/utils/jwt'
 
+// @ts-ignore
+import { api as apiV1 } from './deprecated';
+
 import { api as commonApi } from './commom_api';
-// @ts-ignore
 import { api as mailsApi } from './mails_api'
-// @ts-ignore
 import { api as userApi } from './user_api';
 // @ts-ignore
 import { api as adminApi } from './admin_api';
-// @ts-ignore
-import { api as apiV1 } from './deprecated';
-// @ts-ignore
 import { api as apiSendMail } from './mails_api/send_mail_api'
 import { api as telegramApi } from './telegram_api'
 

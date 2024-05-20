@@ -96,9 +96,9 @@ export async function trigerWebhook(
         from: parsedEmail.from.address || "",
         to: address,
         headers: JSON.stringify(parsedEmail.headers, null, 2),
-        subject: parsedEmail.subject || "",
-        raw: raw_mail,
-        parsedText: parsedEmail.text || parsedEmail.html || ""
+        subject: JSON.stringify(parsedEmail.subject) || "",
+        raw: JSON.stringify(raw_mail),
+        parsedText: JSON.stringify(parsedEmail.text) || JSON.stringify(parsedEmail.html) || ""
     });
     if (!res.success) {
         console.log(res.message);

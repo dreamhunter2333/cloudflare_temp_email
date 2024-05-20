@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, h, onMounted } from 'vue';
-import { useSessionStorage } from '@vueuse/core';
 import { useI18n } from 'vue-i18n'
 import { NPopconfirm, NButton } from 'naive-ui'
 
@@ -8,6 +7,8 @@ import { NPopconfirm, NButton } from 'naive-ui'
 import { useGlobalState } from '../../store'
 // @ts-ignore
 import { api } from '../../api'
+// @ts-ignore
+import Login from '../common/Login.vue';
 
 const { localeCache, jwt, telegramApp } = useGlobalState()
 // @ts-ignore
@@ -21,26 +22,58 @@ const { t } = useI18n({
             address: 'Address',
             actions: 'Actions',
             changeMailAddress: 'Change Mail Address',
+            unbindMailAddress: 'Unbind Mail Address',
+            bind: 'Bind',
+            bindAddressSuccess: 'Bind Address Success',
         },
         zh: {
             success: '成功',
             address: '地址',
             actions: '操作',
             changeMailAddress: '切换邮箱地址',
+            unbindMailAddress: '解绑邮箱地址',
+            bind: '绑定',
+            bindAddressSuccess: '绑定地址成功',
         }
     }
 });
 
-const data = useSessionStorage("telegram-bind-address", [])
+const data = ref([]);
 
 const fetchData = async () => {
     try {
-        data.value = await api.fetch(`/telegram/bind_address`, {
+        data.value = await api.fetch(`/telegram/get_bind_address`, {
             method: 'POST',
             body: JSON.stringify({
                 initData: telegramApp.value.initData
             })
         });
+    } catch (error) {
+        message.error((error as Error).message || "error");
+    }
+}
+
+const newAddressPath = async (address_name: string, domain: string, cf_token: string) => {
+    return await api.fetch("/telegram/new_address", {
+        method: "POST",
+        body: JSON.stringify({
+            initData: telegramApp.value.initData,
+            address: `${address_name}@${domain}`,
+            cf_token: cf_token,
+        }),
+    });
+}
+
+const bindAddress = async () => {
+    try {
+        await api.fetch(`/telegram/bind_address`, {
+            method: 'POST',
+            body: JSON.stringify({
+                initData: telegramApp.value.initData,
+                jwt: jwt.value
+            })
+        });
+        message.success(t('bindAddressSuccess'));
     } catch (error) {
         message.error((error as Error).message || "error");
     }
@@ -73,6 +106,31 @@ const columns = [
                         ),
                         default: () => `${t('changeMailAddress')}?`
                     }
+                ),
+                h(NPopconfirm,
+                    {
+                        onPositiveClick: () => {
+                            api.fetch(`/telegram/unbind_address`, {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    initData: telegramApp.value.initData,
+                                    address: row.address
+                                })
+                            });
+                            jwt.value = ""
+                            location.reload()
+                        }
+                    },
+                    {
+                        trigger: () => h(NButton,
+                            {
+                                tertiary: true,
+                                type: "warning",
+                            },
+                            { default: () => t('unbindMailAddress') }
+                        ),
+                        default: () => `${t('unbindMailAddress')}?`
+                    }
                 )
             ])
         }
@@ -89,6 +147,13 @@ onMounted(async () => {
 
 <template>
     <div>
-        <n-data-table :columns="columns" :data="data" :bordered="false" />
+        <n-tabs type="segment">
+            <n-tab-pane name="address" :tab="t('address')">
+                <n-data-table :columns="columns" :data="data" :bordered="false" />
+            </n-tab-pane>
+            <n-tab-pane name="bind" :tab="t('bind')">
+                <Login :newAddressPath="newAddressPath" :bindUserAddress="bindAddress" />
+            </n-tab-pane>
+        </n-tabs>
     </div>
 </template>

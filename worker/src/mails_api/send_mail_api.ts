@@ -1,12 +1,13 @@
-import { Hono } from 'hono'
+import { Context, Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains } from '../utils';
-import { GeoData } from '../models'
+import { getJsonSetting, getDomains, getIntValue } from '../utils';
+import { GeoData } from '../models/models'
 import { handleListQuery } from '../common'
+import { HonoCustomType } from '../types';
 
 
-const api = new Hono()
+export const api = new Hono<HonoCustomType>()
 
 api.post('/api/requset_send_mail_access', async (c) => {
     const { address } = c.get("jwtPayload")
@@ -14,7 +15,7 @@ api.post('/api/requset_send_mail_access', async (c) => {
         return c.text("No address", 400)
     }
     try {
-        const default_balance = c.env.DEFAULT_SEND_BALANCE || 0;
+        const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
         const { success } = await c.env.DB.prepare(
             `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
         ).bind(
@@ -24,15 +25,22 @@ api.post('/api/requset_send_mail_access', async (c) => {
             return c.text("Failed to request send mail access", 500)
         }
     } catch (e) {
-        if (e.message && e.message.includes("UNIQUE")) {
-            return c.text("Already requested", 400)
+        const message = (e as Error).message;
+        if (message && message.includes("UNIQUE")) {
+            throw new Error("Address already requested")
         }
         return c.text("Failed to request send mail access", 500)
     }
     return c.json({ status: "ok" })
 })
 
-export const sendMail = async (c, address, reqJson) => {
+export const sendMail = async (
+    c: Context<HonoCustomType>, address: string,
+    reqJson: {
+        from_name: string, to_mail: string, to_name: string,
+        subject: string, content: string, is_html: boolean
+    }
+) => {
     if (!address) {
         throw new Error("No address")
     }
@@ -46,7 +54,7 @@ export const sendMail = async (c, address, reqJson) => {
     const balance = await c.env.DB.prepare(
         `SELECT balance FROM address_sender
             where address = ? and enabled = 1`
-    ).bind(address).first("balance");
+    ).bind(address).first<number>("balance");
     if (!balance || balance <= 0) {
         throw new Error("No balance")
     }
@@ -58,7 +66,7 @@ export const sendMail = async (c, address, reqJson) => {
         throw new Error("Invalid to mail")
     }
     // check SEND_BLOCK_LIST_KEY
-    const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
+    const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY) as string[];
     if (sendBlockList && sendBlockList.some((item) => to_mail.includes(item))) {
         throw new Error("to_mail address is blocked")
     }
@@ -124,12 +132,12 @@ export const sendMail = async (c, address, reqJson) => {
     }
     // save to sendbox
     try {
-        if (body?.personalizations?.[0]?.dkim_private_key) {
-            delete body.personalizations[0].dkim_private_key;
+        if ((body as any)?.personalizations?.[0]?.dkim_private_key) {
+            delete (body as any).personalizations[0].dkim_private_key;
         }
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
-        const geoData = new GeoData(reqIp, c.req.raw.cf);
-        body.geoData = geoData;
+        const geoData = new GeoData(reqIp, c.req.raw.cf as any);
+        (body as any).geoData = geoData;
         const { success: success2 } = await c.env.DB.prepare(
             `INSERT INTO sendbox (address, raw) VALUES (?, ?)`
         ).bind(address, JSON.stringify(body)).run();
@@ -148,7 +156,7 @@ api.post('/api/send_mail', async (c) => {
         await sendMail(c, address, reqJson);
     } catch (e) {
         console.error("Failed to send mail", e);
-        return c.text(`Failed to send mail ${e.message}`, 400)
+        return c.text(`Failed to send mail ${(e as Error).message}`, 400)
     }
     return c.json({ status: "ok" })
 })
@@ -165,11 +173,14 @@ api.post('/external/api/send_mail', async (c) => {
         return c.json({ status: "ok" })
     } catch (e) {
         console.error("Failed to send mail", e);
-        return c.text(`Failed to send mail ${e.message}`, 400)
+        return c.text(`Failed to send mail ${(e as Error).message}`, 400)
     }
 })
 
-const getSendbox = async (c, address, limit, offset) => {
+export const getSendbox = async (
+    c: Context<HonoCustomType>,
+    address: string, limit: string, offset: string
+): Promise<Response> => {
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }
@@ -185,5 +196,3 @@ api.get('/api/sendbox', async (c) => {
     const { limit, offset } = c.req.query();
     return getSendbox(c, address, limit, offset);
 })
-
-export { api, getSendbox }

@@ -1,9 +1,10 @@
+<!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
 ## main branch
 
 - telegram mini app
-- telegram mini 增加 `ubind`, `delete` 指令
+- telegram bot 增加 `ubind`, `delete` 指令
 
 ## v0.4.3
 
@@ -19,7 +20,6 @@
 - UI: 登录后可直接主页切换地址
 - UI: 发件箱也采用左右分栏显示(类似收件箱)
 - `SMTP IMAP Proxy` 添加发件箱查看
-
 
 * feat: telegram bot TelegramSettings && webhook by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/244
 * fix build by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/245
@@ -201,7 +201,6 @@ set
 - 添加 RATE_LIMITER 限流 发送邮件 和 新建地址
 - 一些 bug 修复
 
----
 - feat: allow user delete mail && notify when send access changed by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/132
 - feat: requset_send_mail_access default 1 balance by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/143
 - fix: RATE_LIMITER not call jwt by @dreamhunter2333 in https://github.com/dreamhunter2333/cloudflare_temp_email/pull/146

@@ -7,11 +7,10 @@ import PostalMime from 'postal-mime';
 
 import { CONSTANTS } from "../constants";
 import { getIntValue, getDomains, getStringValue } from '../utils';
-// @ts-ignore
-import { deleteAddressWithData, newAddress } from '../common'
+import { deleteAddressWithData } from '../common'
 import { HonoCustomType } from "../types";
 import { TelegramSettings } from "./settings";
-import { unbindTelegramAddress } from "./common";
+import { bindTelegramAddress, tgUserNewAddress, unbindTelegramAddress } from "./common";
 
 const COMMANDS = [
     {
@@ -48,6 +47,9 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
     const bot = new Telegraf(token);
 
     bot.use(async (ctx, next) => {
+        // skip non-message
+        if (ctx.updateType != "message") return await next();
+        // check if in private chat
         if (ctx.chat?.type !== "private") {
             return await ctx.reply("请在私聊中使用");
         }
@@ -75,38 +77,23 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         const prefix = getStringValue(c.env.PREFIX)
         const domains = getDomains(c);
         return await ctx.reply(
-            "欢迎使用本机器人, 您可以点击左下角打开 mini app \n\n"
+            "欢迎使用本机器人, 您可以打开 mini app \n\n"
             + (prefix ? `当前已启用前缀: ${prefix}\n` : '')
             + `当前可用域名: ${JSON.stringify(domains)}\n`
             + "请使用以下命令:\n"
             + COMMANDS.map(c => `/${c.command}: ${c.description}`).join("\n")
         );
     });
+
     bot.command("new", async (ctx: TgContext) => {
         const userId = ctx?.message?.from?.id;
         if (!userId) {
             return await ctx.reply("无法获取用户信息");
         }
         try {
-            if (c.env.RATE_LIMITER) {
-                const { success } = await c.env.RATE_LIMITER.limit(
-                    { key: `${CONSTANTS.TG_KV_PREFIX}:${userId}` }
-                )
-                if (!success) {
-                    return await ctx.reply("操作过于频繁");
-                }
-            }
             // @ts-ignore
-            const address = ctx?.message?.text.slice("/new".length).trim() || Math.random().toString(36).substring(2, 15);
-            const [name, domain] = address.includes("@") ? address.split("@") : [address, null];
-            const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-            if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
-                return await ctx.reply("绑定地址数量已达上限");
-            }
-            const res = await newAddress(c, name, domain, true);
-            // for mail push to telegram
-            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, res.jwt]));
-            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${res.address}`, userId.toString());
+            const address = ctx?.message?.text.slice("/new".length).trim();
+            const res = await tgUserNewAddress(c, userId.toString(), address);
             return await ctx.reply(`创建地址成功:\n`
                 + `地址: ${res.address}\n`
                 + `凭证: ${res.jwt}\n`
@@ -127,17 +114,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             if (!jwt) {
                 return await ctx.reply("请输入凭证");
             }
-            const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
-            if (!address) {
-                return await ctx.reply("凭证无效");
-            }
-            const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-            if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
-                return await ctx.reply("绑定地址数量已达上限");
-            }
-            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, jwt]));
-            // for mail push to telegram
-            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${address}`, userId.toString());
+            const address = await bindTelegramAddress(c, userId.toString(), jwt);
             return await ctx.reply(`绑定成功:\n`
                 + `地址: ${address}`
             );
@@ -218,7 +195,6 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
                 const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
                 addressList.push(address);
             } catch (e) {
-                addressList.push("此凭证无效");
                 continue;
             }
         }
@@ -228,18 +204,27 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         if (!addressList.includes(queryAddress)) {
             return await ctx.reply(`未绑定此地址 ${queryAddress}`);
         }
-        const raw = await c.env.DB.prepare(
+        const { raw, id: mailId } = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where address = ? `
             + ` order by id desc limit 1 offset ?`
         ).bind(
             queryAddress, mailIndex
-        ).first<string>("raw");
-        const { mail } = await parseMail(raw);
+        ).first<{ raw: string, id: string }>() || {};
+        const { mail } = raw ? await parseMail(raw) : { mail: "已经没有邮件了" };
+        const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
+        const miniAppButtons = []
+        if (settings?.miniAppUrl && settings?.miniAppUrl?.length > 0 && mailId) {
+            const url = new URL(settings.miniAppUrl);
+            url.pathname = "/telegram_mail"
+            url.searchParams.set("mail_id", mailId);
+            miniAppButtons.push(Markup.button.webApp("OpenApp", url.toString()));
+        }
         if (edit) {
             return await ctx.editMessageText(mail || "无邮件",
                 {
                     ...Markup.inlineKeyboard([
                         Markup.button.callback("上一条", `mail_${queryAddress}_${mailIndex - 1}`, mailIndex <= 0),
+                        ...miniAppButtons,
                         Markup.button.callback("下一条", `mail_${queryAddress}_${mailIndex + 1}`, !raw),
                     ])
                 },
@@ -249,6 +234,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             {
                 ...Markup.inlineKeyboard([
                     Markup.button.callback("上一条", `mail_${queryAddress}_${mailIndex - 1}`, mailIndex <= 0),
+                    ...miniAppButtons,
                     Markup.button.callback("下一条", `mail_${queryAddress}_${mailIndex + 1}`, !raw),
                 ])
             },
@@ -303,7 +289,7 @@ const parseMail = async (raw_mail: string | undefined | null) => {
                 + `To: ${parsedEmail.to?.map(t => `${t.name}[${t.address}]`).join(" ")}\n`
                 + `Subject: ${parsedEmail.subject}\n`
                 + `Date: ${parsedEmail.date}\n`
-                + `Content:\n${parsedEmail.text || "解析失败，请点击左下角打开 mini app 查看"}`
+                + `Content:\n${parsedEmail.text || "解析失败，请打开 mini app 查看"}`
         };
     } catch (e) {
         return {

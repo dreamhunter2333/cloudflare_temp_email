@@ -9,6 +9,29 @@ import Turnstile from '../../components/Turnstile.vue'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+
+const props = defineProps({
+    bindUserAddress: {
+        type: Function,
+        default: async () => { await api.bindUserAddress(); },
+        requried: true
+    },
+    newAddressPath: {
+        type: Function,
+        default: async (address_name, domain, cf_token) => {
+            return await api.fetch("/api/new_address", {
+                method: "POST",
+                body: JSON.stringify({
+                    name: address_name,
+                    domain: domain,
+                    cf_token: cf_token,
+                }),
+            });
+        },
+        requried: true
+    },
+})
+
 const message = useMessage()
 const router = useRouter()
 
@@ -32,7 +55,7 @@ const login = async () => {
         jwt.value = credential.value;
         await api.getSettings();
         try {
-            await api.bindUserAddress();
+            await props.bindUserAddress();
         } catch (error) {
             message.error(`${t('bindUserAddressError')}: ${error.message}`);
         }
@@ -98,20 +121,17 @@ const generateName = async () => {
 
 const newEmail = async () => {
     try {
-        const res = await api.fetch(`/api/new_address`, {
-            method: "POST",
-            body: JSON.stringify({
-                name: emailName.value,
-                domain: emailDomain.value,
-                cf_token: cfToken.value,
-            }),
-        });
+        const res = await props.newAddressPath(
+            emailName.value,
+            emailDomain.value,
+            cfToken.value
+        );
         jwt.value = res["jwt"];
         await api.getSettings();
         await router.push("/");
         showAddressCredential.value = true;
         try {
-            await api.bindUserAddress();
+            await props.bindUserAddress();
         } catch (error) {
             message.error(`${t('bindUserAddressError')}: ${error.message}`);
         }

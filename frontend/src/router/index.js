@@ -1,9 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/Index.vue'
-import UserLogin from '../views/user/UserLogin.vue'
 import User from '../views/User.vue'
-import SendMail from '../views/index/SendMail.vue'
 import Admin from '../views/Admin.vue'
+import TelegramMail from '../views/telegram/Mail.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -19,7 +18,11 @@ const router = createRouter({
         {
             path: '/admin',
             component: Admin
-        }
+        },
+        {
+            path: '/telegram_mail',
+            component: TelegramMail
+        },
     ]
 })
 
