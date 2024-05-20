@@ -1,5 +1,4 @@
 import { createMimeMessage } from "mimetext";
-// @ts-ignore
 import { getBooleanValue } from "../utils";
 import { Bindings } from "../types";
 

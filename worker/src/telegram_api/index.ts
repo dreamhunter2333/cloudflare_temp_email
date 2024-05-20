@@ -2,12 +2,12 @@ import { Hono } from 'hono'
 import { ServerResponse } from 'node:http'
 import { Writable } from 'node:stream'
 
-import { Bindings } from '../types'
+import { HonoCustomType } from '../types'
 import { newTelegramBot, initTelegramBotCommands, sendMailToTelegram } from './telegram'
 import settings from './settings'
 import miniapp from './miniapp'
 
-export const api = new Hono<{ Bindings: Bindings }>();
+export const api = new Hono<HonoCustomType>();
 export { sendMailToTelegram }
 
 api.use("/telegram/*", async (c, next) => {

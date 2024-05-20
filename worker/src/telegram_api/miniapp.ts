@@ -1,12 +1,12 @@
 import { Context } from "hono";
 import { Jwt } from 'hono/utils/jwt'
-import { Bindings } from "../types";
+import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 
 const encoder = new TextEncoder();
 
 
-async function getTelegramBindAddress(c: Context<{ Bindings: Bindings }>): Promise<Response> {
+async function getTelegramBindAddress(c: Context<HonoCustomType>): Promise<Response> {
     // check if the request is from telegram
     const { initData } = await c.req.json();
     const initDataObj = new URLSearchParams(initData);

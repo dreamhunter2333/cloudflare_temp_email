@@ -1,11 +1,10 @@
 import { Hono } from 'hono'
 
-// @ts-ignore
 import { getDomains, getPasswords, getBooleanValue } from './utils';
 import { CONSTANTS } from './constants';
-import { Bindings } from './types';
+import { HonoCustomType } from './types';
 
-const api = new Hono<{ Bindings: Bindings }>
+const api = new Hono<HonoCustomType>
 
 api.get('/open_api/settings', async (c) => {
     // check header x-custom-auth
@@ -13,7 +12,7 @@ api.get('/open_api/settings', async (c) => {
     const passwords = getPasswords(c);
     if (passwords && passwords.length > 0) {
         const auth = c.req.raw.headers.get("x-custom-auth");
-        needAuth = !passwords.includes(auth);
+        needAuth = !auth || !passwords.includes(auth);
     }
     return c.json({
         "prefix": c.env.PREFIX,

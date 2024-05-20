@@ -1,8 +1,7 @@
 import { Context } from "hono";
-import { Bindings, Variables } from "../types";
+import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 import { AdminWebhookSettings, WebhookMail } from "../models/models";
-// @ts-ignore
 import { getBooleanValue } from "../utils";
 import PostalMime from 'postal-mime';
 
@@ -24,9 +23,7 @@ class WebhookSettings {
 }
 
 
-async function getWebhookSettings(
-    c: Context<{ Bindings: Bindings, Variables: Variables }>
-): Promise<Response> {
+async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     if (!c.env.KV) {
         return c.text("KV is not available", 400);
     }
@@ -45,9 +42,7 @@ async function getWebhookSettings(
 }
 
 
-async function saveWebhookSettings(
-    c: Context<{ Bindings: Bindings, Variables: Variables }>
-): Promise<Response> {
+async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const { address } = c.get("jwtPayload")
     const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
     if (!adminSettings?.allowList.includes(address)) {
@@ -79,7 +74,7 @@ async function sendWebhook(settings: WebhookSettings, formatMap: WebhookMail): P
 }
 
 export async function trigerWebhook(
-    c: Context<{ Bindings: Bindings }>,
+    c: Context<HonoCustomType>,
     address: string,
     raw_mail: string
 ): Promise<void> {
@@ -110,9 +105,7 @@ export async function trigerWebhook(
     }
 }
 
-async function testWebhookSettings(
-    c: Context<{ Bindings: Bindings, Variables: Variables }>
-): Promise<Response> {
+async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.req.json<WebhookSettings>();
     const res = await sendWebhook(settings, {
         from: "from@test.com",
