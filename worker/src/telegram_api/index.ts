@@ -68,4 +68,8 @@ api.get("/admin/telegram/status", async (c) => {
 
 api.get("/admin/telegram/settings", settings.getTelegramSettings);
 api.post("/admin/telegram/settings", settings.saveTelegramSettings);
-api.post("/telegram/bind_address", miniapp.getTelegramBindAddress);
+api.post("/telegram/get_bind_address", miniapp.getTelegramBindAddress);
+api.post("/telegram/new_address", miniapp.newTelegramAddress);
+api.post("/telegram/bind_address", miniapp.bindAddress);
+api.post("/telegram/unbind_address", miniapp.unbindAddress);
+api.post("/telegram/get_mail", miniapp.getMail);

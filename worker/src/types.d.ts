@@ -16,8 +16,13 @@ export type Bindings = {
     ENABLE_USER_CREATE_EMAIL: string | boolean | undefined
     ENABLE_USER_DELETE_EMAIL: string | boolean | undefined
     ENABLE_INDEX_ABOUT: string | boolean | undefined
+    DEFAULT_SEND_BALANCE: number | string | undefined
     ADMIN_CONTACT: string | undefined
     COPYRIGHT: string | undefined
+
+    // dkim
+    DKIM_SELECTOR: string | undefined
+    DKIM_PRIVATE_KEY: string | undefined
 
     // cf turnstile
     CF_TURNSTILE_SITE_KEY: string | undefined

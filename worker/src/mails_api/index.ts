@@ -1,12 +1,13 @@
 import { Hono } from 'hono'
 
+import { HonoCustomType } from "../types";
 import { getBooleanValue, getJsonSetting, checkCfTurnstile } from '../utils';
-import { newAddress, handleListQuery } from '../common'
+import { newAddress, handleListQuery, deleteAddressWithData } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
 
-const api = new Hono()
+export const api = new Hono<HonoCustomType>()
 
 api.get('/api/auto_reply', auto_reply.getAutoReply)
 api.post('/api/auto_reply', auto_reply.saveAutoReply)
@@ -103,7 +104,7 @@ api.post('/api/new_address', async (c) => {
     // check name block list
     try {
         const value = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
-        const blockList = value || [];
+        const blockList = (value || []) as string[];
         if (blockList.some((item) => name.includes(item))) {
             return c.text(`Name[${name}]is blocked`, 400)
         }
@@ -114,37 +115,14 @@ api.post('/api/new_address', async (c) => {
         const res = await newAddress(c, name, domain, true);
         return c.json(res);
     } catch (e) {
-        return c.text(`Failed create address: ${e.message}`, 400)
+        return c.text(`Failed create address: ${(e as Error).message}`, 400)
     }
 })
 
 api.delete('/api/delete_address', async (c) => {
-    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
-        return c.text("User delete email is disabled", 403)
-    }
     const { address, address_id } = c.get("jwtPayload")
-    let name = address;
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM address WHERE name = ? `
-    ).bind(name).run();
-    if (!success) {
-        return c.text("Failed to delete address", 500)
-    }
-    const { success: mailSuccess } = await c.env.DB.prepare(
-        `DELETE FROM raw_mails WHERE address = ? `
-    ).bind(address).run();
-    if (!mailSuccess) {
-        return c.text("Failed to delete mails", 500)
-    }
-    const { success: sendAccess } = await c.env.DB.prepare(
-        `DELETE FROM address_sender WHERE address = ? `
-    ).bind(address).run();
-    const { success: addressSuccess } = await c.env.DB.prepare(
-        `DELETE FROM users_address WHERE address_id = ? `
-    ).bind(address_id).run();
+    const success = await deleteAddressWithData(c, address, address_id);
     return c.json({
-        success: success && mailSuccess && sendAccess && addressSuccess
+        success: success
     })
 })
-
-export { api }

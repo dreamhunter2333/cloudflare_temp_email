@@ -22,6 +22,7 @@ const { t } = useI18n({
             enable: 'Enable',
             telegramAllowList: 'Telegram Allow List',
             save: 'Save',
+            miniAppUrl: 'Telegram Mini App URL',
         },
         zh: {
             init: '初始化',
@@ -31,6 +32,7 @@ const { t } = useI18n({
             enable: '启用',
             telegramAllowList: 'Telegram 白名单',
             save: '保存',
+            miniAppUrl: '电报小程序 URL(请输入你部署的电报小程序网页地址)',
         }
     }
 });
@@ -63,14 +65,16 @@ const init = async () => {
 class TelegramSettings {
     enableAllowList: boolean;
     allowList: string[];
+    miniAppUrl: string;
 
-    constructor(enableAllowList: boolean, allowList: string[]) {
+    constructor(enableAllowList: boolean, allowList: string[], miniAppUrl: string) {
         this.enableAllowList = enableAllowList;
         this.allowList = allowList;
+        this.miniAppUrl = miniAppUrl;
     }
 }
 
-const settings = ref(new TelegramSettings(false, []))
+const settings = ref(new TelegramSettings(false, [], ''))
 
 const getSettings = async () => {
     try {
@@ -110,6 +114,9 @@ onMounted(async () => {
                         <n-select v-model:value="settings.allowList" filterable multiple tag style="width: 80%;"
                             :placeholder="t('telegramAllowList')" />
                     </n-input-group>
+                </n-form-item-row>
+                <n-form-item-row :label="t('miniAppUrl')">
+                    <n-input v-model:value="settings.miniAppUrl"></n-input>
                 </n-form-item-row>
                 <n-button @click="saveSettings" type="primary" block>
                     {{ t('save') }}

@@ -5,16 +5,18 @@ import { CONSTANTS } from "../constants";
 export class TelegramSettings {
     enableAllowList: boolean;
     allowList: string[];
+    miniAppUrl: string;
 
-    constructor(enableAllowList: boolean, allowList: string[]) {
+    constructor(enableAllowList: boolean, allowList: string[], miniAppUrl: string) {
         this.enableAllowList = enableAllowList;
         this.allowList = allowList;
+        this.miniAppUrl = miniAppUrl;
     }
 }
 
 async function getTelegramSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
-    return c.json(settings || new TelegramSettings(false, []));
+    return c.json(settings || new TelegramSettings(false, [], ""));
 }
 
 

@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { getDomains, getStringValue } from './utils';
+import { getBooleanValue, getDomains, getStringValue } from './utils';
 import { HonoCustomType } from './types';
 import { CONSTANTS } from './constants';
 import { unbindTelegramByAddress } from './telegram_api/common';
@@ -14,7 +14,7 @@ export const newAddress = async (
     // remove special characters
     name = name.replace(/[^a-zA-Z0-9.]/g, '')
     // check name length
-    if (name.length < 0) {
+    if (name.length <= 0) {
         throw new Error("Name too short")
     }
     // create address
@@ -39,7 +39,8 @@ export const newAddress = async (
             throw new Error("Failed to create address")
         }
     } catch (e) {
-        if (e.message && e.message.includes("UNIQUE")) {
+        const message = (e as Error).message;
+        if (message && message.includes("UNIQUE")) {
             throw new Error("Address already exists")
         }
         throw new Error("Failed to create address")
@@ -98,6 +99,9 @@ export const deleteAddressWithData = async (
     address: string | undefined | null,
     address_id: number | undefined | null
 ): Promise<boolean> => {
+    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
+        throw new Error("Delete email is disabled")
+    }
     if (!address && !address_id) {
         throw new Error("Address or address_id required")
     }
@@ -139,13 +143,19 @@ export const deleteAddressWithData = async (
 export const handleListQuery = async (
     c: Context<HonoCustomType>,
     query: string, countQuery: string, params: string[],
-    limit: number | undefined | null,
-    offset: number | undefined | null
+    limit: string | number | undefined | null,
+    offset: string | number | undefined | null
 ): Promise<Response> => {
+    if (typeof limit === "string") {
+        limit = parseInt(limit);
+    }
+    if (typeof offset === "string") {
+        offset = parseInt(offset);
+    }
     if (!limit || limit < 0 || limit > 100) {
         return c.text("Invalid limit", 400)
     }
-    if (!offset || offset < 0) {
+    if (offset == null || offset == undefined || offset < 0) {
         return c.text("Invalid offset", 400)
     }
     const resultsQuery = `${query} order by id desc limit ? offset ?`;
