@@ -46,11 +46,9 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
     const bot = new Telegraf(token);
 
     bot.use(async (ctx, next) => {
-        // skip non-message
-        if (ctx.updateType != "message") return;
         // check if in private chat
         if (ctx.chat?.type !== "private") {
-            return await ctx.reply("请在私聊中使用");
+            return;
         }
 
         const userId = ctx?.message?.from?.id || ctx.callbackQuery?.message?.chat?.id;
