@@ -6,11 +6,10 @@ import { callbackQuery } from "telegraf/filters";
 import PostalMime from 'postal-mime';
 
 import { CONSTANTS } from "../constants";
-import { getIntValue, getDomains, getStringValue } from '../utils';
-import { deleteAddressWithData } from '../common'
+import { getDomains, getStringValue } from '../utils';
 import { HonoCustomType } from "../types";
 import { TelegramSettings } from "./settings";
-import { bindTelegramAddress, tgUserNewAddress, unbindTelegramAddress } from "./common";
+import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 
 const COMMANDS = [
     {
@@ -145,13 +144,17 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
     })
 
     bot.command("delete", async (ctx: TgContext) => {
+        const userId = ctx?.message?.from?.id;
+        if (!userId) {
+            return await ctx.reply("无法获取用户信息");
+        }
         try {
             // @ts-ignore
             const address = ctx?.message?.text.slice("/unbind".length).trim();
             if (!address) {
                 return await ctx.reply("请输入地址");
             }
-            await deleteAddressWithData(c, address, null)
+            await deleteTelegramAddress(c, userId.toString(), address);
             return await ctx.reply(`删除成功: ${address}`);
         } catch (e) {
             return await ctx.reply(`删除失败: ${(e as Error).message}`);
@@ -165,16 +168,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         }
         try {
             const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-            const addressList = [];
-            for (const jwt of jwtList) {
-                try {
-                    const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
-                    addressList.push(address);
-                } catch (e) {
-                    addressList.push("此凭证无效");
-                    continue;
-                }
-            }
+            const { addressList } = await jwtListToAddressData(c, jwtList);
             return await ctx.reply(`地址列表:\n\n`
                 + addressList.map(a => `地址: ${a}`).join("\n")
             );
@@ -189,20 +183,19 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             return await ctx.reply("无法获取用户信息");
         }
         const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-        const addressList = [];
-        for (const jwt of jwtList) {
-            try {
-                const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
-                addressList.push(address);
-            } catch (e) {
-                continue;
-            }
-        }
+        const { addressList, addressIdMap } = await jwtListToAddressData(c, jwtList);
         if (!queryAddress && addressList.length > 0) {
             queryAddress = addressList[0];
         }
-        if (!addressList.includes(queryAddress)) {
+        if (!(queryAddress in addressIdMap)) {
             return await ctx.reply(`未绑定此地址 ${queryAddress}`);
+        }
+        const address_id = addressIdMap[queryAddress];
+        const db_address_id = await c.env.DB.prepare(
+            `SELECT id FROM address where id = ? `
+        ).bind(address_id).first("id");
+        if (!db_address_id) {
+            return await ctx.reply("无效地址");
         }
         const { raw, id: mailId } = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where address = ? `
@@ -217,7 +210,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             const url = new URL(settings.miniAppUrl);
             url.pathname = "/telegram_mail"
             url.searchParams.set("mail_id", mailId);
-            miniAppButtons.push(Markup.button.webApp("OpenApp", url.toString()));
+            miniAppButtons.push(Markup.button.webApp("查看邮件", url.toString()));
         }
         if (edit) {
             return await ctx.editMessageText(mail || "无邮件",

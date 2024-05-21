@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { Jwt } from 'hono/utils/jwt'
 import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
-import { bindTelegramAddress, tgUserNewAddress, unbindTelegramAddress } from "./common";
+import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
 import { checkCfTurnstile } from "../utils";
 
 const encoder = new TextEncoder();
@@ -126,20 +126,18 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
     try {
         const userId = await checkTelegramAuth(c, initData);
         const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-        const addressList = [];
-        for (const jwt of jwtList) {
-            try {
-                const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
-                addressList.push(address);
-            } catch (e) {
-                addressList.push("此凭证无效");
-                continue;
-            }
-        }
+        const { addressList, addressIdMap } = await jwtListToAddressData(c, jwtList);
         const result = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where id = ?`
         ).bind(mailId).first();
-        if (result?.address && !addressList.includes(result.address)) {
+        if (result?.address && !(result.address as string in addressIdMap)) {
+            return c.text("无权查看此邮件", 403);
+        }
+        const address_id = addressIdMap[result?.address as string];
+        const db_address_id = await c.env.DB.prepare(
+            `SELECT id FROM address where id = ? `
+        ).bind(address_id).first("id");
+        if (!db_address_id) {
             return c.text("无权查看此邮件", 403);
         }
         return c.json(result);
