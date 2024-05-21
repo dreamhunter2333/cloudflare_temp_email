@@ -29,7 +29,7 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     try {
         await sendMailToTelegram(
             { env: env } as Context<HonoCustomType>,
-            message.to, rawEmail);
+            message.to, rawEmail, message_id);
     } catch (error) {
         console.log("send mail to telegram error", error);
     }

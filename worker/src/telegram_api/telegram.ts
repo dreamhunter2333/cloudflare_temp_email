@@ -291,7 +291,10 @@ const parseMail = async (raw_mail: string | undefined | null) => {
 }
 
 
-export async function sendMailToTelegram(c: Context<HonoCustomType>, address: string, raw_mail: string) {
+export async function sendMailToTelegram(
+    c: Context<HonoCustomType>, address: string,
+    raw_mail: string, message_id: string | null
+) {
     if (!c.env.TELEGRAM_BOT_TOKEN || !c.env.KV) {
         return;
     }
@@ -303,6 +306,21 @@ export async function sendMailToTelegram(c: Context<HonoCustomType>, address: st
     if (!mail) {
         return;
     }
+    const mailId = await c.env.DB.prepare(
+        `SELECT id FROM raw_mails where address = ? and message_id = ?`
+    ).bind(address, message_id).first<string>("id");
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
-    await bot.telegram.sendMessage(userId, mail);
+    const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
+    const miniAppButtons = []
+    if (settings?.miniAppUrl && settings?.miniAppUrl?.length > 0 && mailId) {
+        const url = new URL(settings.miniAppUrl);
+        url.pathname = "/telegram_mail"
+        url.searchParams.set("mail_id", mailId);
+        miniAppButtons.push(Markup.button.webApp("查看邮件", url.toString()));
+    }
+    await bot.telegram.sendMessage(userId, mail, {
+        ...Markup.inlineKeyboard([
+            ...miniAppButtons,
+        ])
+    });
 }
