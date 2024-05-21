@@ -47,7 +47,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
 
     bot.use(async (ctx, next) => {
         // skip non-message
-        if (ctx.updateType != "message") return await next();
+        if (ctx.updateType != "message") return;
         // check if in private chat
         if (ctx.chat?.type !== "private") {
             return await ctx.reply("请在私聊中使用");
