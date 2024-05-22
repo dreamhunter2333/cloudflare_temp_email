@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import email
-import requests
+import httpx
 
 from aiosmtpd.controller import Controller
 from aiosmtpd.smtp import SMTP, Session, Envelope, AuthResult, LoginPassword
@@ -102,7 +102,7 @@ class CustomSMTPHandler:
         }
         _logger.info(f"Send mail {dict(send_body, token='***')}")
         try:
-            res = requests.post(
+            res = httpx.post(
                 f"{settings.proxy_url}/external/api/send_mail",
                 json=send_body, headers={
                     "Content-Type": "application/json"
