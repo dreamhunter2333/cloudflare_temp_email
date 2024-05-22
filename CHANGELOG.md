@@ -1,10 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main branch
+## v0.4.4
 
-- telegram mini app
+- 增加 telegram mini app
 - telegram bot 增加 `ubind`, `delete` 指令
+- 修复 webhook 多行文本的问题
 
 ## v0.4.3
 

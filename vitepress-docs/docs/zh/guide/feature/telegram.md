@@ -18,6 +18,8 @@ cp .env.example .env.prod
 pnpm run deploy:telegram --project-name=<你的项目名称>
 ```
 
+部署完成后，请在 admin 后台的 `设置` -> `电报小程序` 页面 `电报小程序 URL`。
+
 请在 `@BotFather` 处执行 `/setmenubutton`，然后输入你的网页地址，设置左下角的 `Open App` 按钮。
 
 你也可以在 `@BotFather` 处执行 `/newapp` 新建 app 来获得 mini app 的链接
