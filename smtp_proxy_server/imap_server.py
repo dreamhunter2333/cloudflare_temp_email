@@ -1,6 +1,6 @@
 import json
 import logging
-import requests
+import httpx
 
 from io import BytesIO
 from twisted.mail import imap4
@@ -117,8 +117,9 @@ class SimpleMailbox:
         limit = min(20, end - start + 1) if end and end >= start else 20
         if self.message_count > 0 and start > self.message_count:
             return []
-        res = requests.get(
-            f"{settings.proxy_url}/api/mails?limit={limit}&offset={start - 1}", headers={
+        res = httpx.get(
+            f"{settings.proxy_url}/api/mails?limit={limit}&offset={start - 1}",
+            headers={
                 "Authorization": f"Bearer {self.password}",
                 "Content-Type": "application/json"
             }
@@ -139,11 +140,12 @@ class SimpleMailbox:
     def fetchSENT(self, messages):
         start, end = messages.ranges[0]
         start = max(start, 1)
-        limit = min(20, end - start + 1) if end >= start else 20
+        limit = min(20, end - start + 1) if end and end >= start else 20
         if self.message_count > 0 and start > self.message_count:
             return []
-        res = requests.get(
-            f"{settings.proxy_url}/api/sendbox?limit={limit}&offset={start - 1}", headers={
+        res = httpx.get(
+            f"{settings.proxy_url}/api/sendbox?limit={limit}&offset={start - 1}",
+            headers={
                 "Authorization": f"Bearer {self.password}",
                 "Content-Type": "application/json"
             }
