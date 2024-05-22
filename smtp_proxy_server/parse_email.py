@@ -3,7 +3,6 @@ import json
 import logging
 import email
 
-from email.header import Header
 from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
