@@ -73,7 +73,7 @@ class SimpleMailbox:
         return 0
 
     def getMessageCount(self):
-        return 2 ** 31 - 1
+        return self.message_count or 1000
 
     def getRecentCount(self):
         return 0
@@ -99,7 +99,7 @@ class SimpleMailbox:
         if "UIDNEXT" in names:
             r["UIDNEXT"] = self.getMessageCount() + 1
         if "UIDVALIDITY" in names:
-            r["UIDVALIDITY"] = self.getUID()
+            r["UIDVALIDITY"] = self.getUIDValidity()
         if "UNSEEN" in names:
             r["UNSEEN"] = self.getUnseenCount()
         return defer.succeed(r)
@@ -114,10 +114,11 @@ class SimpleMailbox:
     def fetchINBOX(self, messages):
         start, end = messages.ranges[0]
         start = max(start, 1)
+        limit = min(20, end - start + 1) if end and end >= start else 20
         if self.message_count > 0 and start > self.message_count:
             return []
         res = requests.get(
-            f"{settings.proxy_url}/api/mails?limit=20&offset={start - 1}", headers={
+            f"{settings.proxy_url}/api/mails?limit={limit}&offset={start - 1}", headers={
                 "Authorization": f"Bearer {self.password}",
                 "Content-Type": "application/json"
             }
@@ -138,10 +139,11 @@ class SimpleMailbox:
     def fetchSENT(self, messages):
         start, end = messages.ranges[0]
         start = max(start, 1)
+        limit = min(20, end - start + 1) if end >= start else 20
         if self.message_count > 0 and start > self.message_count:
             return []
         res = requests.get(
-            f"{settings.proxy_url}/api/sendbox?limit=20&offset={start - 1}", headers={
+            f"{settings.proxy_url}/api/sendbox?limit={limit}&offset={start - 1}", headers={
                 "Authorization": f"Bearer {self.password}",
                 "Content-Type": "application/json"
             }
@@ -194,7 +196,12 @@ class SimpleIMAPServer(imap4.IMAP4Server):
         self.factory = factory
 
     def lineReceived(self, line):
+        # _logger.info(f"Received: {line}")
         super().lineReceived(line)
+
+    def sendLine(self, line):
+        # _logger.info(f"Sent: {line}")
+        super().sendLine(line)
 
 
 @implementer(IRealm)

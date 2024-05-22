@@ -59,7 +59,12 @@ async function sendWebhook(settings: WebhookSettings, formatMap: WebhookMail): P
     // send webhook
     let body = settings.body;
     for (const key of Object.keys(formatMap)) {
-        body = body.replace(new RegExp(`\\$\\{${key}\\}`, "g"), formatMap[key as keyof WebhookMail]);
+        body = body.replace(
+            new RegExp(`\\$\\{${key}\\}`, "g"),
+            JSON.stringify(
+                formatMap[key as keyof WebhookMail]
+            ).replace(/^"(.*)"$/, '\$1')
+        );
     }
     const response = await fetch(settings.url, {
         method: settings.method,
@@ -95,10 +100,10 @@ export async function trigerWebhook(
     const res = await sendWebhook(settings, {
         from: parsedEmail.from.address || "",
         to: address,
-        headers: JSON.stringify(parsedEmail.headers, null, 2),
-        subject: JSON.stringify(parsedEmail.subject) || "",
-        raw: JSON.stringify(raw_mail),
-        parsedText: JSON.stringify(parsedEmail.text) || JSON.stringify(parsedEmail.html) || ""
+        headers: JSON.stringify(parsedEmail.headers),
+        subject: parsedEmail.subject || "",
+        raw: raw_mail,
+        parsedText: parsedEmail.text || parsedEmail.html || ""
     });
     if (!res.success) {
         console.log(res.message);
@@ -107,13 +112,19 @@ export async function trigerWebhook(
 
 async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.req.json<WebhookSettings>();
+    const { address } = c.get("jwtPayload");
+    // random raw email
+    const raw = await c.env.DB.prepare(
+        `SELECT raw FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
+    ).bind(address).first<string>("raw");
+    const parsedEmail = raw ? await PostalMime.parse(raw) : {} as any;
     const res = await sendWebhook(settings, {
-        from: "from@test.com",
-        to: "to@test.com",
-        headers: "headers",
-        subject: "test",
-        raw: "test",
-        parsedText: "test"
+        from: parsedEmail?.from?.address || "test@test.com",
+        to: address,
+        headers: JSON.stringify(parsedEmail?.headers || { "X-Test": "test" }),
+        subject: parsedEmail?.subject || "test subject",
+        raw: raw || "test raw email",
+        parsedText: parsedEmail?.text || parsedEmail?.html || "test parsed text"
     });
     if (!res.success) {
         return c.text(res.message || "send webhook error", 400);
