@@ -1,4 +1,5 @@
 <script setup>
+import { defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useGlobalState } from '../store'
@@ -8,11 +9,11 @@ import AddressBar from './index/AddressBar.vue';
 import MailBox from '../components/MailBox.vue';
 import SendBox from '../components/SendBox.vue';
 import AutoReply from './index/AutoReply.vue';
-import SendMail from './index/SendMail.vue';
 import AccountSettings from './index/AccountSettings.vue';
 import WenHook from './index/Webhook.vue';
 import About from './common/About.vue';
 
+const SendMail = defineAsyncComponent(() => import('./index/SendMail.vue'));
 const { localeCache, settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
 
 const { t } = useI18n({

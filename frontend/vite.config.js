@@ -13,15 +13,6 @@ import topLevelAwait from "vite-plugin-top-level-await";
 export default defineConfig({
   build: {
     outDir: './dist',
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('wangeditor')) {
-            return 'vendor-wangeditor';
-          }
-        }
-      }
-    }
   },
   plugins: [
     vue(),
