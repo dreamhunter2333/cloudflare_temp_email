@@ -16,6 +16,8 @@
 </p>
 
 > 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
+>
+> [Cloudflare Workers 免费电子邮件发送 API 将于2024年6月30日结束](https://support.mailchannels.com/hc/en-us/articles/26814255454093-End-of-Life-Notice-Cloudflare-Workers)
 
 ## [查看部署文档](https://temp-mail-docs.awsl.uk)
 
