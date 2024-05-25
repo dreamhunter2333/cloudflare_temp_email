@@ -299,18 +299,19 @@ export async function sendMailToTelegram(
         return;
     }
     const userId = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${address}`);
-    if (!userId) {
-        return;
-    }
     const { mail } = await parseMail(raw_mail);
     if (!mail) {
+        return;
+    }
+    const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
+    const golbalPush = settings?.enableGlobalMailPush && settings?.globalMailPushList;
+    if (!userId && !golbalPush) {
         return;
     }
     const mailId = await c.env.DB.prepare(
         `SELECT id FROM raw_mails where address = ? and message_id = ?`
     ).bind(address, message_id).first<string>("id");
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
-    const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
     const miniAppButtons = []
     if (settings?.miniAppUrl && settings?.miniAppUrl?.length > 0 && mailId) {
         const url = new URL(settings.miniAppUrl);
@@ -318,7 +319,7 @@ export async function sendMailToTelegram(
         url.searchParams.set("mail_id", mailId);
         miniAppButtons.push(Markup.button.webApp("查看邮件", url.toString()));
     }
-    if (settings?.enableGlobalMailPush && settings?.globalMailPushList) {
+    if (golbalPush) {
         for (const pushId of settings.globalMailPushList) {
             await bot.telegram.sendMessage(pushId, mail, {
                 ...Markup.inlineKeyboard([
@@ -326,6 +327,9 @@ export async function sendMailToTelegram(
                 ])
             });
         }
+    }
+    if (!userId) {
+        return;
     }
     await bot.telegram.sendMessage(userId, mail, {
         ...Markup.inlineKeyboard([
