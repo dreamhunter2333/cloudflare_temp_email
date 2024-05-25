@@ -35,7 +35,7 @@ api.get('/admin/address', async (c) => {
 })
 
 api.post('/admin/new_address', async (c) => {
-    let { name, domain, enablePrefix } = await c.req.json();
+    const { name, domain, enablePrefix } = await c.req.json();
     if (!name) {
         return c.text("Please provide a name", 400)
     }
@@ -144,7 +144,9 @@ api.get('/admin/address_sender', async (c) => {
 })
 
 api.post('/admin/address_sender', async (c) => {
+    /* eslint-disable prefer-const */
     let { address, address_id, balance, enabled } = await c.req.json();
+    /* eslint-enable prefer-const */
     if (!address_id) {
         return c.text("Invalid address_id", 400)
     }

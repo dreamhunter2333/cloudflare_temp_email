@@ -29,6 +29,10 @@ export type Bindings = {
     CF_TURNSTILE_SITE_KEY: string | undefined
     CF_TURNSTILE_SECRET_KEY: string | undefined
 
+    // resend
+    RESEND_TOKEN: string | undefined
+    [key: `RESEND_TOKEN_${string}`]: string | undefined;
+
     // telegram config
     TELEGRAM_BOT_TOKEN: string
     TG_MAX_ADDRESS: number | undefined

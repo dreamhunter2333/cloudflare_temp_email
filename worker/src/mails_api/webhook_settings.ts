@@ -59,12 +59,14 @@ async function sendWebhook(settings: WebhookSettings, formatMap: WebhookMail): P
     // send webhook
     let body = settings.body;
     for (const key of Object.keys(formatMap)) {
+        /* eslint-disable no-useless-escape */
         body = body.replace(
             new RegExp(`\\$\\{${key}\\}`, "g"),
             JSON.stringify(
                 formatMap[key as keyof WebhookMail]
             ).replace(/^"(.*)"$/, '\$1')
         );
+        /* eslint-enable no-useless-escape */
     }
     const response = await fetch(settings.url, {
         method: settings.method,

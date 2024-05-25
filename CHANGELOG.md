@@ -6,6 +6,7 @@
 - UI lazy load
 - telegram bot 添加用户全局推送功能
 - 增加对 cloudflare verified 用户发送邮件
+- 增加使用 `resend` 发送邮件
 
 ## v0.4.4
 

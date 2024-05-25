@@ -3,7 +3,6 @@ import { Jwt } from 'hono/utils/jwt'
 
 import { getBooleanValue, getDomains, getStringValue } from './utils';
 import { HonoCustomType } from './types';
-import { CONSTANTS } from './constants';
 import { unbindTelegramByAddress } from './telegram_api/common';
 
 export const newAddress = async (

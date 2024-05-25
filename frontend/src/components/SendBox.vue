@@ -62,13 +62,21 @@ const refresh = async () => {
     data.value = results.map((item) => {
       try {
         const data = JSON.parse(item.raw);
-        item.to_mail = data?.personalizations?.map(
-          (p) => p.to?.map((t) => t.email).join(',')
-        ).join(';');
-        item.subject = data.subject;
-        item.contentType = data.content[0]?.type;
-        item.content = data.content[0]?.value;
-        item.raw = JSON.stringify(data, null, 2);
+        if (data.version == "v2") {
+          item.to_mail = data.to_name ? `${data.to_name} <${data.to_mail}>` : data.to_mail;
+          item.subject = data.subject;
+          item.is_html = data.is_html;
+          item.content = data.content;
+          item.raw = JSON.stringify(data, null, 2);
+        } else {
+          item.to_mail = data?.personalizations?.map(
+            (p) => p.to?.map((t) => t.email).join(',')
+          ).join(';');
+          item.subject = data.subject;
+          item.is_html = (data.content[0]?.type != 'text/plain');
+          item.content = data.content[0]?.value;
+          item.raw = JSON.stringify(data, null, 2);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -160,7 +168,7 @@ onMounted(async () => {
             </n-button>
           </n-space>
           <pre v-if="showCode" style="margin-top: 10px;">{{ curMail.raw }}</pre>
-          <pre v-else-if="curMail.contentType == 'text/plain'" style="margin-top: 10px;">{{ curMail.content }}</pre>
+          <pre v-else-if="!curMail.is_html" style="margin-top: 10px;">{{ curMail.content }}</pre>
           <div v-else v-html="curMail.content" style="margin-top: 10px;"></div>
         </n-card>
         <n-card class="mail-item" v-else>
@@ -219,7 +227,7 @@ onMounted(async () => {
               </n-tag>
             </n-space>
             <pre v-if="showCode" style="margin-top: 10px;">{{ curMail.raw }}</pre>
-            <pre v-else-if="curMail.contentType == 'text/plain'" style="margin-top: 10px;">{{ curMail.content }}</pre>
+            <pre v-else-if="!curMail.is_html" style="margin-top: 10px;">{{ curMail.content }}</pre>
             <div v-else v-html="curMail.content" style="margin-top: 10px;"></div>
           </n-card>
         </n-drawer-content>
