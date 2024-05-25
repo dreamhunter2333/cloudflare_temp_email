@@ -136,18 +136,17 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
         ).bind(mailId).first();
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const superUser = settings?.enableGlobalMailPush && settings?.globalMailPushList.includes(userId);
-        if (
-            !superUser && result?.address &&
-            !(result.address as string in addressIdMap)
-        ) {
-            return c.text("无权查看此邮件", 403);
-        }
-        const address_id = addressIdMap[result?.address as string];
-        const db_address_id = await c.env.DB.prepare(
-            `SELECT id FROM address where id = ? `
-        ).bind(address_id).first("id");
-        if (!db_address_id) {
-            return c.text("无权查看此邮件", 403);
+        if (!superUser) {
+            if (result?.address && !(result.address as string in addressIdMap)) {
+                return c.text("无权查看此邮件", 403);
+            }
+            const address_id = addressIdMap[result?.address as string];
+            const db_address_id = await c.env.DB.prepare(
+                `SELECT id FROM address where id = ? `
+            ).bind(address_id).first("id");
+            if (!db_address_id) {
+                return c.text("无权查看此邮件", 403);
+            }
         }
         return c.json(result);
     }
