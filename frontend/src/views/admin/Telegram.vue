@@ -35,7 +35,7 @@ const { t } = useI18n({
             telegramAllowList: 'Telegram 白名单',
             save: '保存',
             miniAppUrl: '电报小程序 URL(请输入你部署的电报小程序网页地址)',
-            enableGlobalMailPush: '启用全局邮件推送(手动输入 telegram 用户 ID)',
+            enableGlobalMailPush: '启用全局邮件推送(手动输入邮箱管理员的 telegram 用户 ID)',
             globalMailPushList: '全局邮件推送用户列表',
         }
     }
