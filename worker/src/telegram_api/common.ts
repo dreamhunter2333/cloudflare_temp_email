@@ -42,13 +42,13 @@ export const tgUserNewAddress = async (
 export const jwtListToAddressData = async (
     c: Context<HonoCustomType>, jwtList: string[]
 ): Promise<{ addressList: string[], addressIdMap: Record<string, number> }> => {
-    const addressList = [];
+    const addressList = [] as string[];
     const addressIdMap = {} as Record<string, number>;
     for (const jwt of jwtList) {
         try {
             const { address, address_id } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
-            addressList.push(address);
-            addressIdMap[address] = address_id;
+            addressList.push(address as string);
+            addressIdMap[address as string] = address_id as number;
         } catch (e) {
             addressList.push("无效凭证");
             console.log(`获取地址列表失败: ${(e as Error).message}`);
@@ -66,8 +66,8 @@ export const bindTelegramAddress = async (
     }
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     const { addressIdMap } = await jwtListToAddressData(c, jwtList);
-    if (address in addressIdMap) {
-        return address;
+    if (address as string in addressIdMap) {
+        return address as string;
     }
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
         throw Error("绑定地址数量已达上限");
@@ -75,7 +75,7 @@ export const bindTelegramAddress = async (
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, jwt]));
     // for mail push to telegram
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${address}`, userId.toString());
-    return address;
+    return address as string;
 }
 
 export const unbindTelegramAddress = async (
