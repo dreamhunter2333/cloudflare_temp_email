@@ -70,3 +70,37 @@ export class GeoData {
         this.asOrganization = asOrganization;
     }
 }
+
+export class UserSettings {
+
+    enable: boolean | undefined;
+    enableMailVerify: boolean | undefined;
+    verifyMailSender: string | undefined;
+    enableMailAllowList: boolean | undefined;
+    mailAllowList: string[] | undefined;
+    maxAddressCount: number;
+
+    constructor(data: UserSettings | undefined | null) {
+        const {
+            enable, enableMailVerify, verifyMailSender,
+            enableMailAllowList, mailAllowList, maxAddressCount
+        } = data || {};
+        this.enable = enable;
+        this.enableMailVerify = enableMailVerify;
+        this.verifyMailSender = verifyMailSender;
+        this.enableMailAllowList = enableMailAllowList;
+        this.mailAllowList = mailAllowList;
+        this.maxAddressCount = maxAddressCount || 5;
+    }
+}
+
+export class UserInfo {
+
+    geoData: GeoData;
+    userEmail: string;
+
+    constructor(geoData: GeoData, userEmail: string) {
+        this.geoData = geoData;
+        this.userEmail = userEmail;
+    }
+}

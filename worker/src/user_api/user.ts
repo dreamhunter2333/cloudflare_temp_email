@@ -1,12 +1,14 @@
+import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
+import { HonoCustomType } from '../types';
 import { checkCfTurnstile, getJsonSetting, checkUserPassword } from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
 import { sendMail } from "../mails_api/send_mail_api";
 
 export default {
-    verifyCode: async (c) => {
+    verifyCode: async (c: Context<HonoCustomType>) => {
         const { email, cf_token } = await c.req.json();
         // check cf turnstile
         try {
@@ -24,6 +26,9 @@ export default {
         ) {
             return c.text(`Mail domain must in ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
         }
+        if (!settings.verifyMailSender) {
+            return c.text("Verify mail sender not set", 400)
+        }
         // check if code exists in KV
         const tmpcode = await c.env.KV.get(`temp-mail:${email}`)
         if (tmpcode) {
@@ -34,12 +39,15 @@ export default {
         // send code to email
         try {
             await sendMail(c, settings.verifyMailSender, {
-                to_mail: email,
+                from_name: "Temp Mail Verify",
+                to_name: '',
+                to_mail: email as string,
                 subject: "Temp Mail Verify code",
                 content: `Your verify code is ${code}`,
+                is_html: false,
             })
         } catch (e) {
-            return c.text(`Failed to send verify code: ${e.message}`, 500)
+            return c.text(`Failed to send verify code: ${(e as Error).message}`, 500)
         }
         // save to KV
         await c.env.KV.put(`temp-mail:${email}`, code, { expirationTtl: 300 });
@@ -48,7 +56,7 @@ export default {
             expirationTtl: 300
         })
     },
-    register: async (c) => {
+    register: async (c: Context<HonoCustomType>) => {
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value)
         // check enable
@@ -67,6 +75,7 @@ export default {
         // check mail domain allow list
         const mailDomain = email.split("@")[1];
         if (settings.enableMailAllowList
+            && settings.mailAllowList
             && !settings.mailAllowList.includes(mailDomain)
         ) {
             return c.text(`Mail domain must in ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
@@ -80,8 +89,8 @@ export default {
         }
         // geo data
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
-        const geoData = new GeoData(reqIp, c.req.raw.cf);
-        const userInfo = new UserInfo(geoData);
+        const geoData = new GeoData(reqIp, c.req.raw.cf as any);
+        const userInfo = new UserInfo(geoData, email);
         // if not enable mail verify, do not on conflict update
         if (!settings.enableMailVerify) {
             try {
@@ -95,10 +104,11 @@ export default {
                     return c.text("Failed to register", 500)
                 }
             } catch (e) {
-                if (e.message && e.message.includes("UNIQUE")) {
+                const error = e as Error;
+                if (error.message && error.message.includes("UNIQUE")) {
                     return c.text("User already exists, please login", 400)
                 }
-                return c.text(`Failed to register: ${e.message}`, 500)
+                return c.text(`Failed to register: ${error.message}`, 500)
             }
             return c.json({ success: true })
         }
@@ -116,7 +126,7 @@ export default {
         }
         return c.json({ success: true })
     },
-    login: async (c) => {
+    login: async (c: Context<HonoCustomType>) => {
         const { email, password } = await c.req.json();
         if (!email || !password) return c.text("Invalid email or password", 400);
         const { id: user_id, password: dbPassword } = await c.env.DB.prepare(

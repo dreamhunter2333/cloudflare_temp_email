@@ -68,6 +68,11 @@ node_compat = true
 # [triggers]
 # crons = [ "0 0 * * *" ]
 
+# send mail by cf mail
+# send_email = [
+#    { name = "SEND_MAIL" },
+# ]
+
 [vars]
 PREFIX = "tmp" # The mailbox name prefix to be processed
 # If you want your site to be private, uncomment below and change your password

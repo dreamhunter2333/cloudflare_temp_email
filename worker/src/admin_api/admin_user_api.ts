@@ -1,21 +1,27 @@
+import { Context } from 'hono';
+
 import { CONSTANTS } from '../constants';
 import { getJsonSetting, saveSetting, checkUserPassword, getDomains } from '../utils';
 import { UserSettings, GeoData, UserInfo } from "../models";
 import { handleListQuery } from '../common'
+import { HonoCustomType } from '../types';
 
 export default {
-    getSetting: async (c) => {
+    getSetting: async (c: Context<HonoCustomType>) => {
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value);
         return c.json(settings)
     },
-    saveSetting: async (c) => {
+    saveSetting: async (c: Context<HonoCustomType>) => {
         const value = await c.req.json();
         const settings = new UserSettings(value);
         if (settings.enableMailVerify && !c.env.KV) {
             return c.text("Please enable KV first if you want to enable mail verify", 403)
         }
-        if (settings.enableMailVerify) {
+        if (settings.enableMailVerify && !settings.verifyMailSender) {
+            return c.text("Please provide verifyMailSender", 400)
+        }
+        if (settings.enableMailVerify && settings.verifyMailSender) {
             const mailDomain = settings.verifyMailSender.split("@")[1];
             const domains = getDomains(c);
             if (!domains.includes(mailDomain)) {
@@ -28,7 +34,7 @@ export default {
         await saveSetting(c, CONSTANTS.USER_SETTINGS_KEY, JSON.stringify(settings));
         return c.json({ success: true })
     },
-    getUsers: async (c) => {
+    getUsers: async (c: Context<HonoCustomType>) => {
         const { limit, offset, query } = c.req.query();
         if (query) {
             return await handleListQuery(c,
@@ -48,15 +54,15 @@ export default {
             [], limit, offset
         );
     },
-    createUser: async (c) => {
+    createUser: async (c: Context<HonoCustomType>) => {
         const { email, password } = await c.req.json();
         if (!email || !password) {
             return c.text("Invalid email or password", 400)
         }
         // geo data
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
-        const geoData = new GeoData(reqIp, c.req.raw.cf);
-        const userInfo = new UserInfo(geoData);
+        const geoData = new GeoData(reqIp, c.req.raw.cf as any);
+        const userInfo = new UserInfo(geoData, email);
         try {
             checkUserPassword(password);
             const { success } = await c.env.DB.prepare(
@@ -69,14 +75,15 @@ export default {
                 return c.text("Failed to register", 500)
             }
         } catch (e) {
-            if (e.message && e.message.includes("UNIQUE")) {
+            const errorMsg = (e as Error).message;
+            if (errorMsg && errorMsg.includes("UNIQUE")) {
                 return c.text("User already exists", 400)
             }
-            return c.text(`Failed to register: ${e.message}`, 500)
+            return c.text(`Failed to register: ${errorMsg}`, 500)
         }
         return c.json({ success: true })
     },
-    deleteUser: async (c) => {
+    deleteUser: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.req.param();
         if (!user_id) return c.text("Invalid user_id", 400);
         const { success } = await c.env.DB.prepare(
@@ -90,7 +97,7 @@ export default {
         }
         return c.json({ success: true })
     },
-    resetPassword: async (c) => {
+    resetPassword: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.req.param();
         const { password } = await c.req.json();
         if (!user_id) return c.text("Invalid user_id", 400);
@@ -103,7 +110,7 @@ export default {
                 return c.text("Failed to reset password", 500)
             }
         } catch (e) {
-            return c.text(`Failed to reset password: ${e.message}`, 500)
+            return c.text(`Failed to reset password: ${(e as Error).message}`, 500)
         }
         return c.json({ success: true });
     },

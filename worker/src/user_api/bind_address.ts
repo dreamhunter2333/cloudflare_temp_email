@@ -1,11 +1,13 @@
+import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
+import { HonoCustomType } from '../types';
 import { UserSettings } from "../models";
 import { getJsonSetting } from "../utils"
 import { CONSTANTS } from "../constants";
 
 export default {
-    bind: async (c) => {
+    bind: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
         const { address_id } = c.get("jwtPayload");
         if (!address_id || !user_id) {
@@ -36,7 +38,7 @@ export default {
         if (settings.maxAddressCount > 0) {
             const { count } = await c.env.DB.prepare(
                 `SELECT COUNT(*) as count FROM users_address where user_id = ?`
-            ).bind(user_id).first();
+            ).bind(user_id).first<{ count: number }>() || { count: 0 };
             if (count >= settings.maxAddressCount) {
                 return c.text("Max address count reached", 400)
             }
@@ -50,14 +52,15 @@ export default {
                 return c.text("Failed to bind", 500)
             }
         } catch (e) {
-            if (e.message && e.message.includes("UNIQUE")) {
+            const error = e as Error;
+            if (error.message && error.message.includes("UNIQUE")) {
                 return c.text("Address already binded, please unbind first", 400)
             }
             return c.text("Failed to bind", 500)
         }
         return c.json({ success: true })
     },
-    unbind: async (c) => {
+    unbind: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
         const { address_id } = await c.req.json();
         if (!address_id || !user_id) {
@@ -90,7 +93,7 @@ export default {
         }
         return c.json({ success: true })
     },
-    getBindedAddresses: async (c) => {
+    getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
         if (!user_id) {
             return c.text("No user token", 400)
@@ -110,7 +113,7 @@ export default {
             results: results,
         })
     },
-    getBindedAddressJwt: async (c) => {
+    getBindedAddressJwt: async (c: Context<HonoCustomType>) => {
         const { address_id } = c.req.param();
         // check binded
         const { user_id } = c.get("userPayload");

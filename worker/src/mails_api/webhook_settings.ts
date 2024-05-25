@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
-import { AdminWebhookSettings, WebhookMail } from "../models/models";
+import { AdminWebhookSettings, WebhookMail } from "../models";
 import { getBooleanValue } from "../utils";
 import PostalMime from 'postal-mime';
 
