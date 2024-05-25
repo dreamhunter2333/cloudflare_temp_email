@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
+
+import { HonoCustomType } from '../types'
 import { sendAdminInternalMail, getJsonSetting, saveSetting } from '../utils'
 import { newAddress, handleListQuery } from '../common'
 import { CONSTANTS } from '../constants'
@@ -7,7 +9,7 @@ import cleanup_api from './cleanup_api'
 import admin_user_api from './admin_user_api'
 import webhook_settings from './webhook_settings'
 
-const api = new Hono()
+export const api = new Hono<HonoCustomType>()
 
 api.get('/admin/address', async (c) => {
     const { limit, offset, query } = c.req.query();
@@ -41,7 +43,7 @@ api.post('/admin/new_address', async (c) => {
         const res = await newAddress(c, name, domain, enablePrefix);
         return c.json(res);
     } catch (e) {
-        return c.text(`Failed create address: ${e.message}`, 400)
+        return c.text(`Failed create address: ${(e as Error).message}`, 400)
     }
 })
 
@@ -181,16 +183,16 @@ api.get('/admin/sendbox', async (c) => {
 api.get('/admin/statistics', async (c) => {
     const { count: mailCount } = await c.env.DB.prepare(
         `SELECT count(*) as count FROM raw_mails`
-    ).first();
+    ).first<{ count: number }>() || {};
     const { count: addressCount } = await c.env.DB.prepare(
         `SELECT count(*) as count FROM address`
-    ).first();
+    ).first<{ count: number }>() || {};
     const { count: activeUserCount7days } = await c.env.DB.prepare(
         `SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
-    ).first();
+    ).first<{ count: number }>() || {};
     const { count: sendMailCount } = await c.env.DB.prepare(
         `SELECT count(*) as count FROM sendbox`
-    ).first();
+    ).first<{ count: number }>() || {};
     return c.json({
         mailCount: mailCount,
         userCount: addressCount,
@@ -201,13 +203,13 @@ api.get('/admin/statistics', async (c) => {
 
 api.get('/admin/account_settings', async (c) => {
     try {
-        /** @type {Array<string>|undefined|null} */
         const blockList = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
-        /** @type {Array<string>|undefined|null} */
         const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
+        const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY);
         return c.json({
             blockList: blockList || [],
-            sendBlockList: sendBlockList || []
+            sendBlockList: sendBlockList || [],
+            verifiedAddressList: verifiedAddressList || []
         })
     } catch (error) {
         console.error(error);
@@ -217,9 +219,12 @@ api.get('/admin/account_settings', async (c) => {
 
 api.post('/admin/account_settings', async (c) => {
     /** @type {{ blockList: Array<string>, sendBlockList: Array<string> }} */
-    const { blockList, sendBlockList } = await c.req.json();
-    if (!blockList || !sendBlockList) {
+    const { blockList, sendBlockList, verifiedAddressList } = await c.req.json();
+    if (!blockList || !sendBlockList || !verifiedAddressList) {
         return c.text("Invalid blockList or sendBlockList", 400)
+    }
+    if (!c.env.SEND_MAIL && verifiedAddressList.length > 0) {
+        return c.text("Please enable SEND_MAIL to use verifiedAddressList", 400)
     }
     await saveSetting(
         c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
@@ -229,6 +234,10 @@ api.post('/admin/account_settings', async (c) => {
         c, CONSTANTS.SEND_BLOCK_LIST_KEY,
         JSON.stringify(sendBlockList)
     );
+    await saveSetting(
+        c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY,
+        JSON.stringify(verifiedAddressList)
+    )
     return c.json({
         success: true
     })
@@ -245,5 +254,3 @@ api.post('/admin/users', admin_user_api.createUser)
 api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
 api.get("/admin/webhook/settings", webhook_settings.getWebhookSettings);
 api.post("/admin/webhook/settings", webhook_settings.saveWebhookSettings);
-
-export { api }

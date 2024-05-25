@@ -1,11 +1,8 @@
 import { Hono } from 'hono';
 
 import { HonoCustomType } from '../types';
-// @ts-ignore
 import settings from './settings';
-// @ts-ignore
 import user from './user';
-// @ts-ignore
 import bind_address from './bind_address';
 
 export const api = new Hono<HonoCustomType>();

@@ -1,8 +1,10 @@
 import { Context, Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
+import { createMimeMessage } from 'mimetext';
+
 import { CONSTANTS } from '../constants'
 import { getJsonSetting, getDomains, getIntValue } from '../utils';
-import { GeoData } from '../models/models'
+import { GeoData } from '../models'
 import { handleListQuery } from '../common'
 import { HonoCustomType } from '../types';
 
@@ -33,6 +35,30 @@ api.post('/api/requset_send_mail_access', async (c) => {
     }
     return c.json({ status: "ok" })
 })
+
+export const sendMailToVerifyAddress = async (
+    c: Context<HonoCustomType>, address: string,
+    reqJson: {
+        from_name: string, to_mail: string, to_name: string,
+        subject: string, content: string, is_html: boolean
+    }
+) => {
+    const {
+        from_name, to_mail, to_name,
+        subject, content, is_html
+    } = reqJson;
+    const msg = createMimeMessage();
+    msg.setSender({ name: from_name, addr: address });
+    msg.setRecipient({ name: to_name, addr: to_mail });
+    msg.setSubject(subject);
+    msg.addMessage({
+        contentType: is_html ? 'text/html' : 'text/plain',
+        data: content
+    });
+    const { EmailMessage } = await import('cloudflare:email');
+    const message = new EmailMessage(address, to_mail, msg.asRaw());
+    await c.env.SEND_MAIL.send(message);
+}
 
 export const sendMail = async (
     c: Context<HonoCustomType>, address: string,
@@ -77,6 +103,15 @@ export const sendMail = async (
     }
     if (!content) {
         throw new Error("Invalid content")
+    }
+    // send to verified address list, do not update balance
+    if (c.env.SEND_MAIL) {
+        const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY) || [];
+        if (verifiedAddressList.includes(to_mail)) {
+            return sendMailToVerifyAddress(c, address, {
+                from_name, to_mail, to_name, subject, content, is_html
+            });
+        }
     }
     let dmikBody = {}
     if (c.env.DKIM_SELECTOR && c.env.DKIM_PRIVATE_KEY && address.includes("@")) {
@@ -169,7 +204,7 @@ api.post('/external/api/send_mail', async (c) => {
             return c.text("No address", 400)
         }
         const reqJson = await c.req.json();
-        await sendMail(c, address, reqJson);
+        await sendMail(c, address as string, reqJson);
         return c.json({ status: "ok" })
     } catch (e) {
         console.error("Failed to send mail", e);

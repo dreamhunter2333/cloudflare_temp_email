@@ -11,6 +11,10 @@ node_compat = true
 # [triggers]
 # crons = [ "0 0 * * *" ]
 
+# send_email = [
+#    { name = "SEND_MAIL" },
+# ]
+
 [vars]
 PREFIX = "tmp"
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES

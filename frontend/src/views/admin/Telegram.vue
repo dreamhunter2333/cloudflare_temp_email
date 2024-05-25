@@ -23,6 +23,8 @@ const { t } = useI18n({
             telegramAllowList: 'Telegram Allow List',
             save: 'Save',
             miniAppUrl: 'Telegram Mini App URL',
+            enableGlobalMailPush: 'Enable Global Mail Push(Manually input telegram user ID)',
+            globalMailPushList: 'Global Mail Push List',
         },
         zh: {
             init: '初始化',
@@ -33,6 +35,8 @@ const { t } = useI18n({
             telegramAllowList: 'Telegram 白名单',
             save: '保存',
             miniAppUrl: '电报小程序 URL(请输入你部署的电报小程序网页地址)',
+            enableGlobalMailPush: '启用全局邮件推送(手动输入 telegram 用户 ID)',
+            globalMailPushList: '全局邮件推送用户列表',
         }
     }
 });
@@ -66,15 +70,22 @@ class TelegramSettings {
     enableAllowList: boolean;
     allowList: string[];
     miniAppUrl: string;
+    enableGlobalMailPush: boolean;
+    globalMailPushList: string[];
 
-    constructor(enableAllowList: boolean, allowList: string[], miniAppUrl: string) {
+    constructor(
+        enableAllowList: boolean, allowList: string[], miniAppUrl: string,
+        enableGlobalMailPush: boolean, globalMailPushList: string[]
+    ) {
         this.enableAllowList = enableAllowList;
         this.allowList = allowList;
         this.miniAppUrl = miniAppUrl;
+        this.enableGlobalMailPush = enableGlobalMailPush;
+        this.globalMailPushList = globalMailPushList;
     }
 }
 
-const settings = ref(new TelegramSettings(false, [], ''))
+const settings = ref(new TelegramSettings(false, [], '', false, []))
 
 const getSettings = async () => {
     try {
@@ -113,6 +124,15 @@ onMounted(async () => {
                         </n-checkbox>
                         <n-select v-model:value="settings.allowList" filterable multiple tag style="width: 80%;"
                             :placeholder="t('telegramAllowList')" />
+                    </n-input-group>
+                </n-form-item-row>
+                <n-form-item-row :label="t('enableGlobalMailPush')">
+                    <n-input-group>
+                        <n-checkbox v-model:checked="settings.enableGlobalMailPush" style="width: 20%;">
+                            {{ t('enable') }}
+                        </n-checkbox>
+                        <n-select v-model:value="settings.globalMailPushList" filterable multiple tag
+                            style="width: 80%;" :placeholder="t('globalMailPushList')" />
                     </n-input-group>
                 </n-form-item-row>
                 <n-form-item-row :label="t('miniAppUrl')">

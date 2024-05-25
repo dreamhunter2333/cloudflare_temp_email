@@ -1,6 +1,12 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## main branch
+
+- UI lazy load
+- telegram bot 添加用户全局推送功能
+- 增加对 cloudflare verified 用户发送邮件
+
 ## v0.4.4
 
 - 增加 telegram mini app

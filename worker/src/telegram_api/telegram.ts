@@ -318,6 +318,15 @@ export async function sendMailToTelegram(
         url.searchParams.set("mail_id", mailId);
         miniAppButtons.push(Markup.button.webApp("查看邮件", url.toString()));
     }
+    if (settings?.enableGlobalMailPush && settings?.globalMailPushList) {
+        for (const pushId of settings.globalMailPushList) {
+            await bot.telegram.sendMessage(pushId, mail, {
+                ...Markup.inlineKeyboard([
+                    ...miniAppButtons,
+                ])
+            });
+        }
+    }
     await bot.telegram.sendMessage(userId, mail, {
         ...Markup.inlineKeyboard([
             ...miniAppButtons,

@@ -3,6 +3,7 @@ export type Bindings = {
     DB: D1Database
     KV: KVNamespace
     RATE_LIMITER: any
+    SEND_MAIL: any
 
     // config
     PREFIX: string | undefined

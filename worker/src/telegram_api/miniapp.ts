@@ -4,6 +4,7 @@ import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
 import { checkCfTurnstile } from "../utils";
+import { TelegramSettings } from "./settings";
 
 const encoder = new TextEncoder();
 const TG_AUTH_TIMEOUT = 300;
@@ -130,7 +131,12 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
         const result = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where id = ?`
         ).bind(mailId).first();
-        if (result?.address && !(result.address as string in addressIdMap)) {
+        const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
+        const superUser = settings?.enableGlobalMailPush && settings?.globalMailPushList.includes(userId);
+        if (
+            !superUser && result?.address &&
+            !(result.address as string in addressIdMap)
+        ) {
             return c.text("无权查看此邮件", 403);
         }
         const address_id = addressIdMap[result?.address as string];

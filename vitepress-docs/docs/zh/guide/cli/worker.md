@@ -36,6 +36,11 @@ node_compat = true
 # [triggers]
 # crons = [ "0 0 * * *" ]
 
+# 通过 Cloudflare 发送邮件
+# send_email = [
+#    { name = "SEND_MAIL" },
+# ]
+
 [vars]
 PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空字符串
 # 如果你想要你的网站私有，取消下面的注释，并修改密码
