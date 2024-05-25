@@ -53,6 +53,9 @@ const checkTelegramAuth = async (
     if (calcHash != hash) {
         throw Error("Invalid initData");
     }
+    if (typeof userId === "number") {
+        return userId.toString();
+    }
     return userId;
 }
 
