@@ -16,6 +16,7 @@ node_compat = true
 # ]
 
 [vars]
+# TITLE = "Custom Title" # custom title
 PREFIX = "tmp"
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
 # PASSWORDS = ["123", "456"]

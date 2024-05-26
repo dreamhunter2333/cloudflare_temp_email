@@ -15,6 +15,7 @@ api.get('/open_api/settings', async (c) => {
         needAuth = !auth || !passwords.includes(auth);
     }
     return c.json({
+        "title": c.env.TITLE,
         "prefix": c.env.PREFIX,
         "domains": getDomains(c),
         "needAuth": needAuth,

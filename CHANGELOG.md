@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## main branch
+
+- worker 配置文件添加 `TITLE = "Custom Title"`, 可自定义网站标题
+
 ## v0.4.5
 
 - UI lazy load 懒加载

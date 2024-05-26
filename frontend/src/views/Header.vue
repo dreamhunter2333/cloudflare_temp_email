@@ -1,6 +1,7 @@
 <script setup>
 import { ref, h, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useHead } from '@unhead/vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import {
@@ -15,7 +16,7 @@ const message = useMessage()
 
 const {
     localeCache, toggleDark, isDark, isTelegram,
-    showAuth, adminAuth, auth, loading
+    showAuth, adminAuth, auth, loading, openSettings
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
@@ -182,6 +183,13 @@ const menuOptions = computed(() => [
     }
 ]);
 
+useHead({
+    title: () => openSettings.value.title || t('title'),
+    meta: [
+        { name: "description", content: openSettings.value.description || t('title') },
+    ]
+});
+
 onMounted(async () => {
     await api.getOpenSettings(message);
 });
@@ -191,7 +199,7 @@ onMounted(async () => {
     <div>
         <n-page-header>
             <template #title>
-                <h3>{{ t('title') }}</h3>
+                <h3>{{ openSettings.title || t('title') }}</h3>
             </template>
             <template #avatar>
                 <n-avatar style="margin-left: 10px;" src="/logo.png" />

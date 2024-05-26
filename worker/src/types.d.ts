@@ -6,6 +6,7 @@ export type Bindings = {
     SEND_MAIL: any
 
     // config
+    TITLE: string | undefined
     PREFIX: string | undefined
     DOMAINS: string | string[] | undefined
     PASSWORDS: string | string[] | undefined
