@@ -1,12 +1,12 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main branch
+## v0.4.5
 
-- UI lazy load
-- telegram bot 添加用户全局推送功能
+- UI lazy load 懒加载
+- telegram bot 添加用户全局推送功能(admin 用户)
 - 增加对 cloudflare verified 用户发送邮件
-- 增加使用 `resend` 发送邮件
+- 增加使用 `resend` 发送邮件, `resend` 提供 http 和 smtp api, 使用更加方便, 文档: https://temp-mail-docs.awsl.uk/zh/guide/config-send-mail.html
 
 ## v0.4.4
 
