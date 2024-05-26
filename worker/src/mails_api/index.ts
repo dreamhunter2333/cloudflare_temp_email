@@ -90,6 +90,7 @@ api.post('/api/new_address', async (c) => {
     if (!getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL)) {
         return c.text("New address is disabled", 403)
     }
+    // eslint-disable-next-line prefer-const
     let { name, domain, cf_token } = await c.req.json();
     // check cf turnstile
     try {

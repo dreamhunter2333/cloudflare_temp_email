@@ -171,7 +171,7 @@ export const checkCfTurnstile = async (
         throw new Error("Captcha token is required");
     }
     const reqIp = c.req.raw.headers.get("cf-connecting-ip");
-    let formData = new FormData();
+    const formData = new FormData();
     formData.append('secret', c.env.CF_TURNSTILE_SECRET_KEY);
     formData.append('response', token);
     if (reqIp) formData.append('remoteip', reqIp);

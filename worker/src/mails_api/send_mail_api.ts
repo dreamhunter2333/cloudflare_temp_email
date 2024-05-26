@@ -1,6 +1,7 @@
 import { Context, Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 import { createMimeMessage } from 'mimetext';
+import { Resend } from 'resend';
 
 import { CONSTANTS } from '../constants'
 import { getJsonSetting, getDomains, getIntValue } from '../utils';
@@ -29,7 +30,7 @@ api.post('/api/requset_send_mail_access', async (c) => {
     } catch (e) {
         const message = (e as Error).message;
         if (message && message.includes("UNIQUE")) {
-            throw new Error("Address already requested")
+            return c.text("Already requested", 400)
         }
         return c.text("Failed to request send mail access", 500)
     }
@@ -42,14 +43,14 @@ export const sendMailToVerifyAddress = async (
         from_name: string, to_mail: string, to_name: string,
         subject: string, content: string, is_html: boolean
     }
-) => {
+): Promise<void> => {
     const {
         from_name, to_mail, to_name,
         subject, content, is_html
     } = reqJson;
     const msg = createMimeMessage();
-    msg.setSender({ name: from_name, addr: address });
-    msg.setRecipient({ name: to_name, addr: to_mail });
+    msg.setSender(from_name ? { name: from_name, addr: address } : address);
+    msg.setRecipient(to_name ? { name: to_name, addr: to_mail } : to_mail);
     msg.setSubject(subject);
     msg.addMessage({
         contentType: is_html ? 'text/html' : 'text/plain',
@@ -60,59 +61,49 @@ export const sendMailToVerifyAddress = async (
     await c.env.SEND_MAIL.send(message);
 }
 
-export const sendMail = async (
+const sendMailByResend = async (
     c: Context<HonoCustomType>, address: string,
     reqJson: {
         from_name: string, to_mail: string, to_name: string,
         subject: string, content: string, is_html: boolean
     }
-) => {
-    if (!address) {
-        throw new Error("No address")
-    }
-    // check domain
+): Promise<void> => {
     const mailDomain = address.split("@")[1];
-    const domains = getDomains(c);
-    if (!domains.includes(mailDomain)) {
-        throw new Error("Invalid domain")
+    const token = c.env[
+        `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
+    ] || c.env.RESEND_TOKEN;
+    const resend = new Resend(token);
+    const { data, error } = await resend.emails.send({
+        from: reqJson.from_name ? `${reqJson.from_name} <${address}>` : address,
+        to: reqJson.to_name ? `${reqJson.to_name} <${reqJson.to_mail}>` : reqJson.to_mail,
+        subject: reqJson.subject,
+        ...(reqJson.is_html ? {
+            html: reqJson.content,
+        } : {
+            text: reqJson.content,
+        })
+    });
+    if (error) {
+        throw new Error(`Resend error: ${error.name} ${error.message}`);
     }
-    // check permission
-    const balance = await c.env.DB.prepare(
-        `SELECT balance FROM address_sender
-            where address = ? and enabled = 1`
-    ).bind(address).first<number>("balance");
-    if (!balance || balance <= 0) {
-        throw new Error("No balance")
+    console.log(`Resend success: ${data}`);
+}
+
+const sendMailByMailChannels = async (
+    c: Context<HonoCustomType>, address: string,
+    reqJson: {
+        from_name: string, to_mail: string, to_name: string,
+        subject: string, content: string, is_html: boolean
     }
+): Promise<void> => {
+    /* eslint-disable prefer-const */
     let {
         from_name, to_mail, to_name,
         subject, content, is_html
     } = reqJson;
-    if (!to_mail) {
-        throw new Error("Invalid to mail")
-    }
-    // check SEND_BLOCK_LIST_KEY
-    const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY) as string[];
-    if (sendBlockList && sendBlockList.some((item) => to_mail.includes(item))) {
-        throw new Error("to_mail address is blocked")
-    }
+    /* eslint-enable prefer-const */
     from_name = from_name || address;
     to_name = to_name || to_mail;
-    if (!subject) {
-        throw new Error("Invalid subject")
-    }
-    if (!content) {
-        throw new Error("Invalid content")
-    }
-    // send to verified address list, do not update balance
-    if (c.env.SEND_MAIL) {
-        const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY) || [];
-        if (verifiedAddressList.includes(to_mail)) {
-            return sendMailToVerifyAddress(c, address, {
-                from_name, to_mail, to_name, subject, content, is_html
-            });
-        }
-    }
     let dmikBody = {}
     if (c.env.DKIM_SELECTOR && c.env.DKIM_PRIVATE_KEY && address.includes("@")) {
         dmikBody = {
@@ -141,7 +132,7 @@ export const sendMail = async (
             "value": content,
         }],
     };
-    let send_request = new Request("https://api.mailchannels.net/tx/v1/send", {
+    const send_request = new Request("https://api.mailchannels.net/tx/v1/send", {
         "method": "POST",
         "headers": {
             "content-type": "application/json",
@@ -153,6 +144,69 @@ export const sendMail = async (
     console.log(resp.status + " " + resp.statusText + ": " + respText);
     if (resp.status >= 300) {
         throw new Error(`Mailchannels error: ${resp.status} ${respText}`);
+    }
+}
+
+export const sendMail = async (
+    c: Context<HonoCustomType>, address: string,
+    reqJson: {
+        from_name: string, to_mail: string, to_name: string,
+        subject: string, content: string, is_html: boolean
+    }
+): Promise<void> => {
+    if (!address) {
+        throw new Error("No address")
+    }
+    // check domain
+    const mailDomain = address.split("@")[1];
+    const domains = getDomains(c);
+    if (!domains.includes(mailDomain)) {
+        throw new Error("Invalid domain")
+    }
+    // check permission
+    const balance = await c.env.DB.prepare(
+        `SELECT balance FROM address_sender
+            where address = ? and enabled = 1`
+    ).bind(address).first<number>("balance");
+    if (!balance || balance <= 0) {
+        throw new Error("No balance")
+    }
+    const {
+        from_name, to_mail, to_name,
+        subject, content, is_html
+    } = reqJson;
+    if (!to_mail) {
+        throw new Error("Invalid to mail")
+    }
+    // check SEND_BLOCK_LIST_KEY
+    const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY) as string[];
+    if (sendBlockList && sendBlockList.some((item) => to_mail.includes(item))) {
+        throw new Error("to_mail address is blocked")
+    }
+    if (!subject) {
+        throw new Error("Invalid subject")
+    }
+    if (!content) {
+        throw new Error("Invalid content")
+    }
+    // send to verified address list, do not update balance
+    const resendEnabled = c.env.RESEND_TOKEN || c.env[
+        `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
+    ];
+    if (c.env.SEND_MAIL) {
+        const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY) || [];
+        if (verifiedAddressList.includes(to_mail)) {
+            await sendMailToVerifyAddress(c, address, reqJson);
+            return;
+        }
+    }
+    // send by resend
+    else if (resendEnabled) {
+        await sendMailByResend(c, address, reqJson);
+    }
+    // send by mailchannels
+    else {
+        await sendMailByMailChannels(c, address, reqJson);
     }
     // update balance
     try {
@@ -167,12 +221,13 @@ export const sendMail = async (
     }
     // save to sendbox
     try {
-        if ((body as any)?.personalizations?.[0]?.dkim_private_key) {
-            delete (body as any).personalizations[0].dkim_private_key;
-        }
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
         const geoData = new GeoData(reqIp, c.req.raw.cf as any);
-        (body as any).geoData = geoData;
+        const body = {
+            version: "v2",
+            ...reqJson,
+            geoData: geoData,
+        };
         const { success: success2 } = await c.env.DB.prepare(
             `INSERT INTO sendbox (address, raw) VALUES (?, ?)`
         ).bind(address, JSON.stringify(body)).run();

@@ -9,7 +9,6 @@ import { api as apiV1 } from './deprecated';
 import { api as commonApi } from './commom_api';
 import { api as mailsApi } from './mails_api'
 import { api as userApi } from './user_api';
-// @ts-ignore
 import { api as adminApi } from './admin_api';
 import { api as apiSendMail } from './mails_api/send_mail_api'
 import { api as telegramApi } from './telegram_api'
