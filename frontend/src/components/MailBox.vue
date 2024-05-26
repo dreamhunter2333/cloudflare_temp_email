@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
                     ID: {{ row.id }}
                   </n-tag>
                   <n-tag type="info">
-                    {{ row.created_at }}
+                    {{ `${row.created_at} UTC` }}
                   </n-tag>
                   <n-tag type="info">
                     FROM: {{ row.source }}
@@ -247,7 +247,7 @@ onBeforeUnmount(() => {
               ID: {{ curMail.id }}
             </n-tag>
             <n-tag type="info">
-              {{ curMail.created_at }}
+              {{ `${curMail.created_at} UTC` }}
             </n-tag>
             <n-tag type="info">
               FROM: {{ curMail.source }}
@@ -320,7 +320,7 @@ onBeforeUnmount(() => {
                   ID: {{ row.id }}
                 </n-tag>
                 <n-tag type="info">
-                  {{ row.created_at }}
+                  {{ `${row.created_at} UTC` }}
                 </n-tag>
                 <n-tag type="info">
                   FROM: {{ row.source }}
@@ -342,7 +342,7 @@ onBeforeUnmount(() => {
                 ID: {{ curMail.id }}
               </n-tag>
               <n-tag type="info">
-                {{ curMail.created_at }}
+                {{ `${curMail.created_at} UTC` }}
               </n-tag>
               <n-tag type="info">
                 FROM: {{ curMail.source }}

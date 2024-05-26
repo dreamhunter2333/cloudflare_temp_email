@@ -15,6 +15,7 @@
     "deploy": "npm run build && wrangler pages deploy ./dist --branch production"
   },
   "dependencies": {
+    "@unhead/vue": "^1.9.11",
     "@vicons/material": "^0.12.0",
     "@vueuse/core": "^10.9.0",
     "@wangeditor/editor": "^5.1.23",

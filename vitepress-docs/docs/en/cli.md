@@ -74,6 +74,7 @@ node_compat = true
 # ]
 
 [vars]
+# TITLE = "Custom Title" # The title of the site
 PREFIX = "tmp" # The mailbox name prefix to be processed
 # If you want your site to be private, uncomment below and change your password
 # PASSWORDS = ["123", "456"]

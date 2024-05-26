@@ -7,6 +7,7 @@ export const useGlobalState = createGlobalState(
         const toggleDark = useToggle(isDark)
         const loading = ref(false);
         const openSettings = ref({
+            title: '',
             prefix: '',
             needAuth: false,
             adminContact: '',

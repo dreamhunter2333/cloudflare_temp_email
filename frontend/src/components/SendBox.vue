@@ -134,7 +134,7 @@ onMounted(async () => {
                     ID: {{ row.id }}
                   </n-tag>
                   <n-tag type="info">
-                    {{ row.created_at }}
+                    {{ `${row.created_at} UTC` }}
                   </n-tag>
                   <n-tag v-if="showEMailFrom" type="info">
                     FROM: {{ row.address }}
@@ -155,7 +155,7 @@ onMounted(async () => {
               ID: {{ curMail.id }}
             </n-tag>
             <n-tag type="info">
-              {{ curMail.created_at }}
+              {{ `${curMail.created_at} UTC` }}
             </n-tag>
             <n-tag type="info">
               FROM: {{ curMail.address }}
@@ -195,7 +195,7 @@ onMounted(async () => {
                   ID: {{ row.id }}
                 </n-tag>
                 <n-tag type="info">
-                  {{ row.created_at }}
+                  {{ `${row.created_at} UTC` }}
                 </n-tag>
                 <n-tag v-if="showEMailFrom" type="info">
                   FROM: {{ row.address }}
@@ -217,7 +217,7 @@ onMounted(async () => {
                 ID: {{ curMail.id }}
               </n-tag>
               <n-tag type="info">
-                {{ curMail.created_at }}
+                {{ `${curMail.created_at} UTC` }}
               </n-tag>
               <n-tag type="info">
                 FROM: {{ curMail.address }}

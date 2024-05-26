@@ -54,6 +54,7 @@ const getOpenSettings = async (message) => {
     try {
         const res = await api.fetch("/open_api/settings");
         Object.assign(openSettings.value, {
+            title: res["title"] || "",
             prefix: res["prefix"] || "",
             needAuth: res["needAuth"] || false,
             domains: res["domains"].map((domain) => {
