@@ -86,7 +86,7 @@ const sendMailByResend = async (
     if (error) {
         throw new Error(`Resend error: ${error.name} ${error.message}`);
     }
-    console.log(`Resend success: ${data}`);
+    console.log(`Resend success: ${JSON.stringify(data)}`);
 }
 
 const sendMailByMailChannels = async (
@@ -193,12 +193,16 @@ export const sendMail = async (
     const resendEnabled = c.env.RESEND_TOKEN || c.env[
         `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
     ];
+    let sendByVerifiedAddressList = false;
     if (c.env.SEND_MAIL) {
         const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY) || [];
         if (verifiedAddressList.includes(to_mail)) {
             await sendMailToVerifyAddress(c, address, reqJson);
-            return;
+            sendByVerifiedAddressList = true;
         }
+    }
+    if (sendByVerifiedAddressList) {
+        // do not update balance
     }
     // send by resend
     else if (resendEnabled) {
@@ -209,15 +213,17 @@ export const sendMail = async (
         await sendMailByMailChannels(c, address, reqJson);
     }
     // update balance
-    try {
-        const { success } = await c.env.DB.prepare(
-            `UPDATE address_sender SET balance = balance - 1 where address = ?`
-        ).bind(address).run();
-        if (!success) {
+    if (!sendByVerifiedAddressList) {
+        try {
+            const { success } = await c.env.DB.prepare(
+                `UPDATE address_sender SET balance = balance - 1 where address = ?`
+            ).bind(address).run();
+            if (!success) {
+                console.warn(`Failed to update balance for ${address}`);
+            }
+        } catch (e) {
             console.warn(`Failed to update balance for ${address}`);
         }
-    } catch (e) {
-        console.warn(`Failed to update balance for ${address}`);
     }
     // save to sendbox
     try {
