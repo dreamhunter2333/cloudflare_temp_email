@@ -102,6 +102,7 @@ export const unbindTelegramAddress = async (
 export const unbindTelegramByAddress = async (
     c: Context<HonoCustomType>, address: string
 ): Promise<boolean> => {
+    if (!c.env.KV) return true;
     const userId = await c.env.KV.get<string>(`${CONSTANTS.TG_KV_PREFIX}:${address}`)
     if (userId) {
         return await unbindTelegramAddress(c, userId, address);
