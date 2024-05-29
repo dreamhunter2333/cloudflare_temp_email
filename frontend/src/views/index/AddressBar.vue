@@ -10,6 +10,7 @@ import { api } from '../../api'
 import Login from '../common/Login.vue'
 import AddressManagement from '../user/AddressManagement.vue'
 import TelegramAddress from './TelegramAddress.vue'
+import LocalAddress from './LocalAddress.vue'
 
 const { toClipboard } = useClipboard()
 const message = useMessage()
@@ -50,6 +51,7 @@ const { t } = useI18n({
 
 const showChangeAddress = ref(false)
 const showTelegramChangeAddress = ref(false)
+const showLocalAddress = ref(false)
 
 const copy = async () => {
     try {
@@ -82,6 +84,10 @@ onMounted(async () => {
                         size="small" tertiary type="primary">
                         <n-icon :component="ExchangeAlt" /> {{ t('changeAddress') }}
                     </n-button>
+                    <n-button v-else style="margin-left: 10px" @click="showLocalAddress = true" size="small" tertiary
+                        type="primary">
+                        <n-icon :component="ExchangeAlt" /> {{ t('addressManage') }}
+                    </n-button>
                     <n-button style="margin-left: 10px" @click="copy" size="small" tertiary type="primary">
                         <n-icon :component="Copy" /> {{ t('copy') }}
                     </n-button>
@@ -111,6 +117,9 @@ onMounted(async () => {
         </n-modal>
         <n-modal v-model:show="showChangeAddress" preset="card" :title="t('changeAddress')">
             <AddressManagement />
+        </n-modal>
+        <n-modal v-model:show="showLocalAddress" preset="card" :title="t('changeAddress')">
+            <LocalAddress />
         </n-modal>
         <n-modal v-model:show="showAddressCredential" preset="dialog" :title="t('addressCredential')">
             <span>

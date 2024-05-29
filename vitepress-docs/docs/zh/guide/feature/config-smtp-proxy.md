@@ -1,5 +1,9 @@
 # 搭建 SMTP IMAP 代理服务
 
+::: warning
+如果你使用了 `resend`, 可直接使用 `resend` 的 `SMTP` 服务，不需要使用此服务
+:::
+
 ## 为什么需要 SMTP IMAP 代理服务
 
 `SMTP` `IMAP` 的应用场景更加广泛
