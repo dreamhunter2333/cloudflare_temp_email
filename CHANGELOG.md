@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## main branch
+
+- UI: 增加本地缓存进行地址管理
+
 ## v0.4.6
 
 - worker 配置文件添加 `TITLE = "Custom Title"`, 可自定义网站标题
