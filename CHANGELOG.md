@@ -1,9 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main branch
+## v0.4.6
 
 - worker 配置文件添加 `TITLE = "Custom Title"`, 可自定义网站标题
+- 修复 KV 未绑定无法删除地址的问题
 
 ## v0.4.5
 
