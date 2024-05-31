@@ -21,6 +21,7 @@ export type Bindings = {
     DEFAULT_SEND_BALANCE: number | string | undefined
     ADMIN_CONTACT: string | undefined
     COPYRIGHT: string | undefined
+    FORWARD_ADDRESS_LIST: string | string[] | undefined
 
     // dkim
     DKIM_SELECTOR: string | undefined

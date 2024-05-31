@@ -105,6 +105,8 @@ ENABLE_AUTO_REPLY = false
 # DKIM_PRIVATE_KEY = "" # Refer to the contents of priv_key.txt in the DKIM section
 # telegram bot
 # TG_MAX_ACCOUNTS = 5
+# global forward address list, if set, all emails will be forwarded to these addresses
+# FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 
 [[d1_databases]]
 binding = "DB"

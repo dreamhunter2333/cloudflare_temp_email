@@ -73,6 +73,8 @@ ENABLE_AUTO_REPLY = false
 # DKIM_PRIVATE_KEY = "" # 参考 DKIM 部分 priv_key.txt 的内容
 # telegram bot 最多绑定邮箱数量
 # TG_MAX_ACCOUNTS = 5
+# 全局转发地址列表，如果不配置则不启用，启用后所有邮件都会转发到列表中的地址
+# FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 
 # D1 数据库的名称和 ID 可以在 cloudflare 控制台查看
 [[d1_databases]]
