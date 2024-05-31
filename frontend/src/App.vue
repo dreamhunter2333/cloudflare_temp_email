@@ -9,18 +9,14 @@ import Footer from './views/Footer.vue';
 
 
 const {
-  localeCache, isDark, loading, useSideMargin,
-  telegramApp, isTelegram
+  isDark, loading, useSideMargin, telegramApp, isTelegram
 } = useGlobalState()
+const { locale } = useI18n({});
 const theme = computed(() => isDark.value ? darkTheme : null)
-const localeConfig = computed(() => localeCache.value == 'zh' ? zhCN : null)
+const localeConfig = computed(() => locale.value == 'zh' ? zhCN : null)
 const isMobile = useIsMobile()
 const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
 
-const { locale } = useI18n({
-  useScope: 'global',
-});
-locale.value = localeCache.value;
 
 onMounted(async () => {
   const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;

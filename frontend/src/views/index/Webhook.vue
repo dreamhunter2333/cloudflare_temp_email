@@ -7,12 +7,11 @@ import { useGlobalState } from '../../store'
 // @ts-ignore
 import { api } from '../../api'
 
-const { localeCache, settings } = useGlobalState()
+const { settings } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             successTip: 'Success',

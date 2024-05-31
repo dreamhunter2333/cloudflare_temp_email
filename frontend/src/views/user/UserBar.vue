@@ -11,11 +11,10 @@ const message = useMessage()
 const router = useRouter()
 
 const {
-    localeCache, userSettings, userJwt, userOpenSettings
+    userSettings, userJwt, userOpenSettings
 } = useGlobalState()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             currentUser: 'Current Login User',

@@ -6,12 +6,11 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
 const {
-    localeCache, loading, openSettings,
+    loading, openSettings,
 } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             address: 'Address',

@@ -10,12 +10,11 @@ import { api } from '../../api'
 // @ts-ignore
 import Login from '../common/Login.vue';
 
-const { localeCache, jwt, telegramApp } = useGlobalState()
+const { jwt, telegramApp } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             success: 'success',

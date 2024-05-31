@@ -6,14 +6,13 @@ import { useRouter } from 'vue-router'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { userJwt, localeCache, userSettings, } = useGlobalState()
+const { userJwt, userSettings, } = useGlobalState()
 const router = useRouter()
 const message = useMessage()
 
 const showLogout = ref(false)
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             logout: 'Logout',

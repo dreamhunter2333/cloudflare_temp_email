@@ -5,13 +5,12 @@ import { useIsMobile } from '../../utils/composables'
 import { useGlobalState } from '../../store'
 
 const {
-    localeCache, mailboxSplitSize, useIframeShowMail, preferShowTextMail,
+    mailboxSplitSize, useIframeShowMail, preferShowTextMail,
     globalTabplacement, useSideMargin
 } = useGlobalState()
 const isMobile = useIsMobile()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             mailboxSplitSize: 'Mailbox Split Size',

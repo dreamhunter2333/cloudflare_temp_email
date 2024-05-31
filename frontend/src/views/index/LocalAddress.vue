@@ -9,12 +9,11 @@ import { useGlobalState } from '../../store'
 // @ts-ignore
 import Login from '../common/Login.vue';
 
-const { localeCache, jwt } = useGlobalState()
+const { jwt } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             tip: 'These addresses are stored in your browser, maybe loss if you clear the browser cache.',

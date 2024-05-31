@@ -10,12 +10,11 @@ import { hashPassword } from '../../utils';
 
 import Turnstile from '../../components/Turnstile.vue';
 
-const { userJwt, localeCache, userTab, userOpenSettings } = useGlobalState()
+const { userJwt, userTab, userOpenSettings } = useGlobalState()
 const message = useMessage();
 const router = useRouter();
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             login: 'Login',

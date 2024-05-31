@@ -1,6 +1,13 @@
-export const hashPassword = async (password) => {
+export const hashPassword = async (password: string) => {
     // user crypto to hash password
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
     const hashArray = Array.from(new Uint8Array(digest));
     return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export const getRouterPathWithLang = (path: string, lang: string) => {
+    if (!lang || lang === 'zh') {
+        return path;
+    }
+    return `/${lang}${path}`;
 }

@@ -6,17 +6,17 @@ import { useRouter } from 'vue-router'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import Appearance from '../common/Appearance.vue'
+import { getRouterPathWithLang } from '../../utils'
 
 const {
-    jwt, localeCache, settings, showAddressCredential, loading
+    jwt, settings, showAddressCredential, loading
 } = useGlobalState()
 const router = useRouter()
 const message = useMessage()
 
 const showLogout = ref(false)
 const showDelteAccount = ref(false)
-const { t } = useI18n({
-    locale: localeCache.value || 'zh',
+const { locale, t } = useI18n({
     messages: {
         en: {
             logout: "Logout",
@@ -39,7 +39,7 @@ const { t } = useI18n({
 
 const logout = async () => {
     jwt.value = '';
-    await router.push('/')
+    await router.push(getRouterPathWithLang("/", locale.value))
     location.reload()
 }
 
@@ -49,7 +49,7 @@ const deleteAccount = async () => {
             method: 'DELETE'
         });
         jwt.value = '';
-        await router.push('/')
+        await router.push(getRouterPathWithLang("/", locale.value))
         location.reload()
     } catch (error) {
         message.error(error.message || "error");

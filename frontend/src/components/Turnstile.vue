@@ -2,12 +2,11 @@
 import { ref, watch, defineModel, onMounted } from "vue";
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
-const { localeCache, openSettings, isDark } = useGlobalState()
+const { openSettings, isDark } = useGlobalState()
 
 const cfToken = defineModel('value')
 
-const { t } = useI18n({
-    locale: localeCache.value || 'zh',
+const { locale, t } = useI18n({
     messages: {
         en: {
             refresh: 'Refresh'
@@ -42,7 +41,7 @@ const checkCfTurnstile = async (remove) => {
             "#cf-turnstile",
             {
                 sitekey: openSettings.value.cfTurnstileSiteKey,
-                language: localeCache.value == 'zh' ? 'zh-CN' : 'en-US',
+                language: locale.value == 'zh' ? 'zh-CN' : 'en-US',
                 theme: isDark.value ? 'dark' : 'light',
                 callback: function (token) {
                     cfToken.value = token;

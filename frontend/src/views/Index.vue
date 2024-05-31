@@ -14,10 +14,9 @@ import WenHook from './index/Webhook.vue';
 import About from './common/About.vue';
 
 const SendMail = defineAsyncComponent(() => import('./index/SendMail.vue'));
-const { localeCache, settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
+const { settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
 
 const { t } = useI18n({
-  locale: localeCache.value || 'zh',
   messages: {
     en: {
       mailbox: 'Mail Box',

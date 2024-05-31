@@ -1,10 +1,9 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../../store'
-const { localeCache, openSettings } = useGlobalState()
+const { openSettings } = useGlobalState()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             adminContact: 'If you need help, please contact the administrator ({msg})',

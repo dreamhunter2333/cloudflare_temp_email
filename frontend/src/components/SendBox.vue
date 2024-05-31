@@ -20,7 +20,7 @@ const props = defineProps({
   },
 })
 
-const { localeCache, isDark, mailboxSplitSize } = useGlobalState()
+const { isDark, mailboxSplitSize } = useGlobalState()
 const data = ref([])
 
 const count = ref(0)
@@ -31,7 +31,6 @@ const curMail = ref(null);
 const showCode = ref(false)
 
 const { t } = useI18n({
-  locale: localeCache.value || 'zh',
   messages: {
     en: {
       success: 'Success',

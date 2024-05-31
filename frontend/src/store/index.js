@@ -45,7 +45,6 @@ export const useGlobalState = createGlobalState(
         const auth = useStorage('auth', '');
         const adminAuth = useStorage('adminAuth', '');
         const jwt = useStorage('jwt', '');
-        const localeCache = useStorage('locale', 'zh');
         const adminTab = ref("account");
         const adminMailTabAddress = ref("");
         const adminSendBoxTabAddress = ref("");
@@ -82,7 +81,6 @@ export const useGlobalState = createGlobalState(
             showAddressCredential,
             auth,
             jwt,
-            localeCache,
             adminAuth,
             showAdminAuth,
             adminTab,

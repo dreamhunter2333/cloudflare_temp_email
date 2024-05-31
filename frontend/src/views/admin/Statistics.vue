@@ -7,11 +7,10 @@ import { SendOutlined } from '@vicons/material'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { localeCache, adminAuth } = useGlobalState()
+const { adminAuth } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             userCount: 'Account Count',
