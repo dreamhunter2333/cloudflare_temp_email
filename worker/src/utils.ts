@@ -129,6 +129,23 @@ export const getAdminPasswords = (c: Context<HonoCustomType>): string[] => {
     return c.env.ADMIN_PASSWORDS.filter((item) => item.length > 0);
 }
 
+export const getEnvStringList = (value: string | string[] | undefined): string[] => {
+    if (!value) {
+        return [];
+    }
+    // check if is an array, if not use json.parse
+    if (!Array.isArray(value)) {
+        try {
+            const res = JSON.parse(value) as string[];
+            return res.filter((item) => item.length > 0);
+        } catch (e) {
+            console.error("Failed to parse ADMIN_PASSWORDS", e);
+            return [];
+        }
+    }
+    return value.filter((item) => item.length > 0);
+}
+
 export const sendAdminInternalMail = async (
     c: Context<HonoCustomType>, toMail: string, subject: string, text: string
 ): Promise<boolean> => {

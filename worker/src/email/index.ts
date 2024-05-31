@@ -1,5 +1,6 @@
 import { Context } from "hono";
 
+import { getEnvStringList } from "../utils";
 import { sendMailToTelegram } from "../telegram_api";
 import { Bindings, HonoCustomType } from "../types";
 import { auto_reply } from "./auto_reply";
@@ -23,6 +24,16 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     if (!success) {
         message.setReject(`Failed save message to ${message.to}`);
         console.log(`Failed save message from ${message.from} to ${message.to}`);
+    }
+
+    // forward email
+    try {
+        const forwardAddressList = getEnvStringList(env.FORWARD_ADDRESS_LIST)
+        for (const forwardAddress of forwardAddressList) {
+            await message.forward(forwardAddress);
+        }
+    } catch (error) {
+        console.log("forward email error", error);
     }
 
     // send email to telegram
