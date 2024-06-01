@@ -5,6 +5,7 @@
 
 - UI: 增加本地缓存进行地址管理
 - worker: 增加 `FORWARD_ADDRESS_LIST` 全局邮件转发地址(等同于 `catch all`)
+- UI: 多语言使用路由进行切换
 
 ## v0.4.6
 
