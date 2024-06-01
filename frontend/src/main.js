@@ -19,7 +19,7 @@ const i18n = createI18n({
 })
 
 router.beforeEach((to, from) => {
-    if (to.params.lang) {
+    if (to.params.lang && ['en', 'zh'].includes(to.params.lang)) {
         i18n.global.locale.value = to.params.lang
     } else {
         i18n.global.locale.value = 'zh'
