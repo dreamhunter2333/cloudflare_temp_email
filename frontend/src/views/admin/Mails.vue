@@ -65,6 +65,7 @@ onMounted(async () => {
                 {{ t('query') }}
             </n-button>
         </n-input-group>
+        <div style="margin-top: 10px;"></div>
         <MailBox :key="mailBoxKey" :enableUserDeleteEmail="false" :fetchMailData="fetchMailData" />
     </div>
 </template>
