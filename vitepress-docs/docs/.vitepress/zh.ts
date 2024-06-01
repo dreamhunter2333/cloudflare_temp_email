@@ -96,7 +96,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         },
         {
             text: '通过命令行部署',
-            collapsed: false,
+            collapsed: true,
             items: [
                 { text: '命令行部署准备', link: 'cli/pre-requisite' },
                 { text: 'D1 数据库', link: 'cli/d1' },
@@ -109,7 +109,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         },
         {
             text: '通过用户界面部署',
-            collapsed: false,
+            collapsed: true,
             items: [
                 { text: 'D1 数据库', link: 'ui/d1' },
                 { text: '配置 DKIM', link: 'dkim' },
@@ -121,25 +121,26 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         },
         {
             text: '通过 Github Actions 部署',
-            collapsed: false,
+            collapsed: true,
             items: [
                 { text: '通过 Github Actions 部署', link: 'github-action' },
             ]
         },
         {
             text: '附加功能',
-            collapsed: false,
+            collapsed: true,
             items: [
                 { text: '配置 SMTP IMAP 代理服务', link: 'feature/config-smtp-proxy' },
                 { text: '发送邮件 API', link: 'feature/send-mail-api' },
                 { text: '查看邮件 API', link: 'feature/mail-api' },
                 { text: '配置子域名邮箱', link: 'feature/subdomain' },
                 { text: '配置 Telegram Bot', link: 'feature/telegram' },
+                { text: '配置 S3 附件', link: 'feature/s3-attachment' },
             ]
         },
         {
             text: '功能简介',
-            collapsed: false,
+            collapsed: true,
             items: [
                 { text: 'Admin 控制台', link: 'feature/admin' },
                 { text: 'Admin 用户管理', link: 'feature/admin-user-management' },

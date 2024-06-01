@@ -16,11 +16,11 @@ export async function processItem(item) {
         item.message = parsedEmail.body_html || parsedEmail.text || '';
         item.text = parsedEmail.text || '';
         item.attachments = parsedEmail.attachments?.map((a_item) => {
-            const blob_url = URL.createObjectURL(
-                new Blob(
-                    [a_item.content],
-                    { type: a_item.content_type || 'application/octet-stream' }
-                ))
+            const blob = new Blob(
+                [a_item.content],
+                { type: a_item.content_type || 'application/octet-stream' }
+            );
+            const blob_url = URL.createObjectURL(blob);
             if (a_item.content_id && a_item.content_id.length > 0) {
                 item.message = item.message.replace(`cid:${a_item.content_id}`, blob_url);
             }
@@ -28,7 +28,8 @@ export async function processItem(item) {
                 id: a_item.content_id || Math.random().toString(36).substring(2, 15),
                 filename: a_item.filename || a_item.content_id || "",
                 size: humanFileSize(a_item.content?.length || 0),
-                url: blob_url
+                url: blob_url,
+                blob: blob
             }
         }) || [];
     } catch (error) {
@@ -49,11 +50,11 @@ export async function processItem(item) {
         item.message = parsedEmail.html || parsedEmail.text || item.raw;
         item.text = parsedEmail.text || '';
         item.attachments = parsedEmail.attachments?.map((a_item) => {
-            const blob_url = URL.createObjectURL(
-                new Blob(
-                    [a_item.content],
-                    { type: a_item.mimeType || 'application/octet-stream' }
-                ))
+            const blob = new Blob(
+                [a_item.content],
+                { type: a_item.mimeType || 'application/octet-stream' }
+            );
+            const blob_url = URL.createObjectURL(blob)
             if (a_item.contentId && a_item.contentId.length > 0) {
                 item.message = item.message.replace(`cid:${a_item.contentId}`, blob_url);
             }
@@ -61,7 +62,8 @@ export async function processItem(item) {
                 id: a_item.contentId || Math.random().toString(36).substring(2, 15),
                 filename: a_item.filename || a_item.contentId || "",
                 size: humanFileSize(a_item.content?.length || 0),
-                url: blob_url
+                url: blob_url,
+                blob: blob
             }
         }) || [];
     } catch (error) {

@@ -23,6 +23,13 @@ export type Bindings = {
     COPYRIGHT: string | undefined
     FORWARD_ADDRESS_LIST: string | string[] | undefined
 
+    // s3 config
+    S3_ENDPOINT: string | undefined
+    S3_ACCESS_KEY_ID: string | undefined
+    S3_SECRET_ACCESS_KEY: string | undefined
+    S3_BUCKET: string | undefined
+    S3_URL_EXPIRES: number | undefined
+
     // dkim
     DKIM_SELECTOR: string | undefined
     DKIM_PRIVATE_KEY: string | undefined

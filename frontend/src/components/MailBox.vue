@@ -35,7 +35,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
     requried: false
-  }
+  },
+  showSaveS3: {
+    type: Boolean,
+    default: false,
+    requried: false
+  },
+  saveToS3: {
+    type: Function,
+    default: (mail_id, filename, blob) => { },
+    requried: false
+  },
 })
 
 const {
@@ -70,7 +80,8 @@ const { t } = useI18n({
       deleteMailTip: 'Are you sure you want to delete this mail?',
       reply: 'Reply',
       showTextMail: 'Show Text Mail',
-      showHtmlMail: 'Show Html Mail'
+      showHtmlMail: 'Show Html Mail',
+      saveToS3: 'Save to S3',
     },
     zh: {
       success: '成功',
@@ -84,7 +95,8 @@ const { t } = useI18n({
       deleteMailTip: '确定要删除这封邮件吗?',
       reply: '回复',
       showTextMail: '显示纯文本邮件',
-      showHtmlMail: '显示HTML邮件'
+      showHtmlMail: '显示HTML邮件',
+      saveToS3: '保存到S3',
     }
   }
 });
@@ -181,6 +193,16 @@ const replyMail = async () => {
 
 const onSpiltSizeChange = (size) => {
   mailboxSplitSize.value = size;
+}
+
+const attachmentLoding = ref(false)
+const saveToS3Proxy = async (filename, blob) => {
+  attachmentLoding.value = true
+  try {
+    await props.saveToS3(curMail.value.id, filename, blob);
+  } finally {
+    attachmentLoding.value = false
+  }
 }
 
 onMounted(async () => {
@@ -385,25 +407,31 @@ onBeforeUnmount(() => {
       <template #header>
         <div>{{ t("attachments") }}</div>
       </template>
-      <n-list hoverable clickable>
-        <n-list-item v-for="row in curAttachments" v-bind:key="row.id">
-          <n-thing class="center" :title="row.filename">
-            <template #description>
-              <n-space>
-                <n-tag type="info">
-                  Size: {{ row.size }}
-                </n-tag>
-              </n-space>
+      <n-spin v-model:show="attachmentLoding">
+        <n-list hoverable clickable>
+          <n-list-item v-for="row in curAttachments" v-bind:key="row.id">
+            <n-thing class="center" :title="row.filename">
+              <template #description>
+                <n-space>
+                  <n-tag type="info">
+                    Size: {{ row.size }}
+                  </n-tag>
+                  <n-button v-if="showSaveS3" @click="saveToS3Proxy(row.filename, row.blob)" ghost type="info"
+                    size="small">
+                    {{ t('saveToS3') }}
+                  </n-button>
+                </n-space>
+              </template>
+            </n-thing>
+            <template #suffix>
+              <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="row.filename"
+                :href="row.url">
+                <n-icon :component="CloudDownloadRound" />
+              </n-button>
             </template>
-          </n-thing>
-          <template #suffix>
-            <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="row.filename"
-              :href="row.url">
-              <n-icon :component="CloudDownloadRound" />
-            </n-button>
-          </template>
-        </n-list-item>
-      </n-list>
+          </n-list-item>
+        </n-list>
+      </n-spin>
     </n-modal>
   </div>
 </template>

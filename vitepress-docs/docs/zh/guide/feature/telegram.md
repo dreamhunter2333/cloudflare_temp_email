@@ -1,5 +1,18 @@
 # 配置 Telegram Bot
 
+## Telegram Bot 配置
+
+> [!NOTE]
+> 如果不需要 Telegram Bot, 可跳过此步骤
+
+请先创建一个 Telegram Bot，然后获取 `token`，然后执行下面的命令，将 `token` 添加到 secrets 中
+
+你也可以在 Cloudflare 的 UI 界面中添加 `secrets`
+
+```bash
+pnpm wrangler secret put TELEGRAM_BOT_TOKEN
+```
+
 ## Bot
 
 - 可设置白名单用户
