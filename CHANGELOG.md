@@ -1,7 +1,7 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main branch
+## v0.5.0
 
 - UI: 增加本地缓存进行地址管理
 - worker: 增加 `FORWARD_ADDRESS_LIST` 全局邮件转发地址(等同于 `catch all`)
