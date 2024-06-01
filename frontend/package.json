@@ -21,6 +21,7 @@
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.7.2",
+    "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.1.6",
     "naive-ui": "^2.38.2",
     "postal-mime": "^2.2.5",
