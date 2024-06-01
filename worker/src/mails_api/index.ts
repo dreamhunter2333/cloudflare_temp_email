@@ -6,6 +6,7 @@ import { newAddress, handleListQuery, deleteAddressWithData } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
+import s3_attachment from './s3_attachment';
 
 export const api = new Hono<HonoCustomType>()
 
@@ -14,6 +15,9 @@ api.post('/api/auto_reply', auto_reply.saveAutoReply)
 api.get('/api/webhook/settings', webhook_settings.getWebhookSettings)
 api.post('/api/webhook/settings', webhook_settings.saveWebhookSettings)
 api.post('/api/webhook/test', webhook_settings.testWebhookSettings)
+api.get('/api/attachment/list', s3_attachment.list)
+api.post('/api/attachment/put_url', s3_attachment.getSignedPutUrl)
+api.post('/api/attachment/get_url', s3_attachment.getSignedGetUrl)
 
 api.get('/api/mails', async (c) => {
     const { address } = c.get("jwtPayload")

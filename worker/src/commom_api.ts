@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { getDomains, getPasswords, getBooleanValue } from './utils';
 import { CONSTANTS } from './constants';
 import { HonoCustomType } from './types';
+import { isS3Enabled } from './mails_api/s3_attachment';
 
 const api = new Hono<HonoCustomType>
 
@@ -27,6 +28,7 @@ api.get('/open_api/settings', async (c) => {
         "copyright": c.env.COPYRIGHT,
         "cfTurnstileSiteKey": c.env.CF_TURNSTILE_SITE_KEY,
         "enableWebhook": getBooleanValue(c.env.ENABLE_WEBHOOK),
+        "isS3Enabled": isS3Enabled(c),
         "version": CONSTANTS.VERSION,
     });
 })

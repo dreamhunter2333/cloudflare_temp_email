@@ -18,6 +18,8 @@ export const useGlobalState = createGlobalState(
             domains: [],
             copyright: 'Dream Hunter',
             cfTurnstileSiteKey: '',
+            enableWebhook: false,
+            isS3Enabled: false,
         })
         const settings = ref({
             fetched: false,

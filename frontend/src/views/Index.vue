@@ -10,11 +10,13 @@ import MailBox from '../components/MailBox.vue';
 import SendBox from '../components/SendBox.vue';
 import AutoReply from './index/AutoReply.vue';
 import AccountSettings from './index/AccountSettings.vue';
-import WenHook from './index/Webhook.vue';
+import Webhook from './index/Webhook.vue';
+import Attachment from './index/Attachment.vue';
 import About from './common/About.vue';
 
 const SendMail = defineAsyncComponent(() => import('./index/SendMail.vue'));
 const { settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
+const message = useMessage()
 
 const { t } = useI18n({
   messages: {
@@ -25,6 +27,8 @@ const { t } = useI18n({
       auto_reply: 'Auto Reply',
       accountSettings: 'Account Settings',
       about: 'About',
+      s3Attachment: 'S3 Attachment',
+      saveToS3Success: 'save to s3 success',
     },
     zh: {
       mailbox: '收件箱',
@@ -33,6 +37,8 @@ const { t } = useI18n({
       auto_reply: '自动回复',
       accountSettings: '账户设置',
       about: '关于',
+      s3Attachment: 'S3附件',
+      saveToS3Success: '保存到s3成功',
     }
   }
 });
@@ -48,6 +54,26 @@ const deleteMail = async (curMailId) => {
 const fetchSenboxData = async (limit, offset) => {
   return await api.fetch(`/api/sendbox?limit=${limit}&offset=${offset}`);
 };
+
+const saveToS3 = async (mail_id, filename, blob) => {
+  try {
+    const { url } = await api.fetch(`/api/attachment/put_url`, {
+      method: 'POST',
+      body: JSON.stringify({ key: `${mail_id}/${filename}` })
+    });
+    // upload to s3 by formdata
+    const formData = new FormData();
+    formData.append(filename, blob);
+    await fetch(url, {
+      method: 'PUT',
+      body: formData
+    });
+    message.success(t('saveToS3Success'));
+  } catch (error) {
+    console.error(error);
+    message.error(error.message || "save to s3 error");
+  }
+}
 </script>
 
 <template>
@@ -55,8 +81,9 @@ const fetchSenboxData = async (limit, offset) => {
     <AddressBar />
     <n-tabs v-if="settings.address" type="card" v-model:value="indexTab" :placement="globalTabplacement">
       <n-tab-pane name="mailbox" :tab="t('mailbox')">
-        <MailBox :showEMailTo="false" :showReply="true" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
-          :fetchMailData="fetchMailData" :deleteMail="deleteMail" />
+        <MailBox :showEMailTo="false" :showReply="true" :showSaveS3="openSettings.isS3Enabled" :saveToS3="saveToS3"
+          :enableUserDeleteEmail="openSettings.enableUserDeleteEmail" :fetchMailData="fetchMailData"
+          :deleteMail="deleteMail" />
       </n-tab-pane>
       <n-tab-pane name="sendbox" :tab="t('sendbox')">
         <SendBox :fetchMailData="fetchSenboxData" />
@@ -71,7 +98,10 @@ const fetchSenboxData = async (limit, offset) => {
         <AutoReply />
       </n-tab-pane>
       <n-tab-pane v-if="openSettings.enableWebhook" name="webhook" :tab="t('webhook')">
-        <WenHook />
+        <Webhook />
+      </n-tab-pane>
+      <n-tab-pane v-if="openSettings.isS3Enabled" name="s3_attachment" :tab="t('s3Attachment')">
+        <Attachment />
       </n-tab-pane>
       <n-tab-pane v-if="openSettings.enableIndexAbout" name="about" :tab="t('about')">
         <About />
