@@ -9,11 +9,10 @@ import UserBar from './user/UserBar.vue';
 import BindAddress from './user/BindAddress.vue';
 
 const {
-    localeCache, userTab, globalTabplacement, userSettings
+    userTab, globalTabplacement, userSettings
 } = useGlobalState()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             address_management: 'Address Management',

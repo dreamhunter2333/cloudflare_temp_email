@@ -6,13 +6,10 @@ import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../../store'
 // @ts-ignore
 import { api } from '../../api'
-
-const { localeCache } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             successTip: 'Success',

@@ -7,12 +7,11 @@ import { api } from '../../api'
 import MailBox from '../../components/MailBox.vue';
 
 const {
-    localeCache, adminAuth, showAdminAuth,
+    adminAuth, showAdminAuth,
     adminMailTabAddress
 } = useGlobalState()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             addressQueryTip: 'Leave blank to query all addresses',

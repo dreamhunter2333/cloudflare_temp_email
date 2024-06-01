@@ -6,13 +6,13 @@ import { NBadge, NPopconfirm, NButton } from 'naive-ui'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import { getRouterPathWithLang } from '../../utils'
 
-const { localeCache, jwt } = useGlobalState()
+const { jwt } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
 
-const { t } = useI18n({
-    locale: localeCache.value || 'zh',
+const { locale, t } = useI18n({
     messages: {
         en: {
             success: 'success',
@@ -48,7 +48,7 @@ const changeMailAddress = async (address_id) => {
             return;
         }
         jwt.value = res.jwt;
-        await router.push('/');
+        await router.push(getRouterPathWithLang("/", locale.value))
         location.reload();
     } catch (error) {
         console.log(error)

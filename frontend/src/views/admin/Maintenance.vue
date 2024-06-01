@@ -6,7 +6,7 @@ import { CleaningServicesFilled } from '@vicons/material'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { localeCache, adminAuth, showAdminAuth } = useGlobalState()
+const { adminAuth, showAdminAuth } = useGlobalState()
 const message = useMessage()
 const cleanupModel = ref({
     enableMailsAutoCleanup: false,
@@ -20,7 +20,6 @@ const cleanupModel = ref({
 })
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             tip: 'Please input the cleanup days',

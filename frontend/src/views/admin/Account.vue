@@ -9,13 +9,12 @@ import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 
 const {
-    localeCache, adminAuth, showAdminAuth, loading,
+    adminAuth, showAdminAuth, loading,
     adminTab, adminMailTabAddress, adminSendBoxTabAddress
 } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             name: 'Name',

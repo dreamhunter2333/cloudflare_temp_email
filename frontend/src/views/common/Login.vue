@@ -9,6 +9,7 @@ import Turnstile from '../../components/Turnstile.vue'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import { getRouterPathWithLang } from '../../utils'
 
 const props = defineProps({
     bindUserAddress: {
@@ -36,7 +37,7 @@ const message = useMessage()
 const router = useRouter()
 
 const {
-    jwt, localeCache, loading, openSettings,
+    jwt, loading, openSettings,
     showAddressCredential, userSettings
 } = useGlobalState()
 
@@ -59,14 +60,13 @@ const login = async () => {
         } catch (error) {
             message.error(`${t('bindUserAddressError')}: ${error.message}`);
         }
-        await router.push("/");
+        await router.push(getRouterPathWithLang("/", locale.value));
     } catch (error) {
         message.error(error.message || "error");
     }
 }
 
-const { t } = useI18n({
-    locale: localeCache.value || 'zh',
+const { locale, t } = useI18n({
     messages: {
         en: {
             login: 'Login',
@@ -128,7 +128,7 @@ const newEmail = async () => {
         );
         jwt.value = res["jwt"];
         await api.getSettings();
-        await router.push("/");
+        await router.push(getRouterPathWithLang("/", locale.value));
         showAddressCredential.value = true;
         try {
             await props.bindUserAddress();

@@ -21,7 +21,7 @@ import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
 
 const {
-  localeCache, adminAuth, showAdminAuth, adminTab, loading, globalTabplacement
+  adminAuth, showAdminAuth, adminTab, loading, globalTabplacement
 } = useGlobalState()
 const message = useMessage()
 
@@ -34,7 +34,6 @@ const authFunc = async () => {
 }
 
 const { t } = useI18n({
-  locale: localeCache.value || 'zh',
   messages: {
     en: {
       accessHeader: 'Admin Password',

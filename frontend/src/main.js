@@ -17,6 +17,16 @@ const i18n = createI18n({
         messages: {}
     }
 })
+
+router.beforeEach((to, from) => {
+    if (to.params.lang) {
+        i18n.global.locale.value = to.params.lang
+    } else {
+        i18n.global.locale.value = 'zh'
+    }
+});
+
+
 const head = createHead()
 const app = createApp(App)
 app.use(i18n)

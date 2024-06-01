@@ -5,11 +5,10 @@ import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { localeCache, loading } = useGlobalState()
+const { loading } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
-  locale: localeCache.value || 'zh',
   messages: {
     en: {
       address: 'Address',

@@ -5,10 +5,9 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import SendBox from '../../components/SendBox.vue';
 
-const { localeCache, adminSendBoxTabAddress } = useGlobalState()
+const { adminSendBoxTabAddress } = useGlobalState()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             query: 'Query',

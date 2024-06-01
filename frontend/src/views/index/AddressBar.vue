@@ -11,18 +11,18 @@ import Login from '../common/Login.vue'
 import AddressManagement from '../user/AddressManagement.vue'
 import TelegramAddress from './TelegramAddress.vue'
 import LocalAddress from './LocalAddress.vue'
+import { getRouterPathWithLang } from '../../utils'
 
 const { toClipboard } = useClipboard()
 const message = useMessage()
 const router = useRouter()
 
 const {
-    jwt, localeCache, settings, showAddressCredential, userJwt,
+    jwt, settings, showAddressCredential, userJwt,
     isTelegram
 } = useGlobalState()
 
-const { t } = useI18n({
-    locale: localeCache.value || 'zh',
+const { locale, t } = useI18n({
     messages: {
         en: {
             addressManage: 'Address Manage',
@@ -60,6 +60,10 @@ const copy = async () => {
     } catch (e) {
         message.error(e.message || "error");
     }
+}
+
+const onUserLogin = async () => {
+    await router.push(getRouterPathWithLang("/user", locale.value))
 }
 
 onMounted(async () => {
@@ -104,7 +108,7 @@ onMounted(async () => {
                 </n-alert>
                 <Login />
                 <n-divider />
-                <n-button @click="router.push('/user')" type="primary" block secondary strong>
+                <n-button @click="onUserLogin" type="primary" block secondary strong>
                     <template #icon>
                         <n-icon :component="User" />
                     </template>

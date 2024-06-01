@@ -6,10 +6,9 @@ import { useRouter } from 'vue-router'
 import { useGlobalState } from '../../store'
 import Login from '../common/Login.vue'
 
-const { userJwt, localeCache, userSettings, } = useGlobalState()
+const { userJwt, userSettings, } = useGlobalState()
 
 const { t } = useI18n({
-    locale: localeCache.value || 'zh',
     messages: {
         en: {
             logout: 'Logout',

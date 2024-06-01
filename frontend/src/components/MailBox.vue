@@ -1,6 +1,5 @@
 <script setup>
 import { watch, onMounted, ref, onBeforeUnmount } from "vue";
-import { useRouter } from "vue-router";
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
@@ -10,7 +9,6 @@ import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
 
 const message = useMessage()
 const isMobile = useIsMobile()
-const router = useRouter()
 
 const props = defineProps({
   enableUserDeleteEmail: {
@@ -41,7 +39,7 @@ const props = defineProps({
 })
 
 const {
-  localeCache, isDark, mailboxSplitSize, indexTab,
+  isDark, mailboxSplitSize, indexTab,
   useIframeShowMail, sendMailModel, preferShowTextMail
 } = useGlobalState()
 const autoRefresh = ref(false)
@@ -59,7 +57,6 @@ const curMail = ref(null);
 const showTextMail = ref(preferShowTextMail.value)
 
 const { t } = useI18n({
-  locale: localeCache.value || 'zh',
   messages: {
     en: {
       success: 'Success',
