@@ -1,15 +1,15 @@
 
 import { Context } from "hono";
-import { Jwt } from 'hono/utils/jwt'
 import { Telegraf, Context as TgContext, Markup } from "telegraf";
 import { callbackQuery } from "telegraf/filters";
-import PostalMime from 'postal-mime';
 
 import { CONSTANTS } from "../constants";
 import { getDomains, getStringValue } from '../utils';
 import { HonoCustomType } from "../types";
 import { TelegramSettings } from "./settings";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
+import { commonParseMail } from "../common";
+
 
 const COMMANDS = [
     {
@@ -195,13 +195,13 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         if (!db_address_id) {
             return await ctx.reply("无效地址");
         }
-        const { raw, id: mailId } = await c.env.DB.prepare(
+        const { raw, id: mailId, created_at } = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where address = ? `
             + ` order by id desc limit 1 offset ?`
         ).bind(
             queryAddress, mailIndex
-        ).first<{ raw: string, id: string }>() || {};
-        const { mail } = raw ? await parseMail(raw) : { mail: "已经没有邮件了" };
+        ).first<{ raw: string, id: string, created_at: string }>() || {};
+        const { mail } = raw ? await parseMail(raw, queryAddress, created_at) : { mail: "已经没有邮件了" };
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const miniAppButtons = []
         if (settings?.miniAppUrl && settings?.miniAppUrl?.length > 0 && mailId) {
@@ -265,22 +265,26 @@ export async function initTelegramBotCommands(bot: Telegraf) {
     await bot.telegram.setMyCommands(COMMANDS);
 }
 
-const parseMail = async (raw_mail: string | undefined | null) => {
+const parseMail = async (
+    raw_mail: string | undefined | null,
+    address: string, created_at: string | undefined | null
+) => {
     if (!raw_mail) {
         return {};
     }
     try {
-        const parsedEmail = await PostalMime.parse(raw_mail);
-        if (parsedEmail?.text?.length && parsedEmail?.text?.length > 1000) {
-            parsedEmail.text = parsedEmail.text.substring(0, 1000) + "...消息过长请到miniapp查看";
+        const parsedEmail = await commonParseMail(raw_mail);
+        let parsedText = parsedEmail?.text || "";
+        if (parsedText.length && parsedText.length > 1000) {
+            parsedText = parsedEmail?.text.substring(0, 1000) + "\n\n...\n消息过长请到miniapp查看";
         }
         return {
             isHtml: false,
-            mail: `From: ${parsedEmail.from ? `${parsedEmail.from.name}[${parsedEmail.from.address}]` : "无发件人"}\n`
-                + `To: ${parsedEmail.to?.map(t => `${t.name}[${t.address}]`).join(" ")}\n`
-                + `Subject: ${parsedEmail.subject}\n`
-                + `Date: ${parsedEmail.date}\n`
-                + `Content:\n${parsedEmail.text || "解析失败，请打开 mini app 查看"}`
+            mail: `From: ${parsedEmail?.sender || "无发件人"}\n`
+                + `To: ${address}\n`
+                + (created_at ? `Date: ${created_at}\n` : "")
+                + `Subject: ${parsedEmail?.subject}\n`
+                + `Content:\n${parsedEmail?.text || "解析失败，请打开 mini app 查看"}`
         };
     } catch (e) {
         return {
@@ -299,7 +303,7 @@ export async function sendMailToTelegram(
         return;
     }
     const userId = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${address}`);
-    const { mail } = await parseMail(raw_mail);
+    const { mail } = await parseMail(raw_mail, address, new Date().toUTCString());
     if (!mail) {
         return;
     }
