@@ -1,6 +1,6 @@
 [package]
 name = "mail-parser-wasm"
-version = "0.1.6"
+version = "0.1.8"
 edition = "2021"
 description = "A simple mail parser for wasm"
 license = "MIT"

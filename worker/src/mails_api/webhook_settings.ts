@@ -3,7 +3,7 @@ import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 import { AdminWebhookSettings, WebhookMail } from "../models";
 import { getBooleanValue } from "../utils";
-import PostalMime from 'postal-mime';
+import { commonParseMail } from "../common";
 
 
 class WebhookSettings {
@@ -15,10 +15,10 @@ class WebhookSettings {
     body: string = JSON.stringify({
         "from": "${from}",
         "to": "${to}",
-        "headers": "${headers}",
         "subject": "${subject}",
         "raw": "${raw}",
         "parsedText": "${parsedText}",
+        "parsedHtml": "${parsedHtml}",
     }, null, 2)
 }
 
@@ -98,14 +98,14 @@ export async function trigerWebhook(
     if (!settings) {
         return;
     }
-    const parsedEmail = await PostalMime.parse(raw_mail);
+    const parsedEmail = await commonParseMail(raw_mail);
     const res = await sendWebhook(settings, {
-        from: parsedEmail.from.address || "",
+        from: parsedEmail?.sender || "",
         to: address,
-        headers: JSON.stringify(parsedEmail.headers),
-        subject: parsedEmail.subject || "",
+        subject: parsedEmail?.subject || "",
         raw: raw_mail,
-        parsedText: parsedEmail.text || parsedEmail.html || ""
+        parsedText: parsedEmail?.text || "",
+        parsedHtml: parsedEmail?.html || ""
     });
     if (!res.success) {
         console.log(res.message);
@@ -119,14 +119,15 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const raw = await c.env.DB.prepare(
         `SELECT raw FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
     ).bind(address).first<string>("raw");
-    const parsedEmail = raw ? await PostalMime.parse(raw) : {} as any;
+
+    const parsedEmail = await commonParseMail(raw);
     const res = await sendWebhook(settings, {
-        from: parsedEmail?.from?.address || "test@test.com",
+        from: parsedEmail?.sender || "test@test.com",
         to: address,
-        headers: JSON.stringify(parsedEmail?.headers || { "X-Test": "test" }),
         subject: parsedEmail?.subject || "test subject",
         raw: raw || "test raw email",
-        parsedText: parsedEmail?.text || parsedEmail?.html || "test parsed text"
+        parsedText: parsedEmail?.text || "test parsed text",
+        parsedHtml: parsedEmail?.html || "test parsed html"
     });
     if (!res.success) {
         return c.text(res.message || "send webhook error", 400);

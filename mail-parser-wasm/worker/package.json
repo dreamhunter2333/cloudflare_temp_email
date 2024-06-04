@@ -1,0 +1,24 @@
+{
+  "name": "mail-parser-wasm-worker",
+  "description": "A simple mail parser for worker",
+  "homepage": "https://github.com/dreamhunter2333/cloudflare_temp_email/tree/main/mail-parser-wasm",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dreamhunter2333/cloudflare_temp_email",
+    "directory": "mail-parser-wasm"
+  },
+  "version": "0.1.8",
+  "license": "MIT",
+  "files": [
+    "mail_parser_wasm_bg.wasm",
+    "mail_parser_wasm.js",
+    "mail_parser_wasm.d.ts",
+    "index.js",
+    "index.d.ts"
+  ],
+  "module": "index.js",
+  "types": "index.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

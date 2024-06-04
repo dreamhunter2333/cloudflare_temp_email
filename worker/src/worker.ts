@@ -125,8 +125,14 @@ app.route('/', apiV1)
 app.route('/', apiSendMail)
 app.route('/', telegramApi)
 
-app.get('/', async c => c.text("OK"))
-app.get('/health_check', async c => c.text("OK"))
+app.get('/', async c => {
+	if (!c.env.DB) { return c.text("DB is not available", 400); }
+	return c.text("OK");
+})
+app.get('/health_check', async c => {
+	if (!c.env.DB) { return c.text("DB is not available", 400); }
+	return c.text("OK");
+})
 app.all('/*', async c => c.text("Not Found", 404))
 
 
