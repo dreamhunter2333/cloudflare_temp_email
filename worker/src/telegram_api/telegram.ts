@@ -284,7 +284,7 @@ const parseMail = async (
                 + `To: ${address}\n`
                 + (created_at ? `Date: ${created_at}\n` : "")
                 + `Subject: ${parsedEmail?.subject}\n`
-                + `Content:\n${parsedEmail?.text || "解析失败，请打开 mini app 查看"}`
+                + `Content:\n${parsedText || "解析失败，请打开 mini app 查看"}`
         };
     } catch (e) {
         return {
