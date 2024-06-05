@@ -1,27 +1,38 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { getBooleanValue, getDomains, getStringValue } from './utils';
+import { getBooleanValue, getDomains, getStringValue, getIntValue } from './utils';
 import { HonoCustomType } from './types';
 import { unbindTelegramByAddress } from './telegram_api/common';
 
 export const newAddress = async (
     c: Context<HonoCustomType>,
     name: string, domain: string | undefined | null,
-    enablePrefix: boolean
+    enablePrefix: boolean,
+    checkLengthByConfig: boolean = true
 ): Promise<{ address: string, jwt: string }> => {
     // remove special characters
     name = name.replace(/[^a-zA-Z0-9.]/g, '')
+    // name min length min 1
+    const minAddressLength = Math.max(
+        checkLengthByConfig ? getIntValue(c.env.MIN_ADDRESS_LEN, 1) : 1,
+        1
+    );
+    // name max length min 1
+    const maxAddressLength = Math.max(
+        checkLengthByConfig ? getIntValue(c.env.MAX_ADDRESS_LEN, 30) : 30,
+        1
+    );
     // check name length
-    if (name.length <= 0) {
-        throw new Error("Name too short")
+    if (name.length < minAddressLength) {
+        throw new Error(`Name too short (min ${minAddressLength})`);
+    }
+    if (name.length > maxAddressLength) {
+        throw new Error(`Name too long (max ${maxAddressLength})`);
     }
     // create address
     if (enablePrefix) {
         name = getStringValue(c.env.PREFIX) + name;
-    }
-    if (name.length >= 30) {
-        throw new Error("Name too long (max 30)")
     }
     // check domain, generate random domain
     const domains = getDomains(c);

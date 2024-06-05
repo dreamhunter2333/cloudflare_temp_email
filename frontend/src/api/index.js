@@ -56,6 +56,8 @@ const getOpenSettings = async (message) => {
         Object.assign(openSettings.value, {
             title: res["title"] || "",
             prefix: res["prefix"] || "",
+            minAddressLen: res["minAddressLen"] || 1,
+            maxAddressLen: res["maxAddressLen"] || 30,
             needAuth: res["needAuth"] || false,
             domains: res["domains"].map((domain) => {
                 return {
