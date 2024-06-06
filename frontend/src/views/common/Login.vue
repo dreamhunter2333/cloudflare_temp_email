@@ -189,7 +189,8 @@ onMounted(async () => {
                             <n-input-group-label v-if="openSettings.prefix">
                                 {{ openSettings.prefix }}
                             </n-input-group-label>
-                            <n-input v-model:value="emailName" />
+                            <n-input v-model:value="emailName" show-count :minlength="openSettings.minAddressLen"
+                                :maxlength="openSettings.maxAddressLen" />
                             <n-input-group-label>@</n-input-group-label>
                             <n-select v-model:value="emailDomain" :consistent-menu-width="false"
                                 :options="openSettings.domains" />

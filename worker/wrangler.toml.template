@@ -18,6 +18,9 @@ node_compat = true
 [vars]
 # TITLE = "Custom Title" # custom title
 PREFIX = "tmp"
+# (min, max) length of the adderss, if not set, the default is (1, 30)
+# MIN_ADDRESS_LEN = 1
+# MAX_ADDRESS_LEN = 30
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
 # PASSWORDS = ["123", "456"]
 # For admin panel

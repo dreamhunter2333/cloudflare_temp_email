@@ -8,6 +8,8 @@ export type Bindings = {
     // config
     TITLE: string | undefined
     PREFIX: string | undefined
+    MIN_ADDRESS_LEN: string | number | undefined
+    MAX_ADDRESS_LEN: string | number | undefined
     DOMAINS: string | string[] | undefined
     PASSWORDS: string | string[] | undefined
     ADMIN_PASSWORDS: string | string[] | undefined
