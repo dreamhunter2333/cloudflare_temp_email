@@ -1,6 +1,12 @@
 # 使用 cloudflare 免费服务，搭建临时邮箱
 
 <p align="center">
+  <a href="https://temp-mail-docs.awsl.uk">
+    <img alt="docs" src="https://img.shields.io/badge/docs-docs-blue">
+  </a>
+  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest">
+    <img src="https://img.shields.io/github/v/release/dreamhunter2333/cloudflare_temp_email">
+  </a>
   <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/dreamhunter2333/cloudflare_temp_email">
   </a>
@@ -10,8 +16,8 @@
   <a href="">
     <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/dreamhunter2333/cloudflare_temp_email">
   </a>
-  <a href="https://discord.gg/dQEwTWhA6Q">
-     <img alt="Join Discord Chat" src="https://img.shields.io/discord/1238705663623036939.svg?label=discord&logo=discord">
+  <a href="">
+    <img src="https://img.shields.io/github/last-commit/dreamhunter2333/cloudflare_temp_email">
   </a>
 </p>
 
