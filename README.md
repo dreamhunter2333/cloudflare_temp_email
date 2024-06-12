@@ -1,35 +1,38 @@
 # 使用 cloudflare 免费服务，搭建临时邮箱
 
 <p align="center">
-  <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=2ccc64bb1ba346b480625f584aa19eb1&claim_uid=FxNypXK7UQ9OECT" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+  <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank">
+    <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=2ccc64bb1ba346b480625f584aa19eb1&claim_uid=FxNypXK7UQ9OECT" alt="Featured｜HelloGitHub"/>
+  </a>
+  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/dreamhunter2333/cloudflare_temp_email" target="_blank">
+    <img src="https://deploy.workers.cloudflare.com/button"/>
+  </a>
 </p>
 
 <p align="center">
-  <a href="https://temp-mail-docs.awsl.uk">
-    <img alt="docs" src="https://img.shields.io/badge/docs-docs-blue">
+  <a href="https://temp-mail-docs.awsl.uk" target="_blank">
+    <img alt="docs" src="https://img.shields.io/badge/docs-grey?style=for-the-badge&logo=vitepress">
   </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest">
-    <img src="https://img.shields.io/github/v/release/dreamhunter2333/cloudflare_temp_email">
+  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest" target="_blank">
+    <img src="https://img.shields.io/github/v/release/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
   </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/LICENSE">
-    <img alt="MIT License" src="https://img.shields.io/github/license/dreamhunter2333/cloudflare_temp_email">
+  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/LICENSE" target="_blank">
+    <img alt="MIT License" src="https://img.shields.io/github/license/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
   </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/graphs/contributors">
-   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="">
-    <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/dreamhunter2333/cloudflare_temp_email">
+  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/graphs/contributors" target="_blank">
+   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
   </a>
   <a href="">
-    <img src="https://img.shields.io/github/last-commit/dreamhunter2333/cloudflare_temp_email">
+    <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
+  </a>
+  <a href="">
+    <img src="https://img.shields.io/github/last-commit/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
   </a>
 </p>
 
 > 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
 
 ## [查看部署文档](https://temp-mail-docs.awsl.uk)
-
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/dreamhunter2333/cloudflare_temp_email)
 
 [Github Action 部署文档](https://temp-mail-docs.awsl.uk/zh/guide/github-action.html)
 
