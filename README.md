@@ -1,6 +1,10 @@
 # 使用 cloudflare 免费服务，搭建临时邮箱
 
 <p align="center">
+  <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=2ccc64bb1ba346b480625f584aa19eb1&claim_uid=FxNypXK7UQ9OECT" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+</p>
+
+<p align="center">
   <a href="https://temp-mail-docs.awsl.uk">
     <img alt="docs" src="https://img.shields.io/badge/docs-docs-blue">
   </a>
