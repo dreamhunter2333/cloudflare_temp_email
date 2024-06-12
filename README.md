@@ -4,9 +4,6 @@
   <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank">
     <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=2ccc64bb1ba346b480625f584aa19eb1&claim_uid=FxNypXK7UQ9OECT" alt="Featured｜HelloGitHub"/>
   </a>
-  <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/dreamhunter2333/cloudflare_temp_email" target="_blank">
-    <img src="https://deploy.workers.cloudflare.com/button"/>
-  </a>
 </p>
 
 <p align="center">
@@ -33,6 +30,8 @@
 > 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
 
 ## [查看部署文档](https://temp-mail-docs.awsl.uk)
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/dreamhunter2333/cloudflare_temp_email)
 
 [Github Action 部署文档](https://temp-mail-docs.awsl.uk/zh/guide/github-action.html)
 
