@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 
-import { getDomains, getPasswords, getBooleanValue, getIntValue } from './utils';
+import { getDomains, getPasswords, getBooleanValue, getIntValue, getStringArray } from './utils';
 import { CONSTANTS } from './constants';
 import { HonoCustomType } from './types';
 import { isS3Enabled } from './mails_api/s3_attachment';
@@ -21,6 +21,7 @@ api.get('/open_api/settings', async (c) => {
         "minAddressLen": getIntValue(c.env.MIN_ADDRESS_LEN, 1),
         "maxAddressLen": getIntValue(c.env.MAX_ADDRESS_LEN, 30),
         "domains": getDomains(c),
+        "domainLabels": getStringArray(c.env.DOMAIN_LABELS),
         "needAuth": needAuth,
         "adminContact": c.env.ADMIN_CONTACT,
         "enableUserCreateEmail": getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),

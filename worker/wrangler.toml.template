@@ -28,6 +28,8 @@ PREFIX = "tmp"
 # ADMIN CONTACT, CAN BE ANY STRING
 # ADMIN_CONTACT = "xx@xx.xxx"
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
+# For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
+# DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
 JWT_SECRET = "xxx"
 BLACK_LIST = ""
 # Allow users to create email addresses

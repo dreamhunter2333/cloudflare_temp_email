@@ -79,6 +79,24 @@ export const getIntValue = (
     return defaultValue;
 }
 
+export const getStringArray = (
+    value: string | string[] | undefined | null
+): string[] => {
+    if (!value) {
+        return [];
+    }
+    // check if value is an array, if not use json.parse
+    if (!Array.isArray(value)) {
+        try {
+            return JSON.parse(value);
+        } catch (e) {
+            console.error("Failed to parse value", e);
+            return [];
+        }
+    }
+    return value;
+}
+
 export const getDomains = (c: Context<HonoCustomType>): string[] => {
     if (!c.env.DOMAINS) {
         return [];

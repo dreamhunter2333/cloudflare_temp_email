@@ -54,6 +54,8 @@ PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空
 # admin 联系方式，不配置则不显示，可配置任意字符串
 # ADMIN_CONTACT = "xx@xx.xxx"
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名, 支持多个域名
+# 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称
+# DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
 JWT_SECRET = "xxx" # 用于生成 jwt 的密钥, jwt 用于给用户登录以及鉴权
 BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
 # 是否允许用户创建邮件, 不配置则不允许
