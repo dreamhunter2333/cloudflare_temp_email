@@ -10,7 +10,7 @@ import { hashPassword } from '../../utils';
 
 import Turnstile from '../../components/Turnstile.vue';
 
-const { userJwt, userTab, userOpenSettings } = useGlobalState()
+const { userJwt, userTab, userOpenSettings, openSettings } = useGlobalState()
 const message = useMessage();
 const router = useRouter();
 
@@ -98,7 +98,7 @@ const sendVerificationCode = async () => {
         message.error(t('pleaseInputEmail'));
         return;
     }
-    if (!cfToken.value && userOpenSettings.value.enableMailVerify) {
+    if (openSettings.value.cfTurnstileSiteKey && !cfToken.value && userOpenSettings.value.enableMailVerify) {
         message.error(t('pleaseCompleteTurnstile'));
         return;
     }
