@@ -15,6 +15,7 @@ export const useGlobalState = createGlobalState(
             enableUserDeleteEmail: false,
             enableAutoReply: false,
             enableIndexAbout: false,
+            /** @type {Array<{label: string, value: string}>} */
             domains: [],
             copyright: 'Dream Hunter',
             cfTurnstileSiteKey: '',

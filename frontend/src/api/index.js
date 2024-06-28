@@ -53,15 +53,16 @@ const apiFetch = async (path, options = {}) => {
 const getOpenSettings = async (message) => {
     try {
         const res = await api.fetch("/open_api/settings");
+        const domainLabels = res["domainLabels"] || [];
         Object.assign(openSettings.value, {
             title: res["title"] || "",
             prefix: res["prefix"] || "",
             minAddressLen: res["minAddressLen"] || 1,
             maxAddressLen: res["maxAddressLen"] || 30,
             needAuth: res["needAuth"] || false,
-            domains: res["domains"].map((domain) => {
+            domains: res["domains"].map((domain, index) => {
                 return {
-                    label: domain,
+                    label: domainLabels.length > index ? domainLabels[index] : domain,
                     value: domain
                 }
             }),

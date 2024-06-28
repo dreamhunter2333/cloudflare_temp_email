@@ -1,6 +1,6 @@
 <script setup>
 import useClipboard from 'vue-clipboard3'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Copy, User, ExchangeAlt } from '@vicons/fa'
@@ -19,7 +19,7 @@ const router = useRouter()
 
 const {
     jwt, settings, showAddressCredential, userJwt,
-    isTelegram
+    isTelegram, openSettings
 } = useGlobalState()
 
 const { locale, t } = useI18n({
@@ -52,6 +52,17 @@ const { locale, t } = useI18n({
 const showChangeAddress = ref(false)
 const showTelegramChangeAddress = ref(false)
 const showLocalAddress = ref(false)
+const addressLabel = computed(() => {
+    if (settings.value.address) {
+        const domain = settings.value.address.split('@')[1]
+        const domainLabel = openSettings.value.domains.find(
+            d => d.value === domain
+        )?.label;
+        if (!domainLabel) return settings.value.address;
+        return settings.value.address.replace('@' + domain, `@${domainLabel}`);
+    }
+    return settings.value.address;
+})
 
 const copy = async () => {
     try {
@@ -79,7 +90,7 @@ onMounted(async () => {
         <div v-else-if="settings.address">
             <n-alert type="info" :show-icon="false">
                 <span>
-                    <b>{{ settings.address }}</b>
+                    <b>{{ addressLabel }}</b>
                     <n-button v-if="isTelegram" style="margin-left: 10px" @click="showTelegramChangeAddress = true"
                         size="small" tertiary type="primary">
                         <n-icon :component="ExchangeAlt" /> {{ t('addressManage') }}

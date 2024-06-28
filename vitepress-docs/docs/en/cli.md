@@ -86,6 +86,8 @@ PREFIX = "tmp" # The mailbox name prefix to be processed
 # admin contact information. If not configured, it will not be displayed. Any string can be configured.
 # ADMIN_CONTACT = "xx@xx.xxx"
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # your domain name
+# For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
+# DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
 JWT_SECRET = "xxx" # Key used to generate jwt
 BLACK_LIST = "" # Blacklist, used to filter senders, comma separated
 # Allow users to create email addresses
