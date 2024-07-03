@@ -47,9 +47,6 @@ ENABLE_AUTO_REPLY = false
 # Turnstile verification
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
-# dkim config
-# DKIM_SELECTOR = ""
-# DKIM_PRIVATE_KEY = ""
 # telegram bot
 # TG_MAX_ACCOUNTS = 5
 # global forward address list, if set, all emails will be forwarded to these addresses

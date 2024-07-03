@@ -15,6 +15,10 @@ const fetchMailUnknowData = async (limit, offset) => {
     );
 }
 
+const deleteMail = async (curMailId) => {
+    await api.fetch(`/api/mails/${curMailId}`, { method: 'DELETE' });
+};
+
 onMounted(async () => {
     if (!adminAuth.value) {
         showAdminAuth.value = true;
@@ -25,6 +29,6 @@ onMounted(async () => {
 
 <template>
     <div v-if="adminAuth" style="margin-top: 10px;">
-        <MailBox :enableUserDeleteEmail="false" :fetchMailData="fetchMailUnknowData" />
+        <MailBox :enableUserDeleteEmail="true" :fetchMailData="fetchMailUnknowData" :deleteMail="deleteMail" />
     </div>
 </template>

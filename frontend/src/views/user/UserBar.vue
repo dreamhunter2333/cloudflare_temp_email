@@ -37,19 +37,19 @@ onMounted(async () => {
 
 <template>
     <div>
-        <n-card v-if="!userSettings.fetched">
+        <n-card :bordered="false" embedded v-if="!userSettings.fetched">
             <n-skeleton style="height: 50vh" />
         </n-card>
         <div v-else-if="userSettings.user_email">
-            <n-alert type="success" :show-icon="false">
+            <n-alert type="success" :show-icon="false" :bordered="false">
                 <span>
                     <b>{{ t('currentUser') }} <b>{{ userSettings.user_email }}</b></b>
                 </span>
             </n-alert>
         </div>
         <div v-else class="center">
-            <n-card style="max-width: 600px;">
-                <n-alert v-if="userJwt" type="warning" :show-icon="false" closable>
+            <n-card :bordered="false" embedded style="max-width: 600px;">
+                <n-alert v-if="userJwt" type="warning" :show-icon="false" :bordered="false" closable>
                     <span>{{ t('fetchUserSettingsError') }}</span>
                 </n-alert>
                 <UserLogin />

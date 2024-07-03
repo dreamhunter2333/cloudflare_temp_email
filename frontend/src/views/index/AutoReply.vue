@@ -81,7 +81,7 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-card v-if="settings.address" :title='t("settings")'>
+        <n-card :bordered="false" embedded v-if="settings.address" :title='t("settings")'>
             <div class="right">
                 <n-button type="primary" @click="saveData">{{ t('save') }}</n-button>
             </div>

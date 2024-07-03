@@ -16,7 +16,7 @@ const { t } = useI18n({
 </script>
 
 <template>
-    <n-alert v-if="openSettings.adminContact" :show-icon="false">
+    <n-alert v-if="openSettings.adminContact" :show-icon="false" :bordered="false">
         <span>{{ t('adminContact', { msg: openSettings.adminContact }) }}</span>
     </n-alert>
 </template>

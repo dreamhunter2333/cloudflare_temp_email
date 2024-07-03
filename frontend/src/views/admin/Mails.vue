@@ -48,6 +48,10 @@ const fetchMailData = async (limit, offset) => {
     );
 }
 
+const deleteMail = async (curMailId) => {
+    await api.fetch(`/admin/mails/${curMailId}`, { method: 'DELETE' });
+};
+
 onMounted(async () => {
     if (!adminAuth.value) {
         showAdminAuth.value = true;
@@ -66,6 +70,7 @@ onMounted(async () => {
             </n-button>
         </n-input-group>
         <div style="margin-top: 10px;"></div>
-        <MailBox :key="mailBoxKey" :enableUserDeleteEmail="false" :fetchMailData="fetchMailData" />
+        <MailBox :key="mailBoxKey" :enableUserDeleteEmail="true" :fetchMailData="fetchMailData"
+            :deleteMail="deleteMail" />
     </div>
 </template>

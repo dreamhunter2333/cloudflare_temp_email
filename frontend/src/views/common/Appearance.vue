@@ -40,7 +40,7 @@ const { t } = useI18n({
 
 <template>
     <div class="center">
-        <n-card>
+        <n-card :bordered="false" embedded>
             <n-form-item-row v-if="!isMobile" :label="t('mailboxSplitSize')">
                 <n-slider v-model:value="mailboxSplitSize" :min="0.25" :max="0.75" :step="0.01" :marks="{
                     0.25: '0.25',

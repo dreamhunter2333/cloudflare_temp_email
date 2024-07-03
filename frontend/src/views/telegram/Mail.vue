@@ -41,7 +41,7 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-card v-if="curMail.message" style="max-width: 800px; overflow: auto;">
+        <n-card :bordered="false" embedded v-if="curMail.message" style="max-width: 800px; overflow: auto;">
             <n-tag type="info">
                 ID: {{ curMail.id }}
             </n-tag>

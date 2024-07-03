@@ -58,7 +58,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <n-card>
+    <n-card :bordered="false" embedded>
         <n-row>
             <n-col :span="6">
                 <n-statistic :label="t('userCount')" :value="statistics.userCount">

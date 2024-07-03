@@ -142,9 +142,9 @@ onMounted(async () => {
 
 <template>
     <div class="center" v-if="settings.address">
-        <n-card>
+        <n-card :bordered="false" embedded>
             <div v-if="!settings.send_balance || settings.send_balance <= 0">
-                <n-alert type="warning" :show-icon="false">
+                <n-alert type="warning" :show-icon="false" :bordered="false">
                     {{ t('requestAccessTip') }}
                     <n-button type="primary" tertiary @click="requestAccess" size="small">{{ t('requestAccess')
                         }}</n-button>
@@ -153,7 +153,7 @@ onMounted(async () => {
                 <AdminContact />
             </div>
             <div v-else>
-                <n-alert type="info" :show-icon="false">
+                <n-alert type="info" :show-icon="false" :bordered="false">
                     {{ t('send_balance') }}: {{ settings.send_balance }}
                 </n-alert>
                 <div class="right">
@@ -187,7 +187,7 @@ onMounted(async () => {
                             </n-button>
                         </n-form-item>
                         <n-form-item :label="t('content')" label-placement="top">
-                            <n-card v-if="isPreview">
+                            <n-card :bordered="false" embedded v-if="isPreview">
                                 <div v-html="sendMailModel.content" />
                             </n-card>
                             <div v-else-if="sendMailModel.contentType == 'rich'" style="border: 1px solid #ccc">

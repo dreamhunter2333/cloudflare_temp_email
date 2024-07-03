@@ -112,8 +112,8 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-card style="max-width: 800px; overflow: auto;">
-            <n-card>
+        <n-card :bordered="false" embedded style="max-width: 800px; overflow: auto;">
+            <n-card :bordered="false" embedded>
                 <n-form-item-row :label="t('enableTelegramAllowList')">
                     <n-input-group>
                         <n-checkbox v-model:checked="settings.enableAllowList" style="width: 20%;">

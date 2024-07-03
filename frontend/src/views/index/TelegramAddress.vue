@@ -148,7 +148,7 @@ onMounted(async () => {
     <div>
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
-                <n-data-table :columns="columns" :data="data" :bordered="false" />
+                <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
             </n-tab-pane>
             <n-tab-pane name="bind" :tab="t('bind')">
                 <Login :newAddressPath="newAddressPath" :bindUserAddress="bindAddress" />

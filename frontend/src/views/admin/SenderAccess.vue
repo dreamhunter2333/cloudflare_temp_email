@@ -17,6 +17,8 @@ const { t } = useI18n({
       enable: 'Enable',
       disable: 'Disable',
       modify: 'Modify',
+      delete: 'Delete',
+      deleteTip: 'Are you sure to delete this?',
       created_at: 'Created At',
       action: 'Action',
       itemCount: 'itemCount',
@@ -32,6 +34,8 @@ const { t } = useI18n({
       enable: '启用',
       disable: '禁用',
       modify: '修改',
+      delete: '删除',
+      deleteTip: '确定删除吗？',
       created_at: '创建时间',
       action: '操作',
       itemCount: '总数',
@@ -134,7 +138,25 @@ const columns = [
             }
           },
           { default: () => t('modify') }
-        )
+        ),
+        h(NPopconfirm,
+          {
+            onPositiveClick: async () => {
+              await api.fetch(`/admin/address_sender/${row.id}`, { method: 'DELETE' });
+              await fetchData();
+            }
+          },
+          {
+            trigger: () => h(NButton,
+              {
+                tertiary: true,
+                type: "error",
+              },
+              { default: () => t('delete') }
+            ),
+            default: () => t('deleteTip')
+          }
+        ),
       ])
     }
   }
@@ -183,7 +205,7 @@ onMounted(async () => {
         </template>
       </n-pagination>
     </div>
-    <n-data-table :columns="columns" :data="data" :bordered="false" />
+    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
   </div>
 </template>
 

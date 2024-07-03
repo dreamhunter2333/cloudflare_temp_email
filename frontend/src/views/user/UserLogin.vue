@@ -228,7 +228,7 @@ onMounted(async () => {
                     {{ t('resetPassword') }}
                 </n-button>
             </n-form>
-            <n-alert v-else :show-icon="false">
+            <n-alert v-else :show-icon="false" :bordered="false">
                 <span>
                     {{ t('cannotForgotPassword') }}
                 </span>

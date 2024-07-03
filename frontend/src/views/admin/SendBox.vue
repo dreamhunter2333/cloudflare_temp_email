@@ -26,6 +26,10 @@ const fetchData = async (limit, offset) => {
         + (adminSendBoxTabAddress.value ? `&address=${adminSendBoxTabAddress.value}` : '')
     );
 }
+
+const deleteSenboxMail = async (curMailId) => {
+    await api.fetch(`/admin/sendbox/${curMailId}`, { method: 'DELETE' });
+};
 </script>
 
 <template>
@@ -36,7 +40,8 @@ const fetchData = async (limit, offset) => {
                 {{ t('query') }}
             </n-button>
         </n-input-group>
-        <SendBox style="margin-top: 10px;" :fetchMailData="fetchData" :showEMailFrom="true" />
+        <SendBox style="margin-top: 10px;" :enableUserDeleteEmail="true" :deleteMail="deleteSenboxMail"
+            :fetchMailData="fetchData" :showEMailFrom="true" />
     </div>
 </template>
 

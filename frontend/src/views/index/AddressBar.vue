@@ -84,11 +84,11 @@ onMounted(async () => {
 
 <template>
     <div>
-        <n-card v-if="!settings.fetched">
+        <n-card :bordered="false" embedded v-if="!settings.fetched">
             <n-skeleton style="height: 50vh" />
         </n-card>
         <div v-else-if="settings.address">
-            <n-alert type="info" :show-icon="false">
+            <n-alert type="info" :show-icon="false" :bordered="false">
                 <span>
                     <b>{{ addressLabel }}</b>
                     <n-button v-if="isTelegram" style="margin-left: 10px" @click="showTelegramChangeAddress = true"
@@ -113,8 +113,8 @@ onMounted(async () => {
             <TelegramAddress />
         </div>
         <div v-else class="center">
-            <n-card style="max-width: 600px;">
-                <n-alert v-if="jwt" type="warning" :show-icon="false" closable>
+            <n-card :bordered="false" embedded style="max-width: 600px;">
+                <n-alert v-if="jwt" type="warning" :show-icon="false" :bordered="false" closable>
                     <span>{{ t('fetchAddressError') }}</span>
                 </n-alert>
                 <Login />
@@ -140,7 +140,7 @@ onMounted(async () => {
             <span>
                 <p>{{ t("addressCredentialTip") }}</p>
             </span>
-            <n-card>
+            <n-card :bordered="false" embedded>
                 <b>{{ jwt }}</b>
             </n-card>
         </n-modal>

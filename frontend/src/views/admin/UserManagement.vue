@@ -276,7 +276,7 @@ onMounted(async () => {
                 </template>
             </n-pagination>
         </div>
-        <n-data-table :columns="columns" :data="data" :bordered="false" />
+        <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
     </div>
 </template>
 

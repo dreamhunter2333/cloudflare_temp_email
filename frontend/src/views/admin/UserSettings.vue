@@ -82,7 +82,7 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-card style="max-width: 600px;">
+        <n-card :bordered="false" embedded style="max-width: 600px;">
             <n-form :model="userSettings">
                 <n-form-item-row :label="t('enableUserRegister')">
                     <n-checkbox v-model:checked="userSettings.enable" />

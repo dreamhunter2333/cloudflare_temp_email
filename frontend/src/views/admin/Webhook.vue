@@ -62,7 +62,7 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-card style="max-width: 800px; overflow: auto;">
+        <n-card :bordered="false" embedded style="max-width: 800px; overflow: auto;">
             <n-form-item-row :label="t('webhookAllowList')">
                 <n-select v-model:value="webhookSettings.allowList" filterable multiple tag
                     :placeholder="t('webhookAllowList')" />

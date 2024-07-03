@@ -59,7 +59,7 @@ const deleteAccount = async () => {
 
 <template>
     <div class="center" v-if="settings.address">
-        <n-card>
+        <n-card :bordered="false" embedded>
             <Appearance />
             <n-button @click="showAddressCredential = true" type="primary" secondary block strong>
                 {{ t('showAddressCredential') }}

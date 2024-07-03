@@ -4,7 +4,7 @@ import { createMimeMessage } from 'mimetext';
 import { Resend } from 'resend';
 
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue } from '../utils';
+import { getJsonSetting, getDomains, getIntValue, getBooleanValue } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery } from '../common'
 import { HonoCustomType } from '../types';
@@ -89,64 +89,6 @@ const sendMailByResend = async (
     console.log(`Resend success: ${JSON.stringify(data)}`);
 }
 
-const sendMailByMailChannels = async (
-    c: Context<HonoCustomType>, address: string,
-    reqJson: {
-        from_name: string, to_mail: string, to_name: string,
-        subject: string, content: string, is_html: boolean
-    }
-): Promise<void> => {
-    /* eslint-disable prefer-const */
-    let {
-        from_name, to_mail, to_name,
-        subject, content, is_html
-    } = reqJson;
-    /* eslint-enable prefer-const */
-    from_name = from_name || address;
-    to_name = to_name || to_mail;
-    let dmikBody = {}
-    if (c.env.DKIM_SELECTOR && c.env.DKIM_PRIVATE_KEY && address.includes("@")) {
-        dmikBody = {
-            "dkim_domain": address.split("@")[1],
-            "dkim_selector": c.env.DKIM_SELECTOR,
-            "dkim_private_key": c.env.DKIM_PRIVATE_KEY,
-        }
-    }
-    const body = {
-        "personalizations": [
-            {
-                "to": [{
-                    "email": to_mail,
-                    "name": to_name,
-                }],
-                ...dmikBody,
-            }
-        ],
-        "from": {
-            "email": address,
-            "name": from_name,
-        },
-        "subject": subject,
-        "content": [{
-            "type": is_html ? "text/html" : "text/plain",
-            "value": content,
-        }],
-    };
-    const send_request = new Request("https://api.mailchannels.net/tx/v1/send", {
-        "method": "POST",
-        "headers": {
-            "content-type": "application/json",
-        },
-        "body": JSON.stringify(body),
-    });
-    const resp = await fetch(send_request);
-    const respText = await resp.text();
-    console.log(resp.status + " " + resp.statusText + ": " + respText);
-    if (resp.status >= 300) {
-        throw new Error(`Mailchannels error: ${resp.status} ${respText}`);
-    }
-}
-
 export const sendMail = async (
     c: Context<HonoCustomType>, address: string,
     reqJson: {
@@ -208,9 +150,8 @@ export const sendMail = async (
     else if (resendEnabled) {
         await sendMailByResend(c, address, reqJson);
     }
-    // send by mailchannels
     else {
-        await sendMailByMailChannels(c, address, reqJson);
+        throw new Error("Please enable resend or verified address list")
     }
     // update balance
     if (!sendByVerifiedAddressList) {
@@ -291,4 +232,18 @@ api.get('/api/sendbox', async (c) => {
     const { address } = c.get("jwtPayload")
     const { limit, offset } = c.req.query();
     return getSendbox(c, address, limit, offset);
+})
+
+api.delete('/api/sendbox/:id', async (c) => {
+    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
+        return c.text("User delete email is disabled", 403)
+    }
+    const { address } = c.get("jwtPayload")
+    const { id } = c.req.param();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE address = ? and id = ? `
+    ).bind(address, id).run();
+    return c.json({
+        success: success
+    })
 })

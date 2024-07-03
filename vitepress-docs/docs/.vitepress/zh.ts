@@ -100,7 +100,6 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: '命令行部署准备', link: 'cli/pre-requisite' },
                 { text: 'D1 数据库', link: 'cli/d1' },
-                { text: '配置 DKIM', link: 'dkim' },
                 { text: 'Cloudflare workers 后端', link: 'cli/worker' },
                 { text: '配置邮件转发', link: 'email-routing.md' },
                 { text: 'Cloudflare Pages 前端', link: 'cli/pages' },
@@ -112,7 +111,6 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             collapsed: true,
             items: [
                 { text: 'D1 数据库', link: 'ui/d1' },
-                { text: '配置 DKIM', link: 'dkim' },
                 { text: 'Cloudflare workers 后端', link: 'ui/worker' },
                 { text: '配置邮件转发', link: 'email-routing.md' },
                 { text: 'Cloudflare Pages 前端', link: 'ui/pages' },

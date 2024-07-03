@@ -144,12 +144,12 @@ const columns = [
 
 <template>
     <div>
-        <n-alert type="warning" :show-icon="false">
+        <n-alert type="warning" :show-icon="false" :bordered="false">
             <span>{{ t('tip') }}</span>
         </n-alert>
         <n-tabs type="segment" v-model:value="tabValue">
             <n-tab-pane name="address" :tab="t('address')">
-                <n-data-table :columns="columns" :data="data" :bordered="false" />
+                <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
             </n-tab-pane>
             <n-tab-pane name="bind" :tab="t('bind')">
                 <Login :bindUserAddress="bindAddress" />

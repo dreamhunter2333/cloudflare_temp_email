@@ -68,7 +68,7 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-card style="max-width: 600px;">
+        <n-card :bordered="false" embedded style="max-width: 600px;">
             <n-form-item-row :label="t('address_block_list')">
                 <n-select v-model:value="addressBlockList" filterable multiple tag
                     :placeholder="t('address_block_list_placeholder')" />
