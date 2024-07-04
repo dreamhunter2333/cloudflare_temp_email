@@ -30,7 +30,7 @@ const props = defineProps({
   },
 })
 
-const { isDark, mailboxSplitSize } = useGlobalState()
+const { isDark, mailboxSplitSize, loading } = useGlobalState()
 const data = ref([])
 
 const count = ref(0)
