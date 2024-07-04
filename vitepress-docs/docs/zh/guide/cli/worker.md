@@ -73,9 +73,6 @@ ENABLE_AUTO_REPLY = false
 # Turnstile 人机验证配置
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
-# dkim config
-# DKIM_SELECTOR = "mailchannels" # 参考 DKIM 部分 mailchannels._domainkey 的 mailchannels
-# DKIM_PRIVATE_KEY = "" # 参考 DKIM 部分 priv_key.txt 的内容
 # telegram bot 最多绑定邮箱数量
 # TG_MAX_ACCOUNTS = 5
 # 全局转发地址列表，如果不配置则不启用，启用后所有邮件都会转发到列表中的地址

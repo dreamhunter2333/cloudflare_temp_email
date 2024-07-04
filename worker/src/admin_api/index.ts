@@ -127,6 +127,16 @@ api.get('/admin/mails_unknow', async (c) => {
     );
 });
 
+api.delete('/admin/mails/:id', async (c) => {
+    const { id } = c.req.param();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM raw_mails WHERE id = ? `
+    ).bind(id).run();
+    return c.json({
+        success: success
+    })
+})
+
 api.get('/admin/address_sender', async (c) => {
     const { address, limit, offset } = c.req.query();
     if (address) {
@@ -166,6 +176,16 @@ api.post('/admin/address_sender', async (c) => {
     })
 })
 
+api.delete('/admin/address_sender/:id', async (c) => {
+    const { id } = c.req.param();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM address_sender WHERE id = ? `
+    ).bind(id).run();
+    return c.json({
+        success: success
+    })
+})
+
 api.get('/admin/sendbox', async (c) => {
     const { address, limit, offset } = c.req.query();
     if (address) {
@@ -180,6 +200,16 @@ api.get('/admin/sendbox', async (c) => {
         `SELECT count(*) as count FROM sendbox `,
         [], limit, offset
     );
+})
+
+api.delete('/admin/sendbox/:id', async (c) => {
+    const { id } = c.req.param();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE id = ? `
+    ).bind(id).run();
+    return c.json({
+        success: success
+    })
 })
 
 api.get('/admin/statistics', async (c) => {

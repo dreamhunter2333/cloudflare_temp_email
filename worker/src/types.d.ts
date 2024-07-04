@@ -33,10 +33,6 @@ export type Bindings = {
     S3_BUCKET: string | undefined
     S3_URL_EXPIRES: number | undefined
 
-    // dkim
-    DKIM_SELECTOR: string | undefined
-    DKIM_PRIVATE_KEY: string | undefined
-
     // cf turnstile
     CF_TURNSTILE_SITE_KEY: string | undefined
     CF_TURNSTILE_SECRET_KEY: string | undefined

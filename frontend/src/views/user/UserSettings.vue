@@ -43,8 +43,8 @@ onMounted(async () => {
 
 <template>
     <div class="center" v-if="userSettings.user_email">
-        <n-card>
-            <n-alert :show-icon="false">
+        <n-card :bordered="false" embedded>
+            <n-alert :show-icon="false" :bordered="false">
                 <span>
                     {{ t('passordTip') }}
                 </span>

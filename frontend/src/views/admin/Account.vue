@@ -268,7 +268,7 @@ onMounted(async () => {
             <span>
                 <p>{{ t("addressCredentialTip") }}</p>
             </span>
-            <n-card>
+            <n-card :bordered="false" embedded>
                 <b>{{ curEmailCredential }}</b>
             </n-card>
             <template #action>
@@ -296,7 +296,7 @@ onMounted(async () => {
                 </template>
             </n-pagination>
         </div>
-        <n-data-table :columns="columns" :data="data" :bordered="false" />
+        <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
     </div>
 </template>
 

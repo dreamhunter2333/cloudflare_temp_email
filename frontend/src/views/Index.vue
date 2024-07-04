@@ -51,6 +51,10 @@ const deleteMail = async (curMailId) => {
   await api.fetch(`/api/mails/${curMailId}`, { method: 'DELETE' });
 };
 
+const deleteSenboxMail = async (curMailId) => {
+  await api.fetch(`/api/sendbox/${curMailId}`, { method: 'DELETE' });
+};
+
 const fetchSenboxData = async (limit, offset) => {
   return await api.fetch(`/api/sendbox?limit=${limit}&offset=${offset}`);
 };
@@ -86,7 +90,8 @@ const saveToS3 = async (mail_id, filename, blob) => {
           :deleteMail="deleteMail" />
       </n-tab-pane>
       <n-tab-pane name="sendbox" :tab="t('sendbox')">
-        <SendBox :fetchMailData="fetchSenboxData" />
+        <SendBox :fetchMailData="fetchSenboxData" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
+          :deleteMail="deleteSenboxMail" />
       </n-tab-pane>
       <n-tab-pane name="sendmail" :tab="t('sendmail')">
         <SendMail />

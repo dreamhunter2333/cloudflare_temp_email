@@ -29,7 +29,7 @@ onMounted(async () => {
 
 <template>
     <div class="center" v-if="userSettings.user_email">
-        <n-card style="max-width: 600px;">
+        <n-card :bordered="false" embedded style="max-width: 600px;">
             <Login />
         </n-card>
     </div>

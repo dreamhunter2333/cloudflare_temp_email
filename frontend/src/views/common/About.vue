@@ -4,7 +4,7 @@ import { GithubAlt, Discord, Telegram } from '@vicons/fa'
 
 <template>
     <div class="center">
-        <n-card>
+        <n-card :bordered="false" embedded>
             <n-button tag="a" target="_blank" href="https://github.com/dreamhunter2333/cloudflare_temp_email">
                 <template #icon>
                     <n-icon :component="GithubAlt" />

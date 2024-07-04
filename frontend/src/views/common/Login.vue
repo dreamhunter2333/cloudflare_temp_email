@@ -150,7 +150,7 @@ onMounted(async () => {
 
 <template>
     <div>
-        <n-alert v-if="userSettings.user_email" :show-icon="false" closable>
+        <n-alert v-if="userSettings.user_email" :show-icon="false" :bordered="false" closable>
             <span>{{ t('bindUserInfo') }}</span>
         </n-alert>
         <n-tabs v-model:value="tabValue" size="large" justify-content="space-evenly">
@@ -206,7 +206,7 @@ onMounted(async () => {
                 </n-spin>
             </n-tab-pane>
             <n-tab-pane name="help" :tab="t('help')">
-                <n-alert :show-icon="false">
+                <n-alert :show-icon="false" :bordered="false">
                     <span>{{ t('pleaseGetNewEmail') }}</span>
                 </n-alert>
                 <AdminContact />

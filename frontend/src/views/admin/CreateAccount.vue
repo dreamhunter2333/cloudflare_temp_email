@@ -71,11 +71,11 @@ onMounted(async () => {
     <div class="center">
         <n-modal v-model:show="showReultModal" preset="dialog" :title="t('addressCredential')">
             <p>{{ t('addressCredential') }}</p>
-            <n-card>
+            <n-card :bordered="false" embedded>
                 <b>{{ result }}</b>
             </n-card>
         </n-modal>
-        <n-card style="max-width: 600px;">
+        <n-card :bordered="false" embedded style="max-width: 600px;">
             <n-form-item-row v-if="openSettings.prefix" :label="t('enablePrefix')">
                 <n-checkbox v-model:checked="enablePrefix" />
             </n-form-item-row>

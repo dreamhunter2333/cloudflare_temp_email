@@ -89,7 +89,7 @@ onMounted(async () => {
 
 <template>
     <div class="center" v-if="settings.address">
-        <n-card v-if="enableWebhook" style="max-width: 800px; overflow: auto;">
+        <n-card :bordered="false" embedded v-if="enableWebhook" style="max-width: 800px; overflow: auto;">
             <n-form-item-row label="URL">
                 <n-input v-model:value="webhookSettings.url" />
             </n-form-item-row>

@@ -91,8 +91,8 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-card>
-            <n-alert :show-icon="false">
+        <n-card :bordered="false" embedded>
+            <n-alert :show-icon="false" :bordered="false">
                 <span>{{ t('cronTip') }}</span>
             </n-alert>
             <n-form :model="cleanupModel">
