@@ -1,9 +1,14 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main branch
+## v0.5.3
 
 - 修复 smtp imap proxy sever 的一些 bug
+- 完善用户/admin 删除收件箱/发件箱的功能
+- admin 可以删除 发件权限记录
+- 添加中文邮件别名配置 `DOMAIN_LABELS` [文档](https://temp-mail-docs.awsl.uk/zh/guide/cli/worker.html)
+- 移除 `mail channels` 相关代码
+- github actions 增加 `FRONTEND_BRANCH` 变量用于指定部署的分支 (#324)
 
 ## v0.5.1
 
