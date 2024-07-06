@@ -14,14 +14,14 @@
     "@cloudflare/workers-types": "^4.20240620.0",
     "@eslint/js": "8.56.0",
     "eslint": "8.56.0",
-    "globals": "^15.6.0",
-    "typescript-eslint": "^7.14.1",
-    "wrangler": "^3.62.0"
+    "globals": "^15.8.0",
+    "typescript-eslint": "^7.15.0",
+    "wrangler": "^3.63.1"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.600.0",
-    "@aws-sdk/s3-request-presigner": "^3.600.0",
-    "hono": "^4.4.9",
+    "@aws-sdk/client-s3": "^3.609.0",
+    "@aws-sdk/s3-request-presigner": "^3.609.0",
+    "hono": "^4.4.12",
     "mimetext": "^3.0.24",
     "postal-mime": "^2.2.5",
     "resend": "^3.4.0",

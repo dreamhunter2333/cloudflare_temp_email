@@ -17,7 +17,7 @@
     "deploy:actions": "npm run build && wrangler pages deploy ./dist"
   },
   "dependencies": {
-    "@unhead/vue": "^1.9.14",
+    "@unhead/vue": "^1.9.15",
     "@vicons/material": "^0.12.0",
     "@vueuse/core": "^10.11.0",
     "@wangeditor/editor": "^5.1.23",
@@ -38,11 +38,11 @@
     "@vitejs/plugin-vue": "^5.0.5",
     "unplugin-auto-import": "^0.17.6",
     "unplugin-vue-components": "^0.27.2",
-    "vite": "^5.3.2",
+    "vite": "^5.3.3",
     "vite-plugin-pwa": "^0.19.8",
     "vite-plugin-top-level-await": "^1.4.1",
     "vite-plugin-wasm": "^3.3.0",
     "workbox-window": "^7.1.0",
-    "wrangler": "^3.62.0"
+    "wrangler": "^3.63.1"
   }
 }
