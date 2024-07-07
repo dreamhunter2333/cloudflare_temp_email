@@ -1,7 +1,7 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main branch
+## v0.5.4
 
 - 点击 logo 5 次进入 admin 页面
 - 修复 401 时无法跳转登录页面(admin 和 网站认证)
