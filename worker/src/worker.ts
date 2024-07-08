@@ -3,9 +3,6 @@ import { cors } from 'hono/cors';
 import { jwt } from 'hono/jwt'
 import { Jwt } from 'hono/utils/jwt'
 
-// @ts-ignore
-import { api as apiV1 } from './deprecated';
-
 import { api as commonApi } from './commom_api';
 import { api as mailsApi } from './mails_api'
 import { api as userApi } from './user_api';
@@ -121,7 +118,6 @@ app.route('/', commonApi)
 app.route('/', mailsApi)
 app.route('/', userApi)
 app.route('/', adminApi)
-app.route('/', apiV1)
 app.route('/', apiSendMail)
 app.route('/', telegramApi)
 

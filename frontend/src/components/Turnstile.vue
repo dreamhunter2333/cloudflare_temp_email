@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, defineModel, onMounted } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
 const { openSettings, isDark } = useGlobalState()

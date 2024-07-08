@@ -1,13 +1,3 @@
-CREATE TABLE IF NOT EXISTS mails (
-    id INTEGER PRIMARY KEY,
-    message_id TEXT,
-    source TEXT,
-    address TEXT,
-    subject TEXT,
-    message TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE INDEX IF NOT EXISTS idx_mails_address ON mails(address);
 
 CREATE TABLE IF NOT EXISTS raw_mails (
@@ -42,15 +32,6 @@ CREATE TABLE IF NOT EXISTS auto_reply_mails (
 );
 
 CREATE INDEX IF NOT EXISTS idx_auto_reply_mails_address ON auto_reply_mails(address);
-
-CREATE TABLE IF NOT EXISTS attachments (
-    id INTEGER PRIMARY KEY,
-    source TEXT,
-    address TEXT,
-    message_id TEXT,
-    data TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
 
 CREATE TABLE IF NOT EXISTS address_sender (
     id INTEGER PRIMARY KEY,
