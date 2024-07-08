@@ -33,7 +33,7 @@ export default defineConfig({
     socialLinks: [
       {
         icon: 'discord',
-        link: 'https://t.me/cloudflare_temp_email'
+        link: 'https://discord.gg/dQEwTWhA6Q'
       },
       {
         icon: {
