@@ -219,16 +219,24 @@ api.get('/admin/statistics', async (c) => {
     const { count: addressCount } = await c.env.DB.prepare(
         `SELECT count(*) as count FROM address`
     ).first<{ count: number }>() || {};
-    const { count: activeUserCount7days } = await c.env.DB.prepare(
+    const { count: activeAddressCount7days } = await c.env.DB.prepare(
         `SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
+    ).first<{ count: number }>() || {};
+    const { count: activeAddressCount30days } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM address where updated_at > datetime('now', '-30 day')`
     ).first<{ count: number }>() || {};
     const { count: sendMailCount } = await c.env.DB.prepare(
         `SELECT count(*) as count FROM sendbox`
     ).first<{ count: number }>() || {};
+    const { count: userCount } = await c.env.DB.prepare(
+        `SELECT count(*) as count FROM users`
+    ).first<{ count: number }>() || {};
     return c.json({
         mailCount: mailCount,
-        userCount: addressCount,
-        activeUserCount7days: activeUserCount7days,
+        addressCount: addressCount,
+        activeAddressCount7days: activeAddressCount7days,
+        activeAddressCount30days: activeAddressCount30days,
+        userCount: userCount,
         sendMailCount: sendMailCount
     })
 });

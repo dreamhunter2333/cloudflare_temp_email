@@ -1,6 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## main branch
+
+- 移除 `apiV1` 相关代码和相关的数据库表
+- 更新 `admin/statistics` api, 添加用户统计信息
+
 ## v0.5.4
 
 - 点击 logo 5 次进入 admin 页面
