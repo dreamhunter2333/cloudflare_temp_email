@@ -1,5 +1,3 @@
-CREATE INDEX IF NOT EXISTS idx_mails_address ON mails(address);
-
 CREATE TABLE IF NOT EXISTS raw_mails (
     id INTEGER PRIMARY KEY,
     message_id TEXT,
