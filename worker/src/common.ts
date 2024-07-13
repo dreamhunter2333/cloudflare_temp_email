@@ -12,7 +12,7 @@ export const newAddress = async (
     checkLengthByConfig: boolean = true
 ): Promise<{ address: string, jwt: string }> => {
     // remove special characters
-    name = name.replace(/[^a-zA-Z0-9.]/g, '')
+    name = name.replace(/[^a-z0-9]/g, '')
     // name min length min 1
     const minAddressLength = Math.max(
         checkLengthByConfig ? getIntValue(c.env.MIN_ADDRESS_LEN, 1) : 1,
