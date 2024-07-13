@@ -18,7 +18,7 @@ const COMMANDS = [
     },
     {
         command: "new",
-        description: "新建邮箱地址, 如果要自定义邮箱地址, 请输入 /new <name>@<domain>, name [a-zA-Z0-9.] 有效"
+        description: "新建邮箱地址, 如果要自定义邮箱地址, 请输入 /new <name>@<domain>, name [a-z0-9] 有效"
     },
     {
         command: "address",
