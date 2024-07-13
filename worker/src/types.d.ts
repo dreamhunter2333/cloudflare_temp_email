@@ -1,3 +1,9 @@
+export type UserRole = {
+    domains: string[] | undefined | null,
+    role: string,
+    prefix: string | undefined | null
+}
+
 export type Bindings = {
     // bindings
     DB: D1Database
@@ -10,7 +16,9 @@ export type Bindings = {
     PREFIX: string | undefined
     MIN_ADDRESS_LEN: string | number | undefined
     MAX_ADDRESS_LEN: string | number | undefined
+    DEFAULT_DOMAINS: string | string[] | undefined
     DOMAINS: string | string[] | undefined
+    USER_ROLES: string | UserRole[] | undefined
     DOMAIN_LABELS: string | string[] | undefined
     PASSWORDS: string | string[] | undefined
     ADMIN_PASSWORDS: string | string[] | undefined

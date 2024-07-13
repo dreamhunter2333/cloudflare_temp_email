@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { NewLabelOutlined, EmailOutlined } from '@vicons/material'
@@ -140,11 +140,39 @@ const newEmail = async () => {
     }
 };
 
+const addressPrefix = computed(() => {
+    // if user has role, return role prefix
+    if (userSettings.value?.user_role) {
+        return userSettings.value.user_role.prefix || "";
+    }
+    // if user has no role, return default prefix
+    return openSettings.value.prefix;
+});
+
+const domainsOptions = computed(() => {
+    // if user has role, return role domains
+    if (userSettings.value.user_role) {
+        const allDomains = userSettings.value.user_role.domains;
+        if (!allDomains) return openSettings.value.domains;
+        return openSettings.value.domains.filter((domain) => {
+            return allDomains.includes(domain.value);
+        });
+    }
+    // if user has no role, return default domains
+    if (!openSettings.value.defaultDomains) {
+        return openSettings.value.domains;
+    }
+    // if user has no role and no default domains, return all domains
+    return openSettings.value.domains.filter((domain) => {
+        return openSettings.value.defaultDomains.includes(domain.value);
+    });
+});
+
 onMounted(async () => {
     if (!openSettings.value.domains || openSettings.value.domains.length === 0) {
         await api.getOpenSettings();
     }
-    emailDomain.value = openSettings.value.domains ? openSettings.value.domains[0]?.value : "";
+    emailDomain.value = domainsOptions.value ? domainsOptions.value[0]?.value : "";
 });
 </script>
 
@@ -186,14 +214,14 @@ onMounted(async () => {
                             {{ t('generateName') }}
                         </n-button>
                         <n-input-group>
-                            <n-input-group-label v-if="openSettings.prefix">
-                                {{ openSettings.prefix }}
+                            <n-input-group-label v-if="addressPrefix">
+                                {{ addressPrefix }}
                             </n-input-group-label>
                             <n-input v-model:value="emailName" show-count :minlength="openSettings.minAddressLen"
                                 :maxlength="openSettings.maxAddressLen" />
                             <n-input-group-label>@</n-input-group-label>
                             <n-select v-model:value="emailDomain" :consistent-menu-width="false"
-                                :options="openSettings.domains" />
+                                :options="domainsOptions" />
                         </n-input-group>
                         <Turnstile v-model:value="cfToken" />
                         <n-button type="primary" block secondary strong @click="newEmail" :loading="loading">

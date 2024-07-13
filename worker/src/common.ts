@@ -1,15 +1,17 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue } from './utils';
-import { HonoCustomType } from './types';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains } from './utils';
+import { HonoCustomType, UserRole } from './types';
 import { unbindTelegramByAddress } from './telegram_api/common';
 
 export const newAddress = async (
     c: Context<HonoCustomType>,
     name: string, domain: string | undefined | null,
     enablePrefix: boolean,
-    checkLengthByConfig: boolean = true
+    checkLengthByConfig: boolean = true,
+    addressPrefix: string | undefined | null = null,
+    checkAllowDomains: boolean = true
 ): Promise<{ address: string, jwt: string }> => {
     // remove special characters
     name = name.replace(/[^a-z0-9]/g, '')
@@ -30,14 +32,16 @@ export const newAddress = async (
     if (name.length > maxAddressLength) {
         throw new Error(`Name too long (max ${maxAddressLength})`);
     }
-    // create address
-    if (enablePrefix) {
+    // create address with prefix
+    if (typeof addressPrefix === "string") {
+        name = addressPrefix + name;
+    } else if (enablePrefix) {
         name = getStringValue(c.env.PREFIX) + name;
     }
-    // check domain, generate random domain
-    const domains = getDomains(c);
-    if (!domain || !domains.includes(domain)) {
-        domain = domains[Math.floor(Math.random() * domains.length)];
+    // check domain
+    const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
+    if (!domain || !allowDomains.includes(domain)) {
+        throw new Error("Invalid domain")
     }
     // create address
     name = name + "@" + domain;
@@ -216,4 +220,35 @@ export const commonParseMail = async (raw_mail: string | undefined | null): Prom
         console.error("Failed use PostalMime to parse email", e);
     }
     return undefined;
+}
+
+export const commonGetUserRole = async (
+    c: Context<HonoCustomType>, user_id: number
+): Promise<UserRole | undefined | null> => {
+    const user_roles = getUserRoles(c);
+    const role_text = await c.env.DB.prepare(
+        `SELECT role_text FROM user_roles where user_id = ?`
+    ).bind(user_id).first<string | undefined | null>("role_text");
+    return role_text ? user_roles.find((r) => r.role === role_text) : null;
+}
+
+export const getAddressPrefix = async (c: Context<HonoCustomType>): Promise<string | undefined> => {
+    const user = c.get("userPayload");
+    if (!user) {
+        return c.env.PREFIX;
+    }
+    const user_role = await commonGetUserRole(c, user.user_id);
+    if (typeof user_role?.prefix === "string") {
+        return user_role.prefix;
+    }
+    return c.env.PREFIX;
+}
+
+export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<string[]> => {
+    const user = c.get("userPayload");
+    if (!user) {
+        return getDefaultDomains(c);
+    }
+    const user_role = await commonGetUserRole(c, user.user_id);
+    return user_role?.domains || getDefaultDomains(c);;
 }

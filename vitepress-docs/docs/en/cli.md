@@ -85,9 +85,15 @@ PREFIX = "tmp" # The mailbox name prefix to be processed
 # ADMIN_PASSWORDS = ["123", "456"]
 # admin contact information. If not configured, it will not be displayed. Any string can be configured.
 # ADMIN_CONTACT = "xx@xx.xxx"
-DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # your domain name
+DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
+DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all your domain name
 # For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
 # DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
+# User roles configuration, if domains is empty will use default_domains, if prefix is null will use default prefix, if prefix is empty string will not use prefix
+# USER_ROLES = [
+#    { domains = ["awsl.uk", "dreamhunter2333.xyz"], role = "vip", prefix = "vip" },
+#    { domains = ["awsl.uk", "dreamhunter2333.xyz"], role = "admin", prefix = "" },
+# ]
 JWT_SECRET = "xxx" # Key used to generate jwt
 BLACK_LIST = "" # Blacklist, used to filter senders, comma separated
 # Allow users to create email addresses

@@ -1,6 +1,7 @@
 import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
-import { HonoCustomType } from "./types";
+import { HonoCustomType, UserRole } from "./types";
+import { User } from "telegraf/types";
 
 export const getJsonSetting = async (
     c: Context<HonoCustomType>, key: string
@@ -97,6 +98,12 @@ export const getStringArray = (
     return value;
 }
 
+export const getDefaultDomains = (c: Context<HonoCustomType>): string[] => {
+    const domains = getStringArray(c.env.DEFAULT_DOMAINS);
+    if (domains && domains.length > 0) return domains;
+    return getDomains(c);
+}
+
 export const getDomains = (c: Context<HonoCustomType>): string[] => {
     if (!c.env.DOMAINS) {
         return [];
@@ -111,6 +118,22 @@ export const getDomains = (c: Context<HonoCustomType>): string[] => {
         }
     }
     return c.env.DOMAINS;
+}
+
+export const getUserRoles = (c: Context<HonoCustomType>): UserRole[] => {
+    if (!c.env.USER_ROLES) {
+        return [];
+    }
+    // check if USER_ROLES is an array, if not use json.parse
+    if (!Array.isArray(c.env.USER_ROLES)) {
+        try {
+            return JSON.parse(c.env.USER_ROLES);
+        } catch (e) {
+            console.error("Failed to parse USER_ROLES", e);
+            return [];
+        }
+    }
+    return c.env.USER_ROLES;
 }
 
 export const getPasswords = (c: Context<HonoCustomType>): string[] => {

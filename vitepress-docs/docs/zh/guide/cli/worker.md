@@ -53,9 +53,16 @@ PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空
 # ADMIN_PASSWORDS = ["123", "456"]
 # admin 联系方式，不配置则不显示，可配置任意字符串
 # ADMIN_CONTACT = "xx@xx.xxx"
+# DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 默认用户可用的域名(未登录或未分配角色的用户)
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名, 支持多个域名
 # 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称
 # DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
+# 用户角色配置, 如果 domains 为空将使用 default_domains
+# 如果 prefix 为 null 将使用默认前缀, 如果 prefix 为空字符串将不使用前缀
+# USER_ROLES = [
+#    { domains = ["awsl.uk", "dreamhunter2333.xyz"], role = "vip", prefix = "vip" },
+#    { domains = ["awsl.uk", "dreamhunter2333.xyz"], role = "admin", prefix = "" },
+# ]
 JWT_SECRET = "xxx" # 用于生成 jwt 的密钥, jwt 用于给用户登录以及鉴权
 BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
 # 是否允许用户创建邮件, 不配置则不允许
