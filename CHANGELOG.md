@@ -9,7 +9,7 @@ DB changes: 增加用户角色表, 需要执行 `db/2024-07-14-patch.sql` 更新
 
 ### Changes
 
-worker 配置文件新增 `DEFAULT_DOMAINS`, `USER_ROLES`, 具体查看文档 [worker配置](https://temp-mail-docs.awsl.uk/zh/guide/cli/worker.html#%E4%BF%AE%E6%94%B9-wrangler-toml-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6)
+worker 配置文件新增 `DEFAULT_DOMAINS`, `USER_ROLES`, `USER_DEFAULT_ROLE`, 具体查看文档 [worker配置](https://temp-mail-docs.awsl.uk/zh/guide/cli/worker.html#%E4%BF%AE%E6%94%B9-wrangler-toml-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6)
 
 - 移除 `apiV1` 相关代码和相关的数据库表
 - 更新 `admin/statistics` api, 添加用户统计信息
