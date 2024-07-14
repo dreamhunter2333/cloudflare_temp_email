@@ -301,7 +301,7 @@ const getRoleDomains = (role) => {
 }
 
 const roleDonotExist = computed(() => {
-    return !userRoles.value.some(r => r.role === curUserRole.value);
+    return curUserRole.value && !userRoles.value.some(r => r.role === curUserRole.value);
 })
 
 watch([page, pageSize], async () => {
