@@ -98,6 +98,7 @@ const fetchUserRoles = async () => {
 
 const fetchData = async () => {
     try {
+        userQuery.value = userQuery.value.trim()
         const { results, count: userCount } = await api.fetch(
             `/admin/users`
             + `?limit=${pageSize.value}`
@@ -362,7 +363,7 @@ onMounted(async () => {
             </template>
         </n-modal>
         <n-input-group>
-            <n-input v-model:value="userQuery" />
+            <n-input v-model:value="userQuery" @keydown.enter="fetchData" />
             <n-button @click="fetchData" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>

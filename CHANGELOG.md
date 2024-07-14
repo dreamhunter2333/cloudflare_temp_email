@@ -15,6 +15,7 @@ worker 配置文件新增 `DEFAULT_DOMAINS`, `USER_ROLES`, 具体查看文档 [w
 - 更新 `admin/statistics` api, 添加用户统计信息
 - 更新地址的规则，只允许小写+数字，对于历史的地址在查询邮件时会进行 `lowercase` 处理
 - 增加用户角色功能，`admin` 可以设置用户角色(目前可配置每个角色域名和前缀)
+- admin 页面搜索优化, 回车自动搜索, 输入内容自动 trim
 
 ## v0.5.4
 

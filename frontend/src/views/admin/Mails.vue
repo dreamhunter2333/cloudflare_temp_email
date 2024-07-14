@@ -29,12 +29,9 @@ const { t } = useI18n({
 const mailBoxKey = ref("")
 const mailKeyword = ref("")
 
-watch([adminMailTabAddress, mailKeyword], () => {
+const queryMail = () => {
     adminMailTabAddress.value = adminMailTabAddress.value.trim();
     mailKeyword.value = mailKeyword.value.trim();
-});
-
-const queryMail = () => {
     mailBoxKey.value = Date.now();
 }
 
@@ -63,8 +60,9 @@ onMounted(async () => {
 <template>
     <div style="margin-top: 10px;">
         <n-input-group>
-            <n-input v-model:value="adminMailTabAddress" :placeholder="t('addressQueryTip')" />
-            <n-input v-model:value="mailKeyword" :placeholder="t('keywordQueryTip')" />
+            <n-input v-model:value="adminMailTabAddress" :placeholder="t('addressQueryTip')"
+                @keydown.enter="queryMail" />
+            <n-input v-model:value="mailKeyword" :placeholder="t('keywordQueryTip')" @keydown.enter="queryMail" />
             <n-button @click="queryMail" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>

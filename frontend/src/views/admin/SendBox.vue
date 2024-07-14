@@ -21,6 +21,7 @@ const { t } = useI18n({
 });
 
 const fetchData = async (limit, offset) => {
+    adminSendBoxTabAddress.value = adminSendBoxTabAddress.value.trim();
     return await api.fetch(
         `/admin/sendbox?limit=${limit}&offset=${offset}`
         + (adminSendBoxTabAddress.value ? `&address=${adminSendBoxTabAddress.value}` : '')
@@ -35,7 +36,7 @@ const deleteSenboxMail = async (curMailId) => {
 <template>
     <div>
         <n-input-group>
-            <n-input v-model:value="adminSendBoxTabAddress" :placeholder="t('queryTip')" />
+            <n-input v-model:value="adminSendBoxTabAddress" :placeholder="t('queryTip')" @keydown.enter="fetchData" />
             <n-button @click="fetchData" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>

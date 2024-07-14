@@ -94,6 +94,7 @@ const deleteEmail = async () => {
 
 const fetchData = async () => {
     try {
+        addressQuery.value = addressQuery.value.trim()
         const { results, count: addressCount } = await api.fetch(
             `/admin/address`
             + `?limit=${pageSize.value}`
@@ -283,7 +284,8 @@ onMounted(async () => {
             </template>
         </n-modal>
         <n-input-group>
-            <n-input v-model:value="addressQuery" clearable :placeholder="t('addressQueryTip')" />
+            <n-input v-model:value="addressQuery" clearable :placeholder="t('addressQueryTip')"
+                @keydown.enter="fetchData" />
             <n-button @click="fetchData" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>
