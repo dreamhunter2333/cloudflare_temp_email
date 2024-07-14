@@ -15,6 +15,8 @@ export const useGlobalState = createGlobalState(
             enableUserDeleteEmail: false,
             enableAutoReply: false,
             enableIndexAbout: false,
+            /** @type {string[]} */
+            defaultDomains: [],
             /** @type {Array<{label: string, value: string}>} */
             domains: [],
             copyright: 'Dream Hunter',
@@ -70,6 +72,8 @@ export const useGlobalState = createGlobalState(
             user_email: '',
             /** @type {number} */
             user_id: 0,
+            /** @type {null | {domains: string[] | undefined | null, role: string, prefix: string | undefined | null}} */
+            user_role: null,
         });
         const telegramApp = ref(window.Telegram?.WebApp || {});
         const isTelegram = ref(!!window.Telegram?.WebApp?.initData);

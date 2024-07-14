@@ -78,3 +78,13 @@ CREATE TABLE IF NOT EXISTS users_address (
 CREATE INDEX IF NOT EXISTS idx_users_address_user_id ON users_address(user_id);
 
 CREATE INDEX IF NOT EXISTS idx_users_address_address_id ON users_address(address_id);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER UNIQUE NOT NULL,
+    role_text TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);

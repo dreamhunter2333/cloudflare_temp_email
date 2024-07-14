@@ -2,8 +2,9 @@ import { Context } from "hono";
 
 import { HonoCustomType } from "../types";
 import { UserSettings } from "../models";
-import { getJsonSetting } from "../utils"
+import { getJsonSetting, getUserRoles } from "../utils"
 import { CONSTANTS } from "../constants";
+import { commonGetUserRole } from "../common";
 
 export default {
     openSettings: async (c: Context<HonoCustomType>) => {
@@ -19,10 +20,14 @@ export default {
         // check if user exists
         const db_user_id = await c.env.DB.prepare(
             `SELECT id FROM users where id = ?`
-        ).bind(user.user_id).first("id");
+        ).bind(user.user_id).first<number | undefined | null>("id");
         if (!db_user_id) {
             return c.text("User not found", 400);
         }
-        return c.json(user);
+        const user_role = await commonGetUserRole(c, db_user_id);
+        return c.json({
+            ...user,
+            user_role: user_role
+        });
     },
 }

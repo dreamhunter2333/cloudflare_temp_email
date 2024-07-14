@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 
 import { CONSTANTS } from '../constants';
-import { getJsonSetting, saveSetting, checkUserPassword, getDomains } from '../utils';
+import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles } from '../utils';
 import { UserSettings, GeoData, UserInfo } from "../models";
 import { handleListQuery } from '../common'
 import { HonoCustomType } from '../types';
@@ -38,18 +38,22 @@ export default {
         const { limit, offset, query } = c.req.query();
         if (query) {
             return await handleListQuery(c,
-                `SELECT u.id, u.user_email, u.created_at, u.updated_at,`
+                `SELECT u.id as id, u.user_email, u.created_at, u.updated_at,`
+                + ` ur.role_text as role_text,`
                 + ` (SELECT COUNT(*) FROM users_address WHERE user_id = u.id) AS address_count`
                 + ` FROM users u`
+                + ` LEFT JOIN user_roles ur ON u.id = ur.user_id`
                 + ` where u.user_email like ?`,
                 `SELECT count(*) as count FROM users where user_email like ?`,
                 [`%${query}%`], limit, offset
             );
         }
         return await handleListQuery(c,
-            `SELECT u.id, u.user_email, u.created_at, u.updated_at,`
+            `SELECT u.id as id, u.user_email, u.created_at, u.updated_at,`
+            + ` ur.role_text as role_text,`
             + ` (SELECT COUNT(*) FROM users_address WHERE user_id = u.id) AS address_count`
-            + ` FROM users u`,
+            + ` FROM users u`
+            + ` LEFT JOIN user_roles ur ON u.id = ur.user_id`,
             `SELECT count(*) as count FROM users`,
             [], limit, offset
         );
@@ -114,4 +118,30 @@ export default {
         }
         return c.json({ success: true });
     },
+    updateUserRoles: async (c: Context<HonoCustomType>) => {
+        const { user_id, role_text } = await c.req.json();
+        if (!user_id) return c.text("Invalid user_id", 400);
+        if (!role_text) {
+            const { success } = await c.env.DB.prepare(
+                `DELETE FROM user_roles WHERE user_id = ?`
+            ).bind(user_id).run();
+            if (!success) {
+                return c.text("Failed to update user roles", 500)
+            }
+            return c.json({ success: true })
+        }
+        const user_roles = getUserRoles(c);
+        if (!user_roles.find((r) => r.role === role_text)) {
+            return c.text("Invalid role_text", 400)
+        }
+        const { success } = await c.env.DB.prepare(
+            `INSERT INTO user_roles (user_id, role_text)`
+            + ` VALUES (?, ?)`
+            + ` ON CONFLICT(user_id) DO UPDATE SET role_text = ?, updated_at = datetime('now')`
+        ).bind(user_id, role_text, role_text).run();
+        if (!success) {
+            return c.text("Failed to update user roles", 500)
+        }
+        return c.json({ success: true })
+    }
 }

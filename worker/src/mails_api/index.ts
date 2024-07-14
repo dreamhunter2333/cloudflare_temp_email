@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 
 import { HonoCustomType } from "../types";
 import { getBooleanValue, getJsonSetting, checkCfTurnstile } from '../utils';
-import { newAddress, handleListQuery, deleteAddressWithData } from '../common'
+import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
@@ -118,7 +118,8 @@ api.post('/api/new_address', async (c) => {
         console.error(error);
     }
     try {
-        const res = await newAddress(c, name, domain, true);
+        const addressPrefix = await getAddressPrefix(c);
+        const res = await newAddress(c, name, domain, true, true, addressPrefix);
         return c.json(res);
     } catch (e) {
         return c.text(`Failed create address: ${(e as Error).message}`, 400)

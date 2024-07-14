@@ -1,14 +1,14 @@
 <script setup>
-import { ref, h, onMounted, watch } from 'vue';
+import { ref, h, onMounted, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n'
-import { NMenu, NButton, NBadge } from 'naive-ui';
+import { NMenu, NButton, NBadge, NTag } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { hashPassword } from '../../utils';
 
-const { loading } = useGlobalState()
+const { loading, openSettings } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
@@ -16,6 +16,7 @@ const { t } = useI18n({
         en: {
             success: 'Success',
             user_email: 'User Email',
+            role: 'Role',
             address_count: 'Address Count',
             created_at: 'Created At',
             actions: 'Actions',
@@ -29,10 +30,15 @@ const { t } = useI18n({
             createUser: 'Create User',
             email: 'Email',
             password: 'Password',
+            changeRole: 'Change Role',
+            prefix: 'Prefix',
+            domains: 'Domains',
+            roleDonotExist: 'Current Role does not exist',
         },
         zh: {
             success: '成功',
             user_email: '用户邮箱',
+            role: '角色',
             address_count: '地址数量',
             created_at: '创建时间',
             actions: '操作',
@@ -46,6 +52,10 @@ const { t } = useI18n({
             createUser: '创建用户',
             email: '邮箱',
             password: '密码',
+            changeRole: '更改角色',
+            prefix: '前缀',
+            domains: '域名',
+            roleDonotExist: '当前角色不存在',
         }
     }
 });
@@ -64,9 +74,31 @@ const user = ref({
     email: "",
     password: ""
 })
+const showChangeRole = ref(false)
+const userRoles = ref([])
+const curUserRole = ref('')
+const userRolesOptions = computed(() => {
+    return userRoles.value.map(role => {
+        return {
+            label: role.role,
+            value: role.role
+        }
+    });
+})
+
+const fetchUserRoles = async () => {
+    try {
+        const results = await api.fetch(`/admin/user_roles`);
+        userRoles.value = results;
+    } catch (error) {
+        console.log(error)
+        message.error(error.message || "error");
+    }
+}
 
 const fetchData = async () => {
     try {
+        userQuery.value = userQuery.value.trim()
         const { results, count: userCount } = await api.fetch(
             `/admin/users`
             + `?limit=${pageSize.value}`
@@ -138,6 +170,24 @@ const deleteUser = async () => {
     }
 }
 
+const changeRole = async () => {
+    try {
+        await api.fetch(`/admin/user_roles`, {
+            method: "POST",
+            body: JSON.stringify({
+                user_id: curUserId.value,
+                role_text: curUserRole.value
+            })
+        });
+        message.success(t('success'));
+        showChangeRole.value = false;
+        await fetchData();
+    } catch (error) {
+        console.log(error)
+        message.error(error.message || "error");
+    }
+}
+
 const columns = [
     {
         title: "ID",
@@ -146,6 +196,19 @@ const columns = [
     {
         title: t('user_email'),
         key: "user_email"
+    },
+    {
+        title: t('role'),
+        key: "role_text",
+        render(row) {
+            if (!row.role_text) return null;
+            return h(NTag, {
+                bordered: false,
+                type: "info"
+            }, {
+                default: () => row.role_text
+            })
+        }
     },
     {
         title: t('address_count'),
@@ -182,6 +245,19 @@ const columns = [
                                             text: true,
                                             onClick: () => {
                                                 curUserId.value = row.id;
+                                                curUserRole.value = row.role_text;
+                                                showChangeRole.value = true;
+                                            }
+                                        },
+                                        { default: () => t('changeRole') }
+                                    ),
+                                },
+                                {
+                                    label: () => h(NButton,
+                                        {
+                                            text: true,
+                                            onClick: () => {
+                                                curUserId.value = row.id;
                                                 newResetPassword.value = '';
                                                 showResetPassword.value = true;
                                             }
@@ -212,12 +288,29 @@ const columns = [
     }
 ]
 
+const getRolePrefix = (role) => {
+    const res = userRoles.value.find(r => r.role === role)?.prefix;
+    if (res === undefined || res === null) return openSettings.value.prefix;
+    return res;
+}
+
+const getRoleDomains = (role) => {
+    const res = userRoles.value.find(r => r.role === role)?.domains;
+    if (res === undefined || res === null || res.length == 0) return openSettings.value.defaultDomains;
+    return res;
+}
+
+const roleDonotExist = computed(() => {
+    return !userRoles.value.some(r => r.role === curUserRole.value);
+})
+
 watch([page, pageSize], async () => {
     await fetchData()
 })
 
 onMounted(async () => {
-    await fetchData()
+    await fetchUserRoles();
+    await fetchData();
 })
 </script>
 
@@ -256,8 +349,21 @@ onMounted(async () => {
                 </n-button>
             </template>
         </n-modal>
+        <n-modal v-model:show="showChangeRole" preset="dialog" :title="t('changeRole')">
+            <n-alert type="error" :bordered="false" v-if="roleDonotExist">
+                <span>{{ t('roleDonotExist') }}</span>
+            </n-alert>
+            <p>{{ t('prefix') + ": " + getRolePrefix(curUserRole) }}</p>
+            <p>{{ t('domains') + ": " + JSON.stringify(getRoleDomains(curUserRole)) }}</p>
+            <n-select clearable v-model:value="curUserRole" :options="userRolesOptions" />
+            <template #action>
+                <n-button :loading="loading" @click="changeRole" size="small" tertiary type="primary">
+                    {{ t('changeRole') }}
+                </n-button>
+            </template>
+        </n-modal>
         <n-input-group>
-            <n-input v-model:value="userQuery" />
+            <n-input v-model:value="userQuery" @keydown.enter="fetchData" />
             <n-button @click="fetchData" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>

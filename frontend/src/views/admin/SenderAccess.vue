@@ -79,6 +79,7 @@ const updateData = async () => {
 
 const fetchData = async () => {
   try {
+    addressQuery.value = addressQuery.value.trim();
     const { results, count: addressCount } = await api.fetch(
       `/admin/address_sender`
       + `?limit=${pageSize.value}`
@@ -192,7 +193,7 @@ onMounted(async () => {
       </template>
     </n-modal>
     <n-input-group>
-      <n-input v-model:value="addressQuery" />
+      <n-input v-model:value="addressQuery" @keydown.enter="fetchData" />
       <n-button @click="fetchData" type="primary" tertiary>
         {{ t('query') }}
       </n-button>

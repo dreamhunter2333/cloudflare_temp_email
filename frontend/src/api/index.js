@@ -61,6 +61,7 @@ const getOpenSettings = async (message) => {
             minAddressLen: res["minAddressLen"] || 1,
             maxAddressLen: res["maxAddressLen"] || 30,
             needAuth: res["needAuth"] || false,
+            defaultDomains: res["defaultDomains"] || [],
             domains: res["domains"].map((domain, index) => {
                 return {
                     label: domainLabels.length > index ? domainLabels[index] : domain,
