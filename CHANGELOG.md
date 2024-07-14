@@ -1,7 +1,7 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main branch
+## v0.6.0
 
 ### Breaking Changes
 
