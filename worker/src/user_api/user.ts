@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import { HonoCustomType } from '../types';
-import { checkCfTurnstile, getJsonSetting, checkUserPassword } from "../utils"
+import { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue } from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
 import { sendMail } from "../mails_api/send_mail_api";
@@ -123,6 +123,28 @@ export default {
         ).run();
         if (!success) {
             return c.text("Failed to register", 500)
+        }
+        const defaultRole = getStringValue(c.env.USER_DEFAULT_ROLE);
+        if (!defaultRole) return c.json({ success: true })
+        const user_roles = getUserRoles(c);
+        if (!user_roles.find((r) => r.role === defaultRole)) {
+            return c.text("Invalid role_text", 400)
+        }
+        // find user_id
+        const user_id = await c.env.DB.prepare(
+            `SELECT id FROM users where user_email = ?`
+        ).bind(email).first<number | undefined | null>("id");
+        if (!user_id) {
+            return c.text("User not found", 400)
+        }
+        // update user roles
+        const { success: success2 } = await c.env.DB.prepare(
+            `INSERT INTO user_roles (user_id, role_text)`
+            + ` VALUES (?, ?)`
+            + ` ON CONFLICT(user_id) DO NOTHING`
+        ).bind(user_id, defaultRole).run();
+        if (!success2) {
+            return c.text("Failed to update user roles", 500)
         }
         return c.json({ success: true })
     },
