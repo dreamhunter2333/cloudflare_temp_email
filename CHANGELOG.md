@@ -313,7 +313,7 @@ The `mails` table will be discarded, and the `raw` text of the new `mail` will b
 ```bash
 git checkout v0.2.0
 cd worker
-wrangler d1 execute dev  --file=../db/2024-04-09-patch.sql
+wrangler d1 execute dev  --file=../db/2024-04-09-patch.sql --remote
 pnpm run deploy
 cd ../frontend
 pnpm run deploy
