@@ -34,10 +34,10 @@ git clone https://github.com/dreamhunter2333/cloudflare_temp_email.git
 ```bash
 # create a database, and copy the output to wrangler.toml in the next step
 wrangler d1 create dev
-wrangler d1 execute dev --file=db/schema.sql
+wrangler d1 execute dev --file=db/schema.sql --remote
 # schema update, if you have initialized the database before this date, you can execute this command to update
-# wrangler d1 execute dev --file=db/2024-01-13-patch.sql
-# wrangler d1 execute dev --file=db/2024-04-03-patch.sql
+# wrangler d1 execute dev --file=db/2024-01-13-patch.sql --remote
+# wrangler d1 execute dev --file=db/2024-04-03-patch.sql --remote
 # create a namespace, and copy the output to wrangler.toml in the next step
 wrangler kv:namespace create DEV
 ```
