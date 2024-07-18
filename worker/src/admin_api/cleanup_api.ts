@@ -9,7 +9,6 @@ import { HonoCustomType } from '../types';
 export default {
     cleanup: async (c: Context<HonoCustomType>) => {
         const { cleanType, cleanDays } = await c.req.json();
-			  console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
         try {
             await cleanup(c, cleanType, cleanDays);
         } catch (error) {
