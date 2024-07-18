@@ -78,8 +78,7 @@ export const cleanup = async (
     cleanType: string | undefined | null,
     cleanDays: number | undefined | null
 ): Promise<boolean> => {
-	  console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
-    if (!cleanType || !cleanDays || cleanDays < 0 || cleanDays > 30) {
+    if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 30) {
         throw new Error("Invalid cleanType or cleanDays")
     }
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
