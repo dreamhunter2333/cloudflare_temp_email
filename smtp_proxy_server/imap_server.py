@@ -121,6 +121,7 @@ class SimpleMailbox:
             f"{settings.proxy_url}/api/mails?limit={limit}&offset={start - 1}",
             headers={
                 "Authorization": f"Bearer {self.password}",
+                "x-custom-auth": f"{settings.basic_password}",
                 "Content-Type": "application/json"
             }
         )
@@ -147,6 +148,7 @@ class SimpleMailbox:
             f"{settings.proxy_url}/api/sendbox?limit={limit}&offset={start - 1}",
             headers={
                 "Authorization": f"Bearer {self.password}",
+                "x-custom-auth": f"{settings.basic_password}",
                 "Content-Type": "application/json"
             }
         )
