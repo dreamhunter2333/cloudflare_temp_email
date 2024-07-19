@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     proxy_url: str = "http://localhost:8787"
     port: int = 8025
     imap_port: int = 11143
+    basic_password: str = ""
 
     class Config:
         env_file = ".env"

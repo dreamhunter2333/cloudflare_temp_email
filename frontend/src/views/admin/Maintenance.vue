@@ -22,10 +22,10 @@ const cleanupModel = ref({
 const { t } = useI18n({
     messages: {
         en: {
-            tip: 'Please input the cleanup days',
-            mailBoxLabel: 'Clean up days for mailbox',
-            mailUnknowLabel: "Clean up days for unknow receiver",
-            sendBoxLabel: "Clean up days for sendbox",
+            tip: 'Please input the days',
+            mailBoxLabel: 'Cleanup the inbox before n days',
+            mailUnknowLabel: "Cleanup the unknow mail before n days",
+            sendBoxLabel: "Cleanup the sendbox before n days",
             cleanupNow: "Cleanup now",
             autoCleanup: "Auto cleanup",
             cleanupSuccess: "Cleanup success",
@@ -33,10 +33,10 @@ const { t } = useI18n({
             cronTip: "Enable cron cleanup, need to configure [crons] in worker, please refer to the document",
         },
         zh: {
-            tip: '请输入清理天数',
-            mailBoxLabel: '收件箱清理天数',
-            mailUnknowLabel: "无收件人邮件清理天数",
-            sendBoxLabel: "发件箱清理天数",
+            tip: '请输入天数',
+            mailBoxLabel: '清理 n 天前的收件箱',
+            mailUnknowLabel: "清理 n 天前的无收件人邮件",
+            sendBoxLabel: "清理 n 天前的发件箱",
             autoCleanup: "自动清理",
             cleanupSuccess: "清理成功",
             cleanupNow: "立即清理",
