@@ -6,6 +6,7 @@
 - pages github actions && 修复清理邮件天数为 0 不生效 by @tqjason (#355)
 - fix: imap proxy server 不支持 密码 by @dreamhunter2333 (#356)
 - worker 新增 `ANNOUNCEMENT` 配置, 用于配置公告信息 by @dreamhunter2333 (#357)
+- fix: telegram bot 新建地址默认选择第一个域名 by @dreamhunter2333 (#358)
 
 ## v0.6.0
 
