@@ -13,6 +13,7 @@ export type Bindings = {
 
     // config
     TITLE: string | undefined
+    ANNOUNCEMENT: string | undefined | null
     PREFIX: string | undefined
     MIN_ADDRESS_LEN: string | number | undefined
     MAX_ADDRESS_LEN: string | number | undefined

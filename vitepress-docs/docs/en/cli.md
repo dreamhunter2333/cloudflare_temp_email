@@ -77,6 +77,7 @@ node_compat = true
 # TITLE = "Custom Title" # The title of the site
 PREFIX = "tmp" # The mailbox name prefix to be processed
 # (min, max) length of the adderss, if not set, the default is (1, 30)
+# ANNOUNCEMENT = "Custom Announcement"
 # MIN_ADDRESS_LEN = 1
 # MAX_ADDRESS_LEN = 30
 # If you want your site to be private, uncomment below and change your password

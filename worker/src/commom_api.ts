@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 
-import { getDomains, getPasswords, getBooleanValue, getIntValue, getStringArray, getDefaultDomains } from './utils';
+import { getDomains, getPasswords, getBooleanValue, getIntValue, getStringArray, getDefaultDomains, getStringValue } from './utils';
 import { CONSTANTS } from './constants';
 import { HonoCustomType } from './types';
 import { isS3Enabled } from './mails_api/s3_attachment';
@@ -17,6 +17,7 @@ api.get('/open_api/settings', async (c) => {
     }
     return c.json({
         "title": c.env.TITLE,
+        "announcement": getStringValue(c.env.ANNOUNCEMENT),
         "prefix": c.env.PREFIX,
         "minAddressLen": getIntValue(c.env.MIN_ADDRESS_LEN, 1),
         "maxAddressLen": getIntValue(c.env.MAX_ADDRESS_LEN, 30),

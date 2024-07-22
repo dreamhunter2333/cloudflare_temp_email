@@ -1,13 +1,15 @@
 import { ref } from "vue";
-import { createGlobalState, useStorage, useDark, useToggle } from '@vueuse/core'
+import { createGlobalState, useStorage, useDark, useToggle, useLocalStorage } from '@vueuse/core'
 
 export const useGlobalState = createGlobalState(
     () => {
         const isDark = useDark()
         const toggleDark = useToggle(isDark)
         const loading = ref(false);
+        const announcement = useLocalStorage('announcement', '');
         const openSettings = ref({
             title: '',
+            announcement: '',
             prefix: '',
             needAuth: false,
             adminContact: '',
@@ -83,6 +85,7 @@ export const useGlobalState = createGlobalState(
             loading,
             settings,
             sendMailModel,
+            announcement,
             openSettings,
             showAuth,
             showAddressCredential,
