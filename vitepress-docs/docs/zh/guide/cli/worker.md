@@ -45,6 +45,7 @@ node_compat = true
 # TITLE = "Custom Title" # 自定义网站标题
 PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空字符串
 # (min, max) adderss的长度，如果不设置，默认为(1, 30)
+# ANNOUNCEMENT = "Custom Announcement" # 自定义公告
 # MIN_ADDRESS_LEN = 1
 # MAX_ADDRESS_LEN = 30
 # 如果你想要你的网站私有，取消下面的注释，并修改密码
