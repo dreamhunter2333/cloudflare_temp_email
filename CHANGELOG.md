@@ -1,7 +1,7 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main branch(v0.6.1)
+## v0.6.1
 
 - pages github actions && 修复清理邮件天数为 0 不生效 by @tqjason (#355)
 - fix: imap proxy server 不支持 密码 by @dreamhunter2333 (#356)
