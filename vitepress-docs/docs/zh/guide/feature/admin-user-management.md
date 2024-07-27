@@ -1,7 +1,5 @@
 # Admin 用户相关
 
-默认不允许用户注册，可通过
-
 ## 用户管理页面
 
 ![admin-user-management](/feature/admin-user-management.png)

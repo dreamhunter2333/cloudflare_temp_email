@@ -22,6 +22,7 @@ const apiFetch = async (path, options = {}) => {
             data: options.body || null,
             headers: {
                 'x-user-token': userJwt.value,
+                'x-user-access-token': userSettings.value.access_token,
                 'x-custom-auth': auth.value,
                 'x-admin-auth': adminAuth.value,
                 'Authorization': `Bearer ${jwt.value}`,

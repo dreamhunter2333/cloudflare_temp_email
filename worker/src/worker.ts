@@ -136,6 +136,26 @@ app.use('/admin/*', async (c, next) => {
 			return;
 		}
 	}
+	// check if user is admin
+	const access_token = c.req.raw.headers.get("x-user-access-token");
+	if (c.env.ADMIN_USER_ROLE && access_token) {
+		try {
+			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, "HS256");
+			// check expired
+			if (!payload.exp) return c.text("Invalid Token", 401);
+			// exp is in seconds
+			if (payload.exp < Math.floor(Date.now() / 1000)) {
+				return c.text("Token Expired", 401)
+			}
+			if (payload.user_role !== c.env.ADMIN_USER_ROLE) {
+				return c.text("Need Admin Role", 401)
+			}
+			await next();
+			return;
+		} catch (e) {
+			console.error(e);
+		}
+	}
 	return c.text("Need Admin Password", 401)
 });
 

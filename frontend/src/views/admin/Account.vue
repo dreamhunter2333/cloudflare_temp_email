@@ -9,8 +9,8 @@ import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 
 const {
-    adminAuth, showAdminAuth, loading,
-    adminTab, adminMailTabAddress, adminSendBoxTabAddress
+    showAdminAuth, loading, adminTab,
+    adminMailTabAddress, adminSendBoxTabAddress
 } = useGlobalState()
 const message = useMessage()
 
@@ -252,10 +252,6 @@ watch([page, pageSize], async () => {
 })
 
 onMounted(async () => {
-    if (!adminAuth.value) {
-        showAdminAuth.value = true;
-        return;
-    }
     await fetchData()
 })
 </script>
