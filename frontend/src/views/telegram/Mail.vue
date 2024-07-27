@@ -6,7 +6,7 @@ import { api } from '../../api'
 import { onMounted, watch } from 'vue';
 import { processItem } from '../../utils/email-parser'
 
-const { telegramApp } = useGlobalState()
+const { telegramApp, loading } = useGlobalState()
 const route = useRoute()
 
 const curMail = ref({});
