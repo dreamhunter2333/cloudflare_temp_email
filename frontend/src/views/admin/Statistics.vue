@@ -4,10 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { User, UserCheck, MailBulk } from '@vicons/fa'
 import { SendOutlined } from '@vicons/material'
 
-import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { adminAuth } = useGlobalState()
 const message = useMessage()
 
 const { t } = useI18n({
@@ -60,9 +58,6 @@ const fetchStatistics = async () => {
 }
 
 onMounted(async () => {
-    if (!adminAuth.value) {
-        return;
-    }
     await fetchStatistics()
 })
 </script>

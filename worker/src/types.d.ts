@@ -19,6 +19,7 @@ export type Bindings = {
     MAX_ADDRESS_LEN: string | number | undefined
     DEFAULT_DOMAINS: string | string[] | undefined
     DOMAINS: string | string[] | undefined
+    ADMIN_USER_ROLE: string | undefined
     USER_DEFAULT_ROLE: string | UserRole | undefined
     USER_ROLES: string | UserRole[] | undefined
     DOMAIN_LABELS: string | string[] | undefined

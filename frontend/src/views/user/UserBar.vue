@@ -31,7 +31,8 @@ const { t } = useI18n({
 
 onMounted(async () => {
     await api.getUserOpenSettings(message);
-    await api.getUserSettings(message);
+    // make sure user_id is fetched
+    if (!userSettings.value.user_id) await api.getUserSettings(message);
 });
 </script>
 

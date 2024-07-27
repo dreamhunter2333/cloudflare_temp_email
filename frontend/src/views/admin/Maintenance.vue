@@ -1,12 +1,10 @@
 <script setup>
-import { ref, h, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { CleaningServicesFilled } from '@vicons/material'
 
-import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { adminAuth, showAdminAuth } = useGlobalState()
 const message = useMessage()
 const cleanupModel = ref({
     enableMailsAutoCleanup: false,
@@ -80,10 +78,6 @@ const save = async () => {
 }
 
 onMounted(async () => {
-    if (!adminAuth.value) {
-        showAdminAuth.value = true;
-        return;
-    }
     await fetchData();
 })
 </script>

@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { createGlobalState, useStorage, useDark, useToggle, useLocalStorage } from '@vueuse/core'
 
 export const useGlobalState = createGlobalState(
@@ -74,9 +74,14 @@ export const useGlobalState = createGlobalState(
             user_email: '',
             /** @type {number} */
             user_id: 0,
+            /** @type {boolean} */
+            is_admin: false,
+            /** @type {string | null} */
+            access_token: null,
             /** @type {null | {domains: string[] | undefined | null, role: string, prefix: string | undefined | null}} */
             user_role: null,
         });
+        const showAdminPage = computed(() => !!adminAuth.value || userSettings.value.is_admin);
         const telegramApp = ref(window.Telegram?.WebApp || {});
         const isTelegram = ref(!!window.Telegram?.WebApp?.initData);
         return {
@@ -108,6 +113,7 @@ export const useGlobalState = createGlobalState(
             useSideMargin,
             telegramApp,
             isTelegram,
+            showAdminPage,
         }
     },
 )

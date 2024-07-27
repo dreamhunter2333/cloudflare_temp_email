@@ -6,10 +6,7 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import MailBox from '../../components/MailBox.vue';
 
-const {
-    adminAuth, showAdminAuth,
-    adminMailTabAddress
-} = useGlobalState()
+const { adminMailTabAddress } = useGlobalState()
 
 const { t } = useI18n({
     messages: {
@@ -48,13 +45,6 @@ const fetchMailData = async (limit, offset) => {
 const deleteMail = async (curMailId) => {
     await api.fetch(`/admin/mails/${curMailId}`, { method: 'DELETE' });
 };
-
-onMounted(async () => {
-    if (!adminAuth.value) {
-        showAdminAuth.value = true;
-        return;
-    }
-})
 </script>
 
 <template>

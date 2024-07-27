@@ -21,7 +21,8 @@ import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
 
 const {
-  adminAuth, showAdminAuth, adminTab, loading, globalTabplacement
+  adminAuth, showAdminAuth, adminTab, loading,
+  globalTabplacement, showAdminPage
 } = useGlobalState()
 const message = useMessage()
 
@@ -81,7 +82,7 @@ const { t } = useI18n({
 });
 
 onMounted(async () => {
-  if (!adminAuth.value) {
+  if (!showAdminPage.value) {
     showAdminAuth.value = true;
     return;
   }
@@ -100,7 +101,7 @@ onMounted(async () => {
         </n-button>
       </template>
     </n-modal>
-    <n-tabs type="card" v-model:value="adminTab" :placement="globalTabplacement">
+    <n-tabs v-if="showAdminPage" type="card" v-model:value="adminTab" :placement="globalTabplacement">
       <n-tab-pane name="account" :tab="t('account')">
         <n-tabs type="bar" animated>
           <n-tab-pane name="account" :tab="t('account')">

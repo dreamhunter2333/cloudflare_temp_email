@@ -17,8 +17,8 @@ import { getRouterPathWithLang } from '../utils'
 const message = useMessage()
 
 const {
-    toggleDark, isDark, isTelegram,
-    showAuth, adminAuth, auth, loading, openSettings
+    toggleDark, isDark, isTelegram, showAdminPage,
+    showAuth, auth, loading, openSettings
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
@@ -134,7 +134,7 @@ const menuOptions = computed(() => [
                 icon: () => h(NIcon, { component: AdminPanelSettingsFilled }),
             }
         ),
-        show: !!adminAuth.value,
+        show: showAdminPage.value,
         key: "admin"
     },
     {
@@ -223,6 +223,11 @@ const logoClick = async () => {
 
 onMounted(async () => {
     await api.getOpenSettings(message);
+    try {
+        await api.getUserSettings(message);
+    } catch (error) {
+        console.error(error);
+    }
 });
 </script>
 

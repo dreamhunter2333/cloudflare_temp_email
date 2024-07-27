@@ -60,6 +60,8 @@ DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名, 支持多个域名
 # DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
 # 新用户默认角色, 仅在启用邮件验证时有效
 # USER_DEFAULT_ROLE = "vip"
+# admin 角色配置, 如果用户角色等于 ADMIN_USER_ROLE 则可以访问 admin 控制台
+# ADMIN_USER_ROLE = "admin" # the role which can access admin panel
 # 用户角色配置, 如果 domains 为空将使用 default_domains
 # 如果 prefix 为 null 将使用默认前缀, 如果 prefix 为空字符串将不使用前缀
 # USER_ROLES = [
