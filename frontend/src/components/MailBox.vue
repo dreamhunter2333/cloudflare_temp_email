@@ -147,6 +147,7 @@ const refresh = async () => {
     const { results, count: totalCount } = await props.fetchMailData(
       pageSize.value, (page.value - 1) * pageSize.value
     );
+    loading.value = true;
     data.value = await Promise.all(results.map(async (item) => {
       item.checked = false;
       return await processItem(item);
@@ -161,6 +162,8 @@ const refresh = async () => {
   } catch (error) {
     message.error(error.message || "error");
     console.error(error);
+  } finally {
+    loading.value = false;
   }
 };
 

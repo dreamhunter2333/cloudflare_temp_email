@@ -26,11 +26,15 @@ const fetchMailData = async () => {
                 mailId: route.query.mail_id
             })
         });
+        loading.value = true;
         return await processItem(res);
     }
     catch (error) {
         console.error(error);
         return {};
+    }
+    finally {
+        loading.value = false;
     }
 };
 
