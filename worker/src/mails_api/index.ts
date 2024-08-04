@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 
 import { HonoCustomType } from "../types";
-import { getBooleanValue, getJsonSetting, checkCfTurnstile } from '../utils';
+import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue } from '../utils';
 import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
@@ -49,6 +49,7 @@ api.delete('/api/mails/:id', async (c) => {
 
 api.get('/api/settings', async (c) => {
     const { address, address_id } = c.get("jwtPayload")
+    const user_role = c.get("userRolePayload")
     if (address_id && address_id > 0) {
         try {
             const db_address_id = await c.env.DB.prepare(
@@ -82,7 +83,8 @@ api.get('/api/settings', async (c) => {
     } catch (e) {
         console.warn("Failed to update address")
     }
-    const balance = await c.env.DB.prepare(
+    const is_no_limit_send_balance = user_role && user_role === getStringValue(c.env.NO_LIMIT_SEND_ROLE);
+    const balance = is_no_limit_send_balance ? 99999 : await c.env.DB.prepare(
         `SELECT balance FROM address_sender where address = ? and enabled = 1`
     ).bind(address).first("balance");
     return c.json({

@@ -51,7 +51,7 @@ ENABLE_AUTO_REPLY = false
 # ENABLE_WEBHOOK = true
 # Footer text
 # COPYRIGHT = "Dream Hunter"
-# SHOW_GITHUB = true
+# DISABLE_SHOW_GITHUB = true
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
 # Turnstile verification

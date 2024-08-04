@@ -109,9 +109,10 @@ ENABLE_AUTO_REPLY = false
 # ENABLE_WEBHOOK = true
 # Footer text
 # COPYRIGHT = "Dream Hunter"
-# SHOW_GITHUB = true # Show GitHub link
+# DISABLE_SHOW_GITHUB = true # Disable Show GitHub link
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
+# NO_LIMIT_SEND_ROLE = "vip" # the role which can send emails without limit
 # Turnstile verification configuration
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
