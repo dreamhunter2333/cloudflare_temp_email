@@ -5,6 +5,7 @@
 
 - Docs: Update new-address-api.md (#360)
 - feat: worker 增加 `ADMIN_USER_ROLE` 配置, 用于配置管理员用户角色，此角色的用户可访问 admin 管理页面 (#363)
+- feat: worker 增加 `SHOW_GITHUB` 配置, 用于配置是否显示 github 链接
 
 ## v0.6.1
 
