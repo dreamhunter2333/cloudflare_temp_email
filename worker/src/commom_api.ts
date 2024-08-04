@@ -35,7 +35,7 @@ api.get('/open_api/settings', async (c) => {
         "enableWebhook": getBooleanValue(c.env.ENABLE_WEBHOOK),
         "isS3Enabled": isS3Enabled(c),
         "version": CONSTANTS.VERSION,
-        "showGithub": getBooleanValue(c.env.SHOW_GITHUB),
+        "showGithub": !getBooleanValue(c.env.DISABLE_SHOW_GITHUB),
     });
 })
 

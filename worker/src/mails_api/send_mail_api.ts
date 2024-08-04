@@ -4,7 +4,7 @@ import { createMimeMessage } from 'mimetext';
 import { Resend } from 'resend';
 
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue, getBooleanValue } from '../utils';
+import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery } from '../common'
 import { HonoCustomType } from '../types';
@@ -105,13 +105,17 @@ export const sendMail = async (
     if (!domains.includes(mailDomain)) {
         throw new Error("Invalid domain")
     }
-    // check permission
-    const balance = await c.env.DB.prepare(
-        `SELECT balance FROM address_sender
+    const user_role = c.get("userRolePayload");
+    const is_no_limit_send_balance = user_role && user_role === getStringValue(c.env.NO_LIMIT_SEND_ROLE);
+    if (!is_no_limit_send_balance) {
+        // check permission
+        const balance = await c.env.DB.prepare(
+            `SELECT balance FROM address_sender
             where address = ? and enabled = 1`
-    ).bind(address).first<number>("balance");
-    if (!balance || balance <= 0) {
-        throw new Error("No balance")
+        ).bind(address).first<number>("balance");
+        if (!balance || balance <= 0) {
+            throw new Error("No balance")
+        }
     }
     const {
         from_name, to_mail, to_name,
@@ -154,7 +158,7 @@ export const sendMail = async (
         throw new Error("Please enable resend or verified address list")
     }
     // update balance
-    if (!sendByVerifiedAddressList) {
+    if (!sendByVerifiedAddressList && !is_no_limit_send_balance) {
         try {
             const { success } = await c.env.DB.prepare(
                 `UPDATE address_sender SET balance = balance - 1 where address = ?`

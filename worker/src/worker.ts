@@ -75,6 +75,26 @@ const checkUserPayload = async (
 	}
 }
 
+const checkoutUserRolePayload = async (
+	c: Context<HonoCustomType>
+): Promise<void> => {
+	try {
+		const token = c.req.raw.headers.get("x-user-access-token");
+		if (!token) return;
+		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
+		// check expired
+		if (!payload.exp) return;
+		// exp is in seconds
+		if (payload.exp < Math.floor(Date.now() / 1000)) {
+			return;
+		}
+		if (typeof payload?.user_role !== "string") return;
+		c.set("userRolePayload", payload.user_role);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
 // api auth
 app.use('/api/*', async (c, next) => {
 	// check header x-custom-auth
@@ -89,6 +109,11 @@ app.use('/api/*', async (c, next) => {
 		await checkUserPayload(c);
 		await next();
 		return;
+	}
+	if (c.req.path.startsWith("/api/settings")
+		|| c.req.path.startsWith("/api/send_mail")
+	) {
+		await checkoutUserRolePayload(c);
 	}
 	return jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
 });

@@ -80,9 +80,10 @@ ENABLE_AUTO_REPLY = false
 # ENABLE_WEBHOOK = true
 # 前端界面页脚文本
 # COPYRIGHT = "Dream Hunter"
-# SHOW_GITHUB = true # 是否显示 GitHub 链接
+# DISABLE_SHOW_GITHUB = true # 是否显示 GitHub 链接
 # 默认发送邮件余额，如果不设置，将为 0
 # DEFAULT_SEND_BALANCE = 1
+# NO_LIMIT_SEND_ROLE = "vip" # 可以无限发送邮件的角色
 # Turnstile 人机验证配置
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
