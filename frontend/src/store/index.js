@@ -25,6 +25,7 @@ export const useGlobalState = createGlobalState(
             cfTurnstileSiteKey: '',
             enableWebhook: false,
             isS3Enabled: false,
+            showGithub: false,
         })
         const settings = ref({
             fetched: false,
