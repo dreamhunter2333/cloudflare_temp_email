@@ -88,7 +88,7 @@ ENABLE_AUTO_REPLY = false
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
 # telegram bot 最多绑定邮箱数量
-# TG_MAX_ACCOUNTS = 5
+# TG_MAX_ADDRESS = 5
 # 全局转发地址列表，如果不配置则不启用，启用后所有邮件都会转发到列表中的地址
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 

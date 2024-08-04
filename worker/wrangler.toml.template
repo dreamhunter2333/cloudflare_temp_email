@@ -54,11 +54,12 @@ ENABLE_AUTO_REPLY = false
 # DISABLE_SHOW_GITHUB = true
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
+# NO_LIMIT_SEND_ROLE = "vip" # the role which can send emails without limit
 # Turnstile verification
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
 # telegram bot
-# TG_MAX_ACCOUNTS = 5
+# TG_MAX_ADDRESS = 5
 # global forward address list, if set, all emails will be forwarded to these addresses
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 
