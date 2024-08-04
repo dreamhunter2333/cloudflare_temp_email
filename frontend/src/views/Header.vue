@@ -192,6 +192,7 @@ const menuOptions = computed(() => [
                 icon: () => h(NIcon, { component: GithubAlt })
             }
         ),
+        show: openSettings.value?.showGithub,
         key: "github"
     }
 ]);
