@@ -59,7 +59,6 @@ export const getBooleanValue = (
     if (typeof value === "string") {
         return value === "true";
     }
-    console.error(`Failed to parse boolean value: ${value}`);
     return false;
 }
 

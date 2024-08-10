@@ -117,7 +117,7 @@ ENABLE_AUTO_REPLY = false
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
 # telegram bot
-# TG_MAX_ACCOUNTS = 5
+# TG_MAX_ADDRESS = 5
 # global forward address list, if set, all emails will be forwarded to these addresses
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 

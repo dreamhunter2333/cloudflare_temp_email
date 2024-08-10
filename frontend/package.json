@@ -17,6 +17,7 @@
     "deploy:actions": "npm run build && wrangler pages deploy ./dist"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^10.0.0",
     "@unhead/vue": "^1.9.15",
     "@vicons/material": "^0.12.0",
     "@vueuse/core": "^10.11.0",
