@@ -26,6 +26,8 @@ PREFIX = "tmp"
 # PASSWORDS = ["123", "456"]
 # For admin panel
 # ADMIN_PASSWORDS = ["123", "456"]
+# warning: no password or user check for admin portal
+# DISABLE_ADMIN_PASSWORD_CHECK = false
 # ADMIN CONTACT, CAN BE ANY STRING
 # ADMIN_CONTACT = "xx@xx.xxx"
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users

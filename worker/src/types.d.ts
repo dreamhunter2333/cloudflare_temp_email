@@ -25,6 +25,7 @@ export type Bindings = {
     DOMAIN_LABELS: string | string[] | undefined
     PASSWORDS: string | string[] | undefined
     ADMIN_PASSWORDS: string | string[] | undefined
+    DISABLE_ADMIN_PASSWORD_CHECK: string | boolean | undefined
     JWT_SECRET: string
     BLACK_LIST: string | undefined
     ENABLE_AUTO_REPLY: string | boolean | undefined

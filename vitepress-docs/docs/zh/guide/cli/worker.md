@@ -52,6 +52,8 @@ PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空
 # PASSWORDS = ["123", "456"]
 # admin 控制台密码, 不配置则不允许访问控制台
 # ADMIN_PASSWORDS = ["123", "456"]
+# 警告: 管理员控制台没有密码或用户检查
+# DISABLE_ADMIN_PASSWORD_CHECK = false
 # admin 联系方式，不配置则不显示，可配置任意字符串
 # ADMIN_CONTACT = "xx@xx.xxx"
 # DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 默认用户可用的域名(未登录或未分配角色的用户)

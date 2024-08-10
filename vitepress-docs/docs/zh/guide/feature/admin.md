@@ -9,3 +9,7 @@
 需要在后端配置 `ADMIN_PASSWORDS` 或者当前用户角色为 `ADMIN_USER_ROLE`, 则不允许访问控制台。
 
 ![admin](/feature/admin.png)
+
+## 如果你的网站只可私人访问，可通过此禁用检查
+
+`DISABLE_ADMIN_PASSWORD_CHECK = true`
