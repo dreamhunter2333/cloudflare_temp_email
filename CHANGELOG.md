@@ -14,6 +14,7 @@ DB changes: 增加用户 `passkey` 表, 需要执行 `db/2024-08-10-patch.sql` �
 - feat: worker 增加 `DISABLE_SHOW_GITHUB` 配置, 用于配置是否显示 github 链接
 - feat: worker 增加 `NO_LIMIT_SEND_ROLE` 配置, 用于配置可以无限发送邮件的角色
 - feat: 用户增加 `passkey` 登录方式, 用于用户登录, 无需输入密码
+- feat: worker 增加 `DISABLE_ADMIN_PASSWORD_CHECK` 配置, 用于配置是否禁用 admin 控制台密码检查, 若你的网站只可私人访问，可通过此禁用检查
 
 ## v0.6.1
 

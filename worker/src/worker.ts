@@ -153,6 +153,7 @@ app.use('/user_api/*', async (c, next) => {
 });
 // admin auth
 app.use('/admin/*', async (c, next) => {
+
 	// check header x-admin-auth
 	const adminPasswords = getAdminPasswords(c);
 	if (adminPasswords && adminPasswords.length > 0) {
@@ -182,6 +183,13 @@ app.use('/admin/*', async (c, next) => {
 			console.error(e);
 		}
 	}
+
+	// disable admin api check
+	if (getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK)) {
+		await next();
+		return;
+	}
+
 	return c.text("Need Admin Password", 401)
 });
 

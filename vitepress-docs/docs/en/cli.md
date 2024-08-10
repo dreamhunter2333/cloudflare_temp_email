@@ -84,6 +84,8 @@ PREFIX = "tmp" # The mailbox name prefix to be processed
 # PASSWORDS = ["123", "456"]
 # admin console password, if not configured, access to the console is not allowed
 # ADMIN_PASSWORDS = ["123", "456"]
+# warning: no password or user check for admin portal
+# DISABLE_ADMIN_PASSWORD_CHECK = false
 # admin contact information. If not configured, it will not be displayed. Any string can be configured.
 # ADMIN_CONTACT = "xx@xx.xxx"
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
