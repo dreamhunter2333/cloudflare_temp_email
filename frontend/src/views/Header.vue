@@ -18,7 +18,7 @@ const message = useMessage()
 
 const {
     toggleDark, isDark, isTelegram, showAdminPage,
-    showAuth, auth, loading, openSettings
+    showAuth, auth, loading, openSettings, userSettings
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
@@ -224,11 +224,8 @@ const logoClick = async () => {
 
 onMounted(async () => {
     await api.getOpenSettings(message);
-    try {
-        await api.getUserSettings(message);
-    } catch (error) {
-        console.error(error);
-    }
+    // make sure user_id is fetched
+    if (!userSettings.value.user_id) await api.getUserSettings(message);
 });
 </script>
 

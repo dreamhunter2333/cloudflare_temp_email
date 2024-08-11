@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## main(v0.7.1)
+
+- fix: 修复用户角色加载失败的问题
+
 ## v0.7.0
 
 ### Breaking Changes
