@@ -128,7 +128,7 @@ const getUserSettings = async (message) => {
         const res = await api.fetch("/user_api/settings")
         Object.assign(userSettings.value, res)
     } catch (error) {
-        message.error(error.message || "error");
+        message?.error(error.message || "error");
     } finally {
         userSettings.value.fetched = true;
     }
