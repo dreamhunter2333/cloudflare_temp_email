@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## main(v0.7.2)
+
+- fix: worker 增加 `NO_LIMIT_SEND_ROLE` 配置, 有时加载失败的问题
+
 ## v0.7.1
 
 - fix: 修复用户角色加载失败的问题

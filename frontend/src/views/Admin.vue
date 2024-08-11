@@ -3,6 +3,7 @@ import { onMounted } from 'vue';
 import { useI18n } from 'vue-i18n'
 
 import { useGlobalState } from '../store'
+import { api } from '../api'
 
 import SenderAccess from './admin/SenderAccess.vue'
 import Statistics from "./admin/Statistics.vue"
@@ -22,7 +23,7 @@ import Webhook from './admin/Webhook.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
-  globalTabplacement, showAdminPage
+  globalTabplacement, showAdminPage, userSettings
 } = useGlobalState()
 const message = useMessage()
 
@@ -86,6 +87,8 @@ onMounted(async () => {
     showAdminAuth.value = true;
     return;
   }
+  // make sure user_id is fetched
+  if (!userSettings.value.user_id) await api.getUserSettings(message);
 })
 </script>
 
