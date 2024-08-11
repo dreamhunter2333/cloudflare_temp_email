@@ -1,5 +1,5 @@
 export const CONSTANTS = {
-    VERSION: 'v0.7.1',
+    VERSION: 'v0.7.2',
 
     // DB settings
     ADDRESS_BLOCK_LIST_KEY: 'address_block_list',

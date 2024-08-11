@@ -13,7 +13,7 @@ const isPreview = ref(false)
 const editorRef = shallowRef()
 
 
-const { settings, sendMailModel, indexTab } = useGlobalState()
+const { settings, sendMailModel, indexTab, userSettings } = useGlobalState()
 
 const { t } = useI18n({
     locale: 'zh',
@@ -136,6 +136,8 @@ const handleCreated = (editor) => {
 }
 
 onMounted(async () => {
+    // make sure user_id is fetched
+    if (!userSettings.value.user_id) await api.getUserSettings(message);
     await api.getSettings();
 })
 </script>
