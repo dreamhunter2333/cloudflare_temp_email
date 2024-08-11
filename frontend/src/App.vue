@@ -6,7 +6,7 @@ import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
 import Footer from './views/Footer.vue';
-
+import { api } from './api'
 
 const {
   isDark, loading, useSideMargin, telegramApp, isTelegram
@@ -19,6 +19,13 @@ const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
 
 
 onMounted(async () => {
+
+  try {
+    await api.getUserSettings();
+  } catch (error) {
+    console.error(error);
+  }
+
   const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
 
   const exist = document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]') !== null
