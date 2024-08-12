@@ -31,10 +31,10 @@ export default {
             &&
             c.env.ADMIN_USER_ROLE === user_role?.role
         );
-        const access_token = is_admin ? await Jwt.sign({
+        const access_token = user_role?.role ? await Jwt.sign({
             user_email: user.user_email,
             user_id: user.user_id,
-            user_role: user_role?.role,
+            user_role: user_role.role,
             iat: Math.floor(Date.now() / 1000),
             // 1 hour
             exp: Math.floor(Date.now() / 1000) + 3600,

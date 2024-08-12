@@ -3,7 +3,7 @@
 
 ## main(v0.7.2)
 
-- fix: worker 增加 `NO_LIMIT_SEND_ROLE` 配置, 有时加载失败的问题
+- fix: worker 增加 `NO_LIMIT_SEND_ROLE` 配置, 加载失败的问题
 
 ## v0.7.1
 
