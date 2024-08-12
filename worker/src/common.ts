@@ -5,6 +5,22 @@ import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles,
 import { HonoCustomType, UserRole } from './types';
 import { unbindTelegramByAddress } from './telegram_api/common';
 
+const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
+
+const getNameRegex = (c: Context<HonoCustomType>): RegExp => {
+    try {
+        const regex = getStringValue(c.env.ADDRESS_REGEX);
+        if (!regex) {
+            return DEFAULT_NAME_REGEX;
+        }
+        return new RegExp(regex, 'g');
+    }
+    catch (e) {
+        console.error("Failed to get address regex", e);
+    }
+    return DEFAULT_NAME_REGEX;
+}
+
 export const newAddress = async (
     c: Context<HonoCustomType>,
     name: string, domain: string | undefined | null,
@@ -14,7 +30,7 @@ export const newAddress = async (
     checkAllowDomains: boolean = true
 ): Promise<{ address: string, jwt: string }> => {
     // remove special characters
-    name = name.replace(/[^a-z0-9]/g, '')
+    name = name.replace(getNameRegex(c), '')
     // name min length min 1
     const minAddressLength = Math.max(
         checkLengthByConfig ? getIntValue(c.env.MIN_ADDRESS_LEN, 1) : 1,

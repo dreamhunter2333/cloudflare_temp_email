@@ -11,6 +11,7 @@ export const useGlobalState = createGlobalState(
             title: '',
             announcement: '',
             prefix: '',
+            addressRegex: '',
             needAuth: false,
             adminContact: '',
             enableUserCreateEmail: false,
