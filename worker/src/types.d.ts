@@ -15,6 +15,7 @@ export type Bindings = {
     TITLE: string | undefined
     ANNOUNCEMENT: string | undefined | null
     PREFIX: string | undefined
+    ADDRESS_REGEX: string | undefined
     MIN_ADDRESS_LEN: string | number | undefined
     MAX_ADDRESS_LEN: string | number | undefined
     DEFAULT_DOMAINS: string | string[] | undefined

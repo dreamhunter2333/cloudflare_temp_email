@@ -78,6 +78,8 @@ node_compat = true
 PREFIX = "tmp" # The mailbox name prefix to be processed
 # (min, max) length of the adderss, if not set, the default is (1, 30)
 # ANNOUNCEMENT = "Custom Announcement"
+# address name REGEX, if not set, the default is [^a-z0-9]
+# ADDRESS_REGEX = "[^a-z0-9]"
 # MIN_ADDRESS_LEN = 1
 # MAX_ADDRESS_LEN = 30
 # If you want your site to be private, uncomment below and change your password

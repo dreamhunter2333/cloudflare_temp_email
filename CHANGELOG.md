@@ -4,6 +4,7 @@
 ## main(v0.7.2)
 
 - fix: worker 增加 `NO_LIMIT_SEND_ROLE` 配置, 加载失败的问题
+- feat: worker 增加 `# ADDRESS_REGEX = "[^a-z.0-9]"` 配置, 用于配置地址的正则表达式
 
 ## v0.7.1
 
