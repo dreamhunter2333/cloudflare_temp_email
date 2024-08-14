@@ -27,6 +27,7 @@ export const useGlobalState = createGlobalState(
             enableWebhook: false,
             isS3Enabled: false,
             showGithub: true,
+            disableAdminPasswordCheck: false,
         })
         const settings = ref({
             fetched: false,
@@ -83,7 +84,11 @@ export const useGlobalState = createGlobalState(
             /** @type {null | {domains: string[] | undefined | null, role: string, prefix: string | undefined | null}} */
             user_role: null,
         });
-        const showAdminPage = computed(() => !!adminAuth.value || userSettings.value.is_admin);
+        const showAdminPage = computed(() =>
+            !!adminAuth.value
+            || userSettings.value.is_admin
+            || openSettings.value.disableAdminPasswordCheck
+        );
         const telegramApp = ref(window.Telegram?.WebApp || {});
         const isTelegram = ref(!!window.Telegram?.WebApp?.initData);
         return {

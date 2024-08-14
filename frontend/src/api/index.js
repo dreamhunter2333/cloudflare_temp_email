@@ -56,6 +56,9 @@ const getOpenSettings = async (message) => {
     try {
         const res = await api.fetch("/open_api/settings");
         const domainLabels = res["domainLabels"] || [];
+        if (res["domains"]?.length < 1) {
+            message.error("No domains found, please check your worker settings");
+        }
         Object.assign(openSettings.value, {
             ...res,
             title: res["title"] || "",

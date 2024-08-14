@@ -31,7 +31,10 @@
 
     ![worker3](/ui_install/worker-3.png)
 
-6. 点击 `Settings` -> `Variables`, 如图所示添加变量，参考 [修改 wrangler.toml 配置文件](/zh/guide/cli/worker.html#修改-wrangler-toml-配置文件) 中的 `vars` 部分
+6. 点击 `Settings` -> `Variables`, 如图所示添加变量，参考 [修改 wrangler.toml 配置文件](/zh/guide/cli/worker.html#修改-wrangler-toml-配置文件) 中的 `[vars]` 部分
+
+    > [!NOTE]
+    > 注意字符串格式的变量的最外层的引号是不需要的
 
     ![worker-var](/ui_install/worker-var.png)
 

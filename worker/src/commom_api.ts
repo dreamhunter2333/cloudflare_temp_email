@@ -37,6 +37,7 @@ api.get('/open_api/settings', async (c) => {
         "isS3Enabled": isS3Enabled(c),
         "version": CONSTANTS.VERSION,
         "showGithub": !getBooleanValue(c.env.DISABLE_SHOW_GITHUB),
+        "disableAdminPasswordCheck": getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK)
     });
 })
 
