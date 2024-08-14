@@ -1,9 +1,11 @@
 # 配置 Telegram Bot
 
-## Telegram Bot 配置
-
 > [!NOTE]
+> 如果要使用 Telegram Bot, 请先绑定 `KV`
+>
 > 如果不需要 Telegram Bot, 可跳过此步骤
+
+## Telegram Bot 配置
 
 请先创建一个 Telegram Bot，然后获取 `token`，然后执行下面的命令，将 `token` 添加到 secrets 中
 

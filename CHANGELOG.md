@@ -1,10 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.7.2)
+## v0.7.2
 
 - fix: worker 增加 `NO_LIMIT_SEND_ROLE` 配置, 加载失败的问题
-- feat: worker 增加 `# ADDRESS_REGEX = "[^a-z.0-9]"` 配置, 用于配置地址的正则表达式
+- feat: worker 增加 `# ADDRESS_REGEX = "[^a-z.0-9]"` 配置, 用于配置地址的正则表达式，如果不设置，默认为 [^a-z0-9], 需谨慎使用, 有些符号可能导致无法收件
+- feat: worker 优化 webhook 逻辑, 支持 admin 配置全局 webhook, 添加 `message pusher` 集成示例
 
 ## v0.7.1
 
