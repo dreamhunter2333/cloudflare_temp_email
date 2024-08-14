@@ -1,10 +1,9 @@
 import { Context } from "hono";
 import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
-import { AdminWebhookSettings, WebhookSettings } from "../models";
+import { WebhookSettings } from "../models";
 import { getBooleanValue } from "../utils";
 import { commonParseMail, sendWebhook } from "../common";
-
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     if (!c.env.KV) {
@@ -13,43 +12,31 @@ async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response>
     if (!getBooleanValue(c.env.ENABLE_WEBHOOK)) {
         return c.text("Webhook is disabled", 403);
     }
-    const { address } = c.get("jwtPayload")
-    const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (!adminSettings?.allowList.includes(address)) {
-        return c.text("Webhook settings is not allowed for this user", 403);
-    }
     const settings = await c.env.KV.get<WebhookSettings>(
-        `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`, "json"
+        CONSTANTS.WEBHOOK_KV_ADMIN_MAIL_SETTINGS_KEY, "json"
     ) || new WebhookSettings();
     return c.json(settings);
 }
 
-
 async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
-    const { address } = c.get("jwtPayload")
-    const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (!adminSettings?.allowList.includes(address)) {
-        return c.text("Webhook settings is not allowed for this user", 403);
-    }
     const settings = await c.req.json<WebhookSettings>();
     await c.env.KV.put(
-        `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`,
+        CONSTANTS.WEBHOOK_KV_ADMIN_MAIL_SETTINGS_KEY,
         JSON.stringify(settings));
     return c.json({ success: true })
 }
 
 async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.req.json<WebhookSettings>();
-    const { address } = c.get("jwtPayload");
     // random raw email
     const raw = await c.env.DB.prepare(
-        `SELECT raw FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
-    ).bind(address).first<string>("raw");
+        `SELECT raw FROM raw_mails ORDER BY RANDOM() LIMIT 1`
+    ).first<string>("raw");
 
     const parsedEmail = await commonParseMail(raw);
     const res = await sendWebhook(settings, {
         from: parsedEmail?.sender || "test@test.com",
-        to: address,
+        to: "admin@test.com",
         subject: parsedEmail?.subject || "test subject",
         raw: raw || "test raw email",
         parsedText: parsedEmail?.text || "test parsed text",

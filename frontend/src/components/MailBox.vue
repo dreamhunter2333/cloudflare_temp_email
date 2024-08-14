@@ -14,37 +14,37 @@ const props = defineProps({
   enableUserDeleteEmail: {
     type: Boolean,
     default: false,
-    requried: false
+    required: false
   },
   showEMailTo: {
     type: Boolean,
     default: true,
-    requried: false
+    required: false
   },
   fetchMailData: {
     type: Function,
     default: () => { },
-    requried: true
+    required: true
   },
   deleteMail: {
     type: Function,
     default: () => { },
-    requried: false
+    required: false
   },
   showReply: {
     type: Boolean,
     default: false,
-    requried: false
+    required: false
   },
   showSaveS3: {
     type: Boolean,
     default: false,
-    requried: false
+    required: false
   },
   saveToS3: {
     type: Function,
     default: (mail_id, filename, blob) => { },
-    requried: false
+    required: false
   },
 })
 

@@ -119,3 +119,20 @@ export class UserInfo {
         this.userEmail = userEmail;
     }
 }
+
+export class WebhookSettings {
+    enabled: boolean = false
+    url: string = ''
+    method: string = 'POST'
+    headers: string = JSON.stringify({
+        "Content-Type": "application/json"
+    }, null, 2)
+    body: string = JSON.stringify({
+        "from": "${from}",
+        "to": "${to}",
+        "subject": "${subject}",
+        "raw": "${raw}",
+        "parsedText": "${parsedText}",
+        "parsedHtml": "${parsedHtml}",
+    }, null, 2)
+}

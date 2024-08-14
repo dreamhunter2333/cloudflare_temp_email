@@ -4,6 +4,8 @@ import { Jwt } from 'hono/utils/jwt'
 import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains } from './utils';
 import { HonoCustomType, UserRole } from './types';
 import { unbindTelegramByAddress } from './telegram_api/common';
+import { CONSTANTS } from './constants';
+import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 
@@ -272,4 +274,77 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
     }
     const user_role = await commonGetUserRole(c, user.user_id);
     return user_role?.domains || getDefaultDomains(c);;
+}
+
+export async function sendWebhook(settings: WebhookSettings, formatMap: WebhookMail): Promise<{ success: boolean, message?: string }> {
+    // send webhook
+    let body = settings.body;
+    for (const key of Object.keys(formatMap)) {
+        /* eslint-disable no-useless-escape */
+        body = body.replace(
+            new RegExp(`\\$\\{${key}\\}`, "g"),
+            JSON.stringify(
+                formatMap[key as keyof WebhookMail]
+            ).replace(/^"(.*)"$/, '\$1')
+        );
+        /* eslint-enable no-useless-escape */
+    }
+    const response = await fetch(settings.url, {
+        method: settings.method,
+        headers: JSON.parse(settings.headers),
+        body: body
+    });
+    if (!response.ok) {
+        console.log("send webhook error", response.status, response.statusText);
+        return { success: false, message: `send webhook error: ${response.status} ${response.statusText}` };
+    }
+    return { success: true }
+}
+
+export async function triggerWebhook(
+    c: Context<HonoCustomType>,
+    address: string,
+    raw_mail: string
+): Promise<void> {
+    if (!c.env.KV || !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
+        return
+    }
+    const webhookList: WebhookSettings[] = []
+
+    // admin mail webhook
+    const adminMailWebhookSettings = await c.env.KV.get<WebhookSettings>(CONSTANTS.WEBHOOK_KV_ADMIN_MAIL_SETTINGS_KEY, "json");
+    if (adminMailWebhookSettings?.enabled) {
+        webhookList.push(adminMailWebhookSettings)
+    }
+
+    // user mail webhook
+    const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
+    if (adminSettings?.allowList.includes(address)) {
+        const settings = await c.env.KV.get<WebhookSettings>(
+            `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`, "json"
+        );
+        if (settings?.enabled) {
+            webhookList.push(settings)
+        }
+    }
+
+    // no webhook
+    if (webhookList.length === 0) {
+        return
+    }
+    const parsedEmail = await commonParseMail(raw_mail);
+    const webhookMail = {
+        from: parsedEmail?.sender || "",
+        to: address,
+        subject: parsedEmail?.subject || "",
+        raw: raw_mail,
+        parsedText: parsedEmail?.text || "",
+        parsedHtml: parsedEmail?.html || ""
+    }
+    for (const settings of webhookList) {
+        const res = await sendWebhook(settings, webhookMail);
+        if (!res.success) {
+            console.error(res.message);
+        }
+    }
 }

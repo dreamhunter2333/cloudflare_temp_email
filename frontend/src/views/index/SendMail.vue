@@ -151,16 +151,15 @@ onMounted(async () => {
                     <n-button type="primary" tertiary @click="requestAccess" size="small">{{ t('requestAccess')
                         }}</n-button>
                 </n-alert>
-                <br />
                 <AdminContact />
             </div>
             <div v-else>
-                <n-alert type="info" :show-icon="false" :bordered="false">
+                <n-alert type="info" :show-icon="false" :bordered="false" closable>
                     {{ t('send_balance') }}: {{ settings.send_balance }}
                 </n-alert>
-                <div class="right">
+                <n-flex justify="end">
                     <n-button type="primary" @click="send">{{ t('send') }}</n-button>
-                </div>
+                </n-flex>
                 <div class="left">
                     <n-form :model="sendMailModel">
                         <n-form-item :label="t('fromName')" label-placement="top">
@@ -232,9 +231,7 @@ onMounted(async () => {
     justify-content: left;
 }
 
-.right {
-    text-align: right;
-    place-items: right;
-    justify-content: right;
+.n-alert {
+    margin-bottom: 10px;
 }
 </style>
