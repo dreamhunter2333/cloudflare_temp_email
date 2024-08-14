@@ -46,7 +46,7 @@ node_compat = true
 PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空字符串
 # (min, max) adderss的长度，如果不设置，默认为(1, 30)
 # ANNOUNCEMENT = "Custom Announcement" # 自定义公告
-# address name 的正则表达式，如果不设置，默认为 [^a-z0-9]
+# address name 的正则表达式，如果不设置，默认为 [^a-z0-9], 需谨慎使用, 有些符号可能导致无法收件
 # ADDRESS_REGEX = "[^a-z0-9]"
 # MIN_ADDRESS_LEN = 1
 # MAX_ADDRESS_LEN = 30

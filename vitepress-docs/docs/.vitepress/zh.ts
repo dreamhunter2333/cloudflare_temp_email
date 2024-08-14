@@ -135,6 +135,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 { text: '配置 Telegram Bot', link: 'feature/telegram' },
                 { text: '配置 S3 附件', link: 'feature/s3-attachment' },
                 { text: '配置 worker 使用 wasm 解析邮件', link: 'feature/mail_parser_wasm_worker' },
+                { text: '配置 webhook', link: 'feature/webhook' },
                 { text: '新建邮箱地址 API', link: 'feature/new-address-api' },
             ]
         },
