@@ -3,6 +3,12 @@
 
 ## v0.7.2
 
+### Breaking Changes
+
+`webhook` 的结构增加了 `enabled` 字段，已经配置了的需要重新在页面开启并保存。
+
+### Changes
+
 - fix: worker 增加 `NO_LIMIT_SEND_ROLE` 配置, 加载失败的问题
 - feat: worker 增加 `# ADDRESS_REGEX = "[^a-z.0-9]"` 配置, 用于配置地址的正则表达式，如果不设置，默认为 [^a-z0-9], 需谨慎使用, 有些符号可能导致无法收件
 - feat: worker 优化 webhook 逻辑, 支持 admin 配置全局 webhook, 添加 `message pusher` 集成示例
