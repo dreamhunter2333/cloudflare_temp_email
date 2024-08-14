@@ -8,6 +8,7 @@ import { CONSTANTS } from '../constants'
 import cleanup_api from './cleanup_api'
 import admin_user_api from './admin_user_api'
 import webhook_settings from './webhook_settings'
+import mail_webhook_settings from './mail_webhook_settings'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -291,9 +292,12 @@ api.post('/admin/account_settings', async (c) => {
     })
 })
 
+// cleanup
 api.post('/admin/cleanup', cleanup_api.cleanup)
 api.get('/admin/auto_cleanup', cleanup_api.getCleanup)
 api.post('/admin/auto_cleanup', cleanup_api.saveCleanup)
+
+// user settings
 api.get('/admin/user_settings', admin_user_api.getSetting)
 api.post('/admin/user_settings', admin_user_api.saveSetting)
 api.get('/admin/users', admin_user_api.getUsers)
@@ -302,5 +306,12 @@ api.post('/admin/users', admin_user_api.createUser)
 api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
 api.get('/admin/user_roles', async (c) => c.json(getUserRoles(c)))
 api.post('/admin/user_roles', admin_user_api.updateUserRoles)
+
+// webhook settings
 api.get("/admin/webhook/settings", webhook_settings.getWebhookSettings);
 api.post("/admin/webhook/settings", webhook_settings.saveWebhookSettings);
+
+// mail webhook settings
+api.get("/admin/mail_webhook/settings", mail_webhook_settings.getWebhookSettings);
+api.post("/admin/mail_webhook/settings", mail_webhook_settings.saveWebhookSettings);
+api.post("/admin/mail_webhook/test", mail_webhook_settings.testWebhookSettings);

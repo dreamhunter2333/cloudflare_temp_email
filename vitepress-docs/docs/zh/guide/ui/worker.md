@@ -35,6 +35,8 @@
 
     > [!NOTE]
     > 注意字符串格式的变量的最外层的引号是不需要的
+    >
+    > - 对于 `USER_ROLES` 请配置为此格式 `[{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"vip","prefix":"vip"},{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"admin","prefix":""}]`
 
     ![worker-var](/ui_install/worker-var.png)
 

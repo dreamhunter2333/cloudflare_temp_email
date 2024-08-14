@@ -12,7 +12,7 @@ const props = defineProps({
   enableUserDeleteEmail: {
     type: Boolean,
     default: false,
-    requried: false
+    required: false
   },
   showEMailFrom: {
     type: Boolean,
@@ -21,12 +21,12 @@ const props = defineProps({
   fetchMailData: {
     type: Function,
     default: () => { },
-    requried: true
+    required: true
   },
   deleteMail: {
     type: Function,
     default: () => { },
-    requried: false
+    required: false
   },
 })
 
