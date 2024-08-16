@@ -191,7 +191,7 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-tabs v-model:value="tabValue" size="large" justify-content="space-evenly">
+        <n-tabs v-model:value="tabValue" size="large" v-if="userOpenSettings.fetched" justify-content="space-evenly">
             <n-tab-pane name="signin" :tab="t('login')">
                 <n-form>
                     <n-form-item-row :label="t('email')" required>
