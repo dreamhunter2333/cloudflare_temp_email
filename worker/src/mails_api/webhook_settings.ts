@@ -7,12 +7,6 @@ import { commonParseMail, sendWebhook } from "../common";
 
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
-    if (!c.env.KV) {
-        return c.text("KV is not available", 400);
-    }
-    if (!getBooleanValue(c.env.ENABLE_WEBHOOK)) {
-        return c.text("Webhook is disabled", 403);
-    }
     const { address } = c.get("jwtPayload")
     const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
     if (!adminSettings?.allowList.includes(address)) {

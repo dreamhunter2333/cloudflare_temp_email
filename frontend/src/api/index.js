@@ -96,6 +96,8 @@ const getOpenSettings = async (message) => {
         }
     } catch (error) {
         message.error(error.message || "error");
+    } finally {
+        openSettings.value.fetched = true;
     }
 }
 
@@ -122,6 +124,8 @@ const getUserOpenSettings = async (message) => {
         Object.assign(userOpenSettings.value, res);
     } catch (error) {
         message.error(error.message || "fetch settings failed");
+    } finally {
+        userOpenSettings.value.fetched = true;
     }
 }
 

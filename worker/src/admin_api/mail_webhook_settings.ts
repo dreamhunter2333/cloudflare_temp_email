@@ -2,16 +2,9 @@ import { Context } from "hono";
 import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 import { WebhookSettings } from "../models";
-import { getBooleanValue } from "../utils";
 import { commonParseMail, sendWebhook } from "../common";
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
-    if (!c.env.KV) {
-        return c.text("KV is not available", 400);
-    }
-    if (!getBooleanValue(c.env.ENABLE_WEBHOOK)) {
-        return c.text("Webhook is disabled", 403);
-    }
     const settings = await c.env.KV.get<WebhookSettings>(
         CONSTANTS.WEBHOOK_KV_ADMIN_MAIL_SETTINGS_KEY, "json"
     ) || new WebhookSettings();

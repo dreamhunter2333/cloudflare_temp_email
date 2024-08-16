@@ -42,9 +42,11 @@ app.use('/*', async (c, next) => {
 			}
 		}
 	}
+	// webhook check
 	if (
 		c.req.path.startsWith("/api/webhook")
 		|| c.req.path.startsWith("/admin/webhook")
+		|| c.req.path.startsWith("/admin/mail_webhook")
 	) {
 		if (!c.env.KV) {
 			return c.text("KV is not available", 400);

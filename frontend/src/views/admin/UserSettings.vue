@@ -92,8 +92,8 @@ onMounted(async () => {
                         <n-checkbox v-model:checked="userSettings.enableMailVerify" style="width: 20%;">
                             {{ t('enable') }}
                         </n-checkbox>
-                        <n-input v-model:value="userSettings.verifyMailSender" style="width: 80%;"
-                            :placeholder="t('verifyMailSender')" />
+                        <n-input v-model:value="userSettings.verifyMailSender" v-if="userSettings.enableMailVerify"
+                            style="width: 80%;" :placeholder="t('verifyMailSender')" />
                     </n-input-group>
                 </n-form-item-row>
                 <n-form-item-row :label="t('enableMailAllowList')">
@@ -101,8 +101,9 @@ onMounted(async () => {
                         <n-checkbox v-model:checked="userSettings.enableMailAllowList" style="width: 20%;">
                             {{ t('enable') }}
                         </n-checkbox>
-                        <n-select v-model:value="userSettings.mailAllowList" filterable multiple tag style="width: 80%;"
-                            :options="mailAllowOptions" :placeholder="t('mailAllowList')" />
+                        <n-select v-model:value="userSettings.mailAllowList" v-if="userSettings.enableMailAllowList"
+                            filterable multiple tag style="width: 80%;" :options="mailAllowOptions"
+                            :placeholder="t('mailAllowList')" />
                     </n-input-group>
                 </n-form-item-row>
                 <n-form-item-row :label="t('maxAddressCount')">

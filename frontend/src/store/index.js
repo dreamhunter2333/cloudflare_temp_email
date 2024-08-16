@@ -8,6 +8,7 @@ export const useGlobalState = createGlobalState(
         const loading = ref(false);
         const announcement = useLocalStorage('announcement', '');
         const openSettings = ref({
+            fetched: false,
             title: '',
             announcement: '',
             prefix: '',
@@ -67,6 +68,7 @@ export const useGlobalState = createGlobalState(
         const globalTabplacement = useStorage('globalTabplacement', 'top');
         const useSideMargin = useStorage('useSideMargin', true);
         const userOpenSettings = ref({
+            fetched: false,
             enable: false,
             enableMailVerify: false,
         });
