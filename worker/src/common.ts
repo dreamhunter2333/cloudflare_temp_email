@@ -9,6 +9,24 @@ import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 
+const checkNameRegex = (c: Context<HonoCustomType>, name: string) => {
+    let error = null;
+    try {
+        const regexStr = getStringValue(c.env.ADDRESS_CHECK_REGEX);
+        if (!regexStr) return;
+        const regex = new RegExp(regexStr);
+        if (!regex.test(name)) {
+            error = new Error(`Name not match regex: /${regexStr}/`);
+        }
+    }
+    catch (e) {
+        console.error("Failed to check address regex", e);
+    }
+    if (error) {
+        throw error;
+    }
+}
+
 const getNameRegex = (c: Context<HonoCustomType>): RegExp => {
     try {
         const regex = getStringValue(c.env.ADDRESS_REGEX);
@@ -25,12 +43,25 @@ const getNameRegex = (c: Context<HonoCustomType>): RegExp => {
 
 export const newAddress = async (
     c: Context<HonoCustomType>,
-    name: string, domain: string | undefined | null,
-    enablePrefix: boolean,
-    checkLengthByConfig: boolean = true,
-    addressPrefix: string | undefined | null = null,
-    checkAllowDomains: boolean = true
+    {
+        name,
+        domain,
+        enablePrefix,
+        checkLengthByConfig = true,
+        addressPrefix = null,
+        checkAllowDomains = true,
+        enableCheckNameRegex = true,
+    }: {
+        name: string, domain: string | undefined | null,
+        enablePrefix: boolean,
+        checkLengthByConfig?: boolean,
+        addressPrefix?: string | undefined | null,
+        checkAllowDomains?: boolean,
+        enableCheckNameRegex?: boolean,
+    }
 ): Promise<{ address: string, jwt: string }> => {
+    // check name
+    if (enableCheckNameRegex) checkNameRegex(c, name);
     // remove special characters
     name = name.replace(getNameRegex(c), '')
     // name min length min 1
