@@ -41,7 +41,13 @@ api.post('/admin/new_address', async (c) => {
         return c.text("Please provide a name", 400)
     }
     try {
-        const res = await newAddress(c, name, domain, enablePrefix, false, null, false);
+        const res = await newAddress(c, {
+            name, domain, enablePrefix,
+            checkLengthByConfig: false,
+            addressPrefix: null,
+            checkAllowDomains: false,
+            enableCheckNameRegex: false,
+        });
         return c.json(res);
     } catch (e) {
         return c.text(`Failed create address: ${(e as Error).message}`, 400)

@@ -121,7 +121,12 @@ api.post('/api/new_address', async (c) => {
     }
     try {
         const addressPrefix = await getAddressPrefix(c);
-        const res = await newAddress(c, name, domain, true, true, addressPrefix);
+        const res = await newAddress(c, {
+            name, domain,
+            enablePrefix: true,
+            checkLengthByConfig: true,
+            addressPrefix
+        });
         return c.json(res);
     } catch (e) {
         return c.text(`Failed create address: ${(e as Error).message}`, 400)

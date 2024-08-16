@@ -29,10 +29,11 @@ export const tgUserNewAddress = async (
     if (blockList.some((item) => name.includes(item))) {
         throw Error(`Name[${name}]is blocked`);
     }
-    const res = await newAddress(c,
-        name || Math.random().toString(36).substring(2, 15),
-        domain, true
-    );
+    const res = await newAddress(c, {
+        name: name || Math.random().toString(36).substring(2, 15),
+        domain,
+        enablePrefix: true
+    });
     // for mail push to telegram
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, res.jwt]));
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${res.address}`, userId.toString());
