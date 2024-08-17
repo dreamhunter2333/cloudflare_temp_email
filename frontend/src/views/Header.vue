@@ -260,7 +260,7 @@ onMounted(async () => {
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
             :title="t('accessHeader')">
             <p>{{ t('accessTip') }}</p>
-            <n-input v-model:value="auth" type="textarea" :autosize="{ minRows: 3 }" />
+            <n-input v-model:value="auth" type="password" show-password-on="click" />
             <template #action>
                 <n-button :loading="loading" @click="authFunc" type="primary">
                     {{ t('ok') }}
