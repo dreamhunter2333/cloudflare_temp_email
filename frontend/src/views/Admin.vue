@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n'
 
 import { useGlobalState } from '../store'
@@ -30,6 +30,7 @@ const message = useMessage()
 
 const authFunc = async () => {
   try {
+    adminAuth.value = tmpAdminAuth.value;
     location.reload()
   } catch (error) {
     message.error(error.message || "error");
@@ -85,22 +86,21 @@ const { t } = useI18n({
   }
 });
 
+const showAdminPasswordModal = computed(() => !showAdminPage.value || showAdminAuth.value)
+const tmpAdminAuth = ref('')
+
 onMounted(async () => {
   // make sure user_id is fetched
   if (!userSettings.value.user_id) await api.getUserSettings(message);
-  if (!showAdminPage.value) {
-    showAdminAuth.value = true;
-    return;
-  }
 })
 </script>
 
 <template>
   <div>
-    <n-modal v-model:show="showAdminAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
-      :title="t('accessHeader')">
+    <n-modal v-model:show="showAdminPasswordModal" :closable="false" :closeOnEsc="false" :maskClosable="false"
+      preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
-      <n-input v-model:value="adminAuth" type="textarea" :autosize="{ minRows: 3 }" />
+      <n-input v-model:value="tmpAdminAuth" type="password" show-password-on="click" />
       <template #action>
         <n-button @click="authFunc" type="primary" :loading="loading">
           {{ t('ok') }}
