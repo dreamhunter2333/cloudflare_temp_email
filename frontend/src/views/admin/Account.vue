@@ -9,7 +9,7 @@ import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 
 const {
-    showAdminAuth, loading, adminTab,
+    loading, adminTab,
     adminMailTabAddress, adminSendBoxTabAddress
 } = useGlobalState()
 const message = useMessage()

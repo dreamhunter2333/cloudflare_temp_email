@@ -86,12 +86,12 @@ const { t } = useI18n({
 });
 
 onMounted(async () => {
+  // make sure user_id is fetched
+  if (!userSettings.value.user_id) await api.getUserSettings(message);
   if (!showAdminPage.value) {
     showAdminAuth.value = true;
     return;
   }
-  // make sure user_id is fetched
-  if (!userSettings.value.user_id) await api.getUserSettings(message);
 })
 </script>
 
