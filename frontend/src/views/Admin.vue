@@ -22,6 +22,7 @@ import Appearance from './common/Appearance.vue';
 import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
 import MailWebhook from './admin/MailWebhook.vue';
+import WorkerConfig from './admin/WorkerConfig.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
@@ -44,6 +45,7 @@ const { t } = useI18n({
       accessHeader: 'Admin Password',
       accessTip: 'Please enter the admin password',
       mails: 'Emails',
+      qucickSetup: 'Quick Setup',
       account: 'Account',
       account_create: 'Create Account',
       account_settings: 'Account Settings',
@@ -58,6 +60,7 @@ const { t } = useI18n({
       webhookSettings: 'Webhook Settings',
       statistics: 'Statistics',
       maintenance: 'Maintenance',
+      workerconfig: 'Worker Config',
       appearance: 'Appearance',
       about: 'About',
       ok: 'OK',
@@ -67,6 +70,7 @@ const { t } = useI18n({
       accessHeader: 'Admin 密码',
       accessTip: '请输入 Admin 密码',
       mails: '邮件',
+      qucickSetup: '快速设置',
       account: '账号',
       account_create: '创建账号',
       account_settings: '账号设置',
@@ -81,6 +85,7 @@ const { t } = useI18n({
       webhookSettings: 'Webhook 设置',
       statistics: '统计',
       maintenance: '维护',
+      workerconfig: 'Worker 配置',
       appearance: '外观',
       about: '关于',
       ok: '确定',
@@ -111,6 +116,19 @@ onMounted(async () => {
       </template>
     </n-modal>
     <n-tabs v-if="showAdminPage" type="card" v-model:value="adminTab" :placement="globalTabplacement">
+      <n-tab-pane name="qucickSetup" :tab="t('qucickSetup')">
+        <n-tabs type="bar" animated>
+          <n-tab-pane name="account_settings" :tab="t('account_settings')">
+            <AccountSettings />
+          </n-tab-pane>
+          <n-tab-pane name="user_settings" :tab="t('user_settings')">
+            <UserSettings />
+          </n-tab-pane>
+          <n-tab-pane name="workerconfig" :tab="t('workerconfig')">
+            <WorkerConfig />
+          </n-tab-pane>
+        </n-tabs>
+      </n-tab-pane>
       <n-tab-pane name="account" :tab="t('account')">
         <n-tabs type="bar" animated>
           <n-tab-pane name="account" :tab="t('account')">
@@ -151,13 +169,13 @@ onMounted(async () => {
           <n-tab-pane name="unknow" :tab="t('unknow')">
             <MailsUnknow />
           </n-tab-pane>
+          <n-tab-pane name="sendBox" :tab="t('sendBox')">
+            <SendBox />
+          </n-tab-pane>
           <n-tab-pane name="mailWebhook" :tab="t('mailWebhook')">
             <MailWebhook />
           </n-tab-pane>
         </n-tabs>
-      </n-tab-pane>
-      <n-tab-pane name="sendBox" :tab="t('sendBox')">
-        <SendBox />
       </n-tab-pane>
       <n-tab-pane name="telegram" :tab="t('telegram')">
         <Telegram />
@@ -166,7 +184,14 @@ onMounted(async () => {
         <Statistics />
       </n-tab-pane>
       <n-tab-pane name="maintenance" :tab="t('maintenance')">
-        <Maintenance />
+        <n-tabs type="bar" animated>
+          <n-tab-pane name="workerconfig" :tab="t('workerconfig')">
+            <WorkerConfig />
+          </n-tab-pane>
+          <n-tab-pane name="maintenance" :tab="t('maintenance')">
+            <Maintenance />
+          </n-tab-pane>
+        </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="appearance" :tab="t('appearance')">
         <Appearance />
