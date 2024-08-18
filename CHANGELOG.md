@@ -1,7 +1,7 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.7.3)
+## v0.7.3
 
 - feat: worker 增加 `ADDRESS_CHECK_REGEX`, address name 的正则表达式, 只用于检查，符合条件将通过检查
 - fix: UI 修复登录页面 tab 激活图标错位

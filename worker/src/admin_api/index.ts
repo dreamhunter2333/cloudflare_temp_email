@@ -10,6 +10,7 @@ import admin_user_api from './admin_user_api'
 import webhook_settings from './webhook_settings'
 import mail_webhook_settings from './mail_webhook_settings'
 import oauth2_settings from './oauth2_settings'
+import worker_config from './worker_config'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -326,3 +327,6 @@ api.post("/admin/webhook/settings", webhook_settings.saveWebhookSettings);
 api.get("/admin/mail_webhook/settings", mail_webhook_settings.getWebhookSettings);
 api.post("/admin/mail_webhook/settings", mail_webhook_settings.saveWebhookSettings);
 api.post("/admin/mail_webhook/test", mail_webhook_settings.testWebhookSettings);
+
+// worker config
+api.get("/admin/worker/configs", worker_config.getConfig);
