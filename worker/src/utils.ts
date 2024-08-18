@@ -1,17 +1,16 @@
 import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
 import { HonoCustomType, UserRole } from "./types";
-import { User } from "telegraf/types";
 
-export const getJsonSetting = async (
+export const getJsonSetting = async <T = any>(
     c: Context<HonoCustomType>, key: string
-): Promise<any> => {
+): Promise<T | null> => {
     const value = await getSetting(c, key);
     if (!value) {
         return null;
     }
     try {
-        return JSON.parse(value);
+        return JSON.parse(value) as T;
     } catch (e) {
         console.error(`GetJsonSetting: Failed to parse ${key}`, e);
     }

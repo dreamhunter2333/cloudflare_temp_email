@@ -2,6 +2,7 @@
 import { useMessage } from 'naive-ui'
 import { onMounted, ref } from "vue";
 import { useI18n } from 'vue-i18n'
+import { KeyFilled } from '@vicons/material'
 
 import { api } from '../../api';
 import { useGlobalState } from '../../store'
@@ -10,7 +11,10 @@ import { startAuthentication } from '@simplewebauthn/browser';
 
 import Turnstile from '../../components/Turnstile.vue';
 
-const { userJwt, userOpenSettings, openSettings } = useGlobalState()
+const {
+    userJwt, userOpenSettings, openSettings,
+    userOauth2SessionState, userOauth2SessionClientID
+} = useGlobalState()
 const message = useMessage();
 
 const { t } = useI18n({
@@ -33,6 +37,7 @@ const { t } = useI18n({
             pleaseCompleteTurnstile: 'Please complete turnstile',
             pleaseLogin: 'Please login',
             loginWithPasskey: 'Login with Passkey',
+            loginWith: 'Login with {provider}',
         },
         zh: {
             login: '登录',
@@ -52,6 +57,7 @@ const { t } = useI18n({
             pleaseCompleteTurnstile: '请完成人机验证',
             pleaseLogin: '请登录',
             loginWithPasskey: '使用 Passkey 登录',
+            loginWith: '使用 {provider} 登录',
         }
     }
 });
@@ -184,6 +190,18 @@ const passkeyLogin = async () => {
     }
 };
 
+const oauth2Login = async (clientID) => {
+    try {
+        userOauth2SessionClientID.value = clientID;
+        userOauth2SessionState.value = Math.random().toString(36).substring(2);
+        const res = await api.fetch(`/user_api/oauth2/login_url?clientID=${clientID}&state=${userOauth2SessionState.value}`);
+        // redirect to oauth2 login page
+        location.href = res.url;
+    } catch (error) {
+        message.error(error.message || "login failed");
+    }
+};
+
 onMounted(async () => {
 
 });
@@ -208,7 +226,14 @@ onMounted(async () => {
                     </n-button>
                     <n-divider />
                     <n-button @click="passkeyLogin" type="primary" block secondary strong>
+                        <template #icon>
+                            <n-icon :component="KeyFilled" />
+                        </template>
                         {{ t('loginWithPasskey') }}
+                    </n-button>
+                    <n-button @click="oauth2Login(item.clientID)" v-for="item in userOpenSettings.oauth2ClientIDs"
+                        :key="item.clientID" block secondary strong>
+                        {{ t('loginWith', { provider: item.name }) }}
                     </n-button>
                 </n-form>
             </n-tab-pane>
@@ -275,5 +300,9 @@ onMounted(async () => {
     text-align: center;
     place-items: center;
     justify-content: center;
+}
+
+.n-button {
+    margin-top: 10px;
 }
 </style>

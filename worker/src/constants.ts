@@ -6,6 +6,7 @@ export const CONSTANTS = {
     SEND_BLOCK_LIST_KEY: 'send_block_list',
     AUTO_CLEANUP_KEY: 'auto_cleanup',
     USER_SETTINGS_KEY: 'user_settings',
+    OAUTH2_SETTINGS_KEY: 'oauth2_settings',
     VERIFIED_ADDRESS_LIST_KEY: 'verified_address_list',
 
     // KV

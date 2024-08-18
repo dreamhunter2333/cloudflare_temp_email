@@ -9,6 +9,7 @@ import cleanup_api from './cleanup_api'
 import admin_user_api from './admin_user_api'
 import webhook_settings from './webhook_settings'
 import mail_webhook_settings from './mail_webhook_settings'
+import oauth2_settings from './oauth2_settings'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -312,6 +313,10 @@ api.post('/admin/users', admin_user_api.createUser)
 api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
 api.get('/admin/user_roles', async (c) => c.json(getUserRoles(c)))
 api.post('/admin/user_roles', admin_user_api.updateUserRoles)
+
+// user oauth2 settings
+api.get('/admin/user_oauth2_settings', oauth2_settings.getUserOauth2Settings)
+api.post('/admin/user_oauth2_settings', oauth2_settings.saveUserOauth2Settings)
 
 // webhook settings
 api.get("/admin/webhook/settings", webhook_settings.getWebhookSettings);
