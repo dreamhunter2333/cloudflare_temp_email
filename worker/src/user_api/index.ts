@@ -5,6 +5,7 @@ import settings from './settings';
 import user from './user';
 import bind_address from './bind_address';
 import passkey from './passkey';
+import oauth2 from './oauth2';
 
 export const api = new Hono<HonoCustomType>();
 
@@ -16,6 +17,10 @@ api.get('/user_api/settings', settings.settings);
 api.post('/user_api/login', user.login);
 api.post('/user_api/verify_code', user.verifyCode);
 api.post('/user_api/register', user.register);
+
+// oauth2 api
+api.get('/user_api/oauth2/login_url', oauth2.getOauth2LoginUrl);
+api.post('/user_api/oauth2/callback', oauth2.oauth2Login);
 
 // bind address api
 api.get('/user_api/bind_address', bind_address.getBindedAddresses);

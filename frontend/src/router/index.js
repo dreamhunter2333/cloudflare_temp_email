@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/Index.vue'
 import User from '../views/User.vue'
-import { useGlobalState } from '../store'
+import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -15,6 +15,11 @@ const router = createRouter({
             path: '/user',
             alias: "/:lang/user",
             component: User
+        },
+        {
+            path: '/user/oauth2/callback',
+            alias: "/:lang/user/oauth2/callback",
+            component: UserOauth2Callback
         },
         {
             path: '/admin',

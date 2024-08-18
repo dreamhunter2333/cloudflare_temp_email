@@ -127,6 +127,7 @@ app.use('/user_api/*', async (c, next) => {
 		|| c.req.path.startsWith("/user_api/login")
 		|| c.req.path.startsWith("/user_api/verify_code")
 		|| c.req.path.startsWith("/user_api/passkey/authenticate_")
+		|| c.req.path.startsWith("/user_api/oauth2")
 	) {
 		await next();
 		return;

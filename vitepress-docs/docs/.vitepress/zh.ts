@@ -96,7 +96,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         },
         {
             text: '通过命令行部署',
-            collapsed: true,
+            collapsed: false,
             items: [
                 { text: '命令行部署准备', link: 'cli/pre-requisite' },
                 { text: 'D1 数据库', link: 'cli/d1' },
@@ -108,7 +108,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         },
         {
             text: '通过用户界面部署',
-            collapsed: true,
+            collapsed: false,
             items: [
                 { text: 'D1 数据库', link: 'ui/d1' },
                 { text: 'Cloudflare workers 后端', link: 'ui/worker' },
@@ -119,14 +119,14 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         },
         {
             text: '通过 Github Actions 部署',
-            collapsed: true,
+            collapsed: false,
             items: [
                 { text: '通过 Github Actions 部署', link: 'github-action' },
             ]
         },
         {
             text: '附加功能',
-            collapsed: true,
+            collapsed: false,
             items: [
                 { text: '配置 SMTP IMAP 代理服务', link: 'feature/config-smtp-proxy' },
                 { text: '发送邮件 API', link: 'feature/send-mail-api' },
@@ -137,11 +137,12 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 { text: '配置 worker 使用 wasm 解析邮件', link: 'feature/mail_parser_wasm_worker' },
                 { text: '配置 webhook', link: 'feature/webhook' },
                 { text: '新建邮箱地址 API', link: 'feature/new-address-api' },
+                { text: 'Oauth2 第三方登录', link: 'feature/user-oauth2' },
             ]
         },
         {
             text: '功能简介',
-            collapsed: true,
+            collapsed: false,
             items: [
                 { text: 'Admin 控制台', link: 'feature/admin' },
                 { text: 'Admin 用户管理', link: 'feature/admin-user-management' },
