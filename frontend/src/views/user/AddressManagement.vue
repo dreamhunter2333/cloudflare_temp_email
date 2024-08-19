@@ -164,7 +164,13 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <div style="overflow: auto;">
         <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
     </div>
 </template>
+
+<style scoped>
+.n-data-table {
+    min-width: 700px;
+}
+</style>

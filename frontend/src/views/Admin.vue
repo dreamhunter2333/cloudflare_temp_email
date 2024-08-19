@@ -117,7 +117,7 @@ onMounted(async () => {
     </n-modal>
     <n-tabs v-if="showAdminPage" type="card" v-model:value="adminTab" :placement="globalTabplacement">
       <n-tab-pane name="qucickSetup" :tab="t('qucickSetup')">
-        <n-tabs type="bar" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="account_settings" :tab="t('account_settings')">
             <AccountSettings />
           </n-tab-pane>
@@ -130,7 +130,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="account" :tab="t('account')">
-        <n-tabs type="bar" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="account" :tab="t('account')">
             <Account />
           </n-tab-pane>
@@ -149,7 +149,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="user" :tab="t('user')">
-        <n-tabs type="bar" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="user_management" :tab="t('user_management')">
             <UserManagement />
           </n-tab-pane>
@@ -162,7 +162,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="mails" :tab="t('mails')">
-        <n-tabs type="bar" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="mails" :tab="t('mails')">
             <Mails />
           </n-tab-pane>
@@ -184,7 +184,7 @@ onMounted(async () => {
         <Statistics />
       </n-tab-pane>
       <n-tab-pane name="maintenance" :tab="t('maintenance')">
-        <n-tabs type="bar" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="workerconfig" :tab="t('workerconfig')">
             <WorkerConfig />
           </n-tab-pane>

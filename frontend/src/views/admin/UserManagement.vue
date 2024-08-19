@@ -368,21 +368,23 @@ onMounted(async () => {
                 {{ t('query') }}
             </n-button>
         </n-input-group>
-        <div style="display: inline-block;">
-            <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"
-                :page-sizes="[20, 50, 100]" show-size-picker>
-                <template #prefix="{ itemCount }">
-                    {{ t('itemCount') }}: {{ itemCount }}
-                </template>
-                <template #suffix>
-                    <n-button @click="showCreateUser = true" size="small" tertiary type="primary"
-                        style="margin-left: 10px">
-                        {{ t('createUser') }}
-                    </n-button>
-                </template>
-            </n-pagination>
+        <div style="overflow: auto;">
+            <div style="display: inline-block;">
+                <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"
+                    :page-sizes="[20, 50, 100]" show-size-picker>
+                    <template #prefix="{ itemCount }">
+                        {{ t('itemCount') }}: {{ itemCount }}
+                    </template>
+                    <template #suffix>
+                        <n-button @click="showCreateUser = true" size="small" tertiary type="primary"
+                            style="margin-left: 10px">
+                            {{ t('createUser') }}
+                        </n-button>
+                    </template>
+                </n-pagination>
+            </div>
+            <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
         </div>
-        <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
     </div>
 </template>
 
@@ -390,5 +392,9 @@ onMounted(async () => {
 .n-pagination {
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+.n-data-table {
+    min-width: 800px;
 }
 </style>
