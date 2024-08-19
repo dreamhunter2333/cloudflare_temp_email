@@ -36,6 +36,7 @@ class WebhookSettings {
 
 const webhookSettings = ref(new WebhookSettings([]))
 const webhookEnabled = ref(false)
+const errorInfo = ref('')
 
 const getSettings = async () => {
     try {
@@ -43,7 +44,7 @@ const getSettings = async () => {
         Object.assign(webhookSettings.value, res)
         webhookEnabled.value = true
     } catch (error) {
-        message.error((error as Error).message || "error");
+        errorInfo.value = (error as Error).message || "error";
     }
 }
 
@@ -75,7 +76,7 @@ onMounted(async () => {
                 {{ t('save') }}
             </n-button>
         </n-card>
-        <n-result v-else status="404" :title="t('notEnabled')" />
+        <n-result v-else status="404" :title="t('notEnabled')" :description="errorInfo" />
     </div>
 </template>
 
