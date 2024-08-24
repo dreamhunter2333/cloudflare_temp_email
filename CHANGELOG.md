@@ -1,9 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.7.4)
+## v0.7.4
 
 - feat: UI 列表页面增加最小宽度
+- fix: 修复 `name` 的校验检查
+- fix: 修复 `DEFAULT_DOMAINS` 配置为空不生效的问题
 
 ## v0.7.3
 

@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains } from './utils';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting } from './utils';
 import { HonoCustomType, UserRole } from './types';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
@@ -60,10 +60,13 @@ export const newAddress = async (
         enableCheckNameRegex?: boolean,
     }
 ): Promise<{ address: string, jwt: string }> => {
-    // check name
-    if (enableCheckNameRegex) checkNameRegex(c, name);
     // remove special characters
     name = name.replace(getNameRegex(c), '')
+    // check name
+    if (enableCheckNameRegex) {
+        await checkNameBlockList(c, name);
+        checkNameRegex(c, name);
+    }
     // name min length min 1
     const minAddressLength = Math.max(
         checkLengthByConfig ? getIntValue(c.env.MIN_ADDRESS_LEN, 1) : 1,
@@ -124,6 +127,21 @@ export const newAddress = async (
     return {
         jwt: jwt,
         address: name,
+    }
+}
+
+const checkNameBlockList = async (
+    c: Context<HonoCustomType>, name: string
+): Promise<void> => {
+    // check name block list
+    try {
+        const value = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
+        const blockList = (value || []) as string[];
+        if (blockList.some((item) => name.includes(item))) {
+            throw new Error(`Name[${name}]is blocked`);
+        }
+    } catch (error) {
+        console.error(error);
     }
 }
 
