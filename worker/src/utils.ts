@@ -97,9 +97,11 @@ export const getStringArray = (
 }
 
 export const getDefaultDomains = (c: Context<HonoCustomType>): string[] => {
+    if (c.env.DEFAULT_DOMAINS == undefined || c.env.DEFAULT_DOMAINS == null) {
+        return getDomains(c);
+    }
     const domains = getStringArray(c.env.DEFAULT_DOMAINS);
-    if (domains && domains.length > 0) return domains;
-    return getDomains(c);
+    return domains || getDomains(c);
 }
 
 export const getDomains = (c: Context<HonoCustomType>): string[] => {
