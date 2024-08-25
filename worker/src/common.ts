@@ -134,14 +134,15 @@ const checkNameBlockList = async (
     c: Context<HonoCustomType>, name: string
 ): Promise<void> => {
     // check name block list
+    const blockList = [] as string[];
     try {
         const value = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
-        const blockList = (value || []) as string[];
-        if (blockList.some((item) => name.includes(item))) {
-            throw new Error(`Name[${name}]is blocked`);
-        }
+        blockList.push(...(value || []));
     } catch (error) {
         console.error(error);
+    }
+    if (blockList.some((item) => name.includes(item))) {
+        throw new Error(`Name[${name}]is blocked`);
     }
 }
 
