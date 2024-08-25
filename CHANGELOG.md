@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## v0.7.5
+
+- fix: 修复 `name` 的校验检查
+
 ## v0.7.4
 
 - feat: UI 列表页面增加最小宽度
