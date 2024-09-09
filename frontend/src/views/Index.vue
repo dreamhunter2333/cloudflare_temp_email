@@ -1,6 +1,7 @@
 <script setup>
-import { defineAsyncComponent } from 'vue'
+import { defineAsyncComponent, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -17,6 +18,7 @@ import About from './common/About.vue';
 const SendMail = defineAsyncComponent(() => import('./index/SendMail.vue'));
 const { settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
 const message = useMessage()
+const route = useRoute()
 
 const { t } = useI18n({
   messages: {
@@ -30,6 +32,7 @@ const { t } = useI18n({
       s3Attachment: 'S3 Attachment',
       saveToS3Success: 'save to s3 success',
       webhookSettings: 'Webhook Settings',
+      query: 'Query',
     },
     zh: {
       mailbox: '收件箱',
@@ -41,11 +44,17 @@ const { t } = useI18n({
       s3Attachment: 'S3附件',
       saveToS3Success: '保存到s3成功',
       webhookSettings: 'Webhook 设置',
+      query: '查询',
     }
   }
 });
 
 const fetchMailData = async (limit, offset) => {
+  if (mailIdQuery.value > 0) {
+    const singleMail = await api.fetch(`/api/mail/${mailIdQuery.value}`);
+    if (singleMail) return { results: [singleMail], count: 1 };
+    return { results: [], count: 0 };
+  }
   return await api.fetch(`/api/mails?limit=${limit}&offset=${offset}`);
 };
 
@@ -80,6 +89,30 @@ const saveToS3 = async (mail_id, filename, blob) => {
     message.error(error.message || "save to s3 error");
   }
 }
+
+const mailBoxKey = ref("")
+const mailIdQuery = ref("")
+const showMailIdQuery = ref(false)
+
+const queryMail = () => {
+  mailBoxKey.value = Date.now();
+}
+
+watch(route, () => {
+  if (!route.query.mail_id) {
+    showMailIdQuery.value = false;
+    mailIdQuery.value = "";
+    queryMail();
+  }
+})
+
+onMounted(() => {
+  if (route.query.mail_id) {
+    showMailIdQuery.value = true;
+    mailIdQuery.value = route.query.mail_id;
+    queryMail();
+  }
+})
 </script>
 
 <template>
@@ -87,9 +120,17 @@ const saveToS3 = async (mail_id, filename, blob) => {
     <AddressBar />
     <n-tabs v-if="settings.address" type="card" v-model:value="indexTab" :placement="globalTabplacement">
       <n-tab-pane name="mailbox" :tab="t('mailbox')">
-        <MailBox :showEMailTo="false" :showReply="true" :showSaveS3="openSettings.isS3Enabled" :saveToS3="saveToS3"
-          :enableUserDeleteEmail="openSettings.enableUserDeleteEmail" :fetchMailData="fetchMailData"
-          :deleteMail="deleteMail" />
+        <div v-if="showMailIdQuery" style="margin-bottom: 10px;">
+          <n-input-group>
+            <n-input v-model:value="mailIdQuery" />
+            <n-button @click="queryMail" type="primary" tertiary>
+              {{ t('query') }}
+            </n-button>
+          </n-input-group>
+        </div>
+        <MailBox :key="mailBoxKey" :showEMailTo="false" :showReply="true" :showSaveS3="openSettings.isS3Enabled"
+          :saveToS3="saveToS3" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
+          :fetchMailData="fetchMailData" :deleteMail="deleteMail" />
       </n-tab-pane>
       <n-tab-pane name="sendbox" :tab="t('sendbox')">
         <SendBox :fetchMailData="fetchSenboxData" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"

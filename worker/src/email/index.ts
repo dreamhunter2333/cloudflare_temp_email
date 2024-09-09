@@ -50,7 +50,7 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     try {
         await triggerWebhook(
             { env: env } as Context<HonoCustomType>,
-            message.to, rawEmail
+            message.to, rawEmail, message_id
         );
     } catch (error) {
         console.log("send webhook error", error);

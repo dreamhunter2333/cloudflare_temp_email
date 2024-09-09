@@ -22,6 +22,8 @@ export class AdminWebhookSettings {
 }
 
 export type WebhookMail = {
+    id: string;
+    url?: string;
     from: string;
     to: string;
     subject: string;
@@ -128,6 +130,8 @@ export class WebhookSettings {
         "Content-Type": "application/json"
     }, null, 2)
     body: string = JSON.stringify({
+        "id": "${id}",
+        "url": "${url}",
         "from": "${from}",
         "to": "${to}",
         "subject": "${subject}",
