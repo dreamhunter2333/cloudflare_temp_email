@@ -4,11 +4,12 @@ import { Telegraf, Context as TgContext, Markup } from "telegraf";
 import { callbackQuery } from "telegraf/filters";
 
 import { CONSTANTS } from "../constants";
-import { getDomains, getStringValue } from '../utils';
+import { getDomains, getJsonObjectValue, getStringValue } from '../utils';
 import { HonoCustomType } from "../types";
 import { TelegramSettings } from "./settings";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 import { commonParseMail } from "../common";
+import { UserFromGetMe } from "telegraf/types";
 
 
 const COMMANDS = [
@@ -44,6 +45,10 @@ const COMMANDS = [
 
 export function newTelegramBot(c: Context<HonoCustomType>, token: string): Telegraf {
     const bot = new Telegraf(token);
+    const botInfo = getJsonObjectValue<UserFromGetMe>(c.env.TG_BOT_INFO);
+    if (botInfo) {
+        bot.botInfo = botInfo;
+    }
 
     bot.use(async (ctx, next) => {
         // check if in private chat
