@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## main(v0.7.6)
+
+- feat: 支持提前设置 bot info, 降低 telegram 回调延迟 (#441)
+
 ## v0.7.5
 
 - fix: 修复 `name` 的校验检查

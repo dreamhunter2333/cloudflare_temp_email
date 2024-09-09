@@ -2,6 +2,26 @@ import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
 import { HonoCustomType, UserRole } from "./types";
 
+export const getJsonObjectValue = <T = any>(
+    value: string | any
+): T | null => {
+    if (value == undefined || value == null) {
+        return null;
+    }
+    if (typeof value === "object") {
+        return value as T;
+    }
+    if (typeof value !== "string") {
+        return null;
+    }
+    try {
+        return JSON.parse(value) as T;
+    } catch (e) {
+        console.error(`GetJsonValue: Failed to parse ${value}`, e);
+    }
+    return null;
+}
+
 export const getJsonSetting = async <T = any>(
     c: Context<HonoCustomType>, key: string
 ): Promise<T | null> => {
