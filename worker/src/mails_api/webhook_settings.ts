@@ -36,12 +36,14 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const settings = await c.req.json<WebhookSettings>();
     const { address } = c.get("jwtPayload");
     // random raw email
-    const raw = await c.env.DB.prepare(
-        `SELECT raw FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
-    ).bind(address).first<string>("raw");
+    const { id: mailId, raw } = await c.env.DB.prepare(
+        `SELECT id, raw FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
+    ).bind(address).first<{ id: string, raw: string }>() || {};
 
     const parsedEmail = await commonParseMail(raw);
     const res = await sendWebhook(settings, {
+        id: mailId || "0",
+        url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
         from: parsedEmail?.sender || "test@test.com",
         to: address,
         subject: parsedEmail?.subject || "test subject",

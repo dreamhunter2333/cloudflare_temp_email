@@ -99,6 +99,8 @@ ENABLE_AUTO_REPLY = false
 # TG_BOT_INFO = "{}"
 # 全局转发地址列表，如果不配置则不启用，启用后所有邮件都会转发到列表中的地址
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
+# 前端地址，用于发送 webhook 的邮件 url
+# FRONTEND_URL = "https://xxxx.xxx"
 
 # D1 数据库的名称和 ID 可以在 cloudflare 控制台查看
 [[d1_databases]]
