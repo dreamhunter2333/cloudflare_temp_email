@@ -25,3 +25,20 @@
 ## 某个邮箱配置 webhook
 
 ![telegram](/feature/address-webhook.png)
+
+## webhook 数据格式
+
+要获取 url 需要配置 worker 的 `FRONTEND_URL` 为你的前端地址，或者你可以通过 `id` 自己拼接 url = `${FRONTEND_URL}?mail_id=${id}`
+
+```json
+{
+    "id": "${id}",
+    "url": "${url}",
+    "from": "${from}",
+    "to": "${to}",
+    "subject": "${subject}",
+    "raw": "${raw}",
+    "parsedText": "${parsedText}",
+    "parsedHtml": "${parsedHtml}",
+}
+```
