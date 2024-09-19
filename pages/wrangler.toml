@@ -1,4 +1,4 @@
-name = "temp-email-pages"
+name = "cfemail"
 pages_build_output_dir = "../frontend/dist"
 compatibility_date = "2024-05-13"
 
