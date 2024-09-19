@@ -1,4 +1,4 @@
-name = "cloudflare_temp_email"
+name = "cfemail"
 main = "src/worker.ts"
 compatibility_date = "2023-12-01"
 node_compat = true
@@ -16,36 +16,36 @@ node_compat = true
 # ]
 
 [vars]
-# TITLE = "Custom Title" # custom title
+TITLE = "RYF's Email" # custom title
 # ANNOUNCEMENT = "Custom Announcement"
 PREFIX = "tmp"
 # address check REGEX, if not set, will not check
-# ADDRESS_CHECK_REGEX = "^(?!.*admin).*"
+ADDRESS_CHECK_REGEX = "^(?!.*admin).*"
 # address name replace REGEX, if not set, the default is [^a-z0-9]
-# ADDRESS_REGEX = "[^a-z0-9]"
+ADDRESS_REGEX = "[^a-z0-9]"
 # (min, max) length of the adderss, if not set, the default is (1, 30)
-# MIN_ADDRESS_LEN = 1
-# MAX_ADDRESS_LEN = 30
+MIN_ADDRESS_LEN = 1
+MAX_ADDRESS_LEN = 30
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
-# PASSWORDS = ["123", "456"]
+PASSWORDS = ["sex736926334sex.", "456"]
 # For admin panel
-# ADMIN_PASSWORDS = ["123", "456"]
+ADMIN_PASSWORDS = ["sex736926334sex.", "456"]
 # warning: no password or user check for admin portal
-# DISABLE_ADMIN_PASSWORD_CHECK = false
+DISABLE_ADMIN_PASSWORD_CHECK = true
 # ADMIN CONTACT, CAN BE ANY STRING
 # ADMIN_CONTACT = "xx@xx.xxx"
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
-DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all domain names
+DOMAINS = ["luer.eu.org" , "luer.000.pe"] # all domain names
 # For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
 # DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
-# USER_DEFAULT_ROLE = "vip" # default role for new users(only when enable mail verification)
-# ADMIN_USER_ROLE = "admin" # the role which can access admin panel
+USER_DEFAULT_ROLE = "vip" # default role for new users(only when enable mail verification)
+ADMIN_USER_ROLE = "admin" # the role which can access admin panel
 # User roles configuration, if domains is empty will use default_domains, if prefix is null will use default prefix, if prefix is empty string will not use prefix
-# USER_ROLES = [
-#    { domains = ["xxx.xxx1" , "xxx.xxx2"], role = "vip", prefix = "vip" },
-#    { domains = ["xxx.xxx1" , "xxx.xxx2"], role = "admin", prefix = "" },
+USER_ROLES = [
+#    { domains = ["luer.eu.org" , "luer.000.pe"], role = "vip", prefix = "vip" },
+#    { domains = ["luer.eu.org" , "luer.000.pe"], role = "admin", prefix = "" },
 # ]
-JWT_SECRET = "xxx"
+JWT_SECRET = "luer"
 BLACK_LIST = ""
 # Allow users to create email addresses
 ENABLE_USER_CREATE_EMAIL = true
@@ -54,13 +54,13 @@ ENABLE_USER_DELETE_EMAIL = true
 # Allow automatic replies to emails
 ENABLE_AUTO_REPLY = false
 # Allow webhook
-# ENABLE_WEBHOOK = true
+ENABLE_WEBHOOK = true
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # DISABLE_SHOW_GITHUB = true
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
-# NO_LIMIT_SEND_ROLE = "vip" # the role which can send emails without limit
+NO_LIMIT_SEND_ROLE = "vip" # the role which can send emails without limit
 # Turnstile verification
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
@@ -75,8 +75,8 @@ ENABLE_AUTO_REPLY = false
 
 [[d1_databases]]
 binding = "DB"
-database_name = "xxx"
-database_id = "xxx"
+database_name = "cf-temp-email"
+database_id = "9088dd92-b4ac-46b9-bc3d-3cc1e92cc134"
 
 # kv config for send email verification code
 # [[kv_namespaces]]
