@@ -1,7 +1,7 @@
 name = "cloudflare_temp_email"
 main = "src/worker.ts"
-compatibility_date = "2023-12-01"
-node_compat = true
+compatibility_date = "2024-09-23"
+compatibility_flags = [ "nodejs_compat" ]
 # if you want use custom_domain, you need to add routes
 # routes = [
 # 	{ pattern = "temp-email-api.xxxxx.xyz", custom_domain = true },
