@@ -265,7 +265,7 @@ export const commonParseMail = async (raw_mail: string | undefined | null): Prom
     if (!raw_mail) {
         return undefined;
     }
-     TODO: WASM parse email
+     // TODO: WASM parse email
      try {
          const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
 
