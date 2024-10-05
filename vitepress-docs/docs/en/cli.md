@@ -61,8 +61,8 @@ pnpm run deploy
 ```toml
 name = "cloudflare_temp_email"
 main = "src/worker.ts"
-compatibility_date = "2023-08-14"
-node_compat = true
+compatibility_date = "2024-09-23"
+compatibility_flags = [ "nodejs_compat" ]
 
 # enable cron if you want set auto clean up
 # [triggers]
