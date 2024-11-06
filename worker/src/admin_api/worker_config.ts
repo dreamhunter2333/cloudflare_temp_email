@@ -40,7 +40,8 @@ export default {
             "S3_ENABLED": isS3Enabled(c),
             "VERSION": CONSTANTS.VERSION,
             "DISABLE_SHOW_GITHUB": !getBooleanValue(c.env.DISABLE_SHOW_GITHUB),
-            "DISABLE_ADMIN_PASSWORD_CHECK": getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK)
+            "DISABLE_ADMIN_PASSWORD_CHECK": getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK),
+            "ENABLE_CHECK_JUNK_MAIL": getBooleanValue(c.env.ENABLE_CHECK_JUNK_MAIL),
         })
     }
 }

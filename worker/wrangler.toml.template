@@ -72,6 +72,8 @@ ENABLE_AUTO_REPLY = false
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 # Frontend URL
 # FRONTEND_URL = "https://xxxx.xxx"
+# Enable check junk mail
+# ENABLE_CHECK_JUNK_MAIL = false
 
 [[d1_databases]]
 binding = "DB"
