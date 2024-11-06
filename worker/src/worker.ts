@@ -55,6 +55,12 @@ app.use('/*', async (c, next) => {
 			return c.text("Webhook is disabled", 403);
 		}
 	}
+	if (!c.env.DB) {
+		return c.text("DB is not available", 400);
+	}
+	if (!c.env.JWT_SECRET) {
+		return c.text("JWT_SECRET is not set", 400);
+	}
 	await next()
 });
 
