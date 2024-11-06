@@ -260,7 +260,8 @@ export const commonParseMail = async (raw_mail: string | undefined | null): Prom
     sender: string,
     subject: string,
     text: string,
-    html: string
+    html: string,
+    headers?: Record<string, string>[]
 } | undefined> => {
     if (!raw_mail) {
         return undefined;
@@ -287,6 +288,7 @@ export const commonParseMail = async (raw_mail: string | undefined | null): Prom
             subject: parsedEmail.subject || "",
             text: parsedEmail.text || "",
             html: parsedEmail.html || "",
+            headers: parsedEmail.headers || [],
         };
     }
     catch (e) {

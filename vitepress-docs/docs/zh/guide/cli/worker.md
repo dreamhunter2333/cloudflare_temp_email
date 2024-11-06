@@ -103,6 +103,8 @@ ENABLE_AUTO_REPLY = false
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 # 前端地址，用于发送 webhook 的邮件 url
 # FRONTEND_URL = "https://xxxx.xxx"
+# 是否启用垃圾邮件检查
+# ENABLE_CHECK_JUNK_MAIL = false
 
 # D1 数据库的名称和 ID 可以在 cloudflare 控制台查看
 [[d1_databases]]

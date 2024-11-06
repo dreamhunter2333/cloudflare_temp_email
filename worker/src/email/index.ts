@@ -6,6 +6,7 @@ import { Bindings, HonoCustomType } from "../types";
 import { auto_reply } from "./auto_reply";
 import { isBlocked } from "./black_list";
 import { triggerWebhook } from "../common";
+import { check_if_junk_mail } from "./check_junk";
 
 
 async function email(message: ForwardableEmailMessage, env: Bindings, ctx: ExecutionContext) {
@@ -15,6 +16,19 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
         return;
     }
     const rawEmail = await new Response(message.raw).text();
+
+    // check if junk mail
+    try {
+        const is_junk = await check_if_junk_mail(env, message.to, rawEmail, message.headers.get("Message-ID"));
+        if (is_junk) {
+            message.setReject("Junk mail");
+            console.log(`Junk mail from ${message.from} to ${message.to}`);
+            return;
+        }
+    } catch (error) {
+        console.log("check junk mail error", error);
+    }
+
     const message_id = message.headers.get("Message-ID");
     // save email
     const { success } = await env.DB.prepare(

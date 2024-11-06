@@ -5,6 +5,7 @@
 
 - feat: 支持提前设置 bot info, 降低 telegram 回调延迟 (#441)
 - feat: 增加 telegram mini app 的 build 压缩包
+- feat: 增加是否启用垃圾邮件检查 `ENABLE_CHECK_JUNK_MAIL` 配置
 
 ## v0.7.5
 
