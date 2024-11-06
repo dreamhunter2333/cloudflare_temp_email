@@ -4,6 +4,7 @@
 ## main(v0.7.6)
 
 - feat: 支持提前设置 bot info, 降低 telegram 回调延迟 (#441)
+- feat: 增加 telegram mini app 的 build 压缩包
 
 ## v0.7.5
 
