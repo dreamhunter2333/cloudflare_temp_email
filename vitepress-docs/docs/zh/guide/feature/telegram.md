@@ -25,6 +25,21 @@ pnpm wrangler secret put TELEGRAM_BOT_TOKEN
 
 ## Mini App
 
+可以通过命令行部署，或者 UI 界面部署
+
+### UI 部署
+
+其他步骤参考 [UI 部署](/zh/guide/cli/pages) 中的 `前后端分离部署`
+
+> [!NOTE]
+> 从这里下载 zip, [telegram-frontend.zip](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/telegram-frontend.zip)
+>
+> 修改压缩包里面的 index-xxx.js 文件 ，xx 是随机的字符串
+>
+> 搜索 `https://temp-email-api.xxx.xxx` ，替换成你worker 的域名，然后部署新的zip文件
+
+### 命令行部署
+
 ```bash
 cd frontend
 pnpm install
