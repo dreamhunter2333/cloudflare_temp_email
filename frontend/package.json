@@ -8,6 +8,7 @@
     "build": "vite build -m prod --emptyOutDir",
     "build:release": "vite build -m example --emptyOutDir",
     "build:pages": "vite build -m pages --emptyOutDir",
+    "build:pages:nopwa": "VITE_PWA_DISABLED=true vite build -m pages --emptyOutDir",
     "build:telegram": "VITE_IS_TELEGRAM=true vite build -m prod --emptyOutDir",
     "build:telegram:release": "VITE_IS_TELEGRAM=true vite build -m example --emptyOutDir",
     "preview": "vite preview",

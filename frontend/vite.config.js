@@ -35,7 +35,7 @@ export default defineConfig({
       resolvers: [NaiveUiResolver()]
     }),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: process.env.VITE_PWA_DISABLED == "true" ? null : 'autoUpdate',
       devOptions: {
         enabled: true
       },
