@@ -41,6 +41,7 @@ pnpm run deploy
 ```bash
 cd frontend
 pnpm install
+# 如果你要启用 Cloudflare Zero Trust, 需要使用 pnpm build:pages:nopwa 来禁用缓存
 pnpm build:pages
 cd ../pages
 pnpm run deploy
