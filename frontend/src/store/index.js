@@ -70,6 +70,7 @@ export const useGlobalState = createGlobalState(
         const indexTab = useSessionStorage('indexTab', 'mailbox');
         const globalTabplacement = useStorage('globalTabplacement', 'top');
         const useSideMargin = useStorage('useSideMargin', true);
+        const useUTCDate = useStorage('useUTCDate', false);
         const userOpenSettings = ref({
             fetched: false,
             enable: false,
@@ -127,6 +128,7 @@ export const useGlobalState = createGlobalState(
             userSettings,
             globalTabplacement,
             useSideMargin,
+            useUTCDate,
             telegramApp,
             isTelegram,
             showAdminPage,
