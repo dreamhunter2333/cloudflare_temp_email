@@ -124,6 +124,10 @@ const generateName = async () => {
             .replace(/\.{2,}/g, '.')
             .replace(addressRegex.value, '')
             .toLowerCase();
+        // support maxAddressLen
+        if (emailName.value.length > openSettings.value.maxAddressLen) {
+            emailName.value = emailName.value.slice(0, openSettings.value.maxAddressLen);
+        }
     } catch (error) {
         message.error(error.message || "error");
     } finally {
