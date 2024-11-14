@@ -39,6 +39,13 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
+      workbox: {
+        disableDevLogs: true,
+        globPatterns: [],
+        runtimeCaching: [],
+        navigateFallback: null,
+        cleanupOutdatedCaches: true,
+      },
       manifest: {
         name: 'Temp Email',
         short_name: 'Temp Email',
