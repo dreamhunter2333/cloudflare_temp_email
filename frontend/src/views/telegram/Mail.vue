@@ -5,8 +5,9 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { onMounted, watch } from 'vue';
 import { processItem } from '../../utils/email-parser'
+import { utcToLocalDate } from '../../utils';
 
-const { telegramApp, loading } = useGlobalState()
+const { telegramApp, loading, useUTCDate } = useGlobalState()
 const route = useRoute()
 
 const curMail = ref({});
@@ -50,7 +51,7 @@ onMounted(async () => {
                 ID: {{ curMail.id }}
             </n-tag>
             <n-tag type="info">
-                Date: {{ curMail.created_at }}
+                Date: {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
             </n-tag>
             <n-tag type="info">
                 FROM: {{ curMail.source }}

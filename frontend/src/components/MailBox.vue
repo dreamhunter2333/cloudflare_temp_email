@@ -6,6 +6,7 @@ import { useGlobalState } from '../store'
 import { CloudDownloadRound, ReplyFilled } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
 import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
+import { utcToLocalDate } from '../utils';
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -49,7 +50,7 @@ const props = defineProps({
 })
 
 const {
-  isDark, mailboxSplitSize, indexTab, loading,
+  isDark, mailboxSplitSize, indexTab, loading, useUTCDate,
   useIframeShowMail, sendMailModel, preferShowTextMail
 } = useGlobalState()
 const autoRefresh = ref(false)
@@ -375,7 +376,7 @@ onBeforeUnmount(() => {
                       ID: {{ row.id }}
                     </n-tag>
                     <n-tag type="info">
-                      {{ `${row.created_at} UTC` }}
+                      {{ utcToLocalDate(row.created_at, useUTCDate) }}
                     </n-tag>
                     <n-tag type="info">
                       FROM: {{ row.source }}
@@ -397,7 +398,7 @@ onBeforeUnmount(() => {
                 ID: {{ curMail.id }}
               </n-tag>
               <n-tag type="info">
-                {{ `${curMail.created_at} UTC` }}
+                {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
               </n-tag>
               <n-tag type="info">
                 FROM: {{ curMail.source }}
@@ -471,7 +472,7 @@ onBeforeUnmount(() => {
                   ID: {{ row.id }}
                 </n-tag>
                 <n-tag type="info">
-                  {{ `${row.created_at} UTC` }}
+                  {{ utcToLocalDate(row.created_at, useUTCDate) }}
                 </n-tag>
                 <n-tag type="info">
                   FROM: {{ row.source }}
@@ -493,7 +494,7 @@ onBeforeUnmount(() => {
                 ID: {{ curMail.id }}
               </n-tag>
               <n-tag type="info">
-                {{ `${curMail.created_at} UTC` }}
+                {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
               </n-tag>
               <n-tag type="info">
                 FROM: {{ curMail.source }}

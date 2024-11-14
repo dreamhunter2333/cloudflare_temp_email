@@ -6,7 +6,7 @@ import { useGlobalState } from '../../store'
 
 const {
     mailboxSplitSize, useIframeShowMail, preferShowTextMail,
-    globalTabplacement, useSideMargin
+    globalTabplacement, useSideMargin, useUTCDate
 } = useGlobalState()
 const isMobile = useIsMobile()
 
@@ -22,6 +22,7 @@ const { t } = useI18n({
             top: 'top',
             right: 'right',
             bottom: 'bottom',
+            useUTCDate: 'Use UTC Date',
         },
         zh: {
             mailboxSplitSize: '邮箱界面分栏大小',
@@ -33,6 +34,7 @@ const { t } = useI18n({
             top: '顶部',
             right: '右侧',
             bottom: '底部',
+            useUTCDate: '使用 UTC 时间',
         }
     }
 });
@@ -53,6 +55,9 @@ const { t } = useI18n({
             </n-form-item-row>
             <n-form-item-row :label="t('useIframeShowMail')">
                 <n-switch v-model:value="useIframeShowMail" :round="false" />
+            </n-form-item-row>
+            <n-form-item-row :label="t('useUTCDate')">
+                <n-switch v-model:value="useUTCDate" :round="false" />
             </n-form-item-row>
             <n-form-item-row v-if="!isMobile" :label="t('useSideMargin')">
                 <n-switch v-model:value="useSideMargin" :round="false" />

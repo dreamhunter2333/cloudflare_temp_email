@@ -4,6 +4,7 @@ import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
 import { useIsMobile } from '../utils/composables'
+import { utcToLocalDate } from '../utils';
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -30,7 +31,7 @@ const props = defineProps({
   },
 })
 
-const { isDark, mailboxSplitSize, loading } = useGlobalState()
+const { isDark, mailboxSplitSize, loading, useUTCDate } = useGlobalState()
 const data = ref([])
 
 const count = ref(0)
@@ -251,7 +252,7 @@ onMounted(async () => {
                       ID: {{ row.id }}
                     </n-tag>
                     <n-tag type="info">
-                      {{ `${row.created_at} UTC` }}
+                      {{ utcToLocalDate(row.created_at, useUTCDate) }}
                     </n-tag>
                     <n-tag v-if="showEMailFrom" type="info">
                       FROM: {{ row.address }}
@@ -273,7 +274,7 @@ onMounted(async () => {
                 ID: {{ curMail.id }}
               </n-tag>
               <n-tag type="info">
-                {{ `${curMail.created_at} UTC` }}
+                {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
               </n-tag>
               <n-tag type="info">
                 FROM: {{ curMail.address }}
@@ -320,7 +321,7 @@ onMounted(async () => {
                   ID: {{ row.id }}
                 </n-tag>
                 <n-tag type="info">
-                  {{ `${row.created_at} UTC` }}
+                  {{ utcToLocalDate(row.created_at, useUTCDate) }}
                 </n-tag>
                 <n-tag v-if="showEMailFrom" type="info">
                   FROM: {{ row.address }}
@@ -342,7 +343,7 @@ onMounted(async () => {
                 ID: {{ curMail.id }}
               </n-tag>
               <n-tag type="info">
-                {{ `${curMail.created_at} UTC` }}
+                {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
               </n-tag>
               <n-tag type="info">
                 FROM: {{ curMail.address }}
