@@ -2,12 +2,8 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { createI18n } from 'vue-i18n'
 import router from './router'
-import { registerSW } from 'virtual:pwa-register'
 import { createHead } from '@unhead/vue'
 
-const disablePwa = import.meta.env.VITE_PWA_DISABLED === 'true';
-
-if (!disablePwa) registerSW({ immediate: true })
 const i18n = createI18n({
     legacy: false, // you must set `false`, to use Composition API
     locale: 'zh', // set locale
