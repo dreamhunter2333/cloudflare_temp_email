@@ -1,7 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.8.0)
+# main(v0.8.1)
+
+- feat: |Doc| 更新 UI 安装的文档
+
+## v0.8.0
 
 - feat: |UI| 随机生成地址时不超过最大长度
 - feat: |UI| 邮件时间显示浏览器时区，可在设置中切换显示为 UTC 时间
