@@ -37,7 +37,7 @@ export default defineConfig({
     VitePWA({
       registerType: null,
       devOptions: {
-        enabled: true
+        enabled: false
       },
       workbox: {
         disableDevLogs: true,

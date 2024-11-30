@@ -126,10 +126,6 @@ const fetchData = async () => {
 
 const columns = [
     {
-        title: "ID",
-        key: "id"
-    },
-    {
         title: t('name'),
         key: "name"
     },
