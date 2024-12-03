@@ -30,7 +30,7 @@ const { t } = useI18n({
             save: '保存',
             successTip: '保存成功',
             enable: '启用',
-            enableMailAllowList: '启用邮件地址白名单(可手动输入)',
+            enableMailAllowList: '启用邮件地址白名单(可手动输入, 回车增加)',
             mailAllowList: '邮件地址白名单',
             addOauth2: '添加 Oauth2',
             name: '名称',
