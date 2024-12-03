@@ -1,6 +1,7 @@
 # 通过 Github Actions 部署
 
 ::: warning
+目前只支持 worker 和 pages 的部署，D1 数据库以及 Email 部分请参考 [UI/CLI 部署](/)。
 有问题请通过 `Github Issues` 反馈，感谢。
 :::
 
