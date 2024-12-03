@@ -1,5 +1,9 @@
 # 配置 Telegram Bot
 
+::: warning 注意
+worker 默认的 `worker.dev` 域名的证书是不被 telegram 支持的，配置 Telegram Bot 请使用自定义域名
+:::
+
 > [!NOTE]
 > 如果要使用 Telegram Bot, 请先绑定 `KV`
 >
