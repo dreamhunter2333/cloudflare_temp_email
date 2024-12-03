@@ -1,7 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-# main(v0.8.1)
+# main(v0.8.2)
+
+- feat: |Doc| 修复文档中的一些错误
+
+# v0.8.2
 
 - feat: |Doc| 更新 UI 安装的文档
 - feat: |UI| 对用户隐藏邮箱账号的 ID
