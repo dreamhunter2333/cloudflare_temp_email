@@ -13,13 +13,13 @@ const { t } = useI18n({
     messages: {
         en: {
             successTip: 'Success',
-            webhookAllowList: 'Webhook Allow List(Enter the address that is allowed to use webhook)',
+            webhookAllowList: 'Webhook Allow List(Enter the address that is allowed to use webhook and enter)',
             save: 'Save',
             notEnabled: 'Webhook is not enabled',
         },
         zh: {
             successTip: '成功',
-            webhookAllowList: 'Webhook 白名单(请输入允许使用webhook 的地址)',
+            webhookAllowList: 'Webhook 白名单(请输入允许使用webhook 的地址, 回车增加)',
             save: '保存',
             notEnabled: 'Webhook 未开启',
         }

@@ -28,7 +28,7 @@ const { t } = useI18n({
             enableUserRegister: "允许用户注册",
             enableMailVerify: '启用邮件验证(发送地址必须是系统中能有余额且能正常发送邮件的地址)',
             verifyMailSender: '验证邮件发送地址',
-            enableMailAllowList: '启用邮件地址白名单(可手动输入)',
+            enableMailAllowList: '启用邮件地址白名单(可手动输入, 回车增加)',
             mailAllowList: '邮件地址白名单',
             maxAddressCount: '可绑定最大邮箱地址数量',
         }

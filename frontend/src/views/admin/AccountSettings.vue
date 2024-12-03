@@ -11,7 +11,7 @@ const message = useMessage()
 const { t } = useI18n({
     messages: {
         en: {
-            tip: 'You can manually input the following multiple select input',
+            tip: 'You can manually input the following multiple select input and enter',
             save: 'Save',
             successTip: 'Save Success',
             address_block_list: 'Address Block Keywords for Users(Admin can skip)',
@@ -21,7 +21,7 @@ const { t } = useI18n({
             fromBlockList: 'Block Keywords for receive email',
         },
         zh: {
-            tip: '您可以手动输入以下多选输入框',
+            tip: '您可以手动输入以下多选输入框, 回车增加',
             save: '保存',
             successTip: '保存成功',
             address_block_list: '邮件地址屏蔽关键词(管理员可跳过检查)',
@@ -76,7 +76,7 @@ onMounted(async () => {
 <template>
     <div class="center">
         <n-card :bordered="false" embedded style="max-width: 600px;">
-            <n-alert :show-icon="false" style="margin-bottom: 10px;">
+            <n-alert :show-icon="false" type="warning" style="margin-bottom: 10px;">
                 {{ t("tip") }}
             </n-alert>
             <n-form-item-row :label="t('address_block_list')">
