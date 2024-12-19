@@ -38,12 +38,12 @@ jobs:
           export frontend_branch=${{ secrets.FRONTEND_BRANCH }}
           if [ -n "$frontend_branch" ]; then
             echo "Deploying branch $frontend_branch"
-            pnpm run deploy:actions --project-name=$project_name
+            pnpm run deploy:actions --project-name=$project_name --branch $frontend_branch
           else
-            echo "Deploying branch prodcution"
+            echo "Deploying branch production"
             pnpm run deploy --project-name=$project_name
           fi
-          echo "Deploying prodcution for ${{ github.ref_name }}"
+          echo "Deploying production for ${{ github.ref_name }}"
           echo "Deployed for tag ${{ github.ref_name }}"
 
           export tg_mini_app_project_name=${{ secrets.TG_FRONTEND_NAME }}
@@ -51,9 +51,9 @@ jobs:
             echo "Deploying telegram mini app $tg_mini_app_project_name"
             if [ -n "$frontend_branch" ]; then
               echo "Deploying telegram mini app branch $frontend_branch"
-              pnpm run deploy:actions:telegram --project-name=$tg_mini_app_project_name
+              pnpm run deploy:actions:telegram --project-name=$tg_mini_app_project_name --branch $frontend_branch
             else
-              echo "Deploying telegram mini app branch prodcution"
+              echo "Deploying telegram mini app branch production"
               pnpm run deploy:telegram --project-name=$tg_mini_app_project_name
             fi
             echo "Deployed telegram mini app for ${{ github.ref_name }}"
