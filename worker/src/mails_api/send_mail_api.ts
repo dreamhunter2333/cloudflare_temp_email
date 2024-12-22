@@ -110,7 +110,12 @@ export const sendMail = async (
     }
     const user_role = c.get("userRolePayload");
     const is_no_limit_send_balance = user_role && user_role === getStringValue(c.env.NO_LIMIT_SEND_ROLE);
-    if (!is_no_limit_send_balance && !options?.isAdmin) {
+    // no need find noLimitSendAddressList if is_no_limit_send_balance
+    const noLimitSendAddressList = is_no_limit_send_balance ?
+        [] : await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY) || [];
+    const isNoLimitSendAddress = noLimitSendAddressList?.includes(address);
+    const needCheckBalance = !is_no_limit_send_balance && !options?.isAdmin && !isNoLimitSendAddress;
+    if (needCheckBalance) {
         // check permission
         const balance = await c.env.DB.prepare(
             `SELECT balance FROM address_sender
@@ -161,7 +166,7 @@ export const sendMail = async (
         throw new Error("Please enable resend or verified address list")
     }
     // update balance
-    if (!sendByVerifiedAddressList && !is_no_limit_send_balance && !options?.isAdmin) {
+    if (!sendByVerifiedAddressList && needCheckBalance) {
         try {
             const { success } = await c.env.DB.prepare(
                 `UPDATE address_sender SET balance = balance - 1 where address = ?`
