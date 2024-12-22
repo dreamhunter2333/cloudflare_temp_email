@@ -94,6 +94,9 @@ export const sendMail = async (
     reqJson: {
         from_name: string, to_mail: string, to_name: string,
         subject: string, content: string, is_html: boolean
+    },
+    options?: {
+        isAdmin?: boolean
     }
 ): Promise<void> => {
     if (!address) {
@@ -107,7 +110,7 @@ export const sendMail = async (
     }
     const user_role = c.get("userRolePayload");
     const is_no_limit_send_balance = user_role && user_role === getStringValue(c.env.NO_LIMIT_SEND_ROLE);
-    if (!is_no_limit_send_balance) {
+    if (!is_no_limit_send_balance && !options?.isAdmin) {
         // check permission
         const balance = await c.env.DB.prepare(
             `SELECT balance FROM address_sender
@@ -158,7 +161,7 @@ export const sendMail = async (
         throw new Error("Please enable resend or verified address list")
     }
     // update balance
-    if (!sendByVerifiedAddressList && !is_no_limit_send_balance) {
+    if (!sendByVerifiedAddressList && !is_no_limit_send_balance && !options?.isAdmin) {
         try {
             const { success } = await c.env.DB.prepare(
                 `UPDATE address_sender SET balance = balance - 1 where address = ?`

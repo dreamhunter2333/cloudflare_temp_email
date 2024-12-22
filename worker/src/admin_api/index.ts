@@ -11,6 +11,7 @@ import webhook_settings from './webhook_settings'
 import mail_webhook_settings from './mail_webhook_settings'
 import oauth2_settings from './oauth2_settings'
 import worker_config from './worker_config'
+import { sendMailbyAdmin } from './send_mail'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -330,3 +331,6 @@ api.post("/admin/mail_webhook/test", mail_webhook_settings.testWebhookSettings);
 
 // worker config
 api.get("/admin/worker/configs", worker_config.getConfig);
+
+// send mail by admin
+api.post("/admin/send_mail", sendMailbyAdmin);
