@@ -3,7 +3,9 @@
 
 # main(v0.8.2)
 
-- feat: |Doc| 修复文档中的一些错误
+- fix: |Doc| 修复文档中的一些错误
+- fix: |Github Action| 修复 frontend 部署分支错误的问题
+- fix: admin 发送邮件功能
 
 # v0.8.2
 

@@ -23,6 +23,7 @@ import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
 import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
+import SendMail from './admin/SendMail.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
@@ -45,6 +46,7 @@ const { t } = useI18n({
       accessHeader: 'Admin Password',
       accessTip: 'Please enter the admin password',
       mails: 'Emails',
+      sendMail: 'Send Mail',
       qucickSetup: 'Quick Setup',
       account: 'Account',
       account_create: 'Create Account',
@@ -70,6 +72,7 @@ const { t } = useI18n({
       accessHeader: 'Admin 密码',
       accessTip: '请输入 Admin 密码',
       mails: '邮件',
+      sendMail: '发送邮件',
       qucickSetup: '快速设置',
       account: '账号',
       account_create: '创建账号',
@@ -171,6 +174,9 @@ onMounted(async () => {
           </n-tab-pane>
           <n-tab-pane name="sendBox" :tab="t('sendBox')">
             <SendBox />
+          </n-tab-pane>
+          <n-tab-pane name="sendMail" :tab="t('sendMail')">
+            <SendMail />
           </n-tab-pane>
           <n-tab-pane name="mailWebhook" :tab="t('mailWebhook')">
             <MailWebhook />
