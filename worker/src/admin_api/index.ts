@@ -257,11 +257,13 @@ api.get('/admin/account_settings', async (c) => {
         const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
         const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY);
         const fromBlockList = c.env.KV ? await c.env.KV.get<string[]>(CONSTANTS.EMAIL_KV_BLACK_LIST, 'json') : [];
+        const noLimitSendAddressList = await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY);
         return c.json({
             blockList: blockList || [],
             sendBlockList: sendBlockList || [],
             verifiedAddressList: verifiedAddressList || [],
-            fromBlockList: fromBlockList || []
+            fromBlockList: fromBlockList || [],
+            noLimitSendAddressList: noLimitSendAddressList || []
         })
     } catch (error) {
         console.error(error);
@@ -271,7 +273,10 @@ api.get('/admin/account_settings', async (c) => {
 
 api.post('/admin/account_settings', async (c) => {
     /** @type {{ blockList: Array<string>, sendBlockList: Array<string> }} */
-    const { blockList, sendBlockList, verifiedAddressList, fromBlockList } = await c.req.json();
+    const {
+        blockList, sendBlockList, noLimitSendAddressList,
+        verifiedAddressList, fromBlockList
+    } = await c.req.json();
     if (!blockList || !sendBlockList || !verifiedAddressList) {
         return c.text("Invalid blockList or sendBlockList", 400)
     }
@@ -296,6 +301,10 @@ api.post('/admin/account_settings', async (c) => {
     if (fromBlockList) {
         await c.env.KV.put(CONSTANTS.EMAIL_KV_BLACK_LIST, JSON.stringify(fromBlockList || []))
     }
+    await saveSetting(
+        c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY,
+        JSON.stringify(noLimitSendAddressList || [])
+    )
     return c.json({
         success: true
     })
