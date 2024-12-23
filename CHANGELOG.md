@@ -1,14 +1,18 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-# main(v0.8.2)
+## main(v0.8.3)
+
+- TODO
+
+## v0.8.2
 
 - fix: |Doc| 修复文档中的一些错误
 - fix: |Github Action| 修复 frontend 部署分支错误的问题
 - feat: admin 发送邮件功能
 - feat: admin 后台，账号配置页面添加无限发送邮件的地址列表
 
-# v0.8.1
+## v0.8.1
 
 - feat: |Doc| 更新 UI 安装的文档
 - feat: |UI| 对用户隐藏邮箱账号的 ID
