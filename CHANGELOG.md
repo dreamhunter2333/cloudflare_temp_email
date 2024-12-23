@@ -3,7 +3,7 @@
 
 ## main(v0.8.3)
 
-- TODO
+- feat: |Github Action| 增加自动更新并部署功能
 
 ## v0.8.2
 

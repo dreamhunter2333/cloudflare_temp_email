@@ -1,9 +1,10 @@
 name: Deploy Frontend
 
 on:
+  workflow_run:
+    workflows: [Upstream Sync]
+    types: [completed]
   push:
-    paths:
-      - "frontend/**"
     tags:
       - "*"
   workflow_dispatch:

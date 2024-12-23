@@ -1,6 +1,9 @@
 name: Deploy Backend Production
 
 on:
+  workflow_run:
+    workflows: [Upstream Sync]
+    types: [completed]
   push:
     tags:
       - "*"
