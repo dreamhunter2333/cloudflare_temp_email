@@ -35,10 +35,31 @@ impl AttachmentResult {
     }
 }
 
+#[derive(Clone)]
+#[wasm_bindgen]
+pub struct MessageHeader {
+    key: String,
+    value: String,
+}
+
+#[wasm_bindgen]
+impl MessageHeader {
+    #[wasm_bindgen(getter)]
+    pub fn key(&self) -> String {
+        self.key.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn value(&self) -> String {
+        self.value.clone()
+    }
+}
+
 #[wasm_bindgen]
 pub struct MessageResult {
     sender: String,
     subject: String,
+    headers: Vec<MessageHeader>,
     body_html: String,
     text: String,
     attachments: Vec<AttachmentResult>,
@@ -54,6 +75,11 @@ impl MessageResult {
     #[wasm_bindgen(getter)]
     pub fn subject(&self) -> String {
         self.subject.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn headers(&self) -> Vec<MessageHeader> {
+        self.headers.clone()
     }
 
     #[wasm_bindgen(getter)]
@@ -119,6 +145,7 @@ pub fn parse_message(raw_message: &str) -> MessageResult {
         return MessageResult {
             sender: String::new(),
             subject: String::new(),
+            headers: Vec::new(),
             body_html: String::new(),
             text: String::new(),
             attachments: Vec::new(),
@@ -146,6 +173,14 @@ pub fn parse_message(raw_message: &str) -> MessageResult {
             .subject()
             .map(|subject| subject.to_owned())
             .unwrap_or(String::new()),
+        headers: message
+            .headers()
+            .iter()
+            .map(|header| MessageHeader {
+                key: header.name().to_owned(),
+                value: header.value().as_text().unwrap_or("").to_owned(),
+            })
+            .collect(),
         body_html: message
             .body_html(0)
             .map(|html| html.into_owned())

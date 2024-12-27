@@ -32,6 +32,7 @@ export const commonParseMail = async (raw_mail: string | undefined | null): Prom
             sender: parsedEmail.sender || "",
             subject: parsedEmail.subject || "",
             text: parsedEmail.text || "",
+            headers: parsedEmail.headers || [],
             html: parsedEmail.body_html || "",
         };
     } catch (e) {
