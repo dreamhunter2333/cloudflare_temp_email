@@ -7,6 +7,10 @@
 
 请查看通过 [命令行部署](/zh/guide/cli/pre-requisite) 或者 [用户界面部署](/zh/guide/ui/d1)
 
+## 网友提供的详细的小白教程
+
+- [【教程】小白也能看懂的自建Cloudflare临时邮箱教程（域名邮箱）](https://linux.do/t/topic/316819/1)
+
 ## 升级流程
 
 首先确认当前的版本，然后访问 [Release 页面](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/) 和 [CHANGELOG 页面](https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/CHANGELOG.md) 中找到当前的版本
