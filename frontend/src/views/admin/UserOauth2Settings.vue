@@ -17,6 +17,7 @@ const { t } = useI18n({
     messages: {
         en: {
             save: 'Save',
+            delete: 'Delete',
             successTip: 'Save Success',
             enable: 'Enable',
             enableMailAllowList: 'Enable Mail Address Allow List(Manually enterable)',
@@ -28,6 +29,7 @@ const { t } = useI18n({
         },
         zh: {
             save: '保存',
+            delete: '删除',
             successTip: '保存成功',
             enable: '启用',
             enableMailAllowList: '启用邮件地址白名单(可手动输入, 回车增加)',
@@ -193,8 +195,19 @@ onMounted(async () => {
                     {{ t('save') }}
                 </n-button>
             </n-flex>
-            <n-collapse default-expanded-names="1" accordion>
+            <n-divider />
+            <n-collapse default-expanded-names="1" accordion :trigger-areas="['main', 'arrow']">
                 <n-collapse-item v-for="(item, index) in userOauth2Settings" :key="index" :title="item.name">
+                    <template #header-extra>
+                        <n-popconfirm @positive-click="userOauth2Settings.splice(index, 1)">
+                            <template #trigger>
+                                <n-button tertiary type="error">
+                                    {{ t('delete') }}
+                                </n-button>
+                            </template>
+                            {{ t('delete') }}
+                        </n-popconfirm>
+                    </template>
                     <n-form :model="item">
                         <n-form-item-row :label="t('name')" required>
                             <n-input v-model:value="item.name" />
