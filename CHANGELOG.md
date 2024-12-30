@@ -5,6 +5,7 @@
 
 - feat: |Github Action| 增加自动更新并部署功能
 - feat: |UI| admin 用户设置，支持 oauth2 配置的删除
+- feat: 增加垃圾邮件检测必须通过的列表 `JUNK_MAIL_FORCE_PASS_LIST` 配置
 
 ## v0.8.2
 
