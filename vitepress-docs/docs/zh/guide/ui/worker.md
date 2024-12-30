@@ -8,7 +8,7 @@
 
     ![worker1](/ui_install/worker-1.png)
 
-3. 回到 `Overview`，找到刚刚创建的 worker，点击 `Settings` -> `Runtime`, 修改 `Compatibility flags`, 增加 `nodejs_compat`
+3. 回到 `Overview`，找到刚刚创建的 worker，点击 `Settings` -> `Runtime`, 修改 `Compatibility flags`, 增加 `nodejs_compat`, 兼容日期也需要大于图片中的日期。
 
     ![worker-runtime](/ui_install/worker-runtime.png)
 

@@ -4,6 +4,7 @@
 ## main(v0.8.3)
 
 - feat: |Github Action| 增加自动更新并部署功能
+- feat: |UI| admin 用户设置，支持 oauth2 配置的删除
 
 ## v0.8.2
 
