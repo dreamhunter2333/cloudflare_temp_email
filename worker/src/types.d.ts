@@ -43,6 +43,7 @@ export type Bindings = {
     FORWARD_ADDRESS_LIST: string | string[] | undefined
 
     ENABLE_CHECK_JUNK_MAIL: string | boolean | undefined
+    JUNK_MAIL_FORCE_PASS_LIST: string | string[] | undefined
 
     // s3 config
     S3_ENDPOINT: string | undefined

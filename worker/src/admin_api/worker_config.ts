@@ -42,6 +42,7 @@ export default {
             "DISABLE_SHOW_GITHUB": !getBooleanValue(c.env.DISABLE_SHOW_GITHUB),
             "DISABLE_ADMIN_PASSWORD_CHECK": getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK),
             "ENABLE_CHECK_JUNK_MAIL": getBooleanValue(c.env.ENABLE_CHECK_JUNK_MAIL),
+            "JUNK_MAIL_FORCE_PASS_LIST": getStringArray(c.env.JUNK_MAIL_FORCE_PASS_LIST),
         })
     }
 }
