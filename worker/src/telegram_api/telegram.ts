@@ -41,6 +41,10 @@ const COMMANDS = [
         command: "mails",
         description: "查看邮件, 请输入 /mails <邮箱地址>, 不输入地址默认查看第一个地址"
     },
+    {
+        command: "cleaninvalidadress",
+        description: "清理无效地址, 请输入 /cleaninvalidadress"
+    },
 ]
 
 export function newTelegramBot(c: Context<HonoCustomType>, token: string): Telegraf {
@@ -177,6 +181,26 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             );
         } catch (e) {
             return await ctx.reply(`获取地址列表失败: ${(e as Error).message}`);
+        }
+    });
+
+    bot.command("cleaninvalidadress", async (ctx: TgContext) => {
+        const userId = ctx?.message?.from?.id;
+        if (!userId) {
+            return await ctx.reply("无法获取用户信息");
+        }
+        try {
+            const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
+            const { invalidJwtList } = await jwtListToAddressData(c, jwtList);
+            const newJwtList = jwtList.filter(jwt => !invalidJwtList.includes(jwt));
+            await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify(newJwtList));
+            const { addressList } = await jwtListToAddressData(c, newJwtList);
+            return await ctx.reply(`清理无效地址成功:\n\n`
+                + `当前地址列表:\n\n`
+                + addressList.map(a => `地址: ${a}`).join("\n")
+            );
+        } catch (e) {
+            return await ctx.reply(`清理无效地址失败: ${(e as Error).message}`);
         }
     });
 

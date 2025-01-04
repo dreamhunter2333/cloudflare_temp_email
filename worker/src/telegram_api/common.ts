@@ -42,9 +42,13 @@ export const tgUserNewAddress = async (
 
 export const jwtListToAddressData = async (
     c: Context<HonoCustomType>, jwtList: string[]
-): Promise<{ addressList: string[], addressIdMap: Record<string, number> }> => {
+): Promise<{
+    addressList: string[], addressIdMap: Record<string, number>,
+    invalidJwtList: string[]
+}> => {
     const addressList = [] as string[];
     const addressIdMap = {} as Record<string, number>;
+    const invalidJwtList = [] as string[];
     for (const jwt of jwtList) {
         try {
             const { address, address_id } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
@@ -52,10 +56,11 @@ export const jwtListToAddressData = async (
             addressIdMap[address as string] = address_id as number;
         } catch (e) {
             addressList.push("无效凭证");
+            invalidJwtList.push(jwt);
             console.log(`获取地址列表失败: ${(e as Error).message}`);
         }
     }
-    return { addressList, addressIdMap };
+    return { addressList, addressIdMap, invalidJwtList };
 }
 
 export const bindTelegramAddress = async (
