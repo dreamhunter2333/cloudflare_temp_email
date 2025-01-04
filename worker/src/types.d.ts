@@ -33,6 +33,7 @@ export type Bindings = {
     ENABLE_AUTO_REPLY: string | boolean | undefined
     ENABLE_WEBHOOK: string | boolean | undefined
     ENABLE_USER_CREATE_EMAIL: string | boolean | undefined
+    DISABLE_ANONYMOUS_USER_CREATE_EMAIL: string | boolean | undefined
     ENABLE_USER_DELETE_EMAIL: string | boolean | undefined
     ENABLE_INDEX_ABOUT: string | boolean | undefined
     DEFAULT_SEND_BALANCE: number | string | undefined

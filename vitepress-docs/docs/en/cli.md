@@ -107,6 +107,8 @@ JWT_SECRET = "xxx" # Key used to generate jwt
 BLACK_LIST = "" # Blacklist, used to filter senders, comma separated
 # Allow users to create email addresses
 ENABLE_USER_CREATE_EMAIL = true
+# Disable anonymous user create email, if set true, users can only create email addresses after logging in
+# DISABLE_ANONYMOUS_USER_CREATE_EMAIL = true
 # Allow users to delete messages
 ENABLE_USER_DELETE_EMAIL = true
 # Allow automatic replies to emails

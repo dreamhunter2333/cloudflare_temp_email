@@ -5,6 +5,7 @@
 
 - fix: |UI| 修复 admin portal 无收件人邮箱删除调用api 错误
 - feat: |Telegram Bot| 增加 telegram bot 清理无效地址凭证命令
+- feat: 增加 worker 配置 `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` 禁用匿名用户创建邮箱地址，只允许登录用户创建邮箱地址
 
 ## v0.8.3
 

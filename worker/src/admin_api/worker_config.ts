@@ -33,6 +33,7 @@ export default {
 
             "ADMIN_CONTACT": c.env.ADMIN_CONTACT,
             "ENABLE_USER_CREATE_EMAIL": getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
+            "DISABLE_ANONYMOUS_USER_CREATE_EMAIL": getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL),
             "ENABLE_USER_DELETE_EMAIL": getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),
             "ENABLE_AUTO_REPLY": getBooleanValue(c.env.ENABLE_AUTO_REPLY),
             "COPYRIGHT": c.env.COPYRIGHT,
