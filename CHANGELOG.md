@@ -1,7 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.8.3)
+## main(v0.8.4)
+
+- fix: |UI| 修复 admin portal 无收件人邮箱删除调用api 错误
+
+## v0.8.3
 
 - feat: |Github Action| 增加自动更新并部署功能
 - feat: |UI| admin 用户设置，支持 oauth2 配置的删除
