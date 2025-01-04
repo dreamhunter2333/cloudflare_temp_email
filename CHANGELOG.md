@@ -4,6 +4,7 @@
 ## main(v0.8.4)
 
 - fix: |UI| 修复 admin portal 无收件人邮箱删除调用api 错误
+- feat: |Telegram Bot| 增加 telegram bot 清理无效地址凭证命令
 
 ## v0.8.3
 
