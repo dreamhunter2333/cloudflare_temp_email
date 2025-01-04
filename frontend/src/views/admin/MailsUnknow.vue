@@ -11,7 +11,7 @@ const fetchMailUnknowData = async (limit, offset) => {
 }
 
 const deleteMail = async (curMailId) => {
-    await api.fetch(`/api/mails/${curMailId}`, { method: 'DELETE' });
+    await api.fetch(`/admin/mails/${curMailId}`, { method: 'DELETE' });
 };
 </script>
 
