@@ -28,6 +28,7 @@ api.get('/open_api/settings', async (c) => {
         "needAuth": needAuth,
         "adminContact": c.env.ADMIN_CONTACT,
         "enableUserCreateEmail": getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
+        "disableAnonymousUserCreateEmail": getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL),
         "enableUserDeleteEmail": getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),
         "enableAutoReply": getBooleanValue(c.env.ENABLE_AUTO_REPLY),
         "enableIndexAbout": getBooleanValue(c.env.ENABLE_INDEX_ABOUT),

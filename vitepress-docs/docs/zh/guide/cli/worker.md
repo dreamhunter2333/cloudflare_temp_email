@@ -79,6 +79,8 @@ JWT_SECRET = "xxx" # 用于生成 jwt 的密钥, jwt 用于给用户登录以及
 BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
 # 是否允许用户创建邮件, 不配置则不允许
 ENABLE_USER_CREATE_EMAIL = true
+# 禁用匿名用户创建邮箱，如果设置为 true，则用户只能在登录后创建邮箱地址
+# DISABLE_ANONYMOUS_USER_CREATE_EMAIL = true
 # 允许用户删除邮件, 不配置则不允许
 ENABLE_USER_DELETE_EMAIL = true
 # 允许自动回复邮件

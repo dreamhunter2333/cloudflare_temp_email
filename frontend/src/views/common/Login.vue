@@ -184,6 +184,15 @@ const domainsOptions = computed(() => {
     });
 });
 
+const showNewAddressTab = computed(() => {
+    if (openSettings.value.disableAnonymousUserCreateEmail
+        && !userSettings.value.user_email
+    ) {
+        return false;
+    }
+    return openSettings.value.enableUserCreateEmail;
+});
+
 onMounted(async () => {
     if (!openSettings.value.domains || openSettings.value.domains.length === 0) {
         await api.getOpenSettings();
@@ -209,8 +218,7 @@ onMounted(async () => {
                         </template>
                         {{ t('login') }}
                     </n-button>
-                    <n-button v-if="openSettings.enableUserCreateEmail" @click="tabValue = 'register'" block secondary
-                        strong>
+                    <n-button v-if="showNewAddressTab" @click="tabValue = 'register'" block secondary strong>
                         <template #icon>
                             <n-icon :component="NewLabelOutlined" />
                         </template>
@@ -218,7 +226,7 @@ onMounted(async () => {
                     </n-button>
                 </n-form>
             </n-tab-pane>
-            <n-tab-pane v-if="openSettings.enableUserCreateEmail" name="register" :tab="t('getNewEmail')">
+            <n-tab-pane v-if="showNewAddressTab" name="register" :tab="t('getNewEmail')">
                 <n-spin :show="generateNameLoading">
                     <n-form>
                         <span>

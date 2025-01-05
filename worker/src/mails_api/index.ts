@@ -103,6 +103,11 @@ api.get('/api/settings', async (c) => {
 })
 
 api.post('/api/new_address', async (c) => {
+    if (getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL)
+        && !c.get("userPayload")
+    ) {
+        return c.text("New address for anonymous user is disabled", 403)
+    }
     if (!getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL)) {
         return c.text("New address is disabled", 403)
     }
