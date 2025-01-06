@@ -1,7 +1,12 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.8.4)
+## main(v0.8.5)
+
+- feat: 增加调用其他 worker，功能解耦
+- feat: 增加 worker 配置 `ENABLE_ANOTHER_WORKER` 及 `ANOTHER_WORKER_LIST` ，用于调用其他 worker 的 rpc 接口
+
+## v0.8.4
 
 - fix: |UI| 修复 admin portal 无收件人邮箱删除调用api 错误
 - feat: |Telegram Bot| 增加 telegram bot 清理无效地址凭证命令

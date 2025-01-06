@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 
 import { HonoCustomType } from '../types';
-import { getAdminPasswords, getBooleanValue, getDefaultDomains, getDomains, getIntValue, getPasswords, getStringArray, getStringValue, getUserRoles } from '../utils';
+import { getAdminPasswords, getBooleanValue, getDefaultDomains, getDomains, getIntValue, getPasswords, getStringArray, getStringValue, getUserRoles, getAnotherWorkerList } from '../utils';
 import { CONSTANTS } from '../constants';
 import { isS3Enabled } from '../mails_api/s3_attachment';
 
@@ -44,6 +44,9 @@ export default {
             "DISABLE_ADMIN_PASSWORD_CHECK": getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK),
             "ENABLE_CHECK_JUNK_MAIL": getBooleanValue(c.env.ENABLE_CHECK_JUNK_MAIL),
             "JUNK_MAIL_FORCE_PASS_LIST": getStringArray(c.env.JUNK_MAIL_FORCE_PASS_LIST),
+
+            "ENABLE_ANOTHER_WORKER": getBooleanValue(c.env.ENABLE_ANOTHER_WORKER),
+            "ANOTHER_WORKER_LIST": getAnotherWorkerList(c),
         })
     }
 }
