@@ -1,8 +1,8 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting } from './utils';
-import { HonoCustomType, UserRole } from './types';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList } from './utils';
+import { HonoCustomType, UserRole, AnotherWorker, RPCEmailMessage } from './types';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
@@ -360,7 +360,7 @@ export async function triggerWebhook(
     address: string,
     raw_mail: string,
     message_id: string | null
-): Promise<void> {
+): Promise<string | undefined | null> {
     if (!c.env.KV || !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
         return
     }
@@ -406,6 +406,51 @@ export async function triggerWebhook(
         const res = await sendWebhook(settings, webhookMail);
         if (!res.success) {
             console.error(res.message);
+        }
+    }
+    return webhookMail.parsedText
+}
+
+export async function triggerAnotherWorker(
+    c: Context<HonoCustomType>,
+    rpcEmailMessage: RPCEmailMessage,
+    parsedText: string | undefined | null
+): Promise<void> {
+    if (!parsedText) {
+        return;
+    }
+
+    const anotherWorkerList: AnotherWorker[] = getAnotherWorkerList(c);
+    if (!getBooleanValue(c.env.ENABLE_ANOTHER_WORKER) || anotherWorkerList.length === 0) {
+        console.log(`another worker disabled or anotherWorkerList is empty`);
+        return;
+    }
+
+    const parsedTextLowercase: string = parsedText.toLowerCase();
+    for (const worker of anotherWorkerList) {
+
+        const keywords = worker?.keywords ?? [];
+        const bindingName = worker?.binding ?? "";
+        const methodName = worker.method ?? "rpcEmail";
+
+        const serviceBinding = (c.env as any)[bindingName] ?? {};
+        const method = serviceBinding[methodName];
+
+        if (!method || typeof method !== "function") {
+            console.log(`method = ${methodName} not found or not function`);
+            continue;
+        }
+
+        if (!keywords.some(keyword => keyword && parsedTextLowercase.includes(keyword.toLowerCase()))) {
+            console.log(`worker.binding = ${bindingName} not match keywords, parsedText = ${parsedText}`);
+            continue;
+        }
+
+        try {
+            const requestBody = JSON.stringify(rpcEmailMessage);
+            await method(requestBody);
+        } catch (e1) {
+            console.error(`execute method = ${methodName} error`, e1);
         }
     }
 }

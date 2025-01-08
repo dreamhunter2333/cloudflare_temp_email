@@ -2,10 +2,10 @@ import { Context } from "hono";
 
 import { getEnvStringList } from "../utils";
 import { sendMailToTelegram } from "../telegram_api";
-import { Bindings, HonoCustomType } from "../types";
+import { Bindings, HonoCustomType, RPCEmailMessage } from "../types";
 import { auto_reply } from "./auto_reply";
 import { isBlocked } from "./black_list";
-import { triggerWebhook } from "../common";
+import { triggerWebhook, triggerAnotherWorker, commonParseMail} from "../common";
 import { check_if_junk_mail } from "./check_junk";
 
 
@@ -61,13 +61,34 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     }
 
     // send webhook
+    let parsedText;
     try {
-        await triggerWebhook(
+        parsedText = await triggerWebhook(
             { env: env } as Context<HonoCustomType>,
             message.to, rawEmail, message_id
         );
     } catch (error) {
         console.log("send webhook error", error);
+    }
+
+    // trigger another worker
+    try {
+        const headersMap = new Map<string, string>();
+        if(message.headers) {
+            message.headers.forEach((value, key) => {headersMap.set(key, value);});
+        }
+        if (!parsedText){
+          parsedText = (await commonParseMail(rawEmail))?.text ?? ""
+        }
+        const rpcEmail: RPCEmailMessage = {
+            from: message.from,
+            to: message.to,
+            rawEmail: rawEmail,
+            headers: headersMap
+        }
+        await triggerAnotherWorker({ env: env } as Context<HonoCustomType>, rpcEmail, parsedText);
+    } catch (error) {
+        console.error("trigger another worker error", error);
     }
 
     // auto reply email

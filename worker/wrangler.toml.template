@@ -78,6 +78,20 @@ ENABLE_AUTO_REPLY = false
 # ENABLE_CHECK_JUNK_MAIL = false
 # junk mail force check pass list, if no status or status is not pass, will be marked as junk mail
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
+# Calling other woker to process email
+#ENABLE_ANOTHER_WORKER = false
+#ANOTHER_WORKER_LIST ="""
+#[
+#    {
+#        "binding":"AUTH_INBOX",
+#        "method":"rpcEmail",
+#        "keywords":[
+#            "验证码","激活码","激活链接","确认链接","验证邮箱","确认邮件","账号激活","邮件验证","账户确认","安全码","认证码","安全验证","登陆码","确认码","启用账户","激活账户","账号验证","注册确认",
+#            "account","activation","verify","verification","activate","confirmation","email","code","validate","registration","login","code","expire","confirm"
+#        ]
+#    }
+#]
+#"""
 
 [[d1_databases]]
 binding = "DB"
@@ -96,3 +110,8 @@ database_id = "xxx"
 # namespace_id = "1001"
 # # 10 requests per minute
 # simple = { limit = 10, period = 60 }
+
+# binding another worker service (parse the code or link), e.g. auth-inbox
+# [[services]]
+# binding = "AUTH_INBOX"
+# service = "auth-inbox"

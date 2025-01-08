@@ -108,6 +108,23 @@ ENABLE_AUTO_REPLY = false
 # ENABLE_CHECK_JUNK_MAIL = false
 # 垃圾邮件检查配置, 任何一项不存在或者不通过则被判定为垃圾邮件
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
+# 是否开启其他 worker 处理邮件
+# ENABLE_ANOTHER_WORKER = false
+# 其他 worker 处理邮件的配置，可以配置多个其他 worker。
+# 通过关键词筛选，调用对应绑定的 worker 的方法（默认方法名为 rpcEmail）
+# keywords必填，否则 worker 将不会被触发
+#ANOTHER_WORKER_LIST ="""
+#[
+#    {
+#        "binding":"AUTH_INBOX",
+#        "method":"rpcEmail",
+#        "keywords":[
+#            "验证码","激活码","激活链接","确认链接","验证邮箱","确认邮件","账号激活","邮件验证","账户确认","安全码","认证码","安全验证","登陆码","确认码","启用账户","激活账户","账号验证","注册确认",
+#            "account","activation","verify","verification","activate","confirmation","email","code","validate","registration","login","code","expire","confirm"
+#        ]
+#    }
+#]
+#"""
 
 # D1 数据库的名称和 ID 可以在 cloudflare 控制台查看
 [[d1_databases]]
@@ -127,6 +144,11 @@ database_id = "xxx" # D1 数据库 ID
 # namespace_id = "1001"
 # # 10 requests per minute
 # simple = { limit = 10, period = 60 }
+
+# 绑定其他 worker 处理邮件，例如通过 auth-inbox ai 能力解析验证码或激活链接
+# [[services]]
+# binding = "AUTH_INBOX"
+# service = "auth-inbox"
 ```
 
 ## Telegram Bot 配置

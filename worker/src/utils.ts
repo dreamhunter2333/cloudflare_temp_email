@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
-import { HonoCustomType, UserRole } from "./types";
+import { HonoCustomType, UserRole,AnotherWorker } from "./types";
 
 export const getJsonObjectValue = <T = any>(
     value: string | any
@@ -154,6 +154,22 @@ export const getUserRoles = (c: Context<HonoCustomType>): UserRole[] => {
         }
     }
     return c.env.USER_ROLES;
+}
+
+export const getAnotherWorkerList = (c: Context<HonoCustomType>): AnotherWorker[] => {
+    if (!c.env.ANOTHER_WORKER_LIST) {
+        return [];
+    }
+    // check if ANOTHER_WORKER_LIST is an array, if not use json.parse
+    if (!Array.isArray(c.env.ANOTHER_WORKER_LIST)) {
+        try {
+            return JSON.parse(c.env.ANOTHER_WORKER_LIST);
+        } catch (e) {
+            console.error("Failed to parse ANOTHER_WORKER_LIST", e);
+            return [];
+        }
+    }
+    return c.env.ANOTHER_WORKER_LIST;
 }
 
 export const getPasswords = (c: Context<HonoCustomType>): string[] => {

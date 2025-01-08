@@ -46,6 +46,10 @@ export type Bindings = {
     ENABLE_CHECK_JUNK_MAIL: string | boolean | undefined
     JUNK_MAIL_FORCE_PASS_LIST: string | string[] | undefined
 
+    ENABLE_ANOTHER_WORKER: string | boolean | undefined
+    ANOTHER_WORKER_LIST: string | AnotherWorker[] | undefined
+
+
     // s3 config
     S3_ENDPOINT: string | undefined
     S3_ACCESS_KEY_ID: string | undefined
@@ -91,4 +95,17 @@ type Variables = {
 type HonoCustomType = {
     "Bindings": Bindings;
     "Variables": Variables;
+}
+
+type AnotherWorker = {
+    binding: string | undefined | null,
+    method: string | undefined | null,
+    keywords: string[] | undefined | null
+}
+
+type RPCEmailMessage = {
+    from: string | undefined | null,
+    to: string | undefined | null,
+    rawEmail: string | undefined | null,
+    headers: Map<string, string>,
 }
