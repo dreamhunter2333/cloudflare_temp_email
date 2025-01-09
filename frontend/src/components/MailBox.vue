@@ -121,6 +121,7 @@ const setupAutoRefresh = async (autoRefresh) => {
   // auto refresh every configAutoRefreshInterval seconds
   autoRefreshInterval.value = configAutoRefreshInterval.value;
   if (autoRefresh) {
+    clearInterval(timer.value);
     timer.value = setInterval(async () => {
       if (loading.value) return;
       autoRefreshInterval.value--;
