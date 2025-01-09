@@ -50,11 +50,10 @@ const props = defineProps({
 })
 
 const {
-  isDark, mailboxSplitSize, indexTab, loading, useUTCDate,
+  isDark, mailboxSplitSize, indexTab, loading, useUTCDate, autoRefresh, configAutoRefreshInterval,
   useIframeShowMail, sendMailModel, preferShowTextMail
 } = useGlobalState()
-const autoRefresh = ref(false)
-const autoRefreshInterval = ref(30)
+const autoRefreshInterval = ref(configAutoRefreshInterval.value)
 const data = ref([])
 const timer = ref(null)
 
@@ -119,14 +118,16 @@ const { t } = useI18n({
 });
 
 const setupAutoRefresh = async (autoRefresh) => {
-  // auto refresh every 30 seconds
-  autoRefreshInterval.value = 30;
+  // auto refresh every configAutoRefreshInterval seconds
+  autoRefreshInterval.value = configAutoRefreshInterval.value;
   if (autoRefresh) {
+    clearInterval(timer.value);
     timer.value = setInterval(async () => {
+      if (loading.value) return;
       autoRefreshInterval.value--;
       if (autoRefreshInterval.value <= 0) {
-        autoRefreshInterval.value = 30;
-        await refresh();
+        autoRefreshInterval.value = configAutoRefreshInterval.value;
+        await backFirstPageAndRefresh();
       }
     }, 1000)
   } else {
@@ -137,7 +138,7 @@ const setupAutoRefresh = async (autoRefresh) => {
 
 watch(autoRefresh, async (autoRefresh, old) => {
   setupAutoRefresh(autoRefresh)
-})
+}, { immediate: true })
 
 watch([page, pageSize], async ([page, pageSize], [oldPage, oldPageSize]) => {
   if (page !== oldPage || pageSize !== oldPageSize) {
@@ -169,6 +170,11 @@ const refresh = async () => {
     loading.value = false;
   }
 };
+
+const backFirstPageAndRefresh =  async () =>{
+  page.value = 1;
+  await refresh();
+}
 
 const clickRow = async (row) => {
   if (multiActionMode.value) {
@@ -366,7 +372,7 @@ onBeforeUnmount(() => {
               {{ t('autoRefresh') }}
             </template>
           </n-switch>
-          <n-button @click="refresh" type="primary" tertiary>
+          <n-button @click="backFirstPageAndRefresh" type="primary" tertiary>
             {{ t('refresh') }}
           </n-button>
         </n-space>
@@ -476,7 +482,7 @@ onBeforeUnmount(() => {
             {{ t('autoRefresh') }}
           </template>
         </n-switch>
-        <n-button @click="refresh" tertiary size="small" type="primary">
+        <n-button @click="backFirstPageAndRefresh" tertiary size="small" type="primary">
           {{ t('refresh') }}
         </n-button>
       </n-space>

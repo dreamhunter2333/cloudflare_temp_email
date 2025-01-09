@@ -5,7 +5,7 @@ import { useIsMobile } from '../../utils/composables'
 import { useGlobalState } from '../../store'
 
 const {
-    mailboxSplitSize, useIframeShowMail, preferShowTextMail,
+    mailboxSplitSize, useIframeShowMail, preferShowTextMail, configAutoRefreshInterval,
     globalTabplacement, useSideMargin, useUTCDate
 } = useGlobalState()
 const isMobile = useIsMobile()
@@ -23,6 +23,7 @@ const { t } = useI18n({
             right: 'right',
             bottom: 'bottom',
             useUTCDate: 'Use UTC Date',
+            autoRefreshInterval: 'Auto Refresh Interval(Sec)',
         },
         zh: {
             mailboxSplitSize: '邮箱界面分栏大小',
@@ -35,6 +36,7 @@ const { t } = useI18n({
             right: '右侧',
             bottom: '底部',
             useUTCDate: '使用 UTC 时间',
+            autoRefreshInterval: '自动刷新间隔(秒)',
         }
     }
 });
@@ -48,6 +50,11 @@ const { t } = useI18n({
                     0.25: '0.25',
                     0.5: '0.5',
                     0.75: '0.75'
+                }" />
+            </n-form-item-row>
+            <n-form-item-row :label="t('autoRefreshInterval')">
+                <n-slider v-model:value="configAutoRefreshInterval" :min="30" :max="300" :step="1" :marks="{
+                    60: '60', 120: '120', 180: '180', 240: '240'
                 }" />
             </n-form-item-row>
             <n-form-item-row :label="t('preferShowTextMail')">
