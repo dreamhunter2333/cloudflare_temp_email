@@ -125,7 +125,7 @@ const setupAutoRefresh = async (autoRefresh) => {
       if (loading.value) return;
       autoRefreshInterval.value--;
       if (autoRefreshInterval.value <= 0) {
-        autoRefreshInterval.value = 30;
+        autoRefreshInterval.value = configAutoRefreshInterval.value;
         await backFirstPageAndRefresh();
       }
     }, 1000)
