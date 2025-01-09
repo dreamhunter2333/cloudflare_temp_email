@@ -7,6 +7,7 @@
 - feat: |Telegram Bot| 增加 telegram bot 清理无效地址凭证命令
 - feat: 增加 worker 配置 `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` 禁用匿名用户创建邮箱地址，只允许登录用户创建邮箱地址
 - feat: 增加 worker 配置 `ENABLE_ANOTHER_WORKER` 及 `ANOTHER_WORKER_LIST` ，用于调用其他 worker 的 rpc 接口 (#547)
+- feat: |UI| 自动刷新配置保存到浏览器，可配置刷新间隔
 
 ## v0.8.3
 
