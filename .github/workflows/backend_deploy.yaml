@@ -1,4 +1,4 @@
-name: Deploy Backend Production
+name: Deploy Backend
 
 on:
   workflow_run:
@@ -32,14 +32,28 @@ jobs:
 
       - name: Deploy Backend for ${{ github.ref_name }}
         run: |
+          export debug_mode=${{ secrets.DEBUG_MODE }}
+          export use_mail_wasm_parser=${{ secrets.BACKEND_USE_MAIL_WASM_PARSER }}
           cd worker/
           echo '${{ secrets.BACKEND_TOML }}' > wrangler.toml
           pnpm install --no-frozen-lockfile
-          output=$(pnpm run deploy 2>&1)
-          if [ $? -ne 0 ]; then
-              code=$?
-              echo "Command failed with exit code $code"
-              exit $code
+
+          if [ -n "$use_mail_wasm_parser" ]; then
+            echo "Using mail-parser-wasm-worker"
+            pnpm add mail-parser-wasm-worker
+            git apply ../.github/config/mail-parser-wasm-worker.patch
+            echo "Applied mail-parser-wasm-worker patch"
+          fi
+
+          if [ -n "$debug_mode" ]; then
+            pnpm run deploy
+          else
+            output=$(pnpm run deploy 2>&1)
+            if [ $? -ne 0 ]; then
+                code=$?
+                echo "Command failed with exit code $code"
+                exit $code
+            fi
           fi
           echo "Deployed for tag ${{ github.ref_name }}"
         env:

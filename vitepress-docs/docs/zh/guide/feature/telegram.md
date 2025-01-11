@@ -8,6 +8,8 @@ worker 默认的 `worker.dev` 域名的证书是不被 telegram 支持的，配�
 > 如果要使用 Telegram Bot, 请先绑定 `KV`
 >
 > 如果不需要 Telegram Bot, 可跳过此步骤
+>
+> 如果你想 Telegram 的解析邮件能力更强，参考 [配置 worker 使用 wasm 解析邮件](/zh/guide/feature/mail_parser_wasm_worker)
 
 ## Telegram Bot 配置
 

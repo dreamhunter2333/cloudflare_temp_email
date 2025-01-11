@@ -10,6 +10,7 @@
 - feat: |UI| 自动刷新配置保存到浏览器，可配置刷新间隔
 - feat: 垃圾邮件检测增加存在是才检查的列表 `JUNK_MAIL_CHECK_LIST` 配置
 - feat: | Worker | 增加 `ParsedEmailContext` 类用于缓存解析后的邮件内容，减少解析次数
+- feat: |Github Action| Worker 部署增加 `DEBUG_MODE` 输出日志, `BACKEND_USE_MAIL_WASM_PARSER` 配置是否使用 wasm 解析邮件
 
 ## v0.8.3
 
