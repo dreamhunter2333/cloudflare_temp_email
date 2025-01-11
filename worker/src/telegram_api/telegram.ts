@@ -5,7 +5,7 @@ import { callbackQuery } from "telegraf/filters";
 
 import { CONSTANTS } from "../constants";
 import { getDomains, getJsonObjectValue, getStringValue } from '../utils';
-import { HonoCustomType } from "../types";
+import { HonoCustomType, ParsedEmailContext } from "../types";
 import { TelegramSettings } from "./settings";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 import { commonParseMail } from "../common";
@@ -295,14 +295,14 @@ export async function initTelegramBotCommands(bot: Telegraf) {
 }
 
 const parseMail = async (
-    raw_mail: string | undefined | null,
+    parsedEmailContext: ParsedEmailContext,
     address: string, created_at: string | undefined | null
 ) => {
-    if (!raw_mail) {
+    if (!parsedEmailContext.rawEmail) {
         return {};
     }
     try {
-        const parsedEmail = await commonParseMail(raw_mail);
+        const parsedEmail = await commonParseMail(parsedEmailContext);
         let parsedText = parsedEmail?.text || "";
         if (parsedText.length && parsedText.length > 1000) {
             parsedText = parsedEmail?.text.substring(0, 1000) + "\n\n...\n消息过长请到miniapp查看";
@@ -326,13 +326,14 @@ const parseMail = async (
 
 export async function sendMailToTelegram(
     c: Context<HonoCustomType>, address: string,
-    raw_mail: string, message_id: string | null
+    parsedEmailContext: ParsedEmailContext,
+    message_id: string | null
 ) {
     if (!c.env.TELEGRAM_BOT_TOKEN || !c.env.KV) {
         return;
     }
     const userId = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${address}`);
-    const { mail } = await parseMail(raw_mail, address, new Date().toUTCString());
+    const { mail } = await parseMail(parsedEmailContext, address, new Date().toUTCString());
     if (!mail) {
         return;
     }

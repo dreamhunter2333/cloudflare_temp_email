@@ -106,7 +106,9 @@ ENABLE_AUTO_REPLY = false
 # FRONTEND_URL = "https://xxxx.xxx"
 # 是否启用垃圾邮件检查，默认任何一项存在配置且不通过则被判定为垃圾邮件
 # ENABLE_CHECK_JUNK_MAIL = false
-# 垃圾邮件检查配置, 任何一项不存在或者不通过则被判定为垃圾邮件
+# 垃圾邮件检查配置, 任何一项 存在 且 不通过 则被判定为垃圾邮件
+# JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
+# 垃圾邮件检查配置, 任何一项 不存在 或者 不通过 则被判定为垃圾邮件
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
 # 是否开启其他 worker 处理邮件
 # ENABLE_ANOTHER_WORKER = false
