@@ -1,5 +1,7 @@
 # 配置 Telegram Bot
 
+试用地址：[@cf_temp_mail_bot](https://t.me/cf_temp_mail_bot)
+
 ::: warning 注意
 worker 默认的 `worker.dev` 域名的证书是不被 telegram 支持的，配置 Telegram Bot 请使用自定义域名
 :::
