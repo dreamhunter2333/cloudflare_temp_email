@@ -429,7 +429,6 @@ export async function triggerAnotherWorker(
 
     const anotherWorkerList: AnotherWorker[] = getAnotherWorkerList(c);
     if (!getBooleanValue(c.env.ENABLE_ANOTHER_WORKER) || anotherWorkerList.length === 0) {
-        console.log(`another worker disabled or anotherWorkerList is empty`);
         return;
     }
 
