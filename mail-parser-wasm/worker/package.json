@@ -7,7 +7,7 @@
     "url": "https://github.com/dreamhunter2333/cloudflare_temp_email",
     "directory": "mail-parser-wasm"
   },
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "files": [
     "mail_parser_wasm_bg.wasm",

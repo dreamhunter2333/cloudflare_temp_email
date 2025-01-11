@@ -1,7 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.8.4)
+## main(v0.8.5)
+
+- feat: |mail-parser-wasm-worker| 修复 `initSync` 函数调用时的 `deprecated` 参数警告
+
+## v0.8.4
 
 - fix: |UI| 修复 admin portal 无收件人邮箱删除调用api 错误
 - feat: |Telegram Bot| 增加 telegram bot 清理无效地址凭证命令
