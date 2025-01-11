@@ -21,25 +21,19 @@ export const check_if_junk_mail = async (
         if (!header["value"]) continue;
 
         // check spf
-        if (header["key"].toLowerCase() == "received-spf") {
-            if (!header["value"].toLowerCase().includes("pass")) {
-                return true;
-            }
+        if (header["key"].toLowerCase() == "received-spf"
+            && header["value"].toLowerCase().includes("pass")) {
             passedList.push("spf");
         }
 
         // check dkim and dmarc
         if (header["key"].toLowerCase() == "authentication-results") {
-            if (header["value"].toLowerCase().includes("dkim=")) {
-                if (!header["value"].toLowerCase().includes("dkim=pass")) {
-                    return true;
-                }
+            if (header["value"].toLowerCase().includes("dkim=")
+                && header["value"].toLowerCase().includes("dkim=pass")) {
                 passedList.push("dkim");
             }
-            if (header["value"].toLowerCase().includes("dmarc=")) {
-                if (!header["value"].toLowerCase().includes("dmarc=pass")) {
-                    return true;
-                }
+            if (header["value"].toLowerCase().includes("dmarc=")
+                && header["value"].toLowerCase().includes("dmarc=pass")) {
                 passedList.push("dmarc");
             }
         }

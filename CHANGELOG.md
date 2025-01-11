@@ -9,6 +9,10 @@
 - feat: 增加 worker 配置 `ENABLE_ANOTHER_WORKER` 及 `ANOTHER_WORKER_LIST` ，用于调用其他 worker 的 rpc 接口 (#547)
 - feat: |UI| 自动刷新配置保存到浏览器，可配置刷新间隔
 
+### breaking changes
+
+- fix: 垃圾邮件检测只检查必须通过的列表 `JUNK_MAIL_FORCE_PASS_LIST` 配置
+
 ## v0.8.3
 
 - feat: |Github Action| 增加自动更新并部署功能
