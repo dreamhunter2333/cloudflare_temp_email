@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { HonoCustomType } from "../types";
+import { HonoCustomType, ParsedEmailContext } from "../types";
 import { CONSTANTS } from "../constants";
 import { WebhookSettings } from "../models";
 import { commonParseMail, sendWebhook } from "../common";
@@ -25,8 +25,8 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const { id: mailId, raw } = await c.env.DB.prepare(
         `SELECT id, raw FROM raw_mails ORDER BY RANDOM() LIMIT 1`
     ).first<{ id: string, raw: string }>() || {};
-
-    const parsedEmail = await commonParseMail(raw);
+    const parsedEmailContext: ParsedEmailContext = { rawEmail: raw || "" };
+    const parsedEmail = await commonParseMail(parsedEmailContext);
     const res = await sendWebhook(settings, {
         id: mailId || "0",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",

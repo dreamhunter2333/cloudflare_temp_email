@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList } from './utils';
-import { HonoCustomType, UserRole, AnotherWorker, RPCEmailMessage } from './types';
+import { HonoCustomType, UserRole, AnotherWorker, RPCEmailMessage, ParsedEmailContext } from './types';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
@@ -256,16 +256,22 @@ export const handleListQuery = async (
 }
 
 
-export const commonParseMail = async (raw_mail: string | undefined | null): Promise<{
+export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): Promise<{
     sender: string,
     subject: string,
     text: string,
     html: string,
     headers?: Record<string, string>[]
 } | undefined> => {
-    if (!raw_mail) {
+    // check parsed email context is valid
+    if (!parsedEmailContext || !parsedEmailContext.rawEmail) {
         return undefined;
     }
+    // return parsed email if already parsed
+    if (parsedEmailContext.parsedEmail) {
+        return parsedEmailContext.parsedEmail;
+    }
+    const raw_mail = parsedEmailContext.rawEmail;
     // TODO: WASM parse email
     // try {
     //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
@@ -275,7 +281,9 @@ export const commonParseMail = async (raw_mail: string | undefined | null): Prom
     //         sender: parsedEmail.sender || "",
     //         subject: parsedEmail.subject || "",
     //         text: parsedEmail.text || "",
-    //         headers: parsedEmail.headers || [],
+    //         headers: parsedEmail.headers?.map(
+    //             (header) => ({ key: header.key, value: header.value })
+    //         ) || [],
     //         html: parsedEmail.body_html || "",
     //     };
     // } catch (e) {
@@ -358,9 +366,9 @@ export async function sendWebhook(settings: WebhookSettings, formatMap: WebhookM
 export async function triggerWebhook(
     c: Context<HonoCustomType>,
     address: string,
-    raw_mail: string,
+    parsedEmailContext: ParsedEmailContext,
     message_id: string | null
-): Promise<string | undefined | null> {
+): Promise<void> {
     if (!c.env.KV || !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
         return
     }
@@ -391,14 +399,14 @@ export async function triggerWebhook(
         `SELECT id FROM raw_mails where address = ? and message_id = ?`
     ).bind(address, message_id).first<string>("id");
 
-    const parsedEmail = await commonParseMail(raw_mail);
+    const parsedEmail = await commonParseMail(parsedEmailContext);
     const webhookMail = {
         id: mailId || "",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
         from: parsedEmail?.sender || "",
         to: address,
         subject: parsedEmail?.subject || "",
-        raw: raw_mail,
+        raw: parsedEmailContext.rawEmail || "",
         parsedText: parsedEmail?.text || "",
         parsedHtml: parsedEmail?.html || ""
     }
@@ -408,7 +416,6 @@ export async function triggerWebhook(
             console.error(res.message);
         }
     }
-    return webhookMail.parsedText
 }
 
 export async function triggerAnotherWorker(

@@ -134,6 +134,8 @@ ENABLE_AUTO_REPLY = false
 # FRONTEND_URL = "https://xxxx.xxx"
 # Enable check junk mail
 # ENABLE_CHECK_JUNK_MAIL = false
+# junk mail check list, if status exists and status is not pass, will be marked as junk mail
+# JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
 # junk mail force check pass list, if no status or status is not pass, will be marked as junk mail
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
 
