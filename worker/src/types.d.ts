@@ -108,7 +108,7 @@ type RPCEmailMessage = {
     from: string | undefined | null,
     to: string | undefined | null,
     rawEmail: string | undefined | null,
-    headers: Map<string, string>,
+    headers: object | undefined | null,
 }
 
 type ParsedEmailContext = {

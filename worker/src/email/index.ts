@@ -80,16 +80,13 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
 
     // trigger another worker
     try {
-        const headersMap = new Map<string, string>();
-        if (message.headers) {
-            message.headers.forEach((value, key) => { headersMap.set(key, value); });
-        }
-        const parsedText = (await commonParseMail(parsedEmailContext))?.text ?? ""
+        const parsedEmail = (await commonParseMail(parsedEmailContext));
+        const parsedText = parsedEmail?.text ?? ""
         const rpcEmail: RPCEmailMessage = {
             from: message.from,
             to: message.to,
             rawEmail: rawEmail,
-            headers: headersMap
+            headers: message.headers
         }
         await triggerAnotherWorker({ env: env } as Context<HonoCustomType>, rpcEmail, parsedText);
     } catch (error) {

@@ -292,13 +292,14 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     try {
         const { default: PostalMime } = await import('postal-mime');
         const parsedEmail = await PostalMime.parse(raw_mail);
-        return {
+        parsedEmailContext.parsedEmail = {
             sender: parsedEmail.from ? `${parsedEmail.from.name} <${parsedEmail.from.address}>` : "",
             subject: parsedEmail.subject || "",
             text: parsedEmail.text || "",
             html: parsedEmail.html || "",
             headers: parsedEmail.headers || [],
         };
+        return parsedEmailContext.parsedEmail;
     }
     catch (e) {
         console.error("Failed use PostalMime to parse email", e);
@@ -451,9 +452,17 @@ export async function triggerAnotherWorker(
             console.log(`worker.binding = ${bindingName} not match keywords, parsedText = ${parsedText}`);
             continue;
         }
-
         try {
-            const requestBody = JSON.stringify(rpcEmailMessage);
+            const bodyObj = { ...rpcEmailMessage } as any;
+            if (bodyObj.headers && typeof bodyObj.headers.forEach === "function") {
+                const headerObj: any = {}
+                bodyObj.headers.forEach((value: string, key: string) => {
+                    headerObj[key] = value;
+                });
+                bodyObj.headers = headerObj
+            }
+            const requestBody = JSON.stringify(bodyObj);
+            console.log(`exec worker , binding = ${bindingName} , requestBody = ${requestBody}`);
             await method(requestBody);
         } catch (e1) {
             console.error(`execute method = ${methodName} error`, e1);
