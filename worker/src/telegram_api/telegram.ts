@@ -338,8 +338,8 @@ export async function sendMailToTelegram(
         return;
     }
     const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
-    const golbalPush = settings?.enableGlobalMailPush && settings?.globalMailPushList;
-    if (!userId && !golbalPush) {
+    const globalPush = settings?.enableGlobalMailPush && settings?.globalMailPushList;
+    if (!userId && !globalPush) {
         return;
     }
     const mailId = await c.env.DB.prepare(
@@ -353,7 +353,7 @@ export async function sendMailToTelegram(
         url.searchParams.set("mail_id", mailId);
         miniAppButtons.push(Markup.button.webApp("查看邮件", url.toString()));
     }
-    if (golbalPush) {
+    if (globalPush) {
         for (const pushId of settings.globalMailPushList) {
             await bot.telegram.sendMessage(pushId, mail, {
                 ...Markup.inlineKeyboard([
