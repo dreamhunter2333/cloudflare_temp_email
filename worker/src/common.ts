@@ -277,7 +277,7 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
 
     //     const parsedEmail = parse_message_wrapper(raw_mail);
-    //     return {
+    //     parsedEmailContext.parsedEmail = {
     //         sender: parsedEmail.sender || "",
     //         subject: parsedEmail.subject || "",
     //         text: parsedEmail.text || "",
@@ -286,6 +286,7 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     //         ) || [],
     //         html: parsedEmail.body_html || "",
     //     };
+    //     return parsedEmailContext.parsedEmail;
     // } catch (e) {
     //     console.error("Failed use mail-parser-wasm-worker to parse email", e);
     // }

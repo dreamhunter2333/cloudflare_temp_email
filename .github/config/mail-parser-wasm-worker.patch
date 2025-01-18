@@ -1,8 +1,8 @@
 diff --git a/worker/src/common.ts b/worker/src/common.ts
-index 8b63e8f..6a7c844 100644
+index bd9bcc9..e7e2748 100644
 --- a/worker/src/common.ts
 +++ b/worker/src/common.ts
-@@ -273,22 +273,22 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
+@@ -273,23 +273,23 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
      }
      const raw_mail = parsedEmailContext.rawEmail;
      // TODO: WASM parse email
@@ -10,9 +10,9 @@ index 8b63e8f..6a7c844 100644
 -    //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
 +    try {
 +        const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
-
+ 
 -    //     const parsedEmail = parse_message_wrapper(raw_mail);
--    //     return {
+-    //     parsedEmailContext.parsedEmail = {
 -    //         sender: parsedEmail.sender || "",
 -    //         subject: parsedEmail.subject || "",
 -    //         text: parsedEmail.text || "",
@@ -21,11 +21,12 @@ index 8b63e8f..6a7c844 100644
 -    //         ) || [],
 -    //         html: parsedEmail.body_html || "",
 -    //     };
+-    //     return parsedEmailContext.parsedEmail;
 -    // } catch (e) {
 -    //     console.error("Failed use mail-parser-wasm-worker to parse email", e);
 -    // }
 +        const parsedEmail = parse_message_wrapper(raw_mail);
-+        return {
++        parsedEmailContext.parsedEmail = {
 +            sender: parsedEmail.sender || "",
 +            subject: parsedEmail.subject || "",
 +            text: parsedEmail.text || "",
@@ -34,6 +35,7 @@ index 8b63e8f..6a7c844 100644
 +            ) || [],
 +            html: parsedEmail.body_html || "",
 +        };
++        return parsedEmailContext.parsedEmail;
 +    } catch (e) {
 +        console.error("Failed use mail-parser-wasm-worker to parse email", e);
 +    }
