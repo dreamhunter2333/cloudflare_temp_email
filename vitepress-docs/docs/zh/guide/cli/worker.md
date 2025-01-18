@@ -110,6 +110,10 @@ ENABLE_AUTO_REPLY = false
 # JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
 # 垃圾邮件检查配置, 任何一项 不存在 或者 不通过 则被判定为垃圾邮件
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
+# 如果附件大小超过 2MB，则删除附件，邮件可能由于解析而丢失一些信息
+# REMOVE_EXCEED_SIZE_ATTACHMENT = true
+# 移除所有附件，邮件可能由于解析而丢失一些信息
+# REMOVE_ALL_ATTACHMENT = true
 # 是否开启其他 worker 处理邮件
 # ENABLE_ANOTHER_WORKER = false
 # 其他 worker 处理邮件的配置，可以配置多个其他 worker。

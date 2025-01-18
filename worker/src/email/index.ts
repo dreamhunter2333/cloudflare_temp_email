@@ -7,6 +7,7 @@ import { auto_reply } from "./auto_reply";
 import { isBlocked } from "./black_list";
 import { triggerWebhook, triggerAnotherWorker, commonParseMail } from "../common";
 import { check_if_junk_mail } from "./check_junk";
+import { remove_attachment_if_need } from "./check_attachment";
 
 
 async function email(message: ForwardableEmailMessage, env: Bindings, ctx: ExecutionContext) {
@@ -32,13 +33,20 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
         console.log("check junk mail error", error);
     }
 
+    // remove attachment if configured or size > 2MB
+    try {
+        await remove_attachment_if_need(env, parsedEmailContext, message.from, message.to, message.rawSize);
+    } catch (error) {
+        console.log("remove attachment error", error);
+    }
+
     const message_id = message.headers.get("Message-ID");
     // save email
     try {
         const { success } = await env.DB.prepare(
             `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
         ).bind(
-            message.from, message.to, rawEmail, message_id
+            message.from, message.to, parsedEmailContext.rawEmail, message_id
         ).run();
         if (!success) {
             message.setReject(`Failed save message to ${message.to}`);
