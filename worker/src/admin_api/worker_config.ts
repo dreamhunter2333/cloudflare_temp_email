@@ -46,6 +46,9 @@ export default {
             "JUNK_MAIL_CHECK_LIST": getStringArray(c.env.JUNK_MAIL_CHECK_LIST),
             "JUNK_MAIL_FORCE_PASS_LIST": getStringArray(c.env.JUNK_MAIL_FORCE_PASS_LIST),
 
+            "REMOVE_EXCEED_SIZE_ATTACHMENT": getBooleanValue(c.env.REMOVE_EXCEED_SIZE_ATTACHMENT),
+            "REMOVE_ALL_ATTACHMENT": getBooleanValue(c.env.REMOVE_ALL_ATTACHMENT),
+
             "ENABLE_ANOTHER_WORKER": getBooleanValue(c.env.ENABLE_ANOTHER_WORKER),
             "ANOTHER_WORKER_LIST": getAnotherWorkerList(c),
         })

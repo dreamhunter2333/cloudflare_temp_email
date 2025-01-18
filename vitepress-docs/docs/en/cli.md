@@ -138,6 +138,10 @@ ENABLE_AUTO_REPLY = false
 # JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
 # junk mail force check pass list, if no status or status is not pass, will be marked as junk mail
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
+# remove attachment if size exceed 2MB, mail maybe mising some information due to parsing
+# REMOVE_EXCEED_SIZE_ATTACHMENT = true
+# remove all attachment, mail maybe mising some information due to parsing
+# REMOVE_ALL_ATTACHMENT = true
 
 [[d1_databases]]
 binding = "DB"

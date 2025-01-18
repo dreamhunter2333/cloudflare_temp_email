@@ -4,6 +4,9 @@
 ## main(v0.8.5)
 
 - feat: |mail-parser-wasm-worker| 修复 `initSync` 函数调用时的 `deprecated` 参数警告
+- feat: rpc headers covert & typo (#559)
+- fix: telegram mail page use iframe show email (#561)
+- feat: |Worker| 增加 `REMOVE_ALL_ATTACHMENT` 和 `REMOVE_EXCEED_SIZE_ATTACHMENT` 用于移除邮件附件，由于是解析邮件的一些信息会丢失，比如图片等.
 
 ## v0.8.4
 
