@@ -59,7 +59,8 @@ onMounted(async () => {
             <n-tag v-if="showEMailTo" type="info">
                 TO: {{ curMail.address }}
             </n-tag>
-            <div v-html="curMail.message" style="margin-top: 10px;"></div>
+            <iframe :srcdoc="curMail.message" style="margin-top: 10px;width: 100%; height: 100%;">
+            </iframe>
         </n-card>
     </div>
 </template>
