@@ -23,7 +23,11 @@ export const remove_attachment_if_need = async (
     const msg = createMimeMessage();
     if (parsedEmail?.headers) {
         for (const header of parsedEmail.headers) {
-            msg.setHeader(header["key"], header["value"]);
+            try {
+                msg.setHeader(header["key"], header["value"]);
+            } catch (error) {
+                // ignore
+            }
         }
     }
     msg.setSender({
