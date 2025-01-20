@@ -61,24 +61,26 @@ onMounted(async () => {
   <n-config-provider :locale="localeConfig" :theme="theme">
     <n-global-style />
     <n-spin description="loading..." :show="loading">
-      <n-message-provider container-style="margin-top: 20px;">
-        <n-grid x-gap="12" :cols="12">
-          <n-gi v-if="showSideMargin" span="1"></n-gi>
-          <n-gi :span="!showSideMargin ? 12 : 10">
-            <div class="main">
-              <n-space vertical>
-                <n-layout style="min-height: 80vh;">
-                  <Header />
-                  <router-view></router-view>
-                </n-layout>
-                <Footer />
-              </n-space>
-            </div>
-          </n-gi>
-          <n-gi v-if="showSideMargin" span="1"></n-gi>
-        </n-grid>
-        <n-back-top />
-      </n-message-provider>
+      <n-notification-provider container-style="margin-top: 60px;">
+        <n-message-provider container-style="margin-top: 20px;">
+          <n-grid x-gap="12" :cols="12">
+            <n-gi v-if="showSideMargin" span="1"></n-gi>
+            <n-gi :span="!showSideMargin ? 12 : 10">
+              <div class="main">
+                <n-space vertical>
+                  <n-layout style="min-height: 80vh;">
+                    <Header />
+                    <router-view></router-view>
+                  </n-layout>
+                  <Footer />
+                </n-space>
+              </div>
+            </n-gi>
+            <n-gi v-if="showSideMargin" span="1"></n-gi>
+          </n-grid>
+          <n-back-top />
+        </n-message-provider>
+      </n-notification-provider>
     </n-spin>
   </n-config-provider>
 </template>

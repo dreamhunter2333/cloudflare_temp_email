@@ -1,4 +1,5 @@
 import { useGlobalState } from '../store'
+import { h } from 'vue'
 import axios from 'axios'
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
@@ -52,7 +53,7 @@ const apiFetch = async (path, options = {}) => {
     }
 }
 
-const getOpenSettings = async (message) => {
+const getOpenSettings = async (message, notification) => {
     try {
         const res = await api.fetch("/open_api/settings");
         const domainLabels = res["domainLabels"] || [];
@@ -89,10 +90,12 @@ const getOpenSettings = async (message) => {
         }
         if (openSettings.value.announcement && openSettings.value.announcement != announcement.value) {
             announcement.value = openSettings.value.announcement;
-            message.info(announcement.value, {
-                showIcon: false,
-                duration: 0,
-                closable: true
+            notification.info({
+                content: () => {
+                    return h("div", {
+                        innerHTML: announcement.value
+                    });
+                }
             });
         }
     } catch (error) {

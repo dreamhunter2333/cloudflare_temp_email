@@ -24,6 +24,7 @@ export default defineConfig({
         {
           'naive-ui': [
             'useMessage',
+            'useNotification',
             'NButton',
             'NPopconfirm',
             'NIcon',
