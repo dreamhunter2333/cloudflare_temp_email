@@ -1,7 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.8.5)
+## main(v0.8.6)
+
+- feat: |UI| 公告支持 html 格式
+
+## v0.8.5
 
 - feat: |mail-parser-wasm-worker| 修复 `initSync` 函数调用时的 `deprecated` 参数警告
 - feat: rpc headers covert & typo (#559)

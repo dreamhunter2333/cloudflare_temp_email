@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,17 +16,17 @@
     "@simplewebauthn/types": "10.0.0",
     "eslint": "9.18.0",
     "globals": "^15.14.0",
-    "typescript-eslint": "^8.19.1",
-    "wrangler": "^3.101.0"
+    "typescript-eslint": "^8.20.0",
+    "wrangler": "^3.103.2"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.726.1",
-    "@aws-sdk/s3-request-presigner": "^3.726.1",
+    "@aws-sdk/client-s3": "^3.731.1",
+    "@aws-sdk/s3-request-presigner": "^3.731.1",
     "@simplewebauthn/server": "10.0.1",
-    "hono": "^4.6.16",
+    "hono": "^4.6.17",
     "mimetext": "^3.0.27",
     "postal-mime": "^2.4.1",
-    "resend": "^4.0.1",
+    "resend": "^4.1.1",
     "telegraf": "4.16.3"
   },
   "pnpm": {

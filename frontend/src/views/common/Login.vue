@@ -34,6 +34,7 @@ const props = defineProps({
 })
 
 const message = useMessage()
+const notification = useNotification()
 const router = useRouter()
 
 const {
@@ -195,7 +196,7 @@ const showNewAddressTab = computed(() => {
 
 onMounted(async () => {
     if (!openSettings.value.domains || openSettings.value.domains.length === 0) {
-        await api.getOpenSettings();
+        await api.getOpenSettings(message, notification);
     }
     emailDomain.value = domainsOptions.value ? domainsOptions.value[0]?.value : "";
 });

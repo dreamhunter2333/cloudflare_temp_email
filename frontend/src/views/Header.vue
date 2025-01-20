@@ -15,6 +15,7 @@ import { api } from '../api'
 import { getRouterPathWithLang } from '../utils'
 
 const message = useMessage()
+const notification = useNotification()
 
 const {
     toggleDark, isDark, isTelegram, showAdminPage,
@@ -223,7 +224,7 @@ const logoClick = async () => {
 }
 
 onMounted(async () => {
-    await api.getOpenSettings(message);
+    await api.getOpenSettings(message, notification);
     // make sure user_id is fetched
     if (!userSettings.value.user_id) await api.getUserSettings(message);
 });
