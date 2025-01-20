@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@simplewebauthn/browser": "10.0.0",
-    "@unhead/vue": "^1.11.15",
+    "@unhead/vue": "^1.11.18",
     "@vueuse/core": "^12.4.0",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
@@ -47,6 +47,6 @@
     "vite-plugin-wasm": "^3.4.1",
     "workbox-build": "^7.3.0",
     "workbox-window": "^7.3.0",
-    "wrangler": "^3.101.0"
+    "wrangler": "^3.103.2"
   }
 }

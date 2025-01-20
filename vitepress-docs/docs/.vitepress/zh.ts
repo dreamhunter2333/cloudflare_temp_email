@@ -125,6 +125,13 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             ]
         },
         {
+            text: '常见问题',
+            collapsed: false,
+            items: [
+                { text: '常见问题', link: 'common-issues' },
+            ]
+        },
+        {
             text: '附加功能',
             collapsed: false,
             items: [
