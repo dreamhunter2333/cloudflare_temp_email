@@ -5,8 +5,8 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^22.10.7",
-    "vitepress": "^1.5.0",
-    "wrangler": "^3.103.2"
+    "vitepress": "^1.6.2",
+    "wrangler": "^3.104.0"
   },
   "scripts": {
     "dev": "vitepress dev docs",

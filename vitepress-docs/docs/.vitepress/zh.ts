@@ -119,15 +119,20 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         },
         {
             text: '通过 Github Actions 部署',
-            collapsed: false,
+            collapsed: true,
             items: [
-                { text: '通过 Github Actions 部署', link: 'github-action' },
+                { text: 'D1 数据库', link: 'actions/d1' },
+                { text: 'Github Actions 配置', link: 'actions/github-action' },
+                { text: '配置邮件转发', link: 'email-routing.md' },
+                { text: '配置发送邮件', link: 'config-send-mail' },
+                { text: '自动更新配置', link: 'actions/auto-update' },
             ]
         },
         {
-            text: '常见问题',
+            text: '通用',
             collapsed: false,
             items: [
+                { text: 'worker变量说明', link: 'worker-vars' },
                 { text: '常见问题', link: 'common-issues' },
             ]
         },

@@ -35,7 +35,10 @@
 
     ![worker-var](/ui_install/worker-var.png)
 
-7. 以下是  `Settings` -> `Variables` 中必须配置的变量列表
+7. 以下是  `Settings` -> `Variables` 中建议配置的变量列表
+
+    > [!NOTE] 注意
+    > 更多变量的配置请查看 [worker变量说明](/zh/guide/worker-vars)
 
     | 变量名                     | 说明                                       | 示例                                 |
     | -------------------------- | ------------------------------------------ | ------------------------------------ |
@@ -78,3 +81,8 @@
     > 如果不需要 Telegram Bot, 可跳过此步骤
 
     请先创建一个 Telegram Bot，然后获取 `token`，然后执行下面的命令，将 `token` 添加到 `Variables` 中, Name: `TELEGRAM_BOT_TOKEN`
+
+12. 如果你想要使用 admin 页面中的定时任务清理邮件，需要到 `Settings` -> `Triggers` -> `Cron Triggers` 中添加定时任务.
+
+    > [!NOTE]
+    > 选择 `cron` 表达式，输入 `0 0 * * *`（此表达式表示每天午夜运行），点击 `Add` 增加。请根据您的需求调整此表达式。

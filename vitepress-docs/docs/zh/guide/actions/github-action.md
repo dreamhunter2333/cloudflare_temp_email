@@ -1,16 +1,13 @@
 # 通过 Github Actions 部署
 
 ::: warning 注意
-目前只支持 worker 和 pages 的部署，D1 数据库以及 Email 部分请参考 [UI/CLI 部署](/)。
+目前只支持 worker 和 pages 的部署。
 有问题请通过 `Github Issues` 反馈，感谢。
-自动更新不会执行 sql 文件，需要手动执行。
 :::
-
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/dreamhunter2333/cloudflare_temp_email)
 
 ## 部署步骤
 
-1. 点击按钮 fork 本仓库 或者直接 fork 本仓库
+1. 在 GitHub fork 本仓库
 
 2. 打开仓库的 `Actions` 页面，找到 `Deploy Backend Production` 和 `Deploy Frontend`，点击 `enable workflow` 启用 `workflow`
 

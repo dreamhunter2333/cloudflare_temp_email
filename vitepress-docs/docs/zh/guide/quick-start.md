@@ -1,13 +1,16 @@
 # 快速开始
 
-- 良好的网络环境
-- cloudflare 账号
+## 开始之前
 
-打开 [cloudflare控制台](https://dash.cloudflare.com/)
+需要 `良好的网络环境` 和 `cloudflare 账号`， 打开 [cloudflare控制台](https://dash.cloudflare.com/)
 
-请查看通过 [命令行部署](/zh/guide/cli/pre-requisite) 或者 [用户界面部署](/zh/guide/ui/d1)
+请选择下面三种方式之一进行部署
 
-## 网友提供的详细的小白教程
+- [通过命令行部署](/zh/guide/cli/pre-requisite)
+- [通过用户界面部署](/zh/guide/ui/d1)
+- [通过Github Actions 部署](/zh/guide/actions/github-action)
+
+### 也可以参考网友提供的详细的小白教程
 
 - [【教程】小白也能看懂的自建Cloudflare临时邮箱教程（域名邮箱）](https://linux.do/t/topic/316819/1)
 
@@ -22,14 +25,18 @@
 
 然后参考下面的文档使用 `CLI` 或者 `UI` 覆盖部署之前的 `worker` 和 `pages` 即可
 
-CLI 部署
+### CLI 部署
 
 - [命令行更新 d1](/zh/guide/cli/d1)
 - [命令行部署 worker](/zh/guide/cli/worker)
 - [命令行部署 pages](/zh/guide/cli/worker)
 
-UI 部署
+### UI 部署
 
 - [用户界面更新 d1](/zh/guide/ui/d1)
 - [用户界面部署 worker](/zh/guide/ui/worker)
 - [用户界面部署 pages](/zh/guide/ui/pages)
+
+### Github Actions 部署
+
+- [Github Actions 部署如何配置自动更新](/zh/guide/actions/auto-update)

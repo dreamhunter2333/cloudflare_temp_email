@@ -18,7 +18,7 @@ api.get('/open_api/settings', async (c) => {
     return c.json({
         "title": c.env.TITLE,
         "announcement": getStringValue(c.env.ANNOUNCEMENT),
-        "prefix": c.env.PREFIX,
+        "prefix": getStringValue(c.env.PREFIX),
         "addressRegex": getStringValue(c.env.ADDRESS_REGEX),
         "minAddressLen": getIntValue(c.env.MIN_ADDRESS_LEN, 1),
         "maxAddressLen": getIntValue(c.env.MAX_ADDRESS_LEN, 30),
