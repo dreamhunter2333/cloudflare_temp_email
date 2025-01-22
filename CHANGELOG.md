@@ -4,6 +4,8 @@
 ## main(v0.8.6)
 
 - feat: |UI| 公告支持 html 格式
+- feat: |UI| `COPYRIGHT` 支持 html 格式
+- feat: |Doc| 优化部署文档，补充了 `Github Actions 部署文档`，增加了 `Worker 变量说明`
 
 ## v0.8.5
 
