@@ -40,14 +40,14 @@
     > [!NOTE] 注意
     > 更多变量的配置请查看 [worker变量说明](/zh/guide/worker-vars)
 
-    | 变量名                     | 说明                                       | 示例                                 |
-    | -------------------------- | ------------------------------------------ | ------------------------------------ |
-    | `PREFIX`                   | 要处理的邮箱名称前缀，不需要后缀可不配置   | `tmp`                                |
-    | `DOMAINS`                  | 你的域名, 支持多个域名                     | `["awsl.uk", "dreamhunter2333.xyz"]` |
-    | `ADMIN_PASSWORDS`          | admin 控制台密码, 不配置则不允许访问控制台 | `["123", "456"]`                     |
-    | `JWT_SECRET`               | 用于生成 jwt 的密钥, jwt 用于登录以及鉴权  | `xxx`                                |
-    | `ENABLE_USER_CREATE_EMAIL` | 是否允许用户创建邮箱, 不配置则不允许       | `true`                               |
-    | `ENABLE_USER_DELETE_EMAIL` | 是否允许用户删除邮箱, 不配置则不允许       | `true`                               |
+    | 变量名                     | 类型        | 说明                                       | 示例                                 |
+    | -------------------------- | ----------- | ------------------------------------------ | ------------------------------------ |
+    | `PREFIX`                   | 文本        | 新建邮箱名称默认前缀，不需要前缀可不配置   | `tmp`                                |
+    | `DOMAINS`                  | JSON        | 用于临时邮箱的所有域名, 支持多个域名       | `["awsl.uk", "dreamhunter2333.xyz"]` |
+    | `JWT_SECRET`               | 文本/Secret | 用于生成 jwt 的密钥, jwt 用于登录以及鉴权  | `xxx`                                |
+    | `ADMIN_PASSWORDS`          | JSON        | admin 控制台密码, 不配置则不允许访问控制台 | `["123", "456"]`                     |
+    | `ENABLE_USER_CREATE_EMAIL` | 文本/JSON   | 是否允许用户创建邮箱, 不配置则不允许       | `true`                               |
+    | `ENABLE_USER_DELETE_EMAIL` | 文本/JSON   | 是否允许用户删除邮件, 不配置则不允许       | `true`                               |
 
 8. 点击 `Settings` -> `Variables`, 下拉找到 `D1 Database`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 D1 数据库，点击 `Deploy`
 
