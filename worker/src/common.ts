@@ -321,13 +321,13 @@ export const commonGetUserRole = async (
 export const getAddressPrefix = async (c: Context<HonoCustomType>): Promise<string | undefined> => {
     const user = c.get("userPayload");
     if (!user) {
-        return c.env.PREFIX;
+        return getStringValue(c.env.PREFIX);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
     if (typeof user_role?.prefix === "string") {
         return user_role.prefix;
     }
-    return c.env.PREFIX;
+    return getStringValue(c.env.PREFIX);
 }
 
 export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<string[]> => {

@@ -13,7 +13,7 @@ export default {
             "HAS_ADMIN_PASSWORDS": getAdminPasswords(c).length,
             "ANNOUNCEMENT": getStringValue(c.env.ANNOUNCEMENT),
 
-            "PREFIX": c.env.PREFIX,
+            "PREFIX": getStringValue(c.env.PREFIX),
             "ADDRESS_CHECK_REGEX": getStringValue(c.env.ADDRESS_CHECK_REGEX),
             "ADDRESS_REGEX": getStringValue(c.env.ADDRESS_REGEX),
             "MIN_ADDRESS_LEN": getIntValue(c.env.MIN_ADDRESS_LEN, 1),

@@ -85,9 +85,9 @@ ENABLE_AUTO_REPLY = false
 # remove all attachment, mail maybe mising some information due to parsing
 # REMOVE_ALL_ATTACHMENT = true
 # Calling other woker to process email
-#ENABLE_ANOTHER_WORKER = false
-#ANOTHER_WORKER_LIST ="""
-#[
+# ENABLE_ANOTHER_WORKER = false
+# ANOTHER_WORKER_LIST = """
+# [
 #    {
 #        "binding":"AUTH_INBOX",
 #        "method":"rpcEmail",
@@ -96,8 +96,8 @@ ENABLE_AUTO_REPLY = false
 #            "account","activation","verify","verification","activate","confirmation","email","code","validate","registration","login","code","expire","confirm"
 #        ]
 #    }
-#]
-#"""
+# ]
+# """
 
 [[d1_databases]]
 binding = "DB"

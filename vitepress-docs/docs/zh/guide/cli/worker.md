@@ -22,6 +22,9 @@ wrangler kv:namespace create DEV
 
 ## 修改 `wrangler.toml` 配置文件
 
+> [!NOTE] 注意
+> 更多变量的配置请查看 [worker变量说明](/zh/guide/worker-vars)
+
 ```toml
 name = "cloudflare_temp_email"
 main = "src/worker.ts"
@@ -43,94 +46,20 @@ compatibility_flags = [ "nodejs_compat" ]
 # ]
 
 [vars]
-# TITLE = "Custom Title" # 自定义网站标题
-PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空字符串
-# (min, max) adderss的长度，如果不设置，默认为(1, 30)
-# ANNOUNCEMENT = "Custom Announcement" # 自定义公告
-# address name 的正则表达式, 只用于检查，符合条件将通过检查
-# ADDRESS_CHECK_REGEX = "^(?!.*admin).*"
-# address name 替换非法符号的正则表达式, 不在其中的符号将被替换，如果不设置，默认为 [^a-z0-9], 需谨慎使用, 有些符号可能导致无法收件
-# ADDRESS_REGEX = "[^a-z0-9]"
-# MIN_ADDRESS_LEN = 1
-# MAX_ADDRESS_LEN = 30
-# 如果你想要你的网站私有，取消下面的注释，并修改密码
-# PASSWORDS = ["123", "456"]
+# 邮箱名称前缀，不需要后缀可配置为空字符串或者不配置
+PREFIX = "tmp"
+# 用于临时邮箱的所有域名, 支持多个域名
+DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
+# 用于生成 jwt 的密钥, jwt 用于给用户登录以及鉴权
+JWT_SECRET = "xxx"
+
 # admin 控制台密码, 不配置则不允许访问控制台
 # ADMIN_PASSWORDS = ["123", "456"]
-# 警告: 管理员控制台没有密码或用户检查
-# DISABLE_ADMIN_PASSWORD_CHECK = false
-# admin 联系方式，不配置则不显示，可配置任意字符串
-# ADMIN_CONTACT = "xx@xx.xxx"
-# DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 默认用户可用的域名(未登录或未分配角色的用户)
-DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名, 支持多个域名
-# 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称
-# DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
-# 新用户默认角色, 仅在启用邮件验证时有效
-# USER_DEFAULT_ROLE = "vip"
-# admin 角色配置, 如果用户角色等于 ADMIN_USER_ROLE 则可以访问 admin 控制台
-# ADMIN_USER_ROLE = "admin" # the role which can access admin panel
-# 用户角色配置, 如果 domains 为空将使用 default_domains
-# 如果 prefix 为 null 将使用默认前缀, 如果 prefix 为空字符串将不使用前缀
-# USER_ROLES = [
-#    { domains = ["xxx.xxx1" , "xxx.xxx2"], role = "vip", prefix = "vip" },
-#    { domains = ["xxx.xxx1" , "xxx.xxx2"], role = "admin", prefix = "" },
-# ]
-JWT_SECRET = "xxx" # 用于生成 jwt 的密钥, jwt 用于给用户登录以及鉴权
-BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
+
 # 是否允许用户创建邮件, 不配置则不允许
 ENABLE_USER_CREATE_EMAIL = true
-# 禁用匿名用户创建邮箱，如果设置为 true，则用户只能在登录后创建邮箱地址
-# DISABLE_ANONYMOUS_USER_CREATE_EMAIL = true
 # 允许用户删除邮件, 不配置则不允许
 ENABLE_USER_DELETE_EMAIL = true
-# 允许自动回复邮件
-ENABLE_AUTO_REPLY = false
-# 是否启用 webhook
-# ENABLE_WEBHOOK = true
-# 前端界面页脚文本
-# COPYRIGHT = "Dream Hunter"
-# DISABLE_SHOW_GITHUB = true # 是否显示 GitHub 链接
-# 默认发送邮件余额，如果不设置，将为 0
-# DEFAULT_SEND_BALANCE = 1
-# NO_LIMIT_SEND_ROLE = "vip" # 可以无限发送邮件的角色
-# Turnstile 人机验证配置
-# CF_TURNSTILE_SITE_KEY = ""
-# CF_TURNSTILE_SECRET_KEY = ""
-# telegram bot 最多绑定邮箱数量
-# TG_MAX_ADDRESS = 5
-# telegram BOT_INFO，预定义的 BOT_INFO 可以降低 webhook 的延迟
-# TG_BOT_INFO = "{}"
-# 全局转发地址列表，如果不配置则不启用，启用后所有邮件都会转发到列表中的地址
-# FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
-# 前端地址，用于发送 webhook 的邮件 url
-# FRONTEND_URL = "https://xxxx.xxx"
-# 是否启用垃圾邮件检查，默认任何一项存在配置且不通过则被判定为垃圾邮件
-# ENABLE_CHECK_JUNK_MAIL = false
-# 垃圾邮件检查配置, 任何一项 存在 且 不通过 则被判定为垃圾邮件
-# JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
-# 垃圾邮件检查配置, 任何一项 不存在 或者 不通过 则被判定为垃圾邮件
-# JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
-# 如果附件大小超过 2MB，则删除附件，邮件可能由于解析而丢失一些信息
-# REMOVE_EXCEED_SIZE_ATTACHMENT = true
-# 移除所有附件，邮件可能由于解析而丢失一些信息
-# REMOVE_ALL_ATTACHMENT = true
-# 是否开启其他 worker 处理邮件
-# ENABLE_ANOTHER_WORKER = false
-# 其他 worker 处理邮件的配置，可以配置多个其他 worker。
-# 通过关键词筛选，调用对应绑定的 worker 的方法（默认方法名为 rpcEmail）
-# keywords必填，否则 worker 将不会被触发
-#ANOTHER_WORKER_LIST ="""
-#[
-#    {
-#        "binding":"AUTH_INBOX",
-#        "method":"rpcEmail",
-#        "keywords":[
-#            "验证码","激活码","激活链接","确认链接","验证邮箱","确认邮件","账号激活","邮件验证","账户确认","安全码","认证码","安全验证","登陆码","确认码","启用账户","激活账户","账号验证","注册确认",
-#            "account","activation","verify","verification","activate","confirmation","email","code","validate","registration","login","code","expire","confirm"
-#        ]
-#    }
-#]
-#"""
 
 # D1 数据库的名称和 ID 可以在 cloudflare 控制台查看
 [[d1_databases]]
