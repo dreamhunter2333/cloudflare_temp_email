@@ -1,5 +1,8 @@
 # Worker 变量说明
 
+> [!NOTE] 注意
+> 通过 CLI 部署时的写法请参考 `worker/wrangler.toml.template`
+
 ## 必填变量
 
 | 变量名                     | 类型        | 说明                                       | 示例                                 |
@@ -66,13 +69,22 @@
 
 ## 用户相关变量
 
-| 变量名                                | 类型      | 说明                                                                                                                                       | 示例                                                                                                                                                              |
-| ------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `USER_DEFAULT_ROLE`                   | 文本      | 新用户默认角色, 仅在启用邮件验证时有效                                                                                                     | `vip`                                                                                                                                                             |
-| `ADMIN_USER_ROLE`                     | 文本      | admin 角色配置, 如果用户角色等于 ADMIN_USER_ROLE 则可以访问 admin 控制台                                                                   | `admin`                                                                                                                                                           |
-| `USER_ROLES`                          | JSON      | - 用户角色配置, 如果 `domains` 为空将使用 `DEFAULT_DOMAINS` <br/> - 如果 prefix 为 null 将使用默认前缀, 如果 prefix 为空字符串将不使用前缀 | `[{ domains = ["awsl.uk", "dreamhunter2333.xyz"], role = "vip", prefix = "vip" }, { domains = ["awsl.uk", "dreamhunter2333.xyz"], role = "admin", prefix = "" }]` |
-| `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` | 文本/JSON | 禁用匿名用户创建邮箱，如果设置为 true，则用户只能在登录后创建邮箱地址                                                                      | `true`                                                                                                                                                            |
-| `NO_LIMIT_SEND_ROLE`                  | 文本      | 可以无限发送邮件的角色                                                                                                                     | `vip`                                                                                                                                                             |
+| 变量名                                | 类型      | 说明                                                                     | 示例    |
+| ------------------------------------- | --------- | ------------------------------------------------------------------------ | ------- |
+| `USER_DEFAULT_ROLE`                   | 文本      | 新用户默认角色, 仅在启用邮件验证时有效                                   | `vip`   |
+| `ADMIN_USER_ROLE`                     | 文本      | admin 角色配置, 如果用户角色等于 ADMIN_USER_ROLE 则可以访问 admin 控制台 | `admin` |
+| `USER_ROLES`                          | JSON      | -                                                                        | 见下方  |
+| `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` | 文本/JSON | 禁用匿名用户创建邮箱，如果设置为 true，则用户只能在登录后创建邮箱地址    | `true`  |
+| `NO_LIMIT_SEND_ROLE`                  | 文本      | 可以无限发送邮件的角色                                                   | `vip`   |
+
+> [!NOTE] USER_ROLES 用户角色配置说明
+>
+> - 如果 `domains` 为空将使用 `DEFAULT_DOMAINS`
+> - 如果 prefix 为 null 将使用默认前缀, 如果 prefix 为空字符串将不使用前缀
+>
+> 通过用户界面部署时 `USER_ROLES` 请配置为此格式 `[{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"vip","prefix":"vip"},{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"admin","prefix":""}]`
+>
+> CLI 部署时 `USER_ROLES` 请参考 `worker/wrangler.toml.template` 配置为此格式 `[{ domains = ["awsl.uk", "dreamhunter2333.xyz"], role = "vip", prefix = "vip" }, { domains = ["awsl.uk", "dreamhunter2333.xyz"], role = "admin", prefix = "" }]`
 
 ## 网页相关变量
 
