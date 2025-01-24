@@ -12,7 +12,7 @@ import { api as telegramApi } from './telegram_api'
 
 import { email } from './email';
 import { scheduled } from './scheduled';
-import { getAdminPasswords, getPasswords, getBooleanValue } from './utils';
+import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
 import { HonoCustomType, UserPayload } from './types';
 
 const app = new Hono<HonoCustomType>()
@@ -210,14 +210,21 @@ app.route('/', adminApi)
 app.route('/', apiSendMail)
 app.route('/', telegramApi)
 
-app.get('/', async c => {
-	if (!c.env.DB) { return c.text("DB is not available", 400); }
+const health_check = async (c: Context<HonoCustomType>) => {
+	if (!c.env.DB) {
+		return c.text("DB is not available", 400);
+	}
+	if (!c.env.JWT_SECRET) {
+		return c.text("JWT_SECRET is not set", 400);
+	}
+	if (getStringArray(c.env.DOMAINS).length === 0) {
+		return c.text("DOMAINS is not set", 400);
+	}
 	return c.text("OK");
-})
-app.get('/health_check', async c => {
-	if (!c.env.DB) { return c.text("DB is not available", 400); }
-	return c.text("OK");
-})
+}
+
+app.get('/', health_check)
+app.get('/health_check', health_check)
 app.all('/*', async c => c.text("Not Found", 404))
 
 
