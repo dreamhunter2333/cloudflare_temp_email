@@ -26,19 +26,18 @@
     ![worker2](/ui_install/worker-2.png)
     ![worker-upload](/ui_install/worker-upload.png)
 
-6. 点击 `Settings` -> `Variables`, 如图所示添加变量，参考 [修改 wrangler.toml 配置文件](/zh/guide/cli/worker.html#修改-wrangler-toml-配置文件) 中的 `[vars]` 部分
-
-    > [!NOTE]
-    > 注意字符串格式的变量的最外层的引号是不需要的
-    >
-    > - 对于 `USER_ROLES` 请配置为此格式 `[{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"vip","prefix":"vip"},{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"admin","prefix":""}]`
+6. 点击 `Settings` -> `Variables`, 如图所示添加变量
 
     ![worker-var](/ui_install/worker-var.png)
 
-7. 以下是  `Settings` -> `Variables` 中建议配置的变量列表
-
     > [!NOTE] 注意
     > 更多变量的配置请查看 [worker变量说明](/zh/guide/worker-vars)
+    >
+    > 注意字符串格式的变量的最外层的引号是不需要的
+    >
+    > 对于 `USER_ROLES` 请配置为此格式 `[{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"vip","prefix":"vip"},{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"admin","prefix":""}]`
+
+    建议配置的变量列表
 
     | 变量名                     | 类型        | 说明                                       | 示例                                 |
     | -------------------------- | ----------- | ------------------------------------------ | ------------------------------------ |
@@ -49,14 +48,14 @@
     | `ENABLE_USER_CREATE_EMAIL` | 文本/JSON   | 是否允许用户创建邮箱, 不配置则不允许       | `true`                               |
     | `ENABLE_USER_DELETE_EMAIL` | 文本/JSON   | 是否允许用户删除邮件, 不配置则不允许       | `true`                               |
 
-8. 点击 `Settings` -> `Variables`, 下拉找到 `D1 Database`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 D1 数据库，点击 `Deploy`
+7. 点击 `Settings` -> `Variables`, 下拉找到 `D1 Database`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 D1 数据库，点击 `Deploy`
 
     > [!NOTE] 重要
     > 注意此处 `D1 Database` 的绑定名称必须为 `DB`
 
     ![worker-d1](/ui_install/worker-d1.png)
 
-9. 点击 `Settings` -> `Trggers`, 这里可以添加自己的域名，你也可以使用自动生成的 `*.workers.dev` 的域名。记录下这个域名，后面部署前端会用到。
+8. 点击 `Settings` -> `Trggers`, 这里可以添加自己的域名，你也可以使用自动生成的 `*.workers.dev` 的域名。记录下这个域名，后面部署前端会用到。
 
     > [!NOTE]
     > 打开 `worker` 的 `url`，如果显示 `OK` 说明部署成功
@@ -65,7 +64,7 @@
 
     ![worker3](/ui_install/worker-3.png)
 
-10. 如果你要启用注册用户功能，并需要发送邮件验证，则需要创建 `KV` 缓存, 不需要可跳过此步骤，点击 `Workers & Pages` -> `KV` -> `Create Namespace`, 如图，点击 `Create Namespace`，然后在 `Settings` -> `Variables`, 下拉找到 `KV`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 `KV` 缓存，点击 `Deploy`
+9.  如果你要启用注册用户功能，并需要发送邮件验证，则需要创建 `KV` 缓存, 不需要可跳过此步骤，点击 `Workers & Pages` -> `KV` -> `Create Namespace`, 如图，点击 `Create Namespace`，然后在 `Settings` -> `Variables`, 下拉找到 `KV`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 `KV` 缓存，点击 `Deploy`
 
     > [!NOTE] 重要
     > 如果你要启用注册用户功能，并需要发送邮件验证，则需要创建 `KV` 缓存, 不需要可跳过此步骤
@@ -75,14 +74,14 @@
     ![worker-kv](/ui_install/worker-kv.png)
     ![worker-kv-bind](/ui_install/worker-kv-bind.png)
 
-11. Telegram Bot 配置
+10. Telegram Bot 配置
 
     > [!NOTE]
     > 如果不需要 Telegram Bot, 可跳过此步骤
 
     请先创建一个 Telegram Bot，然后获取 `token`，然后执行下面的命令，将 `token` 添加到 `Variables` 中, Name: `TELEGRAM_BOT_TOKEN`
 
-12. 如果你想要使用 admin 页面中的定时任务清理邮件，需要到 `Settings` -> `Triggers` -> `Cron Triggers` 中添加定时任务.
+11. 如果你想要使用 admin 页面中的定时任务清理邮件，需要到 `Settings` -> `Triggers` -> `Cron Triggers` 中添加定时任务.
 
     > [!NOTE]
     > 选择 `cron` 表达式，输入 `0 0 * * *`（此表达式表示每天午夜运行），点击 `Add` 增加。请根据您的需求调整此表达式。
