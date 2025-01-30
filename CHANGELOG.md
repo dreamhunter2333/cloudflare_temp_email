@@ -1,7 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.8.6)
+## main(v0.8.7)
+
+- fix: |UI| 修复移动设备日期显示问题
+
+## v0.8.6
 
 - feat: |UI| 公告支持 html 格式
 - feat: |UI| `COPYRIGHT` 支持 html 格式

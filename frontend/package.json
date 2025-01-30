@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "private": true,
   "type": "module",
   "scripts": {
@@ -28,7 +28,7 @@
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.1",
     "naive-ui": "^2.41.0",
-    "postal-mime": "^2.4.1",
+    "postal-mime": "^2.4.3",
     "vooks": "^0.2.12",
     "vue": "^3.5.13",
     "vue-clipboard3": "^2.0.0",
@@ -47,6 +47,6 @@
     "vite-plugin-wasm": "^3.4.1",
     "workbox-build": "^7.3.0",
     "workbox-window": "^7.3.0",
-    "wrangler": "^3.104.0"
+    "wrangler": "^3.106.0"
   }
 }
