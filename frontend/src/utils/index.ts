@@ -19,6 +19,9 @@ export const utcToLocalDate = (utcDate: string, useUTCDate: boolean) => {
     }
     try {
         const date = new Date(utcDateString);
+        // if invalid date string
+        if (isNaN(date.getTime())) return utcDateString;
+
         return date.toLocaleString();
     } catch (e) {
         console.error(e);
