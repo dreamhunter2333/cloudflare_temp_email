@@ -4,6 +4,7 @@
 ## main(v0.8.7)
 
 - fix: |UI| 修复移动设备日期显示问题
+- feat: |Worker| 支持通过 `SMTP` 发送邮件, 使用 [zou-yu/worker-mailer](https://github.com/zou-yu/worker-mailer/blob/main/README_zh-CN.md)
 
 ## v0.8.6
 

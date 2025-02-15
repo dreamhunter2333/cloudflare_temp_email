@@ -2,9 +2,10 @@ import { Context, Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 import { createMimeMessage } from 'mimetext';
 import { Resend } from 'resend';
+import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue } from '../utils';
+import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery } from '../common'
 import { HonoCustomType } from '../types';
@@ -89,6 +90,32 @@ const sendMailByResend = async (
     console.log(`Resend success: ${JSON.stringify(data)}`);
 }
 
+const sendMailBySmtp = async (
+    c: Context<HonoCustomType>, address: string,
+    reqJson: {
+        from_name: string, to_mail: string, to_name: string,
+        subject: string, content: string, is_html: boolean
+    },
+    smtpOptions: WorkerMailerOptions
+): Promise<void> => {
+    await WorkerMailer.send(
+        smtpOptions,
+        {
+            from: {
+                name: reqJson.from_name,
+                email: address
+            },
+            to: {
+                name: reqJson.to_name,
+                email: reqJson.to_mail
+            },
+            subject: reqJson.subject,
+            text: reqJson.is_html ? undefined : reqJson.content,
+            html: reqJson.is_html ? reqJson.content : undefined
+        }
+    )
+}
+
 export const sendMail = async (
     c: Context<HonoCustomType>, address: string,
     reqJson: {
@@ -138,15 +165,20 @@ export const sendMail = async (
         throw new Error("to_mail address is blocked")
     }
     if (!subject) {
-        throw new Error("Invalid subject")
+        throw new Error("Subject is empty")
     }
     if (!content) {
-        throw new Error("Invalid content")
+        throw new Error("Content is empty")
     }
+
     // send to verified address list, do not update balance
     const resendEnabled = c.env.RESEND_TOKEN || c.env[
         `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
     ];
+    // send by smtp
+    const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
+    const smtpConfig = smtpConfigMap ? smtpConfigMap[mailDomain] : null;
+    // send by verified address list
     let sendByVerifiedAddressList = false;
     if (c.env.SEND_MAIL) {
         const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY) || [];
@@ -155,6 +187,8 @@ export const sendMail = async (
             sendByVerifiedAddressList = true;
         }
     }
+
+    // send mail workflow
     if (sendByVerifiedAddressList) {
         // do not update balance
     }
@@ -162,9 +196,16 @@ export const sendMail = async (
     else if (resendEnabled) {
         await sendMailByResend(c, address, reqJson);
     }
-    else {
-        throw new Error("Please enable resend or verified address list")
+    else if (smtpConfig) {
+        await sendMailBySmtp(c, address, reqJson, smtpConfig);
     }
+    else {
+        if (c.env.SEND_MAIL) {
+            throw new Error(`Please enable resend or smtp for domain ${mailDomain}. Or add ${to_mail} to verified address list`);
+        }
+        throw new Error(`Please enable resend or smtp for domain ${mailDomain}`);
+    }
+
     // update balance
     if (!sendByVerifiedAddressList && needCheckBalance) {
         try {
