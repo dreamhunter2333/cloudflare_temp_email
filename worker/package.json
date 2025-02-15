@@ -27,7 +27,8 @@
     "mimetext": "^3.0.27",
     "postal-mime": "^2.4.3",
     "resend": "^4.1.1",
-    "telegraf": "4.16.3"
+    "telegraf": "4.16.3",
+    "worker-mailer": "^1.0.1"
   },
   "pnpm": {
     "patchedDependencies": {

@@ -37,6 +37,9 @@ importers:
       telegraf:
         specifier: 4.16.3
         version: 4.16.3(patch_hash=7d0a1784bb35f50fee25f26a14017734b9461612c635e71734b59527280c9563)
+      worker-mailer:
+        specifier: ^1.0.1
+        version: 1.0.1
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250129.0
@@ -1577,6 +1580,9 @@ packages:
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
+
+  worker-mailer@1.0.1:
+    resolution: {integrity: sha512-y6U9B2cWGGasj7B+6ZtRBsdTPRAZ0P73ykKq5hsIHXReUB8WAq7feS4JoN2xmAZl7yQpVz/GTLqmqLyDmsOUnw==}
 
   workerd@1.20250124.0:
     resolution: {integrity: sha512-EnT9gN3M9/UHRFPZptKgK36DLOW8WfJV7cjNs3zstVbmF5cpFaHCAzX7tXWBO6zyvW/+EjklJPFtOvfatiZsuQ==}
@@ -3563,6 +3569,8 @@ snapshots:
       isexe: 2.0.0
 
   word-wrap@1.2.5: {}
+
+  worker-mailer@1.0.1: {}
 
   workerd@1.20250124.0:
     optionalDependencies:

@@ -66,7 +66,10 @@ export type Bindings = {
 
     // resend
     RESEND_TOKEN: string | undefined
-    [key: `RESEND_TOKEN_${string}`]: string | undefined;
+    [key: `RESEND_TOKEN_${string}`]: string | undefined
+
+    // SMTP config
+    SMTP_CONFIG: string | object | undefined
 
     // telegram config
     TELEGRAM_BOT_TOKEN: string
