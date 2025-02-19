@@ -20,6 +20,24 @@ const messages: LocaleMessages = {
     InvalidAddressMsg: "Invalid address",
     InvalidAddressCredentialMsg: "Invalid address credential",
     UserDeleteEmailDisabledMsg: "User delete address/email is disabled, please contact the administrator",
+
+    UserNotFoundMsg: "User not found",
+    UserAlreadyExistsMsg: "User already exists, please login",
+    FailedToRegisterMsg: "Failed to register",
+    UserRegistrationDisabledMsg: "User registration is disabled, please contact the administrator",
+    UserMailDomainMustInMsg: "User mail domain must be in this list",
+    InvalidVerifyCodeMsg: "Invalid verify code",
+    InvalidEmailOrPasswordMsg: "Invalid email or password",
+    VerifyMailSenderNotSetMsg: "Verify mail sender address is not set, please contact the administrator",
+    CodeAlreadySentMsg: "Code already sent, please wait",
+    InvalidUserDefaultRoleMsg: "Invalid user default role, please contact the administrator",
+    FailedUpdateUserDefaultRoleMsg: "Failed to update user default role, please contact the administrator",
+
+    Oauth2ClientIDNotFoundMsg: "Oauth2 client ID is not set, please contact the administrator",
+    Oauth2CliendIDOrCodeMissingMsg: "Oauth2 client ID or code is missing",
+    Oauth2FailedGetUserInfoMsg: "Failed to get user info from Oauth2 provider",
+    Oauth2FailedGetAccessTokenMsg: "Failed to get access token from Oauth2 provider",
+    Oauth2FailedGetUserEmailMsg: "Failed to get user email from Oauth2 provider",
 }
 
 export default messages;
