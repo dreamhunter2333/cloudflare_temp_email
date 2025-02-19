@@ -8,6 +8,7 @@ import { isS3Enabled } from '../mails_api/s3_attachment';
 export default {
     getConfig: async (c: Context<HonoCustomType>) => {
         return c.json({
+            "DEFAULT_LANG": c.env.DEFAULT_LANG,
             "TITLE": c.env.TITLE,
             "HAS_PASSWORD": getPasswords(c).length,
             "HAS_ADMIN_PASSWORDS": getAdminPasswords(c).length,

@@ -16,6 +16,7 @@ compatibility_flags = [ "nodejs_compat" ]
 # ]
 
 [vars]
+# DEFAULT_LANG = "zh"
 # TITLE = "Custom Title" # custom title
 # ANNOUNCEMENT = "Custom Announcement"
 PREFIX = "tmp"
