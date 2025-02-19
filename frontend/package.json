@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "0.8.7",
+  "version": "0.9.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -40,13 +40,13 @@
     "@vicons/material": "^0.13.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "unplugin-auto-import": "^19.1.0",
-    "unplugin-vue-components": "^28.1.0",
-    "vite": "^6.1.0",
+    "unplugin-vue-components": "^28.4.0",
+    "vite": "^6.1.1",
     "vite-plugin-pwa": "^0.21.1",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.4.1",
     "workbox-build": "^7.3.0",
     "workbox-window": "^7.3.0",
-    "wrangler": "^3.109.1"
+    "wrangler": "^3.109.2"
   }
 }

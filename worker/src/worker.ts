@@ -10,6 +10,7 @@ import { api as adminApi } from './admin_api';
 import { api as apiSendMail } from './mails_api/send_mail_api'
 import { api as telegramApi } from './telegram_api'
 
+import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
 import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
@@ -25,6 +26,10 @@ app.onError((err, c) => {
 })
 // rate limit
 app.use('/*', async (c, next) => {
+	// save language in context
+	const lang = c.req.raw.headers.get("x-lang");
+	if (lang) { c.set("lang", lang); }
+	const msgs = i18n.getMessages(lang || c.env.DEFAULT_LANG);
 	if (
 		c.req.path.startsWith("/api/new_address")
 		|| c.req.path.startsWith("/api/send_mail")
@@ -49,17 +54,17 @@ app.use('/*', async (c, next) => {
 		|| c.req.path.startsWith("/admin/mail_webhook")
 	) {
 		if (!c.env.KV) {
-			return c.text("KV is not available", 400);
+			return c.text(msgs.KVNotAvailableMsg, 400);
 		}
 		if (!getBooleanValue(c.env.ENABLE_WEBHOOK)) {
-			return c.text("Webhook is disabled", 403);
+			return c.text(msgs.WebhookNotEnabledMsg, 403);
 		}
 	}
 	if (!c.env.DB) {
-		return c.text("DB is not available", 400);
+		return c.text(msgs.DBNotAvailableMsg, 400);
 	}
 	if (!c.env.JWT_SECRET) {
-		return c.text("JWT_SECRET is not set", 400);
+		return c.text(msgs.JWTSecretNotSetMsg, 400);
 	}
 	await next()
 });
@@ -110,7 +115,9 @@ app.use('/api/*', async (c, next) => {
 	if (passwords && passwords.length > 0) {
 		const auth = c.req.raw.headers.get("x-custom-auth");
 		if (!auth || !passwords.includes(auth)) {
-			return c.text("Need Password", 401)
+			const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
+			const messages = i18n.getMessages(lang);
+			return c.text(messages.CustomAuthPasswordMsg, 401)
 		}
 	}
 	if (c.req.path.startsWith("/api/new_address")) {
@@ -138,20 +145,24 @@ app.use('/user_api/*', async (c, next) => {
 		await next();
 		return;
 	}
+
+	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
+	const msgs = i18n.getMessages(lang);
+
 	try {
 		const token = c.req.raw.headers.get("x-user-token");
-		if (!token) return c.text("Need User Token", 401)
+		if (!token) return c.text(msgs.UserTokenExpiredMsg, 401)
 		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
 		// check expired
-		if (!payload.exp) return c.text("Invalid Token", 401);
+		if (!payload.exp) return c.text(msgs.UserTokenExpiredMsg, 401);
 		// exp is in seconds
 		if (payload.exp < Math.floor(Date.now() / 1000)) {
-			return c.text("Token Expired", 401)
+			return c.text(msgs.UserTokenExpiredMsg, 401)
 		}
 		c.set("userPayload", payload as UserPayload);
 	} catch (e) {
 		console.error(e);
-		return c.text("Need User Token", 401)
+		return c.text(msgs.UserTokenExpiredMsg, 401)
 	}
 	if (c.req.path.startsWith('/user_api/bind_address')
 		&& c.req.method === 'POST'
@@ -172,19 +183,21 @@ app.use('/admin/*', async (c, next) => {
 			return;
 		}
 	}
+	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
+	const msgs = i18n.getMessages(lang);
 	// check if user is admin
 	const access_token = c.req.raw.headers.get("x-user-access-token");
 	if (c.env.ADMIN_USER_ROLE && access_token) {
 		try {
 			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, "HS256");
 			// check expired
-			if (!payload.exp) return c.text("Invalid Token", 401);
+			if (!payload.exp) return c.text(msgs.UserAcceesTokenExpiredMsg, 401);
 			// exp is in seconds
 			if (payload.exp < Math.floor(Date.now() / 1000)) {
-				return c.text("Token Expired", 401)
+				return c.text(msgs.UserAcceesTokenExpiredMsg, 401)
 			}
 			if (payload.user_role !== c.env.ADMIN_USER_ROLE) {
-				return c.text("Need Admin Role", 401)
+				return c.text(msgs.UserRoleIsNotAdminMsg, 401)
 			}
 			await next();
 			return;
@@ -199,7 +212,7 @@ app.use('/admin/*', async (c, next) => {
 		return;
 	}
 
-	return c.text("Need Admin Password", 401)
+	return c.text(msgs.NeedAdminPasswordMsg, 401)
 });
 
 
@@ -211,14 +224,16 @@ app.route('/', apiSendMail)
 app.route('/', telegramApi)
 
 const health_check = async (c: Context<HonoCustomType>) => {
+	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
+	const msgs = i18n.getMessages(lang);
 	if (!c.env.DB) {
-		return c.text("DB is not available", 400);
+		return c.text(msgs.DBNotAvailableMsg, 400);
 	}
 	if (!c.env.JWT_SECRET) {
-		return c.text("JWT_SECRET is not set", 400);
+		return c.text(msgs.JWTSecretNotSetMsg, 400);
 	}
 	if (getStringArray(c.env.DOMAINS).length === 0) {
-		return c.text("DOMAINS is not set", 400);
+		return c.text(msgs.DomainsNotSetMsg, 400);
 	}
 	return c.text("OK");
 }

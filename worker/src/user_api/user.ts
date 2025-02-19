@@ -1,6 +1,7 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
+import i18n from '../i18n';
 import { HonoCustomType } from '../types';
 import { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue } from "../utils"
 import { CONSTANTS } from "../constants";
@@ -10,11 +11,13 @@ import { sendMail } from "../mails_api/send_mail_api";
 export default {
     verifyCode: async (c: Context<HonoCustomType>) => {
         const { email, cf_token } = await c.req.json();
+        const lang = c.get("lang") || c.env.DEFAULT_LANG;
+        const msgs = i18n.getMessages(lang);
         // check cf turnstile
         try {
             await checkCfTurnstile(c, cf_token);
         } catch (error) {
-            return c.text("Failed to check cf turnstile", 500)
+            return c.text(msgs.TurnstileCheckFailedMsg, 500)
         }
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value)

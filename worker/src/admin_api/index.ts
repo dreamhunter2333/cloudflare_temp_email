@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
+import i18n from '../i18n'
 import { HonoCustomType } from '../types'
 import { sendAdminInternalMail, getJsonSetting, saveSetting, getUserRoles } from '../utils'
 import { newAddress, handleListQuery } from '../common'
@@ -40,6 +41,8 @@ api.get('/admin/address', async (c) => {
 
 api.post('/admin/new_address', async (c) => {
     const { name, domain, enablePrefix } = await c.req.json();
+    const lang = c.get("lang") || c.env.DEFAULT_LANG;
+    const msgs = i18n.getMessages(lang);
     if (!name) {
         return c.text("Please provide a name", 400)
     }
@@ -53,7 +56,7 @@ api.post('/admin/new_address', async (c) => {
         });
         return c.json(res);
     } catch (e) {
-        return c.text(`Failed create address: ${(e as Error).message}`, 400)
+        return c.text(`${msgs.FailedCreateAddressMsg}: ${(e as Error).message}`, 400)
     }
 })
 
