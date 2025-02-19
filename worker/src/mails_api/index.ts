@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 
 import i18n from '../i18n';
 import { HonoCustomType } from "../types";
-import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue } from '../utils';
+import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue } from '../utils';
 import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
@@ -97,7 +97,8 @@ api.get('/api/settings', async (c) => {
     } catch (e) {
         console.warn("Failed to update address")
     }
-    const is_no_limit_send_balance = user_role && user_role === getStringValue(c.env.NO_LIMIT_SEND_ROLE);
+    const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
+    const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
     const balance = is_no_limit_send_balance ? 99999 : await c.env.DB.prepare(
         `SELECT balance FROM address_sender where address = ? and enabled = 1`
     ).bind(address).first("balance");
