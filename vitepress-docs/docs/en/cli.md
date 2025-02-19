@@ -74,6 +74,7 @@ compatibility_flags = [ "nodejs_compat" ]
 # ]
 
 [vars]
+# DEFAULT_LANG = "zh"
 # TITLE = "Custom Title" # The title of the site
 PREFIX = "tmp" # The mailbox name prefix to be processed
 # (min, max) length of the adderss, if not set, the default is (1, 30)
