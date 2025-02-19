@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
-import { HonoCustomType, UserRole,AnotherWorker } from "./types";
+import { HonoCustomType, UserRole, AnotherWorker } from "./types";
 
 export const getJsonObjectValue = <T = any>(
     value: string | any
@@ -67,6 +67,15 @@ export const getStringValue = (value: any): string => {
         return value;
     }
     return "";
+}
+
+export const getSplitStringListValue = (
+    value: any, demiliter: string = ","
+): string[] => {
+    const valueToSplit = getStringValue(value);
+    return valueToSplit.split(demiliter)
+        .map((item: string) => item.trim())
+        .filter((item: string) => item.length > 0);
 }
 
 export const getBooleanValue = (

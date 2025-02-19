@@ -6,7 +6,7 @@ import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue } from '../utils';
+import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery } from '../common'
 import { HonoCustomType } from '../types';
@@ -137,7 +137,8 @@ export const sendMail = async (
         throw new Error("Invalid domain")
     }
     const user_role = c.get("userRolePayload");
-    const is_no_limit_send_balance = user_role && user_role === getStringValue(c.env.NO_LIMIT_SEND_ROLE);
+    const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
+    const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
     // no need find noLimitSendAddressList if is_no_limit_send_balance
     const noLimitSendAddressList = is_no_limit_send_balance ?
         [] : await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY) || [];

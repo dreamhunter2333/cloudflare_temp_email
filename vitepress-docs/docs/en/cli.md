@@ -121,7 +121,8 @@ ENABLE_AUTO_REPLY = false
 # DISABLE_SHOW_GITHUB = true # Disable Show GitHub link
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
-# NO_LIMIT_SEND_ROLE = "vip" # the role which can send emails without limit
+# the role which can send emails without limit, multiple roles can be separated by ,
+# NO_LIMIT_SEND_ROLE = "vip"
 # Turnstile verification configuration
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""

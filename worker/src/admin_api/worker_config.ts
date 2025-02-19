@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 
 import { HonoCustomType } from '../types';
-import { getAdminPasswords, getBooleanValue, getDefaultDomains, getDomains, getIntValue, getPasswords, getStringArray, getStringValue, getUserRoles, getAnotherWorkerList } from '../utils';
+import { getAdminPasswords, getBooleanValue, getDefaultDomains, getDomains, getIntValue, getPasswords, getStringArray, getStringValue, getUserRoles, getAnotherWorkerList, getSplitStringListValue } from '../utils';
 import { CONSTANTS } from '../constants';
 import { isS3Enabled } from '../mails_api/s3_attachment';
 
@@ -30,7 +30,7 @@ export default {
             "ADMIN_USER_ROLE": getStringValue(c.env.ADMIN_USER_ROLE),
             "USER_DEFAULT_ROLE": getStringValue(c.env.USER_DEFAULT_ROLE),
             "USER_ROLES": getUserRoles(c),
-            "NO_LIMIT_SEND_ROLE": getStringValue(c.env.NO_LIMIT_SEND_ROLE),
+            "NO_LIMIT_SEND_ROLE": getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE),
 
             "ADMIN_CONTACT": c.env.ADMIN_CONTACT,
             "ENABLE_USER_CREATE_EMAIL": getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
