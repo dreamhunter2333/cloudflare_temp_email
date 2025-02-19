@@ -27,15 +27,15 @@ export default {
             && settings.mailAllowList
             && !settings.mailAllowList.includes(mailDomain)
         ) {
-            return c.text(`Mail domain must in ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
+            return c.text(`${msgs.UserMailDomainMustInMsg} ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
         }
         if (!settings.verifyMailSender) {
-            return c.text("Verify mail sender not set", 400)
+            return c.text(msgs.VerifyMailSenderNotSetMsg, 400)
         }
         // check if code exists in KV
         const tmpcode = await c.env.KV.get(`temp-mail:${email}`)
         if (tmpcode) {
-            return c.text("Code already sent, please wait", 400)
+            return c.text(msgs.CodeAlreadySentMsg, 400)
         }
         // generate code 6 digits and convert to string
         const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -62,18 +62,20 @@ export default {
     register: async (c: Context<HonoCustomType>) => {
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value)
+        const lang = c.get("lang") || c.env.DEFAULT_LANG;
+        const msgs = i18n.getMessages(lang);
         // check enable
         if (!settings.enable) {
-            return c.text("User registration is disabled");
+            return c.text(msgs.UserRegistrationDisabledMsg, 403);
         }
         // check request
         const { email, password, code } = await c.req.json();
         if (!email || !password) {
-            return c.text("Invalid email or password", 400)
+            return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
         checkUserPassword(password);
         if (settings.enableMailVerify && !code) {
-            return c.text("Need verify code", 400)
+            return c.text(msgs.InvalidVerifyCodeMsg, 400)
         }
         // check mail domain allow list
         const mailDomain = email.split("@")[1];
@@ -81,13 +83,13 @@ export default {
             && settings.mailAllowList
             && !settings.mailAllowList.includes(mailDomain)
         ) {
-            return c.text(`Mail domain must in ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
+            return c.text(`${msgs.UserMailDomainMustInMsg} ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
         }
         // check code
         if (settings.enableMailVerify) {
             const verifyCode = await c.env.KV.get(`temp-mail:${email}`)
             if (verifyCode != code) {
-                return c.text("Invalid verify code", 400)
+                return c.text(msgs.InvalidVerifyCodeMsg, 400)
             }
         }
         // geo data
@@ -104,14 +106,14 @@ export default {
                     email, password, JSON.stringify(userInfo)
                 ).run();
                 if (!success) {
-                    return c.text("Failed to register", 500)
+                    return c.text(msgs.FailedToRegisterMsg, 500)
                 }
             } catch (e) {
                 const error = e as Error;
                 if (error.message && error.message.includes("UNIQUE")) {
-                    return c.text("User already exists, please login", 400)
+                    return c.text(msgs.UserAlreadyExistsMsg, 400)
                 }
-                return c.text(`Failed to register: ${error.message}`, 500)
+                return c.text(`${msgs.FailedToRegisterMsg}: ${error.message}`, 500)
             }
             return c.json({ success: true })
         }
@@ -125,20 +127,20 @@ export default {
             password, JSON.stringify(userInfo)
         ).run();
         if (!success) {
-            return c.text("Failed to register", 500)
+            return c.text(msgs.FailedToRegisterMsg, 400);
         }
         const defaultRole = getStringValue(c.env.USER_DEFAULT_ROLE);
         if (!defaultRole) return c.json({ success: true })
         const user_roles = getUserRoles(c);
         if (!user_roles.find((r) => r.role === defaultRole)) {
-            return c.text("Invalid role_text", 400)
+            return c.text(msgs.InvalidUserDefaultRoleMsg, 500);
         }
         // find user_id
         const user_id = await c.env.DB.prepare(
             `SELECT id FROM users where user_email = ?`
         ).bind(email).first<number | undefined | null>("id");
         if (!user_id) {
-            return c.text("User not found", 400)
+            return c.text(msgs.UserNotFoundMsg, 500);
         }
         // update user roles
         const { success: success2 } = await c.env.DB.prepare(
@@ -147,22 +149,24 @@ export default {
             + ` ON CONFLICT(user_id) DO NOTHING`
         ).bind(user_id, defaultRole).run();
         if (!success2) {
-            return c.text("Failed to update user roles", 500)
+            return c.text(msgs.FailedUpdateUserDefaultRoleMsg, 500);
         }
         return c.json({ success: true })
     },
     login: async (c: Context<HonoCustomType>) => {
         const { email, password } = await c.req.json();
-        if (!email || !password) return c.text("Invalid email or password", 400);
+        const lang = c.get("lang") || c.env.DEFAULT_LANG;
+        const msgs = i18n.getMessages(lang);
+        if (!email || !password) return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
         const { id: user_id, password: dbPassword } = await c.env.DB.prepare(
             `SELECT id, password FROM users where user_email = ?`
         ).bind(email).first() || {};
         if (!dbPassword) {
-            return c.text("User not found", 400)
+            return c.text(msgs.UserNotFoundMsg, 400)
         }
         // TODO: need check password use random salt
         if (dbPassword != password) {
-            return c.text("Invalid password", 400)
+            return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
         // create jwt
         const jwt = await Jwt.sign({

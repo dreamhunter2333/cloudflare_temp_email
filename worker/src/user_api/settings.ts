@@ -1,5 +1,6 @@
 import { Context } from "hono";
 
+import i18n from "../i18n";
 import { HonoCustomType } from "../types";
 import { UserOauth2Settings, UserSettings } from "../models";
 import { getJsonSetting, getUserRoles } from "../utils"
@@ -31,12 +32,14 @@ export default {
     },
     settings: async (c: Context<HonoCustomType>) => {
         const user = c.get("userPayload");
+        const lang = c.get("lang") || c.env.DEFAULT_LANG;
+        const msgs = i18n.getMessages(lang);
         // check if user exists
         const db_user_id = await c.env.DB.prepare(
             `SELECT id FROM users where id = ?`
         ).bind(user.user_id).first<number | undefined | null>("id");
         if (!db_user_id) {
-            return c.text("User not found", 400);
+            return c.text(msgs.UserNotFoundMsg, 400);
         }
         const user_role = await commonGetUserRole(c, db_user_id);
         const is_admin = (
