@@ -12,6 +12,7 @@ export type Bindings = {
     SEND_MAIL: any
 
     // config
+    DEFAULT_LANG: string | undefined
     TITLE: string | undefined
     ANNOUNCEMENT: string | undefined | null
     PREFIX: string | undefined
@@ -96,6 +97,7 @@ type Variables = {
     userPayload: UserPayload,
     userRolePayload: string | undefined | null,
     jwtPayload: JwtPayload,
+    lang: string | undefined | null
 }
 
 type HonoCustomType = {

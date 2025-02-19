@@ -5,6 +5,7 @@ import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
 import { checkCfTurnstile } from "../utils";
 import { TelegramSettings } from "./settings";
+import i18n from "../i18n";
 
 const encoder = new TextEncoder();
 const TG_AUTH_TIMEOUT = 300;
@@ -84,11 +85,13 @@ async function getTelegramBindAddress(c: Context<HonoCustomType>): Promise<Respo
 
 async function newTelegramAddress(c: Context<HonoCustomType>): Promise<Response> {
     const { initData, address, cf_token } = await c.req.json();
+    const lang = c.get("lang") || c.env.DEFAULT_LANG;
+    const msgs = i18n.getMessages(lang);
     // check cf turnstile
     try {
         await checkCfTurnstile(c, cf_token);
     } catch (error) {
-        return c.text("Failed to check cf turnstile", 500)
+        return c.text(msgs.TurnstileCheckFailedMsg, 500)
     }
     try {
         const userId = await checkTelegramAuth(c, initData);

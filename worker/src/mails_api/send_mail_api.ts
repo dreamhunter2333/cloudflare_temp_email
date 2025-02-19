@@ -4,6 +4,7 @@ import { createMimeMessage } from 'mimetext';
 import { Resend } from 'resend';
 import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
+import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
 import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue } from '../utils';
 import { GeoData } from '../models'
@@ -288,8 +289,10 @@ api.get('/api/sendbox', async (c) => {
 })
 
 api.delete('/api/sendbox/:id', async (c) => {
+    const lang = c.get("lang") || c.env.DEFAULT_LANG;
+    const msgs = i18n.getMessages(lang);
     if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
-        return c.text("User delete email is disabled", 403)
+        return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
     }
     const { address } = c.get("jwtPayload")
     const { id } = c.req.param();
