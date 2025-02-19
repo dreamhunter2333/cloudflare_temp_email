@@ -18,6 +18,7 @@ const messages: LocaleMessages = {
     NewAddressAnonymousDisabledMsg: "New address for anonymous user is disabled, please contact the administrator",
     FailedCreateAddressMsg: "Failed to create address",
     InvalidAddressMsg: "Invalid address",
+    InvalidAddressCredentialMsg: "Invalid address credential",
     UserDeleteEmailDisabledMsg: "User delete address/email is disabled, please contact the administrator",
 }
 

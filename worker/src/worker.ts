@@ -130,7 +130,15 @@ app.use('/api/*', async (c, next) => {
 	) {
 		await checkoutUserRolePayload(c);
 	}
-	return jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
+
+	try {
+		return await jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
+	} catch (e) {
+		console.warn(e);
+		const lang = c.get("lang") || c.env.DEFAULT_LANG;
+		const msgs = i18n.getMessages(lang);
+		return c.text(msgs.InvalidAddressCredentialMsg, 401)
+	}
 });
 // user_api auth
 app.use('/user_api/*', async (c, next) => {

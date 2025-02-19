@@ -18,6 +18,7 @@ const messages: LocaleMessages = {
     NewAddressAnonymousDisabledMsg: "匿名用户新建邮箱地址已禁用, 请联系管理员",
     FailedCreateAddressMsg: "创建邮箱地址失败",
     InvalidAddressMsg: "无效的邮箱地址",
+    InvalidAddressCredentialMsg: "无效的邮箱地址凭证",
     UserDeleteEmailDisabledMsg: "用户删除邮箱/邮件已禁用, 请联系管理员",
 }
 

@@ -16,5 +16,6 @@ export type LocaleMessages = {
     NewAddressAnonymousDisabledMsg: string
     FailedCreateAddressMsg: string
     InvalidAddressMsg: string
+    InvalidAddressCredentialMsg: string
     UserDeleteEmailDisabledMsg: string
 }
