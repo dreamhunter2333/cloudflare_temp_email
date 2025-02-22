@@ -339,26 +339,26 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
     return user_role?.domains || getDefaultDomains(c);;
 }
 
-export async function sendWebhook(settings: WebhookSettings, formatMap: WebhookMail): Promise<{ success: boolean, message?: string }> {
+export async function sendWebhook(
+    settings: WebhookSettings, formatMap: WebhookMail
+): Promise<{ success: boolean, message?: string }> {
     // send webhook
     let body = settings.body;
     for (const key of Object.keys(formatMap)) {
-        /* eslint-disable no-useless-escape */
         body = body.replace(
             new RegExp(`\\$\\{${key}\\}`, "g"),
             JSON.stringify(
                 formatMap[key as keyof WebhookMail]
-            ).replace(/^"(.*)"$/, '\$1')
+            ).replace(/^"(.*)"$/, '$1')
         );
-        /* eslint-enable no-useless-escape */
     }
-    console.log("send webhook", settings.url, settings.method, settings.headers, body);
     const response = await fetch(settings.url, {
         method: settings.method,
         headers: JSON.parse(settings.headers),
         body: body
     });
     if (!response.ok) {
+        console.log("send webhook error", settings.url, settings.method, settings.headers, body);
         console.log("send webhook error", response.status, response.statusText);
         return { success: false, message: `send webhook error: ${response.status} ${response.statusText}` };
     }
