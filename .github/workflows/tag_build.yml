@@ -44,10 +44,24 @@ jobs:
       - name: Build Backend
         run: cd worker && pnpm install --no-frozen-lockfile && pnpm build
 
+      - name: Move worker.js
+        run: cd worker/dist && mv worker.js ../
+
+      - name: Build Worker with wasm mail parser
+        run: |
+          cd worker
+          echo "Using mail-parser-wasm-worker"
+          pnpm add mail-parser-wasm-worker
+          git apply ../.github/config/mail-parser-wasm-worker.patch
+          echo "Applied mail-parser-wasm-worker patch"
+          pnpm build
+          zip -r worker-with-wasm-mail-parser.zip dist/worker.js dist/*.wasm
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             frontend/frontend.zip
             frontend/telegram-frontend.zip
-            worker/dist/worker.js
+            worker/worker.js
+            worker/worker-with-wasm-mail-parser.zip
