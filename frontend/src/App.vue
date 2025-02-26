@@ -78,14 +78,14 @@ onMounted(async () => {
     <n-spin description="loading..." :show="loading">
       <n-notification-provider container-style="margin-top: 60px;">
         <n-message-provider container-style="margin-top: 20px;">
-          <n-grid x-gap="12" :cols="12">
+          <n-grid x-gap="12" :cols="8">
             <n-gi v-if="showSideMargin" span="1">
               <div class="side" v-if="showAd">
                 <ins class="adsbygoogle" style="display:block" :data-ad-client="adClient" :data-ad-slot="adSlot"
                   data-ad-format="auto" data-full-width-responsive="true"></ins>
               </div>
             </n-gi>
-            <n-gi :span="!showSideMargin ? 12 : 10">
+            <n-gi :span="!showSideMargin ? 8 : 6">
               <div class="main">
                 <n-space vertical>
                   <n-layout style="min-height: 80vh;">
