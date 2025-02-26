@@ -126,7 +126,9 @@ const menuOptions = computed(() => [
                 type: menuValue.value == "admin" ? "primary" : "default",
                 style: "width: 100%",
                 onClick: async () => {
+                    loading.value = true;
                     await router.push(getRouterPathWithLang('/admin', locale.value));
+                    loading.value = false;
                     showMobileMenu.value = false;
                 }
             },
@@ -214,7 +216,9 @@ const logoClick = async () => {
     if (logoClickCount.value >= 5) {
         logoClickCount.value = 0;
         message.info("Change to admin Page");
+        loading.value = true;
         await router.push(getRouterPathWithLang('/admin', locale.value));
+        loading.value = false;
     } else {
         logoClickCount.value++;
     }

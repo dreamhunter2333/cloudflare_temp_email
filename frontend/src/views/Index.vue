@@ -15,10 +15,15 @@ import Webhook from './index/Webhook.vue';
 import Attachment from './index/Attachment.vue';
 import About from './common/About.vue';
 
-const SendMail = defineAsyncComponent(() => import('./index/SendMail.vue'));
-const { settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
+const { loading, settings, openSettings, indexTab, globalTabplacement } = useGlobalState()
 const message = useMessage()
 const route = useRoute()
+
+const SendMail = defineAsyncComponent(() => {
+  loading.value = true;
+  return import('./index/SendMail.vue')
+    .finally(() => loading.value = false);
+});
 
 const { t } = useI18n({
   messages: {
