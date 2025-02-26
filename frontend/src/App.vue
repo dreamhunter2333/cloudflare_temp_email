@@ -12,12 +12,14 @@ import { api } from './api'
 const {
   isDark, loading, useSideMargin, telegramApp, isTelegram
 } = useGlobalState()
+const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
+const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
 const { locale } = useI18n({});
 const theme = computed(() => isDark.value ? darkTheme : null)
 const localeConfig = computed(() => locale.value == 'zh' ? zhCN : null)
 const isMobile = useIsMobile()
 const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
-
+const showAd = computed(() => !isMobile.value && adClient && adSlot);
 
 onMounted(async () => {
 
@@ -39,13 +41,14 @@ onMounted(async () => {
   }
 
   // check if google ad is enabled
-  const adClientID = import.meta.env.VITE_GOOGLE_AD_CLIENT_ID;
-  if (adClientID) {
+  if (showAd.value) {
     useScript({
-      src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClientID}`,
+      src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`,
       async: true,
       crossorigin: "anonymous",
     });
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
   }
 
 
@@ -76,7 +79,12 @@ onMounted(async () => {
       <n-notification-provider container-style="margin-top: 60px;">
         <n-message-provider container-style="margin-top: 20px;">
           <n-grid x-gap="12" :cols="12">
-            <n-gi v-if="showSideMargin" span="1"></n-gi>
+            <n-gi v-if="showSideMargin" span="1">
+              <div class="side" v-if="showAd">
+                <ins class="adsbygoogle" style="display:block" :data-ad-client="adClient" :data-ad-slot="adSlot"
+                  data-ad-format="auto" data-full-width-responsive="true"></ins>
+              </div>
+            </n-gi>
             <n-gi :span="!showSideMargin ? 12 : 10">
               <div class="main">
                 <n-space vertical>
@@ -88,7 +96,12 @@ onMounted(async () => {
                 </n-space>
               </div>
             </n-gi>
-            <n-gi v-if="showSideMargin" span="1"></n-gi>
+            <n-gi v-if="showSideMargin" span="1">
+              <div class="side" v-if="showAd">
+                <ins class="adsbygoogle" style="display:block" :data-ad-client="adClient" :data-ad-slot="adSlot"
+                  data-ad-format="auto" data-full-width-responsive="true"></ins>
+              </div>
+            </n-gi>
           </n-grid>
           <n-back-top :bottom="150" />
         </n-message-provider>
