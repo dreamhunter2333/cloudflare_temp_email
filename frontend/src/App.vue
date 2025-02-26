@@ -1,6 +1,7 @@
 <script setup>
 import { darkTheme, NGlobalStyle, zhCN } from 'naive-ui'
 import { computed, onMounted } from 'vue'
+import { useScript } from '@unhead/vue'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
@@ -36,6 +37,17 @@ onMounted(async () => {
     script.dataset.cfBeacon = `{ token: ${token} }`;
     document.body.appendChild(script);
   }
+
+  // check if google ad is enabled
+  const adClientID = import.meta.env.VITE_GOOGLE_AD_CLIENT_ID;
+  if (adClientID) {
+    useScript({
+      src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClientID}`,
+      async: true,
+      crossorigin: "anonymous",
+    });
+  }
+
 
   // check if telegram is enabled
   const enableTelegram = import.meta.env.VITE_IS_TELEGRAM;
