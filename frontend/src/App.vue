@@ -20,6 +20,7 @@ const localeConfig = computed(() => locale.value == 'zh' ? zhCN : null)
 const isMobile = useIsMobile()
 const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
 const showAd = computed(() => !isMobile.value && adClient && adSlot);
+const gridMaxCols = computed(() => showAd.value ? 8 : 12);
 
 onMounted(async () => {
 
@@ -78,21 +79,21 @@ onMounted(async () => {
     <n-spin description="loading..." :show="loading">
       <n-notification-provider container-style="margin-top: 60px;">
         <n-message-provider container-style="margin-top: 20px;">
-          <n-grid x-gap="12" :cols="8">
+          <n-grid x-gap="12" :cols="gridMaxCols">
             <n-gi v-if="showSideMargin" span="1">
               <div class="side" v-if="showAd">
                 <ins class="adsbygoogle" style="display:block" :data-ad-client="adClient" :data-ad-slot="adSlot"
                   data-ad-format="auto" data-full-width-responsive="true"></ins>
               </div>
             </n-gi>
-            <n-gi :span="!showSideMargin ? 8 : 6">
+            <n-gi :span="!showSideMargin ? gridMaxCols : (gridMaxCols - 2)">
               <div class="main">
                 <n-space vertical>
                   <n-layout style="min-height: 80vh;">
                     <Header />
                     <router-view></router-view>
                   </n-layout>
-                  <Footer style="min-height: 15vh;" />
+                  <Footer />
                 </n-space>
               </div>
             </n-gi>
@@ -103,7 +104,7 @@ onMounted(async () => {
               </div>
             </n-gi>
           </n-grid>
-          <n-back-top :bottom="150" />
+          <n-back-top />
         </n-message-provider>
       </n-notification-provider>
     </n-spin>
