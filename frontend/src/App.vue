@@ -84,13 +84,13 @@ onMounted(async () => {
                     <Header />
                     <router-view></router-view>
                   </n-layout>
-                  <Footer />
+                  <Footer style="min-height: 15vh;" />
                 </n-space>
               </div>
             </n-gi>
             <n-gi v-if="showSideMargin" span="1"></n-gi>
           </n-grid>
-          <n-back-top />
+          <n-back-top :bottom="150" />
         </n-message-provider>
       </n-notification-provider>
     </n-spin>
