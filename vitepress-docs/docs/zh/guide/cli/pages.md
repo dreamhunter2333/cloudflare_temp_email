@@ -22,7 +22,7 @@ cp .env.example .env.prod
 
 ```bash
 pnpm build --emptyOutDir
-# 根据提示创建 pages
+# 第一次部署会提示创建项目, production 分支请填写 production
 pnpm run deploy
 ```
 
