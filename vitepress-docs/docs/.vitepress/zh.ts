@@ -151,6 +151,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 { text: '新建邮箱地址 API', link: 'feature/new-address-api' },
                 { text: 'Oauth2 第三方登录', link: 'feature/user-oauth2' },
                 { text: '配置其他worker增强', link: 'feature/another-worker-enhanced' },
+                { text: '给网页增加 Google Ads', link: 'feature/google-ads.md' },
             ]
         },
         {
