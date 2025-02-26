@@ -23,13 +23,18 @@ import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
 import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
-import SendMail from './admin/SendMail.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
   globalTabplacement, showAdminPage, userSettings
 } = useGlobalState()
 const message = useMessage()
+
+const SendMail = defineAsyncComponent(() => {
+  loading.value = true;
+  return import('./admin/SendMail.vue')
+    .finally(() => loading.value = false);
+});
 
 const authFunc = async () => {
   try {
