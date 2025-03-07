@@ -32,7 +32,7 @@
     "vooks": "^0.2.12",
     "vue": "^3.5.13",
     "vue-clipboard3": "^2.0.0",
-    "vue-i18n": "^11.1.1",
+    "vue-i18n": "^11.1.2",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
