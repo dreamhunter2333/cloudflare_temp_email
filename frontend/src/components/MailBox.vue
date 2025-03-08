@@ -7,6 +7,7 @@ import { CloudDownloadRound, ReplyFilled, ForwardFilled } from '@vicons/material
 import { useIsMobile } from '../utils/composables'
 import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
 import { utcToLocalDate } from '../utils';
+import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -171,7 +172,7 @@ const refresh = async () => {
   }
 };
 
-const backFirstPageAndRefresh =  async () =>{
+const backFirstPageAndRefresh = async () => {
   page.value = 1;
   await refresh();
 }
@@ -380,7 +381,7 @@ onBeforeUnmount(() => {
       <n-split class="left" direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
         :on-update:size="onSpiltSizeChange">
         <template #1>
-          <div style="overflow: auto; height: 80vh;">
+          <div style="overflow: auto; min-height: 50vh; max-height: 100vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
@@ -396,10 +397,14 @@ onBeforeUnmount(() => {
                       {{ utcToLocalDate(row.created_at, useUTCDate) }}
                     </n-tag>
                     <n-tag type="info">
-                      FROM: {{ row.source }}
+                      <n-ellipsis style="max-width: 240px;">
+                        {{ showEMailTo ? "FROM: " + row.source : row.source }}
+                      </n-ellipsis>
                     </n-tag>
                     <n-tag v-if="showEMailTo" type="info">
-                      TO: {{ row.address }}
+                      <n-ellipsis style="max-width: 240px;">
+                        TO: {{ row.address }}
+                      </n-ellipsis>
                     </n-tag>
                   </template>
                 </n-thing>
@@ -460,7 +465,7 @@ onBeforeUnmount(() => {
             <iframe v-else-if="useIframeShowMail" :srcdoc="curMail.message"
               style="margin-top: 10px;width: 100%; height: 100%;">
             </iframe>
-            <div v-else v-html="curMail.message" style="margin-top: 10px;"></div>
+            <ShadowHtmlComponent v-else :htmlContent="curMail.message" style="margin-top: 10px;" />
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
             <n-result status="info" :title="t('pleaseSelectMail')">
@@ -498,7 +503,7 @@ onBeforeUnmount(() => {
                   {{ utcToLocalDate(row.created_at, useUTCDate) }}
                 </n-tag>
                 <n-tag type="info">
-                  FROM: {{ row.source }}
+                  {{ showEMailTo ? "FROM: " + row.source : row.source }}
                 </n-tag>
                 <n-tag v-if="showEMailTo" type="info">
                   TO: {{ row.address }}
@@ -560,7 +565,7 @@ onBeforeUnmount(() => {
             <iframe v-else-if="useIframeShowMail" :srcdoc="curMail.message"
               style="margin-top: 10px;width: 100%; height: 100%;">
             </iframe>
-            <div v-else v-html="curMail.message" style="margin-top: 10px;"></div>
+            <ShadowHtmlComponent :key="curMail.id" v-else :htmlContent="curMail.message" style="margin-top: 10px;" />
           </n-card>
         </n-drawer-content>
       </n-drawer>
