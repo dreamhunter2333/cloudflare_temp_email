@@ -48,17 +48,14 @@ def generate_email_model(item: dict) -> EmailModel:
     email_json = json.loads(item["raw"])
     message = MIMEMultipart()
     if email_json.get("version") == "v2":
-        message['From'] = f"{email_json["from_name"]} <{item["address"]}>" if email_json.get(
-            "from_name") else item["address"]
-        message['To'] = f"{email_json["to_name"]} <{email_json["to_mail"]}>" if email_json.get(
-            "to_name") else email_json["to_mail"]
+        message['From'] = f'{email_json["from_name"]} <{item["address"]}>' if email_json.get("from_name") else item["address"]
+        message['To'] = f'{email_json["to_name"]} <{email_json["to_mail"]}>' if email_json.get("to_name") else email_json["to_mail"]
         message.attach(MIMEText(
             email_json["content"],
             "html" if email_json.get("is_html") else "plain"
         ))
     else:
-        message['From'] = f"{email_json["from"]['name']} <{
-            email_json["from"]['email']}>"
+        message['From'] = f'{email_json["from"]["name"]} <{email_json["from"]["email"]}>'
         message['To'] = ", ".join(
             [f"{to['name']} <{to['email']}>" for to in email_json["personalizations"][0]["to"]])
         message.attach(MIMEText(

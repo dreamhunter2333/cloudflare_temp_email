@@ -135,7 +135,7 @@ class SimpleMailbox:
             self.message_count = res.json()["count"]
         return [
             (start + uid, SimpleMessage(start + uid, parse_email(item["raw"])))
-            for uid, item in enumerate(reversed(res.json()["results"]))
+            for uid, item in enumerate(res.json()["results"])
         ]
 
     def fetchSENT(self, messages):

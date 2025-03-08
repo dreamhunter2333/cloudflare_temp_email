@@ -4,6 +4,7 @@
 ## main(v0.9.1)
 
 - feat: |UI| support google ads
+- feat: |UI| 使用 shadow DOM 防止样式污染
 
 ## v0.9.0
 
