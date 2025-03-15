@@ -5,6 +5,7 @@
 
 - feat: |UI| support google ads
 - feat: |UI| 使用 shadow DOM 防止样式污染
+- feat: |UI| 支持 URL jwt 参数自动登录邮箱，jwt 参数会覆盖浏览器中的 jwt
 
 ## v0.9.0
 

@@ -2,6 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/Index.vue'
 import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
+import i18n from '../i18n'
+import { useGlobalState } from '../store'
+
+const { jwt } = useGlobalState()
 
 const router = createRouter({
     history: createWebHistory(),
@@ -37,6 +41,20 @@ const router = createRouter({
             redirect: '/'
         }
     ]
-})
+});
+
+
+router.beforeEach((to, from, next) => {
+    if (to.params.lang && ['en', 'zh'].includes(to.params.lang)) {
+        i18n.global.locale.value = to.params.lang
+    } else {
+        i18n.global.locale.value = 'zh'
+    }
+    // check if query parameter has jwt, set it to store
+    if (to.query.jwt) {
+        jwt.value = to.query.jwt;
+    }
+    next()
+});
 
 export default router
