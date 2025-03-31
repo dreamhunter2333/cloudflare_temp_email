@@ -41,7 +41,7 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "unplugin-auto-import": "^19.1.1",
     "unplugin-vue-components": "^28.4.1",
-    "vite": "^6.2.1",
+    "vite": "^6.2.4",
     "vite-plugin-pwa": "^0.21.1",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.4.1",
