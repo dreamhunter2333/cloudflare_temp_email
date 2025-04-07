@@ -3,6 +3,7 @@ import { ref, h, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n'
 
 import { api } from '../../api'
+import { NPopconfirm } from 'naive-ui';
 
 const message = useMessage()
 
@@ -11,10 +12,16 @@ const { t } = useI18n({
         en: {
             download: 'Download',
             action: 'Action',
+            delete: 'Delete',
+            deleteConfirm: 'Are you sure to delete this attachment?',
+            deleteSuccess: 'Deleted successfully',
         },
         zh: {
             download: '下载',
             action: '操作',
+            delete: '删除',
+            deleteConfirm: '确定要删除此附件吗？',
+            deleteSuccess: '删除成功',
         }
     }
 });
@@ -66,6 +73,34 @@ const columns = [
                         }
                     },
                     { default: () => t('download') }
+                ),
+                h(NPopconfirm,
+                    {
+                        onPositiveClick: async () => {
+                            try {
+                                await api.fetch(`/api/attachment/delete`, {
+                                    method: 'POST',
+                                    body: JSON.stringify({ key: row.key })
+                                });
+                                message.success(t('deleteSuccess'));
+                                await fetchData();
+                            }
+                            catch (error) {
+                                console.error(error);
+                                message.error(error.message || "error");
+                            }
+                        },
+                    },
+                    {
+                        trigger: () => h(NButton,
+                            {
+                                tertiary: true,
+                                type: "error",
+                            },
+                            { default: () => t('delete') }
+                        ),
+                        default: () => t('deleteConfirm')
+                    }
                 )
             ])
         }
