@@ -8,6 +8,8 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { hashPassword } from '../../utils';
 
+import UserAddressManagement from './UserAddressManagement.vue'
+
 const { loading, openSettings } = useGlobalState()
 const message = useMessage()
 
@@ -34,6 +36,7 @@ const { t } = useI18n({
             prefix: 'Prefix',
             domains: 'Domains',
             roleDonotExist: 'Current Role does not exist',
+            userAddressManagement: 'User Address Management',
         },
         zh: {
             success: '成功',
@@ -56,6 +59,7 @@ const { t } = useI18n({
             prefix: '前缀',
             domains: '域名',
             roleDonotExist: '当前角色不存在',
+            userAddressManagement: '用户地址管理',
         }
     }
 });
@@ -75,6 +79,7 @@ const user = ref({
     password: ""
 })
 const showChangeRole = ref(false)
+const showUserAddressManagement = ref(false)
 const userRoles = ref([])
 const curUserRole = ref('')
 const userRolesOptions = computed(() => {
@@ -245,6 +250,18 @@ const columns = [
                                             text: true,
                                             onClick: () => {
                                                 curUserId.value = row.id;
+                                                showUserAddressManagement.value = true;
+                                            }
+                                        },
+                                        { default: () => t('userAddressManagement') }
+                                    ),
+                                },
+                                {
+                                    label: () => h(NButton,
+                                        {
+                                            text: true,
+                                            onClick: () => {
+                                                curUserId.value = row.id;
                                                 curUserRole.value = row.role_text;
                                                 showChangeRole.value = true;
                                             }
@@ -361,6 +378,9 @@ onMounted(async () => {
                     {{ t('changeRole') }}
                 </n-button>
             </template>
+        </n-modal>
+        <n-modal v-model:show="showUserAddressManagement" preset="card" :title="t('userAddressManagement')">
+            <UserAddressManagement :user_id="curUserId" />
         </n-modal>
         <n-input-group>
             <n-input v-model:value="userQuery" @keydown.enter="fetchData" />

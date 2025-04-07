@@ -8,6 +8,8 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { getRouterPathWithLang } from '../../utils'
 
+import Login from '../common/Login.vue';
+
 const { jwt } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
@@ -25,7 +27,9 @@ const { locale, t } = useI18n({
             unbindAddressTip: 'Before unbinding, please switch to this email address and save the email address credential.',
             transferAddress: 'Transfer Address',
             targetUserEmail: 'Target User Email',
-            transferAddressTip: 'Transfer address to another user will remove the address from your account and transfer it to another user. Are you sure to transfer the address?'
+            transferAddressTip: 'Transfer address to another user will remove the address from your account and transfer it to another user. Are you sure to transfer the address?',
+            address: 'Address',
+            create_or_bind: 'Create or Bind',
         },
         zh: {
             success: '成功',
@@ -38,7 +42,9 @@ const { locale, t } = useI18n({
             unbindAddressTip: '解绑前请切换到此邮箱地址并保存邮箱地址凭证。',
             transferAddress: '转移地址',
             targetUserEmail: '目标用户邮箱',
-            transferAddressTip: '转移地址到其他用户将会从你的账户中移除此地址并转移给其他用户。确定要转移地址吗？'
+            transferAddressTip: '转移地址到其他用户将会从你的账户中移除此地址并转移给其他用户。确定要转移地址吗？',
+            address: '地址',
+            create_or_bind: '创建或绑定',
         }
     }
 });
@@ -111,13 +117,10 @@ const transferAddress = async () => {
 
 const fetchData = async () => {
     try {
-        const { results, count: addressCount } = await api.fetch(
+        const { results } = await api.fetch(
             `/user_api/bind_address`
         );
         data.value = results;
-        if (addressCount > 0) {
-            count.value = addressCount;
-        }
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
@@ -211,20 +214,29 @@ onMounted(async () => {
 </script>
 
 <template>
-    <n-modal v-model:show="showTranferAddress" preset="dialog" :title="t('transferAddress')">
-        <span>
-            <p>{{ t("transferAddressTip") }}</p>
-            <p>{{ t('transferAddress') + ": " + currentAddress }}</p>
-            <n-input v-model:value="targetUserEmail" :placeholder="t('targetUserEmail')" />
-        </span>
-        <template #action>
-            <n-button :loading="loading" @click="transferAddress" size="small" tertiary type="error">
-                {{ t('transferAddress') }}
-            </n-button>
-        </template>
-    </n-modal>
-    <div style="overflow: auto;">
-        <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+    <div>
+        <n-modal v-model:show="showTranferAddress" preset="dialog" :title="t('transferAddress')">
+            <span>
+                <p>{{ t("transferAddressTip") }}</p>
+                <p>{{ t('transferAddress') + ": " + currentAddress }}</p>
+                <n-input v-model:value="targetUserEmail" :placeholder="t('targetUserEmail')" />
+            </span>
+            <template #action>
+                <n-button :loading="loading" @click="transferAddress" size="small" tertiary type="error">
+                    {{ t('transferAddress') }}
+                </n-button>
+            </template>
+        </n-modal>
+        <n-tabs type="segment">
+            <n-tab-pane name="address" :tab="t('address')">
+                <div style="overflow: auto;">
+                    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                </div>
+            </n-tab-pane>
+            <n-tab-pane name="create_or_bind" :tab="t('create_or_bind')">
+                <Login />
+            </n-tab-pane>
+        </n-tabs>
     </div>
 </template>
 
