@@ -143,5 +143,23 @@ export default {
             return c.text("Failed to update user roles", 500)
         }
         return c.json({ success: true })
-    }
+    },
+    getBindedAddresses: async (c: Context<HonoCustomType>) => {
+        const { user_id } = c.req.param();
+        if (!user_id) return c.text("Invalid user_id", 400);
+        // select binded address
+        const { results } = await c.env.DB.prepare(
+            `SELECT a.*,`
+            + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
+            + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
+            + ` FROM address a `
+            + ` JOIN users_address ua `
+            + ` ON ua.address_id = a.id `
+            + ` WHERE ua.user_id = ?`
+            + ` ORDER BY a.id DESC`
+        ).bind(user_id).all();
+        return c.json({
+            results: results,
+        })
+    },
 }

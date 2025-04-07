@@ -4,7 +4,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, defineProps } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps({
     htmlContent: {

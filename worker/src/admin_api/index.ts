@@ -327,6 +327,7 @@ api.post('/admin/users', admin_user_api.createUser)
 api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
 api.get('/admin/user_roles', async (c) => c.json(getUserRoles(c)))
 api.post('/admin/user_roles', admin_user_api.updateUserRoles)
+api.get('/admin/users/bind_address/:user_id', admin_user_api.getBindedAddresses)
 
 // user oauth2 settings
 api.get('/admin/user_oauth2_settings', oauth2_settings.getUserOauth2Settings)
