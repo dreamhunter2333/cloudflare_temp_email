@@ -6,6 +6,7 @@
 - feat: |UI| support google ads
 - feat: |UI| 使用 shadow DOM 防止样式污染
 - feat: |UI| 支持 URL jwt 参数自动登录邮箱，jwt 参数会覆盖浏览器中的 jwt
+- fix: |CleanUP| 修复清理邮件时，清理时间超过 30 天报错的 bug
 
 ## v0.9.0
 
