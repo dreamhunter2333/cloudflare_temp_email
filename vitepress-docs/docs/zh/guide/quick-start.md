@@ -8,7 +8,7 @@
 
 - [通过命令行部署](/zh/guide/cli/pre-requisite)
 - [通过用户界面部署](/zh/guide/ui/d1)
-- [通过Github Actions 部署](/zh/guide/actions/github-action)
+- [通过Github Actions 部署](/zh/guide/actions/pre-requisite)
 
 ### 也可以参考网友提供的详细的小白教程
 

@@ -10,6 +10,7 @@ export type Bindings = {
     KV: KVNamespace
     RATE_LIMITER: any
     SEND_MAIL: any
+    ASSETS: Fetcher
 
     // config
     DEFAULT_LANG: string | undefined
