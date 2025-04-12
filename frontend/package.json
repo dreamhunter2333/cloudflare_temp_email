@@ -41,12 +41,12 @@
     "@vitejs/plugin-vue": "^5.2.3",
     "unplugin-auto-import": "^19.1.2",
     "unplugin-vue-components": "^28.4.1",
-    "vite": "^6.2.5",
+    "vite": "^6.2.6",
     "vite-plugin-pwa": "^1.0.0",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.4.1",
     "workbox-build": "^7.3.0",
     "workbox-window": "^7.3.0",
-    "wrangler": "^4.9.1"
+    "wrangler": "^4.10.0"
   }
 }

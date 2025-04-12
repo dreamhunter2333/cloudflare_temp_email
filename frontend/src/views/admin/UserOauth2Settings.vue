@@ -230,7 +230,7 @@ onMounted(async () => {
                         <n-form-item-row label="User Info URL" required>
                             <n-input v-model:value="item.userInfoURL" />
                         </n-form-item-row>
-                        <n-form-item-row label="User Email Key" required>
+                        <n-form-item-row label="User Email Key (Support JSONPATH like $[0].email)" required>
                             <n-input v-model:value="item.userEmailKey" />
                         </n-form-item-row>
                         <n-form-item-row label="Redirect URL" required>

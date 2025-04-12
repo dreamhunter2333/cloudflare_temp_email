@@ -4,9 +4,9 @@
   "version": "0.9.1",
   "type": "module",
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.14.1",
     "vitepress": "^1.6.3",
-    "wrangler": "^4.9.1"
+    "wrangler": "^4.10.0"
   },
   "scripts": {
     "dev": "vitepress dev docs",
