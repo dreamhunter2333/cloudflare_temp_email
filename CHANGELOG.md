@@ -9,6 +9,7 @@
 - fix: |CleanUP| 修复清理邮件时，清理时间超过 30 天报错的 bug
 - feat: admin 用户管理页面: 增加 用户地址查看功能
 - feat: | S3 附件| 增加 S3 附件删除功能
+- feat: | Admin API| 增加 admin 绑定用户和地址的 api
 
 ## v0.9.0
 
