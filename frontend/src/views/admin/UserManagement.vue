@@ -36,7 +36,7 @@ const { t } = useI18n({
             prefix: 'Prefix',
             domains: 'Domains',
             roleDonotExist: 'Current Role does not exist',
-            userAddressManagement: 'User Address Management',
+            userAddressManagement: 'Address Management',
         },
         zh: {
             success: '成功',
@@ -59,7 +59,7 @@ const { t } = useI18n({
             prefix: '前缀',
             domains: '域名',
             roleDonotExist: '当前角色不存在',
-            userAddressManagement: '用户地址管理',
+            userAddressManagement: '地址管理',
         }
     }
 });
@@ -219,12 +219,25 @@ const columns = [
         title: t('address_count'),
         key: "address_count",
         render(row) {
-            return h(NBadge, {
-                value: row.address_count,
-                'show-zero': true,
-                max: 99,
-                type: "success"
-            })
+            return h(NButton,
+                {
+                    text: true,
+                    onClick: () => {
+                        if (row.address_count <= 0) return;
+                        curUserId.value = row.id;
+                        showUserAddressManagement.value = true;
+                    }
+                },
+                {
+                    icon: () => h(NBadge, {
+                        value: row.address_count,
+                        'show-zero': true,
+                        max: 99,
+                        type: "success"
+                    }),
+                    default: () => row.address_count > 0 ? t('userAddressManagement') : ""
+                }
+            )
         }
     },
     {
@@ -255,6 +268,7 @@ const columns = [
                                         },
                                         { default: () => t('userAddressManagement') }
                                     ),
+                                    show: row.address_count > 0
                                 },
                                 {
                                     label: () => h(NButton,

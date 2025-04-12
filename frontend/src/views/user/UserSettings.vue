@@ -232,7 +232,7 @@ const renamePasskey = async () => {
         <n-modal v-model:show="showLogout" preset="dialog" :title="t('logout')">
             <p>{{ t('logoutConfirm') }}</p>
             <template #action>
-                <n-button :loading="loading" @click="logout" size="small" tertiary type="primary">
+                <n-button :loading="loading" @click="logout" size="small" tertiary type="warning">
                     {{ t('logout') }}
                 </n-button>
             </template>
