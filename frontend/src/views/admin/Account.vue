@@ -212,7 +212,8 @@ const columns = [
                                             }
                                         },
                                         { default: () => t('viewMails') }
-                                    )
+                                    ),
+                                    show: row.mail_count > 0
                                 },
                                 {
                                     label: () => h(NButton,
@@ -224,7 +225,8 @@ const columns = [
                                             }
                                         },
                                         { default: () => t('viewSendBox') }
-                                    )
+                                    ),
+                                    show: row.send_count > 0
                                 },
                                 {
                                     label: () => h(NButton,
