@@ -6,6 +6,7 @@ export const en = defineConfig({
     description: 'CloudFlare Free sending and receiving of temporary domain name mailboxes',
 
     themeConfig: {
+        outline: 'deep',
         nav: nav(),
 
         editLink: {

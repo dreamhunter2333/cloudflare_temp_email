@@ -1,4 +1,4 @@
-# Cloudflare workers 后端
+# Cloudflare Worker 后端
 
 ## 初始化项目
 
@@ -35,6 +35,12 @@ compatibility_flags = [ "nodejs_compat" ]
 # routes = [
 #  { pattern = "temp-email-api.xxxxx.xyz", custom_domain = true },
 # ]
+
+# 如果你想要部署带有前端资源的 worker, 你需要添加 assets 配置
+# [assets]
+# directory = "../frontend/dist/"
+# binding = "ASSETS"
+# run_worker_first = true
 
 # 如果你想要使用定时任务清理邮件，取消下面的注释，并修改 cron 表达式
 # [triggers]
@@ -84,6 +90,29 @@ database_id = "xxx" # D1 数据库 ID
 # [[services]]
 # binding = "AUTH_INBOX"
 # service = "auth-inbox"
+```
+
+## 部署带有前端页面的 worker(可选)
+
+> [!NOTE]
+> 如果不需要 [带有前端页面的 worker]，可以跳过此步骤
+> 参考之后部署前端文档，可以进行前后端分离部署
+
+确认已构建前端资源到 `frontend/dist` 目录
+
+```bash
+cd frontend
+pnpm install --no-frozen-lockfile
+pnpm build:pages
+```
+
+`worker` 目录下的 `wrangler.toml` 文件中添加下面的配置
+
+```toml
+[assets]
+directory = "../frontend/dist/"
+binding = "ASSETS"
+run_worker_first = true
 ```
 
 ## Telegram Bot 配置

@@ -16,6 +16,15 @@ import { scheduled } from './scheduled';
 import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
 import { HonoCustomType, UserPayload } from './types';
 
+const API_PATHS = [
+	"/api/",
+	"/open_api/",
+	"/user_api/",
+	"/admin/",
+	"/telegram/",
+	"/external/",
+];
+
 const app = new Hono<HonoCustomType>()
 //cors
 app.use('/*', cors());
@@ -24,8 +33,18 @@ app.onError((err, c) => {
 	console.error(err)
 	return c.text(`${err.name} ${err.message}`, 500)
 })
-// rate limit
+// global middlewares
 app.use('/*', async (c, next) => {
+
+	// check if the request is for static files
+	if (c.env.ASSETS && !API_PATHS.some(path => c.req.path.startsWith(path))) {
+		const url = new URL(c.req.raw.url);
+		if (!url.pathname.includes('.')) {
+			url.pathname = ""
+		}
+		return c.env.ASSETS.fetch(url);
+	}
+
 	// save language in context
 	const lang = c.req.raw.headers.get("x-lang");
 	if (lang) { c.set("lang", lang); }

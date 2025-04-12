@@ -1,8 +1,11 @@
 # Cloudflare Pages 前端
 
-::: warning
-下面两种方式选择一种即可
-:::
+> [!warning] 注意
+> 下面几种方式选择一种即可
+
+## 部署带有前端资源的 Worker
+
+参考 [部署 Worker](/zh/guide/cli/worker#部署带有前端页面的-worker-可选)
 
 ## 前后端分离部署
 
