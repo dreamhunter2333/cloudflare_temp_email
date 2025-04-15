@@ -1,5 +1,8 @@
 # Cloudflare workers 后端
 
+> [!warning] 注意
+> `worker.dev` 域名在中国无法访问，请自定义域名
+
 1. 点击 `Workers & Pages` -> `Overview` -> `Create Application`
 
     ![create worker](/ui_install/worker_home.png)
