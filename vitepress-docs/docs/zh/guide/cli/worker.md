@@ -1,5 +1,8 @@
 # Cloudflare Worker 后端
 
+> [!warning] 注意
+> `worker.dev` 域名在中国无法访问，请自定义域名
+
 ## 初始化项目
 
 ```bash

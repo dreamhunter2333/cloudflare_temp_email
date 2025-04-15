@@ -3,6 +3,8 @@
 ::: warning 注意
 目前只支持 worker 和 pages 的部署。
 有问题请通过 `Github Issues` 反馈，感谢。
+
+`worker.dev` 域名在中国无法访问，请自定义域名
 :::
 
 ## 部署步骤

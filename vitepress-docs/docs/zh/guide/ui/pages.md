@@ -54,6 +54,9 @@ const generate = async () => {
     - 此处 worker 域名为后端 api 的域名，比如我部署在 `https://temp-email-api.awsl.uk`，则填写 `https://temp-email-api.awsl.uk`
     - 如果你的域名是 `https://temp-email-api.xxx.workers.dev`，则填写 `https://temp-email-api.xxx.workers.dev`
 
+    > [!warning] 注意
+    > `worker.dev` 域名在中国无法访问，请自定义域名
+
     <div :class="$style.container">
         <input :class="$style.input" type="text" v-model="domain" placeholder="请输入地址"></input>
         <button :class="$style.button" @click="generate">生成</button>
