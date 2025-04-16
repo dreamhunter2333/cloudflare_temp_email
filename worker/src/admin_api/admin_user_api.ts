@@ -146,8 +146,16 @@ export default {
         return c.json({ success: true })
     },
     bindAddress: async (c: Context<HonoCustomType>) => {
-        const { user_id, address_id } = await c.req.json();
-        return await UserBindAddressModule.bindByID(c, user_id, address_id);
+        const {
+            user_email, address, user_id, address_id
+        } = await c.req.json();
+        const db_user_id = user_id ?? await c.env.DB.prepare(
+            `SELECT id FROM users WHERE user_email = ?`
+        ).bind(user_email).first<number | undefined | null>("id");
+        const db_address_id = address_id ?? await c.env.DB.prepare(
+            `SELECT id FROM address WHERE name = ?`
+        ).bind(address).first<number | undefined | null>("id");
+        return await UserBindAddressModule.bindByID(c, db_user_id, db_address_id);
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.req.param();
