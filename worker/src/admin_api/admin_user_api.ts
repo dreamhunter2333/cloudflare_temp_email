@@ -6,6 +6,7 @@ import { UserSettings, GeoData, UserInfo } from "../models";
 import { handleListQuery } from '../common'
 import { HonoCustomType } from '../types';
 import UserBindAddressModule from '../user_api/bind_address';
+import i18n from '../i18n';
 
 export default {
     getSetting: async (c: Context<HonoCustomType>) => {
@@ -90,7 +91,8 @@ export default {
     },
     deleteUser: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.req.param();
-        if (!user_id) return c.text("Invalid user_id", 400);
+        const msgs = i18n.getMessagesbyContext(c);
+        if (!user_id) return c.text(msgs.UserNotFoundMsg, 400);
         const { success } = await c.env.DB.prepare(
             `DELETE FROM users WHERE id = ?`
         ).bind(user_id).run();
@@ -105,7 +107,8 @@ export default {
     resetPassword: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.req.param();
         const { password } = await c.req.json();
-        if (!user_id) return c.text("Invalid user_id", 400);
+        const msgs = i18n.getMessagesbyContext(c);
+        if (!user_id) return c.text(msgs.UserNotFoundMsg, 400);
         try {
             checkUserPassword(password);
             const { success } = await c.env.DB.prepare(
@@ -159,6 +162,9 @@ export default {
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.req.param();
-        return await UserBindAddressModule.getBindedAddressesById(c, user_id);
+        const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);
+        return c.json({
+            results: results,
+        });
     },
 }
