@@ -1,7 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.9.1)
+## v0.10.0
+
+- feat: 支持 User 查看收件箱，`/user_api/mails` 接口, 支持 `address` 和 `keyword` 过滤
+
+## v0.9.1
 
 - feat: |UI| support google ads
 - feat: |UI| 使用 shadow DOM 防止样式污染

@@ -1,6 +1,6 @@
 {
   "name": "temp-email-pages",
-  "version": "0.9.1",
+  "version": "0.10.9",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "wrangler": "^4.10.0"
+    "wrangler": "^4.13.0"
   }
 }
