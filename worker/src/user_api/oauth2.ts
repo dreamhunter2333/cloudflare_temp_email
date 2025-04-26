@@ -38,6 +38,7 @@ export default {
             client_id: setting.clientID,
             client_secret: setting.clientSecret,
             grant_type: 'authorization_code',
+            redirect_uri: setting.redirectURL,
         }
         const res = await fetch(setting.accessTokenURL, {
             method: 'POST',
