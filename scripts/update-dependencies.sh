@@ -14,6 +14,6 @@ pnpm add -D wrangler@latest
 cd ..
 
 cd vitepress-docs/
-pnpm up
+pnpm up --latest
 pnpm add -D wrangler@latest
 cd ..
