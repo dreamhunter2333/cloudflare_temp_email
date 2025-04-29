@@ -4,6 +4,11 @@ export type UserRole = {
     prefix: string | undefined | null
 }
 
+export type SubdomainForwardAddressList = {
+    domains: string[] | undefined | null,
+    forward: string
+}
+
 export type Bindings = {
     // bindings
     DB: D1Database
@@ -44,6 +49,7 @@ export type Bindings = {
     COPYRIGHT: string | undefined
     DISABLE_SHOW_GITHUB: string | boolean | undefined
     FORWARD_ADDRESS_LIST: string | string[] | undefined
+    SUBDOMAIN_FORWARD_ADDRESS_LIST: string | SubdomainForwardAddressList[] | undefined
 
     ENABLE_CHECK_JUNK_MAIL: string | boolean | undefined
     JUNK_MAIL_CHECK_LIST: string | string[] | undefined
