@@ -1,6 +1,7 @@
 import { Context } from "hono";
 
 import { getEnvStringList } from "../utils";
+import { getForwardAddressList } from "../utils";
 import { sendMailToTelegram } from "../telegram_api";
 import { Bindings, HonoCustomType, RPCEmailMessage, ParsedEmailContext } from "../types";
 import { auto_reply } from "./auto_reply";
@@ -59,9 +60,23 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
 
     // forward email
     try {
-        const forwardAddressList = getEnvStringList(env.FORWARD_ADDRESS_LIST)
+        // 遍历 FORWARD_ADDRESS_LIST
+        const forwardAddressList = getForwardAddressList(env.FORWARD_ADDRESS_LIST)
         for (const forwardAddress of forwardAddressList) {
-            await message.forward(forwardAddress);
+            // 检查邮件是否匹配 domains
+            if (forwardAddress.domains && forwardAddress.domains.length > 0) {
+                for (const domain of forwardAddress.domains) {
+                    if (message.to.endsWith(domain)) {
+                        // 转发邮件
+                        await message.forward(forwardAddress.forward);
+                        // 支持多邮箱转发收件，不进行截止
+                        // break;
+                    }
+                }
+            } else {
+                // 如果 domains 为空，则转发所有邮件
+                await message.forward(forwardAddress.forward);
+            }
         }
     } catch (error) {
         console.error("forward email error", error);

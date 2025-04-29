@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
-import { HonoCustomType, UserRole, AnotherWorker } from "./types";
+import { HonoCustomType, UserRole, AnotherWorker, ForwardAddressList } from "./types";
 
 export const getJsonObjectValue = <T = any>(
     value: string | any
@@ -163,6 +163,22 @@ export const getUserRoles = (c: Context<HonoCustomType>): UserRole[] => {
         }
     }
     return c.env.USER_ROLES;
+}
+
+export const getForwardAddressList = (c: Context<HonoCustomType>): ForwardAddressList[] => {
+    if (!c.env.FORWARD_ADDRESS_LIST) {
+        return [];
+    }
+    // check if FORWARD_ADDRESS_LIST is an array, if not use json.parse
+    if (!Array.isArray(c.env.FORWARD_ADDRESS_LIST)) {
+        try {
+            return JSON.parse(c.env.FORWARD_ADDRESS_LIST);
+        } catch (e) {
+            console.error("Failed to parse FORWARD_ADDRESS_LIST", e);
+            return [];
+        }
+    }
+    return c.env.FORWARD_ADDRESS_LIST;
 }
 
 export const getAnotherWorkerList = (c: Context<HonoCustomType>): AnotherWorker[] => {
