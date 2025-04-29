@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 
 import { HonoCustomType } from '../types';
-import { getAdminPasswords, getBooleanValue, getDefaultDomains, getDomains, getIntValue, getPasswords, getStringArray, getStringValue, getUserRoles, getAnotherWorkerList, getSplitStringListValue } from '../utils';
+import { getAdminPasswords, getBooleanValue, getDefaultDomains, getDomains, getIntValue, getPasswords, getStringArray, getStringValue, getUserRoles, getForwardAddressList, getAnotherWorkerList, getSplitStringListValue } from '../utils';
 import { CONSTANTS } from '../constants';
 import { isS3Enabled } from '../mails_api/s3_attachment';
 
@@ -20,7 +20,7 @@ export default {
             "MIN_ADDRESS_LEN": getIntValue(c.env.MIN_ADDRESS_LEN, 1),
             "MAX_ADDRESS_LEN": getIntValue(c.env.MAX_ADDRESS_LEN, 30),
 
-            "FORWARD_ADDRESS_LIST": getStringArray(c.env.FORWARD_ADDRESS_LIST),
+            "FORWARD_ADDRESS_LIST": getForwardAddressList(c),
             "DEFAULT_DOMAINS": getDefaultDomains(c),
             "DOMAINS": getDomains(c),
             "DOMAIN_LABELS": getStringArray(c.env.DOMAIN_LABELS),
