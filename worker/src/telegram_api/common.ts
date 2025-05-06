@@ -1,7 +1,6 @@
 import { Context } from "hono";
 import { Jwt } from "hono/utils/jwt";
 import { CONSTANTS } from "../constants";
-import { HonoCustomType } from "../types";
 import { getIntValue, getJsonSetting } from "../utils";
 import { deleteAddressWithData, newAddress } from "../common";
 

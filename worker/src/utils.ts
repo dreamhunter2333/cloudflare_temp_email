@@ -1,6 +1,5 @@
 import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
-import { HonoCustomType, UserRole, SubdomainForwardAddressList, AnotherWorker } from "./types";
 
 export const getJsonObjectValue = <T = any>(
     value: string | any
@@ -165,22 +164,6 @@ export const getUserRoles = (c: Context<HonoCustomType>): UserRole[] => {
     return c.env.USER_ROLES;
 }
 
-export const getSubdomainForwardAddressList = (c: Context<HonoCustomType>): SubdomainForwardAddressList[] => {
-    if (!c.env.SUBDOMAIN_FORWARD_ADDRESS_LIST) {
-        return [];
-    }
-    // check if SUBDOMAIN_FORWARD_ADDRESS_LIST is an array, if not use json.parse
-    if (!Array.isArray(c.env.SUBDOMAIN_FORWARD_ADDRESS_LIST)) {
-        try {
-            return JSON.parse(c.env.SUBDOMAIN_FORWARD_ADDRESS_LIST);
-        } catch (e) {
-            console.error("Failed to parse SUBDOMAIN_FORWARD_ADDRESS_LIST", e);
-            return [];
-        }
-    }
-    return c.env.SUBDOMAIN_FORWARD_ADDRESS_LIST;
-}
-
 export const getAnotherWorkerList = (c: Context<HonoCustomType>): AnotherWorker[] => {
     if (!c.env.ANOTHER_WORKER_LIST) {
         return [];
@@ -311,4 +294,28 @@ export const checkUserPassword = (password: string) => {
         throw new Error("Invalid password")
     }
     return true;
+}
+
+export default {
+    getJsonObjectValue,
+    getSetting,
+    saveSetting,
+    getStringValue,
+    getSplitStringListValue,
+    getBooleanValue,
+    getIntValue,
+    getStringArray,
+    getDefaultDomains,
+    getDomains,
+    getUserRoles,
+    getAnotherWorkerList,
+    getPasswords,
+    getAdminPasswords,
+    getEnvStringList,
+    sendAdminInternalMail,
+    checkCfTurnstile,
+    checkUserPassword,
+    getJsonSetting,
+    getJsonValue: getJsonObjectValue,
+    getStringList: getStringArray
 }

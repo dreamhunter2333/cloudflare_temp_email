@@ -1,6 +1,5 @@
 import { Context } from "hono";
 import { Jwt } from 'hono/utils/jwt'
-import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
 import { checkCfTurnstile } from "../utils";

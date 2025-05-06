@@ -1,5 +1,4 @@
 import { Context } from "hono";
-import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 import { AdminWebhookSettings } from "../models";
 

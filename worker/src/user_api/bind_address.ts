@@ -1,7 +1,6 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { HonoCustomType } from '../types';
 import { UserSettings } from "../models";
 import { getJsonSetting } from "../utils"
 import { CONSTANTS } from "../constants";

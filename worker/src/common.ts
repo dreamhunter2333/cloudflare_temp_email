@@ -2,7 +2,6 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList } from './utils';
-import { HonoCustomType, UserRole, AnotherWorker, RPCEmailMessage, ParsedEmailContext } from './types';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';

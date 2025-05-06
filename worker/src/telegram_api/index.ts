@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 import { ServerResponse } from 'node:http'
 import { Writable } from 'node:stream'
 
-import { HonoCustomType } from '../types'
 import { newTelegramBot, initTelegramBotCommands, sendMailToTelegram } from './telegram'
 import settings from './settings'
 import miniapp from './miniapp'

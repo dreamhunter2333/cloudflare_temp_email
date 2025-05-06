@@ -1,5 +1,4 @@
 import { Context } from "hono";
-import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 
 export class TelegramSettings {

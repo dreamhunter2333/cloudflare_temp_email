@@ -1,7 +1,6 @@
 import { Context } from "hono";
 
 import i18n from "../i18n";
-import { HonoCustomType } from "../types";
 import { UserOauth2Settings, UserSettings } from "../models";
 import { getJsonSetting, getUserRoles } from "../utils"
 import { CONSTANTS } from "../constants";

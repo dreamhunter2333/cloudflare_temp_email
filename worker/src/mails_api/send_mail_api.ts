@@ -9,7 +9,6 @@ import { CONSTANTS } from '../constants'
 import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery } from '../common'
-import { HonoCustomType } from '../types';
 
 
 export const api = new Hono<HonoCustomType>()

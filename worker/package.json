@@ -11,29 +11,30 @@
     "build": "wrangler deploy --dry-run --outdir dist --minify"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250424.0",
+    "@cloudflare/workers-types": "^4.20250506.0",
     "@eslint/js": "9.18.0",
     "@simplewebauthn/types": "10.0.0",
     "eslint": "9.18.0",
     "globals": "^15.15.0",
-    "typescript-eslint": "^8.31.0",
-    "wrangler": "^4.13.1"
+    "typescript-eslint": "^8.32.0",
+    "wrangler": "^4.14.2"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.787.0",
-    "@aws-sdk/s3-request-presigner": "^3.787.0",
+    "@aws-sdk/client-s3": "^3.803.0",
+    "@aws-sdk/s3-request-presigner": "^3.803.0",
     "@simplewebauthn/server": "10.0.1",
-    "hono": "^4.7.7",
+    "hono": "^4.7.8",
     "jsonpath-plus": "^10.3.0",
     "mimetext": "^3.0.27",
     "postal-mime": "^2.4.3",
-    "resend": "^4.4.1",
+    "resend": "^4.5.1",
     "telegraf": "4.16.3",
-    "worker-mailer": "^1.1.3"
+    "worker-mailer": "^1.1.4"
   },
   "pnpm": {
     "patchedDependencies": {
       "telegraf@4.16.3": "patches/telegraf@4.16.3.patch"
     }
-  }
+  },
+  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }

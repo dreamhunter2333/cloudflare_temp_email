@@ -5,7 +5,6 @@ import { callbackQuery } from "telegraf/filters";
 
 import { CONSTANTS } from "../constants";
 import { getDomains, getJsonObjectValue, getStringValue } from '../utils';
-import { HonoCustomType, ParsedEmailContext } from "../types";
 import { TelegramSettings } from "./settings";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 import { commonParseMail } from "../common";

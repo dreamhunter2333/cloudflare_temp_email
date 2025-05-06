@@ -1,5 +1,4 @@
 import { CONSTANTS } from "../constants";
-import { Bindings } from "../types";
 
 export const isBlocked = async (from: string, env: Bindings): Promise<boolean> => {
     if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => from.includes(word))) {

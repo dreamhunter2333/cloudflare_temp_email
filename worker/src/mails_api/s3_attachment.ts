@@ -1,4 +1,3 @@
-import { HonoCustomType } from "../types";
 import { Context } from "hono";
 import {
     S3Client,

@@ -1,9 +1,7 @@
 import { Context } from "hono";
 
-import { getEnvStringList } from "../utils";
-import { getSubdomainForwardAddressList } from "../utils";
+import { getEnvStringList, getJsonObjectValue } from "../utils";
 import { sendMailToTelegram } from "../telegram_api";
-import { Bindings, HonoCustomType, RPCEmailMessage, ParsedEmailContext } from "../types";
 import { auto_reply } from "./auto_reply";
 import { isBlocked } from "./black_list";
 import { triggerWebhook, triggerAnotherWorker, commonParseMail } from "../common";
@@ -70,24 +68,24 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
 
     // forward subdomain email
     try {
-      // 遍历 FORWARD_ADDRESS_LIST
-      const subdomainForwardAddressList = getSubdomainForwardAddressList(env.SUBDOMAIN_FORWARD_ADDRESS_LIST)
-      for (const subdomainForwardAddress of subdomainForwardAddressList) {
-        // 检查邮件是否匹配 domains
-        if (subdomainForwardAddress.domains && subdomainForwardAddress.domains.length > 0) {
-          for (const domain of subdomainForwardAddress.domains) {
-            if (message.to.endsWith(domain)) {
-              // 转发邮件
-              await message.forward(subdomainForwardAddress.forward);
-              // 支持多邮箱转发收件，不进行截止
-              // break;
+        // 遍历 FORWARD_ADDRESS_LIST
+        const subdomainForwardAddressList = getJsonObjectValue<SubdomainForwardAddressList[]>(env.SUBDOMAIN_FORWARD_ADDRESS_LIST) || [];
+        for (const subdomainForwardAddress of subdomainForwardAddressList) {
+            // 检查邮件是否匹配 domains
+            if (subdomainForwardAddress.domains && subdomainForwardAddress.domains.length > 0) {
+                for (const domain of subdomainForwardAddress.domains) {
+                    if (message.to.endsWith(domain)) {
+                        // 转发邮件
+                        await message.forward(subdomainForwardAddress.forward);
+                        // 支持多邮箱转发收件，不进行截止
+                        // break;
+                    }
+                }
+            } else {
+                // 如果 domains 为空，则转发所有邮件
+                await message.forward(subdomainForwardAddress.forward);
             }
-          }
-        } else {
-          // 如果 domains 为空，则转发所有邮件
-          await message.forward(subdomainForwardAddress.forward);
         }
-      }
     } catch (error) {
         console.error("subdomain forward email error", error);
     }

@@ -4,7 +4,6 @@ import { cleanup } from '../common';
 import { CONSTANTS } from '../constants';
 import { getJsonSetting, saveSetting } from '../utils';
 import { CleanupSettings } from '../models';
-import { HonoCustomType } from '../types';
 
 export default {
     cleanup: async (c: Context<HonoCustomType>) => {

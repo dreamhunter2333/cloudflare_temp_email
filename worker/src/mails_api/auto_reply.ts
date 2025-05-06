@@ -1,6 +1,5 @@
 import { Context } from "hono";
 import { getBooleanValue } from "../utils";
-import { HonoCustomType } from "../types";
 
 
 export default {

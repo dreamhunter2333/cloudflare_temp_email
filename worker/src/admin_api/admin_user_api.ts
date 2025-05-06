@@ -4,7 +4,6 @@ import { CONSTANTS } from '../constants';
 import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles } from '../utils';
 import { UserSettings, GeoData, UserInfo } from "../models";
 import { handleListQuery } from '../common'
-import { HonoCustomType } from '../types';
 import UserBindAddressModule from '../user_api/bind_address';
 import i18n from '../i18n';
 
