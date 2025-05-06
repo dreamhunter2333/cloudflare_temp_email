@@ -14,7 +14,6 @@ import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
 import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
-import { HonoCustomType, UserPayload } from './types';
 
 const API_PATHS = [
 	"/api/",

@@ -1,4 +1,3 @@
-import { Bindings, ParsedEmailContext } from "../types";
 import { getBooleanValue } from "../utils";
 import { commonParseMail } from "../common";
 import { createMimeMessage } from "mimetext";

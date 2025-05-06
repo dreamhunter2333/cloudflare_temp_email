@@ -7,7 +7,6 @@ import {
     verifyAuthenticationResponse
 } from '@simplewebauthn/server';
 
-import { HonoCustomType } from '../types';
 import { Passkey } from '../models';
 import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';

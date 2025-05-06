@@ -1,15 +1,10 @@
-export type UserRole = {
+type UserRole = {
     domains: string[] | undefined | null,
     role: string,
     prefix: string | undefined | null
 }
 
-export type SubdomainForwardAddressList = {
-    domains: string[] | undefined | null,
-    forward: string
-}
-
-export type Bindings = {
+type Bindings = {
     // bindings
     DB: D1Database
     KV: KVNamespace
@@ -49,7 +44,6 @@ export type Bindings = {
     COPYRIGHT: string | undefined
     DISABLE_SHOW_GITHUB: string | boolean | undefined
     FORWARD_ADDRESS_LIST: string | string[] | undefined
-    SUBDOMAIN_FORWARD_ADDRESS_LIST: string | SubdomainForwardAddressList[] | undefined
 
     ENABLE_CHECK_JUNK_MAIL: string | boolean | undefined
     JUNK_MAIL_CHECK_LIST: string | string[] | undefined
@@ -57,6 +51,8 @@ export type Bindings = {
 
     ENABLE_ANOTHER_WORKER: string | boolean | undefined
     ANOTHER_WORKER_LIST: string | AnotherWorker[] | undefined
+
+    SUBDOMAIN_FORWARD_ADDRESS_LIST: string | SubdomainForwardAddressList[] | undefined
 
     REMOVE_ALL_ATTACHMENT: string | boolean | undefined
     REMOVE_EXCEED_SIZE_ATTACHMENT: string | boolean | undefined
@@ -134,4 +130,9 @@ type ParsedEmailContext = {
         html: string,
         headers?: Record<string, string>[]
     } | undefined
+}
+
+type SubdomainForwardAddressList = {
+    domains: string[] | undefined | null,
+    forward: string,
 }

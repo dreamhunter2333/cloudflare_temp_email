@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n'
-import { HonoCustomType } from '../types'
 import { sendAdminInternalMail, getJsonSetting, saveSetting, getUserRoles } from '../utils'
 import { newAddress, handleListQuery } from '../common'
 import { CONSTANTS } from '../constants'

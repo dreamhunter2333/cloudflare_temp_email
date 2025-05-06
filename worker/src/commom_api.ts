@@ -2,7 +2,6 @@ import { Hono } from 'hono'
 
 import { getDomains, getPasswords, getBooleanValue, getIntValue, getStringArray, getDefaultDomains, getStringValue } from './utils';
 import { CONSTANTS } from './constants';
-import { HonoCustomType } from './types';
 import { isS3Enabled } from './mails_api/s3_attachment';
 
 const api = new Hono<HonoCustomType>

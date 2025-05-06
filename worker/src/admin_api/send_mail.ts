@@ -1,5 +1,4 @@
 import { Context } from "hono";
-import { HonoCustomType } from "../types";
 import { sendMail } from "../mails_api/send_mail_api";
 
 export const sendMailbyAdmin = async (c: Context<HonoCustomType>) => {

@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 
-import { HonoCustomType } from '../types';
 import settings from './settings';
 import user from './user';
 import bind_address from './bind_address';

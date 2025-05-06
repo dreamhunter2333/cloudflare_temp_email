@@ -24,7 +24,7 @@
     "@vueuse/core": "^12.8.2",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
-    "axios": "^1.8.4",
+    "axios": "^1.9.0",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.1",
     "naive-ui": "^2.41.0",
@@ -33,20 +33,21 @@
     "vue": "^3.5.13",
     "vue-clipboard3": "^2.0.0",
     "vue-i18n": "^11.1.3",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@vicons/fa": "^0.13.0",
     "@vicons/material": "^0.13.0",
     "@vitejs/plugin-vue": "^5.2.3",
-    "unplugin-auto-import": "^19.1.2",
+    "unplugin-auto-import": "^19.2.0",
     "unplugin-vue-components": "^28.5.0",
-    "vite": "^6.3.3",
+    "vite": "^6.3.5",
     "vite-plugin-pwa": "^1.0.0",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.4.1",
     "workbox-build": "^7.3.0",
     "workbox-window": "^7.3.0",
-    "wrangler": "^4.13.1"
-  }
+    "wrangler": "^4.14.2"
+  },
+  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }

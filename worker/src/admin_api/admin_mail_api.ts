@@ -1,5 +1,4 @@
 import { Context } from "hono";
-import { HonoCustomType } from "../types";
 import { handleListQuery } from "../common";
 
 export default {

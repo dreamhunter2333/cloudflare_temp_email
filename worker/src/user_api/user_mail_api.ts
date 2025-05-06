@@ -1,6 +1,5 @@
 import { Context } from "hono";
 import { handleListQuery } from "../common";
-import { HonoCustomType } from "../types";
 import UserBindAddressModule from "./bind_address";
 
 export default {

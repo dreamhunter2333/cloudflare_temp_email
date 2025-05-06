@@ -1,5 +1,4 @@
 import { Context } from "hono";
-import { HonoCustomType, ParsedEmailContext } from "../types";
 import { CONSTANTS } from "../constants";
 import { WebhookSettings } from "../models";
 import { commonParseMail, sendWebhook } from "../common";

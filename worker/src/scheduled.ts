@@ -3,7 +3,6 @@ import { cleanup } from './common'
 import { CONSTANTS } from './constants'
 import { getJsonSetting } from './utils';
 import { CleanupSettings } from './models';
-import { Bindings, HonoCustomType } from './types';
 
 export async function scheduled(event: ScheduledEvent, env: Bindings, ctx: any) {
     console.log("Scheduled event: ", event);

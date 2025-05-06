@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 
 import i18n from '../i18n';
-import { HonoCustomType } from "../types";
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue } from '../utils';
 import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains } from '../common'
 import { CONSTANTS } from '../constants'

@@ -1,7 +1,6 @@
 import { LocaleMessages } from "./type";
 import zh from "./zh";
 import en from "./en";
-import { HonoCustomType } from "../types";
 import { Context } from "hono";
 
 export default {
