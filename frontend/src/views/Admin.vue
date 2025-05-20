@@ -115,7 +115,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div v-if="userSettings.fetched">
     <n-modal v-model:show="showAdminPasswordModal" :closable="false" :closeOnEsc="false" :maskClosable="false"
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
