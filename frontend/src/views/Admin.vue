@@ -18,6 +18,7 @@ import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
 import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
+import DatabaseManager from './admin/DatabaseManager.vue';
 import Appearance from './common/Appearance.vue';
 import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
@@ -67,6 +68,7 @@ const { t } = useI18n({
       webhookSettings: 'Webhook Settings',
       statistics: 'Statistics',
       maintenance: 'Maintenance',
+      database: 'Database',
       workerconfig: 'Worker Config',
       appearance: 'Appearance',
       about: 'About',
@@ -93,6 +95,7 @@ const { t } = useI18n({
       webhookSettings: 'Webhook 设置',
       statistics: '统计',
       maintenance: '维护',
+      database: '数据库',
       workerconfig: 'Worker 配置',
       appearance: '外观',
       about: '关于',
@@ -126,6 +129,9 @@ onMounted(async () => {
     <n-tabs v-if="showAdminPage" type="card" v-model:value="adminTab" :placement="globalTabplacement">
       <n-tab-pane name="qucickSetup" :tab="t('qucickSetup')">
         <n-tabs type="bar" justify-content="center" animated>
+          <n-tab-pane name="database" :tab="t('database')">
+            <DatabaseManager />
+          </n-tab-pane>
           <n-tab-pane name="account_settings" :tab="t('account_settings')">
             <AccountSettings />
           </n-tab-pane>
@@ -196,6 +202,9 @@ onMounted(async () => {
       </n-tab-pane>
       <n-tab-pane name="maintenance" :tab="t('maintenance')">
         <n-tabs type="bar" justify-content="center" animated>
+          <n-tab-pane name="database" :tab="t('database')">
+            <DatabaseManager />
+          </n-tab-pane>
           <n-tab-pane name="workerconfig" :tab="t('workerconfig')">
             <WorkerConfig />
           </n-tab-pane>

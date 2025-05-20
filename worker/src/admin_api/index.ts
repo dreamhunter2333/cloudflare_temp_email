@@ -13,6 +13,7 @@ import oauth2_settings from './oauth2_settings'
 import worker_config from './worker_config'
 import admin_mail_api from './admin_mail_api'
 import { sendMailbyAdmin } from './send_mail'
+import db_api from './db_api'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -304,3 +305,8 @@ api.get("/admin/worker/configs", worker_config.getConfig);
 
 // send mail by admin
 api.post("/admin/send_mail", sendMailbyAdmin);
+
+// db api
+api.get('admin/db_version', db_api.getVersion);
+api.post('admin/db_initialize', db_api.initialize);
+api.post('admin/db_migration', db_api.migrate);

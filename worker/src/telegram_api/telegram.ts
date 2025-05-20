@@ -101,7 +101,10 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             const res = await tgUserNewAddress(c, userId.toString(), address);
             return await ctx.reply(`创建地址成功:\n`
                 + `地址: ${res.address}\n`
-                + `凭证: ${res.jwt}\n`
+                + `凭证: \`${res.jwt}\`\n`,
+                {
+                    parse_mode: "Markdown"
+                }
             );
         } catch (e) {
             return await ctx.reply(`创建地址失败: ${(e as Error).message}`);
