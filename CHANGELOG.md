@@ -6,6 +6,8 @@
 - feat: 支持 User 查看收件箱，`/user_api/mails` 接口, 支持 `address` 和 `keyword` 过滤
 - fix: 修复 Oauth2 登录获取 Token 时，一些 Oauth2 需要 `redirect_uri` 参数的问题
 - feat: 用户访问网页时，如果 `user token` 在 7 天内过期，自动刷新
+- feat: admin portal 中增加初始化 db 的功能
+- feat: 增加 `ALWAYS_SHOW_ANNOUNCEMENT` 变量，用于配置是否总是显示公告
 
 ## v0.9.1
 
