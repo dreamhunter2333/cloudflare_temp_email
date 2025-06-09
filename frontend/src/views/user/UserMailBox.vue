@@ -27,7 +27,7 @@ const mailKeyword = ref("")
 const addressFilterOptions = ref([]);
 
 const queryMail = () => {
-    addressFilter.value = addressFilter.value.trim();
+    addressFilter.value = addressFilter.value ? addressFilter.value.trim() : addressFilter.value;
     mailKeyword.value = mailKeyword.value.trim();
     mailBoxKey.value = Date.now();
 }
@@ -64,7 +64,6 @@ const deleteMail = async (curMailId) => {
 };
 
 watch(addressFilter, async (newValue) => {
-    console.log("addressFilter", newValue);
     queryMail();
 });
 
