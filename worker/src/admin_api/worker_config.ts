@@ -12,6 +12,7 @@ export default {
             "HAS_PASSWORD": utils.getPasswords(c).length,
             "HAS_ADMIN_PASSWORDS": utils.getAdminPasswords(c).length,
             "ANNOUNCEMENT": utils.getStringValue(c.env.ANNOUNCEMENT),
+            "ALWAYS_SHOW_ANNOUNCEMENT": utils.getBooleanValue(c.env.ALWAYS_SHOW_ANNOUNCEMENT),
 
             "PREFIX": utils.getStringValue(c.env.PREFIX),
             "ADDRESS_CHECK_REGEX": utils.getStringValue(c.env.ADDRESS_CHECK_REGEX),

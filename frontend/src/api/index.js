@@ -89,7 +89,11 @@ const getOpenSettings = async (message, notification) => {
         if (openSettings.value.needAuth) {
             showAuth.value = true;
         }
-        if (openSettings.value.announcement && openSettings.value.announcement != announcement.value) {
+        if (openSettings.value.announcement
+            && !openSettings.value.fetched
+            && (openSettings.value.announcement != announcement.value
+                || openSettings.value.alwaysShowAnnouncement)
+        ) {
             announcement.value = openSettings.value.announcement;
             notification.info({
                 content: () => {

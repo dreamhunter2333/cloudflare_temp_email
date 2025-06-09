@@ -14,6 +14,7 @@ export const useGlobalState = createGlobalState(
             fetched: false,
             title: '',
             announcement: '',
+            alwaysShowAnnouncement: false,
             prefix: '',
             addressRegex: '',
             needAuth: false,
