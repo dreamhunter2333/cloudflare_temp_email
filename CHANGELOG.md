@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## v1.0.0
+
+- fix: |UI| 修复 User 查看收件箱，不选择地址时，关键词查询不生效
+
 ## v0.10.0
 
 - feat: 支持 User 查看收件箱，`/user_api/mails` 接口, 支持 `address` 和 `keyword` 过滤
