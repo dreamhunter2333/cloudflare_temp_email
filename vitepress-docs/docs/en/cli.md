@@ -81,6 +81,8 @@ PREFIX = "tmp" # The mailbox name prefix to be processed
 # MIN_ADDRESS_LEN = 1
 # MAX_ADDRESS_LEN = 30
 # ANNOUNCEMENT = "Custom Announcement"
+# always show ANNOUNCEMENT even no changes
+# ALWAYS_SHOW_ANNOUNCEMENT = true
 # address check REGEX, if not set, will not check
 # ADDRESS_CHECK_REGEX = "^(?!.*admin).*"
 # address name replace REGEX, if not set, the default is [^a-z0-9]

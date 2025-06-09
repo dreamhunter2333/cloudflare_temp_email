@@ -16,6 +16,7 @@ type Bindings = {
     DEFAULT_LANG: string | undefined
     TITLE: string | undefined
     ANNOUNCEMENT: string | undefined | null
+    ALWAYS_SHOW_ANNOUNCEMENT: string | boolean | undefined
     PREFIX: string | undefined
     ADDRESS_CHECK_REGEX: string | undefined
     ADDRESS_REGEX: string | undefined
