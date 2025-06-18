@@ -155,6 +155,18 @@ export const cleanup = async (
     }
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
+        case "inactiveAddress":
+            await batchDeleteAddressWithData(
+                c,
+                `updated_at < datetime('now', '-${cleanDays} day')`
+            )
+            break;
+        case "addressCreated":
+            await batchDeleteAddressWithData(
+                c,
+                `created_at < datetime('now', '-${cleanDays} day')`
+            )
+            break;
         case "mails":
             await c.env.DB.prepare(`
                 DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
@@ -174,6 +186,37 @@ export const cleanup = async (
         default:
             throw new Error("Invalid cleanType")
     }
+    return true;
+}
+
+const batchDeleteAddressWithData = async (
+    c: Context<HonoCustomType>,
+    addressQueryCondition: string,
+): Promise<boolean> => {
+    await c.env.DB.prepare(
+        `DELETE FROM raw_mails WHERE address IN ( ` +
+        `SELECT name FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE address IN ( ` +
+        `SELECT name FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    await c.env.DB.prepare(
+        `DELETE FROM auto_reply_mails WHERE address IN ( ` +
+        `SELECT name FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    await c.env.DB.prepare(
+        `DELETE FROM address_sender WHERE address IN ( ` +
+        `SELECT name FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    await c.env.DB.prepare(
+        `DELETE FROM users_address WHERE address_id IN ( ` +
+        `SELECT id FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    // delete address
+    await c.env.DB.prepare(`
+        DELETE FROM address WHERE ${addressQueryCondition}`
+    ).run();
     return true;
 }
 
@@ -214,13 +257,19 @@ export const deleteAddressWithData = async (
     const { success: sendAccess } = await c.env.DB.prepare(
         `DELETE FROM address_sender WHERE address = ? `
     ).bind(address).run();
+    const { success: sendboxSuccess } = await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE address = ? `
+    ).bind(address).run();
     const { success: addressSuccess } = await c.env.DB.prepare(
         `DELETE FROM users_address WHERE address_id = ? `
     ).bind(address_id).run();
+    const { success: autoReplySuccess } = await c.env.DB.prepare(
+        `DELETE FROM auto_reply_mails WHERE address = ? `
+    ).bind(address).run();
     const { success } = await c.env.DB.prepare(
         `DELETE FROM address WHERE name = ? `
     ).bind(address).run();
-    if (!success || !mailSuccess || !addressSuccess || !sendAccess) {
+    if (!success || !mailSuccess || !sendboxSuccess || !addressSuccess || !sendAccess || !autoReplySuccess) {
         throw new Error("Failed to delete address")
     }
     return true;

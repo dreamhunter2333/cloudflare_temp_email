@@ -17,13 +17,11 @@ export default {
         return c.json({ success: true })
     },
     getCleanup: async (c: Context<HonoCustomType>) => {
-        const value = await getJsonSetting(c, CONSTANTS.AUTO_CLEANUP_KEY);
-        const cleanupSetting = new CleanupSettings(value);
+        const cleanupSetting = await getJsonSetting<CleanupSettings>(c, CONSTANTS.AUTO_CLEANUP_KEY);
         return c.json(cleanupSetting)
     },
     saveCleanup: async (c: Context<HonoCustomType>) => {
-        const value = await c.req.json();
-        const cleanupSetting = new CleanupSettings(value);
+        const cleanupSetting = await c.req.json<CleanupSettings>();
         await saveSetting(c, CONSTANTS.AUTO_CLEANUP_KEY, JSON.stringify(cleanupSetting));
         return c.json({ success: true })
     }

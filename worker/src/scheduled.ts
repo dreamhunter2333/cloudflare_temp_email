@@ -6,11 +6,14 @@ import { CleanupSettings } from './models';
 
 export async function scheduled(event: ScheduledEvent, env: Bindings, ctx: any) {
     console.log("Scheduled event: ", event);
-    const value = await getJsonSetting(
+    const autoCleanupSetting = await getJsonSetting<CleanupSettings>(
         { env: env, } as Context<HonoCustomType>,
         CONSTANTS.AUTO_CLEANUP_KEY
     );
-    const autoCleanupSetting = new CleanupSettings(value);
+    if (!autoCleanupSetting) {
+        console.log("No auto cleanup settings found, skipping cleanup.");
+        return;
+    }
     console.log("autoCleanupSetting:", JSON.stringify(autoCleanupSetting));
     if (autoCleanupSetting.enableMailsAutoCleanup) {
         await cleanup(
@@ -31,6 +34,20 @@ export async function scheduled(event: ScheduledEvent, env: Bindings, ctx: any) 
             { env: env, } as Context<HonoCustomType>,
             "sendbox",
             autoCleanupSetting.cleanSendBoxDays
+        );
+    }
+    if (autoCleanupSetting.enableInactiveAddressAutoCleanup) {
+        await cleanup(
+            { env: env, } as Context<HonoCustomType>,
+            "inactiveAddress",
+            autoCleanupSetting.cleanInactiveAddressDays
+        );
+    }
+    if (autoCleanupSetting.enableAddressAutoCleanup) {
+        await cleanup(
+            { env: env, } as Context<HonoCustomType>,
+            "addressCreated",
+            autoCleanupSetting.cleanAddressDays
         );
     }
 }

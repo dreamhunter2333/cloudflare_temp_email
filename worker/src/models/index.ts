@@ -32,7 +32,7 @@ export type WebhookMail = {
     parsedHtml: string;
 }
 
-export class CleanupSettings {
+export type CleanupSettings = {
 
     enableMailsAutoCleanup: boolean | undefined;
     cleanMailsDays: number;
@@ -40,22 +40,11 @@ export class CleanupSettings {
     cleanUnknowMailsDays: number;
     enableSendBoxAutoCleanup: boolean | undefined;
     cleanSendBoxDays: number;
-
-    constructor(data: CleanupSettings | undefined | null) {
-        const {
-            enableMailsAutoCleanup, cleanMailsDays,
-            enableUnknowMailsAutoCleanup, cleanUnknowMailsDays,
-            enableSendBoxAutoCleanup, cleanSendBoxDays
-        } = data || {};
-        this.enableMailsAutoCleanup = enableMailsAutoCleanup;
-        this.cleanMailsDays = cleanMailsDays || 0;
-        this.enableUnknowMailsAutoCleanup = enableUnknowMailsAutoCleanup;
-        this.cleanUnknowMailsDays = cleanUnknowMailsDays || 0;
-        this.enableSendBoxAutoCleanup = enableSendBoxAutoCleanup;
-        this.cleanSendBoxDays = cleanSendBoxDays || 0;
-    }
+    enableAddressAutoCleanup: boolean | undefined;
+    cleanAddressDays: number;
+    enableInactiveAddressAutoCleanup: boolean | undefined;
+    cleanInactiveAddressDays: number;
 }
-
 
 export class GeoData {
 
