@@ -12,21 +12,21 @@ export async function scheduled(event: ScheduledEvent, env: Bindings, ctx: any) 
     );
     const autoCleanupSetting = new CleanupSettings(value);
     console.log("autoCleanupSetting:", JSON.stringify(autoCleanupSetting));
-    if (autoCleanupSetting.enableMailsAutoCleanup && autoCleanupSetting.cleanMailsDays > 0) {
+    if (autoCleanupSetting.enableMailsAutoCleanup) {
         await cleanup(
             { env: env, } as Context<HonoCustomType>,
             "mails",
             autoCleanupSetting.cleanMailsDays
         );
     }
-    if (autoCleanupSetting.enableUnknowMailsAutoCleanup && autoCleanupSetting.cleanUnknowMailsDays > 0) {
+    if (autoCleanupSetting.enableUnknowMailsAutoCleanup) {
         await cleanup(
             { env: env, } as Context<HonoCustomType>,
             "mails_unknow",
             autoCleanupSetting.cleanUnknowMailsDays
         );
     }
-    if (autoCleanupSetting.enableSendBoxAutoCleanup && autoCleanupSetting.cleanSendBoxDays > 0) {
+    if (autoCleanupSetting.enableSendBoxAutoCleanup) {
         await cleanup(
             { env: env, } as Context<HonoCustomType>,
             "sendbox",
