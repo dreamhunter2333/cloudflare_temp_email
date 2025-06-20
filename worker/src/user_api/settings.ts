@@ -66,7 +66,7 @@ export default {
         }, c.env.JWT_SECRET, "HS256");
         // update address updated_at
         try {
-            c.env.DB.prepare(
+            await c.env.DB.prepare(
                 `UPDATE address SET updated_at = datetime('now') where id IN `
                 + `(SELECT address_id FROM users_address WHERE user_id = ?)`
             ).bind(user.user_id).run();

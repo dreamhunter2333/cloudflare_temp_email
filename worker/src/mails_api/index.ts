@@ -31,7 +31,7 @@ export async function updateAddressUpdatedAt(
     // update address updated_at
     try {
         if (address) {
-            c.env.DB.prepare(
+            await c.env.DB.prepare(
                 `UPDATE address SET updated_at = datetime('now') where name = ?`
             ).bind(address).run();
         }
