@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Context, Hono } from 'hono'
 
 import i18n from '../i18n';
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue } from '../utils';
@@ -20,12 +20,34 @@ api.post('/api/attachment/delete', s3_attachment.deleteKey)
 api.post('/api/attachment/put_url', s3_attachment.getSignedPutUrl)
 api.post('/api/attachment/get_url', s3_attachment.getSignedGetUrl)
 
+
+export async function updateAddressUpdatedAt(
+    c: Context<HonoCustomType>,
+    address: string | undefined | null
+): Promise<void> {
+    if (!address) {
+        return;
+    }
+    // update address updated_at
+    try {
+        if (address) {
+            c.env.DB.prepare(
+                `UPDATE address SET updated_at = datetime('now') where name = ?`
+            ).bind(address).run();
+        }
+    } catch (e) {
+        console.warn("Failed to update address updated_at")
+    }
+}
+
+
 api.get('/api/mails', async (c) => {
     const { address } = c.get("jwtPayload")
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }
     const { limit, offset } = c.req.query();
+    if (Number.parseInt(offset) <= 0) await updateAddressUpdatedAt(c, address);
     return await handleListQuery(c,
         `SELECT * FROM raw_mails where address = ?`,
         `SELECT count(*) as count FROM raw_mails where address = ?`,
@@ -89,14 +111,9 @@ api.get('/api/settings', async (c) => {
     } catch (error) {
         return c.text(msgs.InvalidAddressMsg, 400)
     }
-    // update address updated_at
-    try {
-        c.env.DB.prepare(
-            `UPDATE address SET updated_at = datetime('now') where name = ?`
-        ).bind(address).run();
-    } catch (e) {
-        console.warn("Failed to update address")
-    }
+
+    await updateAddressUpdatedAt(c, address);
+
     const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
     const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
     const balance = is_no_limit_send_balance ? 99999 : await c.env.DB.prepare(
