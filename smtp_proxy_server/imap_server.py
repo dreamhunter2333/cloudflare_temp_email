@@ -65,6 +65,31 @@ class SimpleMailbox:
         self.addListener = self.listeners.append
         self.removeListener = self.listeners.remove
         self.message_count = 0
+        self._update_message_count()
+
+    def _update_message_count(self):
+        """主动获取邮件总数"""
+        try:
+            if self.name == "INBOX":
+                endpoint = "/api/mails"
+            elif self.name == "SENT":
+                endpoint = "/api/sendbox"
+            else:
+                return
+
+            res = httpx.get(
+                f"{settings.proxy_url}{endpoint}?limit=1&offset=0",
+                headers={
+                    "Authorization": f"Bearer {self.password}",
+                    "x-custom-auth": f"{settings.basic_password}",
+                    "Content-Type": "application/json"
+                }
+            )
+            if res.status_code == 200:
+                self.message_count = res.json()["count"]
+                # _logger.info(f"Updated {self.name} message count: {self.message_count}")
+        except Exception as e:
+            _logger.error(f"Failed to update message count for {self.name}: {e}")
 
     def getFlags(self):
         return ["\\Seen"]
@@ -73,7 +98,9 @@ class SimpleMailbox:
         return 0
 
     def getMessageCount(self):
-        return self.message_count or 1000
+        # 每次请求时更新邮件总数
+        self._update_message_count()
+        return self.message_count
 
     def getRecentCount(self):
         return 0
@@ -91,6 +118,8 @@ class SimpleMailbox:
         return "/"
 
     def requestStatus(self, names):
+        # 在状态请求时也更新邮件总数
+        self._update_message_count()
         r = {}
         if "MESSAGES" in names:
             r["MESSAGES"] = self.getMessageCount()
@@ -105,65 +134,99 @@ class SimpleMailbox:
         return defer.succeed(r)
 
     def fetch(self, messages, uid):
+        """边查边返回邮件"""
+        def email_generator():
+            for range_item in messages.ranges:
+                start, end = range_item
+                _logger.info(f"Fetching messages: {self.name}, range: {start}-{end}")
+
+                for email_data in self.fetchGenerator(start, end):
+                    yield email_data
+
+        # 返回生成器，让IMAP4服务器逐个处理
+        return email_generator()
+
+    def fetchGenerator(self, start, end):
+        """通用的邮件获取生成器，边查边返回"""
+        start = max(start, 1)
+
+        # 根据邮箱类型确定API端点
         if self.name == "INBOX":
-            return self.fetchINBOX(messages)
-        if self.name == "SENT":
-            return self.fetchSENT(messages)
-        return []
+            endpoint = "/api/mails"
+        elif self.name == "SENT":
+            endpoint = "/api/sendbox"
+        else:
+            return
 
-    def fetchINBOX(self, messages):
-        start, end = messages.ranges[0]
-        start = max(start, 1)
-        limit = min(20, end - start + 1) if end and end >= start else 20
-        if self.message_count > 0 and start > self.message_count:
-            return []
-        res = httpx.get(
-            f"{settings.proxy_url}/api/mails?limit={limit}&offset={start - 1}",
+        # 首先获取服务端邮件总数
+        count_res = httpx.get(
+            f"{settings.proxy_url}{endpoint}?limit=1&offset=0",
             headers={
                 "Authorization": f"Bearer {self.password}",
                 "x-custom-auth": f"{settings.basic_password}",
                 "Content-Type": "application/json"
             }
         )
-        if res.status_code != 200:
+        if count_res.status_code != 200:
             _logger.error(
-                "Failed: "
-                f"code=[{res.status_code}] text=[{res.text}]"
+                f"Failed to get {self.name} email count: "
+                f"code=[{count_res.status_code}] text=[{count_res.text}]"
             )
-            raise Exception("Failed to fetch emails")
-        if res.json()["count"] > 0:
-            self.message_count = res.json()["count"]
-        return [
-            (start + uid, SimpleMessage(start + uid, parse_email(item["raw"])))
-            for uid, item in enumerate(res.json()["results"])
-        ]
+            return
 
-    def fetchSENT(self, messages):
-        start, end = messages.ranges[0]
-        start = max(start, 1)
-        limit = min(20, end - start + 1) if end and end >= start else 20
-        if self.message_count > 0 and start > self.message_count:
-            return []
-        res = httpx.get(
-            f"{settings.proxy_url}/api/sendbox?limit={limit}&offset={start - 1}",
-            headers={
-                "Authorization": f"Bearer {self.password}",
-                "x-custom-auth": f"{settings.basic_password}",
-                "Content-Type": "application/json"
-            }
-        )
-        if res.status_code != 200:
-            _logger.error(
-                "Failed: "
-                f"code=[{res.status_code}] text=[{res.text}]"
+        total_count = count_res.json()["count"]
+        self.message_count = total_count
+
+        if total_count == 0 or start > total_count:
+            return
+
+        # 分批处理，每次获取一小批就立即返回
+        batch_size = 20
+        current_start = start
+        current_end = min(end or total_count, total_count)
+
+        while current_start <= current_end:
+            batch_end = min(current_start + batch_size - 1, current_end)
+
+            # 计算这一批的参数
+            limit = batch_end - current_start + 1
+            server_offset = total_count - batch_end
+            server_offset = max(0, server_offset)
+
+            _logger.info(
+                f"Fetching batch: start={current_start}, end={batch_end}, "
+                f"total_count={total_count}, limit={limit}, "
+                f"server_offset={server_offset}"
             )
-            raise Exception("Failed to fetch emails")
-        if res.json()["count"] > 0:
-            self.message_count = res.json()["count"]
-        return [
-            (start + uid, SimpleMessage(start + uid, generate_email_model(item)))
-            for uid, item in enumerate(reversed(res.json()["results"]))
-        ]
+
+            res = httpx.get(
+                f"{settings.proxy_url}{endpoint}?limit={limit}&offset={server_offset}",
+                headers={
+                    "Authorization": f"Bearer {self.password}",
+                    "x-custom-auth": f"{settings.basic_password}",
+                    "Content-Type": "application/json"
+                }
+            )
+            if res.status_code != 200:
+                _logger.error(
+                    f"Failed to fetch {self.name} emails: "
+                    f"code=[{res.status_code}] text=[{res.text}]"
+                )
+                break
+
+            emails = res.json()["results"]
+            for i, item in enumerate(reversed(emails)):
+                uid = total_count - server_offset - len(emails) + i + 1
+                if current_start <= uid <= batch_end:
+                    if self.name == "INBOX":
+                        email_model = parse_email(item["raw"])
+                    elif self.name == "SENT":
+                        email_model = generate_email_model(item)
+
+                    # 立即返回这封邮件
+                    yield (uid, SimpleMessage(uid, email_model))
+
+            current_start = batch_end + 1
 
     def getUID(self, message):
         return message.uid
