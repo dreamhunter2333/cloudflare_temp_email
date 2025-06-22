@@ -2,25 +2,6 @@
 # 🚀 Cloudflare 临时邮箱 - 免费搭建临时邮件服务
 
 <p align="center">
-  <a href="README.md">🇨🇳 中文</a> |
-  <a href="README_EN.md">🇺🇸 English</a>
-</p>
-
-> 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
-
-**🎉 一个功能完整的临时邮箱服务！**
-
-- 🆓 **完全免费** - 基于 Cloudflare 免费服务构建，零成本运行
-- ⚡ **高性能** - Rust WASM 邮件解析，响应速度极快
-- 🎨 **现代化界面** - 响应式设计，支持多语言，操作简便
-
-<p align="center">
-  <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank">
-    <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=2ccc64bb1ba346b480625f584aa19eb1&claim_uid=FxNypXK7UQ9OECT" alt="Featured｜HelloGitHub"/>
-  </a>
-</p>
-
-<p align="center">
   <a href="https://temp-mail-docs.awsl.uk" target="_blank">
     <img alt="docs" src="https://img.shields.io/badge/docs-grey?logo=vitepress">
   </a>
@@ -41,15 +22,32 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank">
+    <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=2ccc64bb1ba346b480625f584aa19eb1&claim_uid=FxNypXK7UQ9OECT" alt="Featured｜HelloGitHub" height="30"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="README.md">🇨🇳 中文文档</a> |
+  <a href="README_EN.md">🇺🇸 English Document</a>
+</p>
+
+> 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
+
+**🎉 一个功能完整的临时邮箱服务！**
+
+- 🆓 **完全免费** - 基于 Cloudflare 免费服务构建，零成本运行
+- ⚡ **高性能** - Rust WASM 邮件解析，响应速度极快
+- 🎨 **现代化界面** - 响应式设计，支持多语言，操作简便
+
 ## 📚 部署文档 - 快速开始
 
 [📖 部署文档](https://temp-mail-docs.awsl.uk) | [🚀 Github Action 部署文档](https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html)
 
-<p align="center">
-  <a href="https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html">
-    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers">
-  </a>
-</p>
+<a href="https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html">
+  <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" height="32">
+</a>
 
 ## 📝 更新日志
 
@@ -59,16 +57,29 @@
 
 立即体验 → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 
+<details>
+<summary>📊 服务状态监控（点击收缩/展开）</summary>
+
 |                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [Backend](https://temp-email-api.awsl.uk/) | [![Deploy Backend Production](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/backend_deploy.yaml/badge.svg)](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/backend_deploy.yaml) ![](https://uptime.aks.awsl.icu/api/badge/10/status) ![](https://uptime.aks.awsl.icu/api/badge/10/uptime) ![](https://uptime.aks.awsl.icu/api/badge/10/ping) ![](https://uptime.aks.awsl.icu/api/badge/10/avg-response) ![](https://uptime.aks.awsl.icu/api/badge/10/cert-exp) ![](https://uptime.aks.awsl.icu/api/badge/10/response) |
 | [Frontend](https://mail.awsl.uk/)          | [![Deploy Frontend](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/frontend_deploy.yaml/badge.svg)](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/frontend_deploy.yaml) ![](https://uptime.aks.awsl.icu/api/badge/12/status) ![](https://uptime.aks.awsl.icu/api/badge/12/uptime) ![](https://uptime.aks.awsl.icu/api/badge/12/ping) ![](https://uptime.aks.awsl.icu/api/badge/12/avg-response) ![](https://uptime.aks.awsl.icu/api/badge/12/cert-exp) ![](https://uptime.aks.awsl.icu/api/badge/12/response)         |
+
+</details>
+
+<details>
+<summary>⭐ Star History（点击收缩/展开）</summary>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date&theme=dark" />
   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
 </picture>
+
+</details>
+
+<details open>
+<summary>📖 目录（点击收缩/展开）</summary>
 
 - [🚀 Cloudflare 临时邮箱 - 免费搭建临时邮件服务](#-cloudflare-临时邮箱---免费搭建临时邮件服务)
   - [📚 部署文档 - 快速开始](#-部署文档---快速开始)
@@ -86,7 +97,12 @@
     - [📦 主要组件](#-主要组件)
   - [🌟 加入社区](#-加入社区)
 
+</details>
+
 ## ✨ 核心功能
+
+<details open>
+<summary>✨ 核心功能详情（点击收缩/展开）</summary>
 
 ### 📧 邮件处理
 
@@ -132,7 +148,12 @@
 - [x] 支持 `CF Turnstile` 人机验证
 - [x] 限流配置，防止滥用
 
+</details>
+
 ## 🏗️ 技术架构
+
+<details>
+<summary>🏗️ 技术架构详情（点击收缩/展开）</summary>
 
 ### �️ 系统架构
 
@@ -158,6 +179,8 @@
 - **SMTP Proxy Server**: Python 邮件代理服务
 - **Pages Functions**: Cloudflare Pages 中间件
 - **Documentation**: VitePress 文档站点
+
+</details>
 
 ## 🌟 加入社区
 
