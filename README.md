@@ -1,4 +1,14 @@
+<!-- markdownlint-disable-file MD033 MD045 -->
 # 使用 cloudflare 免费服务，搭建临时邮箱
+
+<p align="center">
+  <a href="README.md">🇨🇳 中文</a> |
+  <a href="README_EN.md">🇺🇸 English</a>
+</p>
+
+> 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
+
+**一个功能完整的临时邮箱服务，基于 Cloudflare 免费服务构建，支持邮件收发、用户管理、多语言界面等丰富功能。**
 
 <p align="center">
   <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank">
@@ -8,38 +18,38 @@
 
 <p align="center">
   <a href="https://temp-mail-docs.awsl.uk" target="_blank">
-    <img alt="docs" src="https://img.shields.io/badge/docs-grey?style=for-the-badge&logo=vitepress">
+    <img alt="docs" src="https://img.shields.io/badge/docs-grey?logo=vitepress">
   </a>
   <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest" target="_blank">
-    <img src="https://img.shields.io/github/v/release/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
+    <img src="https://img.shields.io/github/v/release/dreamhunter2333/cloudflare_temp_email">
   </a>
   <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/LICENSE" target="_blank">
-    <img alt="MIT License" src="https://img.shields.io/github/license/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
+    <img alt="MIT License" src="https://img.shields.io/github/license/dreamhunter2333/cloudflare_temp_email">
   </a>
   <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/graphs/contributors" target="_blank">
-   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
+   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/dreamhunter2333/cloudflare_temp_email">
   </a>
   <a href="">
-    <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
+    <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/dreamhunter2333/cloudflare_temp_email">
   </a>
   <a href="">
-    <img src="https://img.shields.io/github/last-commit/dreamhunter2333/cloudflare_temp_email?style=for-the-badge">
+    <img src="https://img.shields.io/github/last-commit/dreamhunter2333/cloudflare_temp_email">
   </a>
 </p>
 
-> 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
-
 ## [查看部署文档](https://temp-mail-docs.awsl.uk)
-
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html)
 
 [Github Action 部署文档](https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html)
 
-[English Docs](https://temp-mail-docs.awsl.uk/en/)
+<p align="center">
+  <a href="https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html">
+    <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers">
+  </a>
+</p>
 
 ## [CHANGELOG](CHANGELOG.md)
 
-## [在线演示](https://mail.awsl.uk/)
+## [在线体验](https://mail.awsl.uk/)
 
 |                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -55,36 +65,92 @@
 - [使用 cloudflare 免费服务，搭建临时邮箱](#使用-cloudflare-免费服务搭建临时邮箱)
   - [查看部署文档](#查看部署文档)
   - [CHANGELOG](#changelog)
-  - [在线演示](#在线演示)
+  - [在线体验](#在线体验)
   - [功能](#功能)
+    - [📧 邮件处理](#-邮件处理)
+    - [👥 用户管理](#-用户管理)
+    - [🔧 管理功能](#-管理功能)
+    - [🌐 多语言与界面](#-多语言与界面)
+    - [🤖 集成与扩展](#-集成与扩展)
   - [Reference](#reference)
+    - [🏗️ 架构设计](#️-架构设计)
+    - [🛠️ 技术栈](#️-技术栈)
+    - [📦 主要组件](#-主要组件)
   - [Join Community](#join-community)
 
 ## 功能
 
-- [x] 使用 `rust wasm` 解析邮件, 解析速度快, 几乎所有邮件都能解析, node 的解析模块解析邮件失败的邮件, rust wasm 也能解析成功
+### 📧 邮件处理
+
+- [x] 使用 `rust wasm` 解析邮件，解析速度快，几乎所有邮件都能解析，node 的解析模块解析邮件失败的邮件，rust wasm 也能解析成功
+- [x] 支持发送邮件，支持 `DKIM` 验证
+- [x] 支持 `SMTP` 和 `Resend` 等多种发送方式
+- [x] 增加查看 `附件` 功能，支持附件图片显示
+- [x] 支持 S3 附件存储和删除功能
+- [x] 垃圾邮件检测和黑白名单配置
+- [x] 邮件转发功能，支持全局转发地址
+
+### 👥 用户管理
+
 - [x] 使用 `凭证` 重新登录之前的邮箱
 - [x] 添加完整的用户注册登录功能，可绑定邮箱地址，绑定后可自动获取邮箱JWT凭证切换不同邮箱
-- [x] 前后台均支持多语言
+- [x] 支持 `OAuth2` 第三方登录（Github、Authentik 等）
+- [x] 支持 `Passkey` 无密码登录
+- [x] 用户角色管理，支持多角色域名和前缀配置
+- [x] 用户收件箱查看，支持地址和关键词过滤
+
+### 🔧 管理功能
+
+- [x] 完整的 admin 控制台
+- [x] `admin` 后台创建无前缀邮箱
+- [x] admin 用户管理页面，增加用户地址查看功能
+- [x] 定时清理功能，支持多种清理策略
 - [x] 获取自定义名字的邮箱，`admin` 可配置黑名单
 - [x] 增加访问密码，可作为私人站点
-- [x] admin 控制台
-- [x] 增加自动回复功能
-- [x] 增加查看 `附件` 功能
-- [x] 支持发送邮件
-- [x] 支持 `DKIM`
-- [x] `admin` 后台创建无前缀邮箱
-- [x] 添加 `SMTP proxy server`，支持 `SMTP` 发送邮件, `IMAP` 查看邮件
-- [x] 完整的 `Telegram Bot` 支持，以及 `Telegram` 推送, Telegram Bot 小程序
+
+### 🌐 多语言与界面
+
+- [x] 前后台均支持多语言
+- [x] 现代化 UI 设计，支持响应式布局
+- [x] 支持 Google Ads 集成
+- [x] 使用 shadow DOM 防止样式污染
+- [x] 支持 URL JWT 参数自动登录
+
+### 🤖 集成与扩展
+
+- [x] 完整的 `Telegram Bot` 支持，以及 `Telegram` 推送，Telegram Bot 小程序
+- [x] 添加 `SMTP proxy server`，支持 `SMTP` 发送邮件，`IMAP` 查看邮件
+- [x] Webhook 支持，消息推送集成
+- [x] 支持 `CF Turnstile` 人机验证
+- [x] 限流配置，防止滥用
 
 ## Reference
 
-- Cloudflare D1 作为数据库
-- 使用 Cloudflare Pages 部署前端
-- 使用 Cloudflare Workers 部署后端
-- email 转发使用 Cloudflare Email Routing
+### 🏗️ 架构设计
+
+- **数据库**: Cloudflare D1 作为主数据库
+- **前端部署**: 使用 Cloudflare Pages 部署前端
+- **后端部署**: 使用 Cloudflare Workers 部署后端
+- **邮件转发**: 使用 Cloudflare Email Routing
+
+### 🛠️ 技术栈
+
+- **前端**: Vue 3 + Vite + TypeScript
+- **后端**: TypeScript + Cloudflare Workers
+- **邮件解析**: Rust WASM (mail-parser-wasm)
+- **数据库**: Cloudflare D1 (SQLite)
+- **存储**: Cloudflare KV + R2 (可选 S3)
+- **代理服务**: Python SMTP/IMAP Proxy Server
+
+### 📦 主要组件
+
+- **Worker**: 核心后端服务
+- **Frontend**: Vue 3 用户界面
+- **Mail Parser WASM**: Rust 邮件解析模块
+- **SMTP Proxy Server**: Python 邮件代理服务
+- **Pages Functions**: Cloudflare Pages 中间件
+- **Documentation**: VitePress 文档站点
 
 ## Join Community
 
-- [Discord](https://discord.gg/dQEwTWhA6Q)
 - [Telegram](https://t.me/cloudflare_temp_email)
