@@ -1,5 +1,5 @@
 <!-- markdownlint-disable-file MD033 MD045 -->
-# 使用 cloudflare 免费服务，搭建临时邮箱
+# 🚀 Cloudflare 临时邮箱 - 免费搭建临时邮件服务
 
 <p align="center">
   <a href="README.md">🇨🇳 中文</a> |
@@ -8,7 +8,11 @@
 
 > 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
 
-**一个功能完整的临时邮箱服务，基于 Cloudflare 免费服务构建，支持邮件收发、用户管理、多语言界面等丰富功能。**
+**🎉 一个功能完整的临时邮箱服务！**
+
+- 🆓 **完全免费** - 基于 Cloudflare 免费服务构建，零成本运行
+- ⚡ **高性能** - Rust WASM 邮件解析，响应速度极快
+- 🎨 **现代化界面** - 响应式设计，支持多语言，操作简便
 
 <p align="center">
   <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank">
@@ -37,9 +41,9 @@
   </a>
 </p>
 
-## [查看部署文档](https://temp-mail-docs.awsl.uk)
+## 📚 部署文档 - 快速开始
 
-[Github Action 部署文档](https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html)
+[📖 部署文档](https://temp-mail-docs.awsl.uk) | [🚀 Github Action 部署文档](https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html)
 
 <p align="center">
   <a href="https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html">
@@ -47,9 +51,13 @@
   </a>
 </p>
 
-## [CHANGELOG](CHANGELOG.md)
+## 📝 更新日志
 
-## [在线体验](https://mail.awsl.uk/)
+查看 [CHANGELOG](CHANGELOG.md) 了解最新更新内容。
+
+## 🎯 在线体验
+
+立即体验 → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 
 |                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -62,23 +70,23 @@
   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
 </picture>
 
-- [使用 cloudflare 免费服务，搭建临时邮箱](#使用-cloudflare-免费服务搭建临时邮箱)
-  - [查看部署文档](#查看部署文档)
-  - [CHANGELOG](#changelog)
-  - [在线体验](#在线体验)
-  - [功能](#功能)
+- [🚀 Cloudflare 临时邮箱 - 免费搭建临时邮件服务](#-cloudflare-临时邮箱---免费搭建临时邮件服务)
+  - [📚 部署文档 - 快速开始](#-部署文档---快速开始)
+  - [📝 更新日志](#-更新日志)
+  - [🎯 在线体验](#-在线体验)
+  - [✨ 核心功能](#-核心功能)
     - [📧 邮件处理](#-邮件处理)
     - [👥 用户管理](#-用户管理)
     - [🔧 管理功能](#-管理功能)
     - [🌐 多语言与界面](#-多语言与界面)
     - [🤖 集成与扩展](#-集成与扩展)
-  - [Reference](#reference)
-    - [🏗️ 架构设计](#️-架构设计)
+  - [🏗️ 技术架构](#️-技术架构)
+    - [�️ 系统架构](#️-系统架构)
     - [🛠️ 技术栈](#️-技术栈)
     - [📦 主要组件](#-主要组件)
-  - [Join Community](#join-community)
+  - [🌟 加入社区](#-加入社区)
 
-## 功能
+## ✨ 核心功能
 
 ### 📧 邮件处理
 
@@ -124,9 +132,9 @@
 - [x] 支持 `CF Turnstile` 人机验证
 - [x] 限流配置，防止滥用
 
-## Reference
+## 🏗️ 技术架构
 
-### 🏗️ 架构设计
+### �️ 系统架构
 
 - **数据库**: Cloudflare D1 作为主数据库
 - **前端部署**: 使用 Cloudflare Pages 部署前端
@@ -151,6 +159,6 @@
 - **Pages Functions**: Cloudflare Pages 中间件
 - **Documentation**: VitePress 文档站点
 
-## Join Community
+## 🌟 加入社区
 
 - [Telegram](https://t.me/cloudflare_temp_email)
