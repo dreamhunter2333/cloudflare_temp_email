@@ -2,7 +2,7 @@ import { Context, Hono } from 'hono'
 
 import i18n from '../i18n';
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue } from '../utils';
-import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains } from '../common'
+import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
@@ -19,27 +19,6 @@ api.get('/api/attachment/list', s3_attachment.list)
 api.post('/api/attachment/delete', s3_attachment.deleteKey)
 api.post('/api/attachment/put_url', s3_attachment.getSignedPutUrl)
 api.post('/api/attachment/get_url', s3_attachment.getSignedGetUrl)
-
-
-export async function updateAddressUpdatedAt(
-    c: Context<HonoCustomType>,
-    address: string | undefined | null
-): Promise<void> {
-    if (!address) {
-        return;
-    }
-    // update address updated_at
-    try {
-        if (address) {
-            await c.env.DB.prepare(
-                `UPDATE address SET updated_at = datetime('now') where name = ?`
-            ).bind(address).run();
-        }
-    } catch (e) {
-        console.warn("Failed to update address updated_at")
-    }
-}
-
 
 api.get('/api/mails', async (c) => {
     const { address } = c.get("jwtPayload")

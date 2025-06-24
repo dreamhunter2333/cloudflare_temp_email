@@ -40,6 +40,23 @@ const getNameRegex = (c: Context<HonoCustomType>): RegExp => {
     return DEFAULT_NAME_REGEX;
 }
 
+export async function updateAddressUpdatedAt(
+    c: Context<HonoCustomType>,
+    address: string | undefined | null
+): Promise<void> {
+    if (!address) {
+        return;
+    }
+    // update address updated_at
+    try {
+        await c.env.DB.prepare(
+            `UPDATE address SET updated_at = datetime('now') where name = ?`
+        ).bind(address).run();
+    } catch (e) {
+        console.warn("Failed to update address updated_at", e);
+    }
+}
+
 export const newAddress = async (
     c: Context<HonoCustomType>,
     {
@@ -108,6 +125,7 @@ export const newAddress = async (
         if (!success) {
             throw new Error("Failed to create address")
         }
+        await updateAddressUpdatedAt(c, name);
     } catch (e) {
         const message = (e as Error).message;
         if (message && message.includes("UNIQUE")) {
