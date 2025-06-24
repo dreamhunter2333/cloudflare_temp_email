@@ -6,6 +6,7 @@ import { getJsonSetting } from "../utils"
 import { CONSTANTS } from "../constants";
 import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
+import { updateAddressUpdatedAt } from '../common';
 
 const UserBindAddressModule = {
     bind: async (c: Context<HonoCustomType>) => {
@@ -237,6 +238,7 @@ const UserBindAddressModule = {
         if (!newAddressSuccess) {
             throw new Error("Failed to create address")
         }
+        await updateAddressUpdatedAt(c, address);
         // find new address id
         const new_address_id = await c.env.DB.prepare(
             `SELECT id FROM address WHERE name = ?`
