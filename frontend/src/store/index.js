@@ -10,6 +10,7 @@ export const useGlobalState = createGlobalState(
         const toggleDark = useToggle(isDark)
         const loading = ref(false);
         const announcement = useLocalStorage('announcement', '');
+        const useSimpleIndex = useLocalStorage('useSimpleIndex', false);
         const openSettings = ref({
             fetched: false,
             title: '',
@@ -142,6 +143,7 @@ export const useGlobalState = createGlobalState(
             showAdminPage,
             userOauth2SessionState,
             userOauth2SessionClientID,
+            useSimpleIndex,
         }
     },
 )
