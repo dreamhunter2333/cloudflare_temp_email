@@ -27,7 +27,7 @@ const { t } = useI18n({
             addressCredentialTip: 'Please copy the Mail Address Credential and you can use it to login to your email account.',
             delete: 'Delete',
             deleteTip: 'Are you sure to delete this email?',
-            delteAccount: 'Delete Account',
+            deleteAccount: 'Delete Account',
             viewMails: 'View Mails',
             viewSendBox: 'View SendBox',
             itemCount: 'itemCount',
@@ -46,7 +46,7 @@ const { t } = useI18n({
             addressCredentialTip: '请复制邮箱地址凭证，你可以使用它登录你的邮箱。',
             delete: '删除',
             deleteTip: '确定要删除这个邮箱吗？',
-            delteAccount: '删除邮箱',
+            deleteAccount: '删除邮箱',
             viewMails: '查看邮件',
             viewSendBox: '查看发件箱',
             itemCount: '总数',
@@ -273,11 +273,11 @@ onMounted(async () => {
             <template #action>
             </template>
         </n-modal>
-        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('delteAccount')">
+        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteAccount')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
                 <n-button :loading="loading" @click="deleteEmail" size="small" tertiary type="error">
-                    {{ t('delteAccount') }}
+                    {{ t('deleteAccount') }}
                 </n-button>
             </template>
         </n-modal>
