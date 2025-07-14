@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import { getJsonSetting } from '../utils';
+import { getJsonSetting, getStringValue, getUserRoles } from '../utils';
 import { UserOauth2Settings } from '../models';
 import { CONSTANTS } from '../constants';
 
@@ -109,6 +109,21 @@ export default {
         ).bind(email).first() || {};
         if (!user_id) {
             return c.text(msgs.UserNotFoundMsg, 400)
+        }
+        const defaultRole = getStringValue(c.env.USER_DEFAULT_ROLE);
+        if (!defaultRole) return c.json({ success: true })
+        const user_roles = getUserRoles(c);
+        if (!user_roles.find((r) => r.role === defaultRole)) {
+            return c.text(msgs.InvalidUserDefaultRoleMsg, 500);
+        }
+        // update user roles
+        const { success: success2 } = await c.env.DB.prepare(
+            `INSERT INTO user_roles (user_id, role_text)`
+            + ` VALUES (?, ?)`
+            + ` ON CONFLICT(user_id) DO NOTHING`
+        ).bind(user_id, defaultRole).run();
+        if (!success2) {
+            return c.text(msgs.FailedUpdateUserDefaultRoleMsg, 500);
         }
         // create jwt
         const jwt = await Jwt.sign({
