@@ -110,20 +110,22 @@ export default {
         if (!user_id) {
             return c.text(msgs.UserNotFoundMsg, 400)
         }
+        // process user roles
         const defaultRole = getStringValue(c.env.USER_DEFAULT_ROLE);
-        if (!defaultRole) return c.json({ success: true })
-        const user_roles = getUserRoles(c);
-        if (!user_roles.find((r) => r.role === defaultRole)) {
-            return c.text(msgs.InvalidUserDefaultRoleMsg, 500);
-        }
-        // update user roles
-        const { success: success2 } = await c.env.DB.prepare(
-            `INSERT INTO user_roles (user_id, role_text)`
-            + ` VALUES (?, ?)`
-            + ` ON CONFLICT(user_id) DO NOTHING`
-        ).bind(user_id, defaultRole).run();
-        if (!success2) {
-            return c.text(msgs.FailedUpdateUserDefaultRoleMsg, 500);
+        if (defaultRole) {
+            const user_roles = getUserRoles(c);
+            if (!user_roles.find((r) => r.role === defaultRole)) {
+                return c.text(msgs.InvalidUserDefaultRoleMsg, 500);
+            }
+            // update user roles
+            const { success: success2 } = await c.env.DB.prepare(
+                `INSERT INTO user_roles (user_id, role_text)`
+                + ` VALUES (?, ?)`
+                + ` ON CONFLICT(user_id) DO NOTHING`
+            ).bind(user_id, defaultRole).run();
+            if (!success2) {
+                return c.text(msgs.FailedUpdateUserDefaultRoleMsg, 500);
+            }
         }
         // create jwt
         const jwt = await Jwt.sign({
