@@ -1,7 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v1.0.1)
+## v1.0.2
+
+- fix: 修复 oauth2 登录失败的问题
+
+## v1.0.1
 
 - feat: |UI| 增加极简模式主页, 可在 `外观` 中切换
 - fix: 修复 oauth2 登录时，default role 不生效的问题
