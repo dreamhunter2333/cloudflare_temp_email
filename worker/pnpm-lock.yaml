@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   telegraf@4.16.3:
-    hash: 7d0a1784bb35f50fee25f26a14017734b9461612c635e71734b59527280c9563
+    hash: 4ce8461c7f21d886ddd30d13d2be4fc8c72134fd7ffa5da3b27319c883447eed
     path: patches/telegraf@4.16.3.patch
 
 importers:
@@ -39,7 +39,7 @@ importers:
         version: 4.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       telegraf:
         specifier: 4.16.3
-        version: 4.16.3(patch_hash=7d0a1784bb35f50fee25f26a14017734b9461612c635e71734b59527280c9563)
+        version: 4.16.3(patch_hash=4ce8461c7f21d886ddd30d13d2be4fc8c72134fd7ffa5da3b27319c883447eed)
       worker-mailer:
         specifier: ^1.1.4
         version: 1.1.4
@@ -3563,7 +3563,7 @@ snapshots:
     dependencies:
       has-flag: 4.0.0
 
-  telegraf@4.16.3(patch_hash=7d0a1784bb35f50fee25f26a14017734b9461612c635e71734b59527280c9563):
+  telegraf@4.16.3(patch_hash=4ce8461c7f21d886ddd30d13d2be4fc8c72134fd7ffa5da3b27319c883447eed):
     dependencies:
       '@telegraf/types': 7.1.0
       abort-controller: 3.0.0
