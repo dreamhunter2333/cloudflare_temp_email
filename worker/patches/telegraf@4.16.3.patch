@@ -1,5 +1,5 @@
 diff --git a/lib/core/network/client.js b/lib/core/network/client.js
-index 25fbbbb47c7f88e83ae26f629e5ae1a0c141725c..209d4a6bf05352f44eeb082eb327581d698de5ce 100644
+index 25fbbbb47c7f88e83ae26f629e5ae1a0c141725c..ab82c5391596ee2ed8dbe4128f3ba57a8cc998ca 100644
 --- a/lib/core/network/client.js
 +++ b/lib/core/network/client.js
 @@ -1,18 +1,18 @@
@@ -37,7 +37,17 @@ index 25fbbbb47c7f88e83ae26f629e5ae1a0c141725c..209d4a6bf05352f44eeb082eb327581d
  const path = __importStar(require("path"));
  const node_fetch_1 = __importDefault(require("node-fetch"));
  const check_1 = require("../helpers/check");
-@@ -61,10 +61,10 @@ const DEFAULT_OPTIONS = {
+@@ -39,7 +39,8 @@ const multipart_stream_1 = __importDefault(require("./multipart-stream"));
+ const error_1 = __importDefault(require("./error"));
+ const url_1 = require("url");
+ // eslint-disable-next-line @typescript-eslint/no-var-requires
+-const debug = require('debug')('telegraf:client');
++// const debug = require('debug')('telegraf:client');
++const debug = (msg) => console.debug(`[telegraf:client] ${msg}`);
+ const { isStream } = multipart_stream_1.default;
+ const WEBHOOK_REPLY_METHOD_ALLOWLIST = new Set([
+     'answerCallbackQuery',
+@@ -61,10 +62,10 @@ const DEFAULT_OPTIONS = {
      apiRoot: 'https://api.telegram.org',
      apiMode: 'bot',
      webhookReply: true,
@@ -52,7 +62,7 @@ index 25fbbbb47c7f88e83ae26f629e5ae1a0c141725c..209d4a6bf05352f44eeb082eb327581d
      attachmentAgent: undefined,
      testEnv: false,
  };
-@@ -112,9 +112,9 @@ async function buildFormDataConfig(payload, agent) {
+@@ -112,9 +113,9 @@ async function buildFormDataConfig(payload, agent) {
      }
      const boundary = crypto.randomBytes(32).toString('hex');
      const formData = new multipart_stream_1.default(boundary);
@@ -65,7 +75,7 @@ index 25fbbbb47c7f88e83ae26f629e5ae1a0c141725c..209d4a6bf05352f44eeb082eb327581d
      return {
          method: 'POST',
          compress: true,
-@@ -205,14 +205,15 @@ async function attachFormMedia(form, media, id, agent) {
+@@ -205,14 +206,15 @@ async function attachFormMedia(form, media, id, agent) {
      if ('source' in media && media.source) {
          let mediaSource = media.source;
          if (typeof media.source === 'string') {
