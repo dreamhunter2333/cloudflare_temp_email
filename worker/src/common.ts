@@ -108,9 +108,9 @@ export const newAddress = async (
     }
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
-    // if domain is not set, use the first domain
+    // if domain is not set, use the random domain
     if (!domain && allowDomains.length > 0) {
-        domain = allowDomains[0];
+        domain = allowDomains[Math.floor(Math.random() * allowDomains.length)];
     }
     // check domain is valid
     if (!domain || !allowDomains.includes(domain)) {
