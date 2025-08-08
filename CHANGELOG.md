@@ -1,6 +1,11 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## v1.0.3
+
+- fix: 修复 github actions 部署问题
+- feat: telegram /new 不指定域名时, 使用随机地址
+
 ## v1.0.2
 
 - fix: 修复 oauth2 登录失败的问题
