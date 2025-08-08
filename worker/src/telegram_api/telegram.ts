@@ -41,8 +41,8 @@ const COMMANDS = [
         description: "查看邮件, 请输入 /mails <邮箱地址>, 不输入地址默认查看第一个地址"
     },
     {
-        command: "cleaninvalidadress",
-        description: "清理无效地址, 请输入 /cleaninvalidadress"
+        command: "cleaninvalidaddress",
+        description: "清理无效地址, 请输入 /cleaninvalidaddress"
     },
 ]
 
@@ -159,7 +159,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         }
         try {
             // @ts-ignore
-            const address = ctx?.message?.text.slice("/unbind".length).trim();
+            const address = ctx?.message?.text.slice("/delete".length).trim();
             if (!address) {
                 return await ctx.reply("请输入地址");
             }
@@ -186,7 +186,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         }
     });
 
-    bot.command("cleaninvalidadress", async (ctx: TgContext) => {
+    bot.command("cleaninvalidaddress", async (ctx: TgContext) => {
         const userId = ctx?.message?.from?.id;
         if (!userId) {
             return await ctx.reply("无法获取用户信息");

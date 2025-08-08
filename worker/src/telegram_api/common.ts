@@ -51,6 +51,14 @@ export const jwtListToAddressData = async (
     for (const jwt of jwtList) {
         try {
             const { address, address_id } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
+            const name = await c.env.DB.prepare(
+                `SELECT name FROM address WHERE id = ? `
+            ).bind(address_id).first("name");
+            if (!name) {
+                addressList.push("无效地址");
+                invalidJwtList.push(jwt);
+                continue;
+            }
             addressList.push(address as string);
             addressIdMap[address as string] = address_id as number;
         } catch (e) {
@@ -75,7 +83,7 @@ export const bindTelegramAddress = async (
         return address as string;
     }
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
-        throw Error("绑定地址数量已达上限");
+        throw Error("绑定地址数量已达上限, 请先 /cleaninvalidaddress");
     }
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, jwt]));
     // for mail push to telegram
