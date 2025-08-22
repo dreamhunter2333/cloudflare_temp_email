@@ -3,11 +3,11 @@ import { watch, onMounted, ref, onBeforeUnmount } from "vue";
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
-import { CloudDownloadRound, ReplyFilled, ForwardFilled } from '@vicons/material'
+import { CloudDownloadRound } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
-import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
+import { processItem } from '../utils/email-parser'
 import { utcToLocalDate } from '../utils';
-import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
+import MailContentRenderer from "./MailContentRenderer.vue";
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -51,8 +51,8 @@ const props = defineProps({
 })
 
 const {
-  isDark, mailboxSplitSize, indexTab, loading, useUTCDate, autoRefresh, configAutoRefreshInterval,
-  useIframeShowMail, sendMailModel, preferShowTextMail
+  isDark, mailboxSplitSize, indexTab, loading, useUTCDate,
+  autoRefresh, configAutoRefreshInterval, sendMailModel
 } = useGlobalState()
 const autoRefreshInterval = ref(configAutoRefreshInterval.value)
 const data = ref([])
@@ -62,10 +62,7 @@ const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 
-const showAttachments = ref(false)
-const curAttachments = ref([])
 const curMail = ref(null);
-const showTextMail = ref(preferShowTextMail.value)
 
 const multiActionMode = ref(false)
 const showMultiActionDownload = ref(false)
@@ -185,10 +182,6 @@ const clickRow = async (row) => {
   curMail.value = row;
 };
 
-const getAttachments = (attachments) => {
-  curAttachments.value = attachments;
-  showAttachments.value = true;
-};
 
 const mailItemClass = (row) => {
   return curMail.value && row.id == curMail.value.id ? (isDark.value ? 'overlay overlay-dark-backgroud' : 'overlay overlay-light-backgroud') : '';
@@ -237,14 +230,8 @@ const onSpiltSizeChange = (size) => {
   mailboxSplitSize.value = size;
 }
 
-const attachmentLoding = ref(false)
 const saveToS3Proxy = async (filename, blob) => {
-  attachmentLoding.value = true
-  try {
-    await props.saveToS3(curMail.value.id, filename, blob);
-  } finally {
-    attachmentLoding.value = false
-  }
+  await props.saveToS3(curMail.value.id, filename, blob);
 }
 
 const multiActionModeClick = (enableMulti) => {
@@ -415,57 +402,10 @@ onBeforeUnmount(() => {
         <template #2>
           <n-card :bordered="false" embedded v-if="curMail" class="mail-item" :title="curMail.subject"
             style="overflow: auto; max-height: 100vh;">
-            <n-space>
-              <n-tag type="info">
-                ID: {{ curMail.id }}
-              </n-tag>
-              <n-tag type="info">
-                {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
-              </n-tag>
-              <n-tag type="info">
-                FROM: {{ curMail.source }}
-              </n-tag>
-              <n-tag v-if="showEMailTo" type="info">
-                TO: {{ curMail.address }}
-              </n-tag>
-              <n-popconfirm v-if="enableUserDeleteEmail" @positive-click="deleteMail">
-                <template #trigger>
-                  <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
-                </template>
-                {{ t('deleteMailTip') }}
-              </n-popconfirm>
-              <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
-                @click="getAttachments(curMail.attachments)">
-                {{ t('attachments') }}
-              </n-button>
-              <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="curMail.id + '.eml'"
-                :href="getDownloadEmlUrl(curMail.raw)">
-                <template #icon>
-                  <n-icon :component="CloudDownloadRound" />
-                </template>
-                {{ t('downloadMail') }}
-              </n-button>
-              <n-button v-if="showReply" size="small" tertiary type="info" @click="replyMail">
-                <template #icon>
-                  <n-icon :component="ReplyFilled" />
-                </template>
-                {{ t('reply') }}
-              </n-button>
-              <n-button v-if="showReply" size="small" tertiary type="info" @click="forwardMail">
-                <template #icon>
-                  <n-icon :component="ForwardFilled" />
-                </template>
-                {{ t('forwardMail') }}
-              </n-button>
-              <n-button size="small" tertiary type="info" @click="showTextMail = !showTextMail">
-                {{ showTextMail ? t('showHtmlMail') : t('showTextMail') }}
-              </n-button>
-            </n-space>
-            <pre v-if="showTextMail" style="margin-top: 10px;">{{ curMail.text }}</pre>
-            <iframe v-else-if="useIframeShowMail" :srcdoc="curMail.message"
-              style="margin-top: 10px;width: 100%; height: 100%;">
-            </iframe>
-            <ShadowHtmlComponent v-else :htmlContent="curMail.message" style="margin-top: 10px;" />
+            <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
+              :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
+              :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail"
+              :onSaveToS3="saveToS3Proxy" />
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
             <n-result status="info" :title="t('pleaseSelectMail')">
@@ -517,89 +457,14 @@ onBeforeUnmount(() => {
         style="height: 80vh;">
         <n-drawer-content :title="curMail ? curMail.subject : ''" closable>
           <n-card :bordered="false" embedded style="overflow: auto;">
-            <n-space>
-              <n-tag type="info">
-                ID: {{ curMail.id }}
-              </n-tag>
-              <n-tag type="info">
-                {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
-              </n-tag>
-              <n-tag type="info">
-                FROM: {{ curMail.source }}
-              </n-tag>
-              <n-tag v-if="showEMailTo" type="info">
-                TO: {{ curMail.address }}
-              </n-tag>
-              <n-popconfirm v-if="enableUserDeleteEmail" @positive-click="deleteMail">
-                <template #trigger>
-                  <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
-                </template>
-                {{ t('deleteMailTip') }}
-              </n-popconfirm>
-              <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
-                @click="getAttachments(curMail.attachments)">
-                {{ t('attachments') }}
-              </n-button>
-              <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="curMail.id + '.eml'"
-                :href="getDownloadEmlUrl(curMail)">
-                <n-icon :component="CloudDownloadRound" />
-                {{ t('downloadMail') }}
-              </n-button>
-              <n-button v-if="showReply" size="small" tertiary type="info" @click="replyMail">
-                <template #icon>
-                  <n-icon :component="ReplyFilled" />
-                </template>
-                {{ t('reply') }}
-              </n-button>
-              <n-button v-if="showReply" size="small" tertiary type="info" @click="forwardMail">
-                <template #icon>
-                  <n-icon :component="ForwardFilled" />
-                </template>
-                {{ t('forwardMail') }}
-              </n-button>
-              <n-button size="small" tertiary type="info" @click="showTextMail = !showTextMail">
-                {{ showTextMail ? t('showHtmlMail') : t('showTextMail') }}
-              </n-button>
-            </n-space>
-            <pre v-if="showTextMail" style="margin-top: 10px;">{{ curMail.text }}</pre>
-            <iframe v-else-if="useIframeShowMail" :srcdoc="curMail.message"
-              style="margin-top: 10px;width: 100%; height: 100%;">
-            </iframe>
-            <ShadowHtmlComponent :key="curMail.id" v-else :htmlContent="curMail.message" style="margin-top: 10px;" />
+            <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
+              :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
+              :useUTCDate="useUTCDate" :onDelete="deleteMail" :onReply="replyMail"
+              :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
           </n-card>
         </n-drawer-content>
       </n-drawer>
     </div>
-    <n-modal v-model:show="showAttachments" preset="dialog" title="Dialog">
-      <template #header>
-        <div>{{ t("attachments") }}</div>
-      </template>
-      <n-spin v-model:show="attachmentLoding">
-        <n-list hoverable clickable>
-          <n-list-item v-for="row in curAttachments" v-bind:key="row.id">
-            <n-thing class="center" :title="row.filename">
-              <template #description>
-                <n-space>
-                  <n-tag type="info">
-                    Size: {{ row.size }}
-                  </n-tag>
-                  <n-button v-if="showSaveS3" @click="saveToS3Proxy(row.filename, row.blob)" ghost type="info"
-                    size="small">
-                    {{ t('saveToS3') }}
-                  </n-button>
-                </n-space>
-              </template>
-            </n-thing>
-            <template #suffix>
-              <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="row.filename"
-                :href="row.url">
-                <n-icon :component="CloudDownloadRound" />
-              </n-button>
-            </template>
-          </n-list-item>
-        </n-list>
-      </n-spin>
-    </n-modal>
     <n-modal v-model:show="showMultiActionDownload" preset="dialog" :title="t('downloadMail')">
       <n-tag type="info">
         {{ multiActionDownloadZip.filename }}
