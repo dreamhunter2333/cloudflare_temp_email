@@ -42,11 +42,11 @@ const generate = async () => {
 }
 </script>
 
-1. 点击 `Workers & Pages` -> `Overview` -> `Create Application`
+1. 点击 `Compute (Workers)` -> `Workers & Pages` -> `Create`
 
     ![create pages](/ui_install/worker_home.png)
 
-2. 选择 `Pages`，选择 `Create using direct upload`
+2. 选择 `Pages`，选择 `Use direct upload`
 
     ![pages](/ui_install/pages.png)
 
