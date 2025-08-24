@@ -1,9 +1,9 @@
 <script setup>
-import { watch, onMounted, ref, onBeforeUnmount } from "vue";
+import { watch, onMounted, ref, onBeforeUnmount, computed } from "vue";
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
-import { CloudDownloadRound } from '@vicons/material'
+import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
 import { processItem } from '../utils/email-parser'
 import { utcToLocalDate } from '../utils';
@@ -62,6 +62,48 @@ const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 
+const canGoPrevMail = computed(() => {
+  if (!curMail.value) return false
+  const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
+  return currentIndex > 0 || page.value > 1
+})
+
+const canGoNextMail = computed(() => {
+  if (!curMail.value) return false
+  const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
+  return currentIndex < data.value.length - 1 || count.value > page.value * pageSize.value
+})
+
+const prevMail = async () => {
+  if (!canGoPrevMail.value) return
+  const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
+
+  if (currentIndex > 0) {
+    curMail.value = data.value[currentIndex - 1]
+  } else if (page.value > 1) {
+    page.value--
+    await refresh()
+    if (data.value.length > 0) {
+      curMail.value = data.value[data.value.length - 1]
+    }
+  }
+}
+
+const nextMail = async () => {
+  if (!canGoNextMail.value) return
+  const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
+
+  if (currentIndex < data.value.length - 1) {
+    curMail.value = data.value[currentIndex + 1]
+  } else if (count.value > page.value * pageSize.value) {
+    page.value++
+    await refresh()
+    if (data.value.length > 0) {
+      curMail.value = data.value[0]
+    }
+  }
+}
+
 const curMail = ref(null);
 
 const multiActionMode = ref(false)
@@ -91,6 +133,8 @@ const { t } = useI18n({
       cancelMultiAction: 'Cancel Multi Action',
       selectAll: 'Select All of This Page',
       unselectAll: 'Unselect All',
+      prevMail: 'Previous',
+      nextMail: 'Next',
     },
     zh: {
       success: '成功',
@@ -111,6 +155,8 @@ const { t } = useI18n({
       cancelMultiAction: '取消多选',
       selectAll: '全选本页',
       unselectAll: '取消全选',
+      prevMail: '上一封',
+      nextMail: '下一封',
     }
   }
 });
@@ -400,12 +446,31 @@ onBeforeUnmount(() => {
           </div>
         </template>
         <template #2>
+          <div v-if="curMail" style="margin: 8px;">
+            <n-flex justify="space-between">
+              <n-button @click="prevMail" :disabled="!canGoPrevMail" text size="small">
+                <template #icon>
+                  <n-icon>
+                    <ArrowBackIosNewFilled />
+                  </n-icon>
+                </template>
+                {{ t('prevMail') }}
+              </n-button>
+              <n-button @click="nextMail" :disabled="!canGoNextMail" text size="small" icon-placement="right">
+                <template #icon>
+                  <n-icon>
+                    <ArrowForwardIosFilled />
+                  </n-icon>
+                </template>
+                {{ t('nextMail') }}
+              </n-button>
+            </n-flex>
+          </div>
           <n-card :bordered="false" embedded v-if="curMail" class="mail-item" :title="curMail.subject"
             style="overflow: auto; max-height: 100vh;">
             <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
               :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
-              :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail"
-              :onSaveToS3="saveToS3Proxy" />
+              :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
             <n-result status="info" :title="t('pleaseSelectMail')">
@@ -459,8 +524,8 @@ onBeforeUnmount(() => {
           <n-card :bordered="false" embedded style="overflow: auto;">
             <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
               :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
-              :useUTCDate="useUTCDate" :onDelete="deleteMail" :onReply="replyMail"
-              :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
+              :useUTCDate="useUTCDate" :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail"
+              :onSaveToS3="saveToS3Proxy" />
           </n-card>
         </n-drawer-content>
       </n-drawer>
