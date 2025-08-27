@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,18 +11,18 @@
     "build": "wrangler deploy --dry-run --outdir dist --minify"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250822.0",
+    "@cloudflare/workers-types": "^4.20250826.0",
     "@eslint/js": "9.18.0",
     "@simplewebauthn/types": "10.0.0",
-    "@types/node": "^22.17.2",
+    "@types/node": "^22.18.0",
     "eslint": "9.18.0",
     "globals": "^15.15.0",
-    "typescript-eslint": "^8.40.0",
-    "wrangler": "^4.32.0"
+    "typescript-eslint": "^8.41.0",
+    "wrangler": "^4.33.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.873.0",
-    "@aws-sdk/s3-request-presigner": "^3.873.0",
+    "@aws-sdk/client-s3": "^3.876.0",
+    "@aws-sdk/s3-request-presigner": "^3.876.0",
     "@simplewebauthn/server": "10.0.1",
     "hono": "^4.9.4",
     "jsonpath-plus": "^10.3.0",
