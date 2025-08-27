@@ -5,6 +5,8 @@ import { useRoute } from 'vue-router'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
+import { useIsMobile } from '../utils/composables'
+import { FullscreenExitOutlined } from '@vicons/material'
 
 import AddressBar from './index/AddressBar.vue';
 import MailBox from '../components/MailBox.vue';
@@ -15,12 +17,12 @@ import Appearance from './common/Appearance.vue';
 import Webhook from './index/Webhook.vue';
 import Attachment from './index/Attachment.vue';
 import About from './common/About.vue';
-
 import SimpleIndex from './index/SimpleIndex.vue';
 
 const { loading, settings, openSettings, indexTab, globalTabplacement, useSimpleIndex } = useGlobalState()
 const message = useMessage()
 const route = useRoute()
+const isMobile = useIsMobile()
 
 const SendMail = defineAsyncComponent(() => {
   loading.value = true;
@@ -42,6 +44,7 @@ const { t } = useI18n({
       saveToS3Success: 'save to s3 success',
       webhookSettings: 'Webhook Settings',
       query: 'Query',
+      enterSimpleMode: 'Simple Mode',
     },
     zh: {
       mailbox: '收件箱',
@@ -55,6 +58,7 @@ const { t } = useI18n({
       saveToS3Success: '保存到s3成功',
       webhookSettings: 'Webhook 设置',
       query: '查询',
+      enterSimpleMode: '极简模式',
     }
   }
 });
@@ -133,6 +137,16 @@ onMounted(() => {
     <div v-else>
       <AddressBar />
       <n-tabs v-if="settings.address" type="card" v-model:value="indexTab" :placement="globalTabplacement">
+        <template #prefix v-if="!isMobile">
+          <n-button @click="useSimpleIndex = true" tertiary size="small">
+            <template #icon>
+              <n-icon>
+                <FullscreenExitOutlined />
+              </n-icon>
+            </template>
+            {{ t('enterSimpleMode') }}
+          </n-button>
+        </template>
         <n-tab-pane name="mailbox" :tab="t('mailbox')">
           <div v-if="showMailIdQuery" style="margin-bottom: 10px;">
             <n-input-group>
