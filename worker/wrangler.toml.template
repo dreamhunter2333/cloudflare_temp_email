@@ -35,6 +35,8 @@ PREFIX = "tmp"
 # (min, max) length of the adderss, if not set, the default is (1, 30)
 # MIN_ADDRESS_LEN = 1
 # MAX_ADDRESS_LEN = 30
+# Disable custom email address name, if set true, users cannot input custom email name, will auto generate
+# DISABLE_CUSTOM_ADDRESS_NAME = true
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
 # PASSWORDS = ["123", "456"]
 # For admin panel
@@ -43,6 +45,8 @@ PREFIX = "tmp"
 # DISABLE_ADMIN_PASSWORD_CHECK = false
 # ADMIN CONTACT, CAN BE ANY STRING
 # ADMIN_CONTACT = "xx@xx.xxx"
+# Create new address with default domain first, if set true, will use first domain from DEFAULT_DOMAINS when no domain specified
+# CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST = false
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all domain names
 # For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
