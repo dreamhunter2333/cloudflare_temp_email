@@ -18,8 +18,9 @@ export const tgUserNewAddress = async (
     // Check if custom address names are disabled
     const disableCustomAddressName = getBooleanValue(c.env.DISABLE_CUSTOM_ADDRESS_NAME);
 
-    // Parse address parameter
-    const [name, domain] = address.includes("@") ? address.split("@") : [address, null];
+    // Parse address parameter - handle empty or whitespace-only address
+    const trimmedAddress = address ? address.trim() : "";
+    const [name, domain] = trimmedAddress.includes("@") ? trimmedAddress.split("@") : [trimmedAddress, null];
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
         throw Error("绑定地址数量已达上限");

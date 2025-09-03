@@ -101,8 +101,8 @@ export const newAddress = async (
         enableCheckNameRegex?: boolean,
     }
 ): Promise<{ address: string, jwt: string }> => {
-    // remove special characters
-    name = name.replace(getNameRegex(c), '')
+    // trim whitespace and remove special characters
+    name = name.trim().replace(getNameRegex(c), '')
     // check name
     if (enableCheckNameRegex) {
         await checkNameBlockList(c, name);
@@ -127,9 +127,9 @@ export const newAddress = async (
     }
     // create address with prefix
     if (typeof addressPrefix === "string") {
-        name = addressPrefix + name;
+        name = addressPrefix.trim() + name;
     } else if (enablePrefix) {
-        name = getStringValue(c.env.PREFIX) + name;
+        name = getStringValue(c.env.PREFIX).trim() + name;
     }
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
