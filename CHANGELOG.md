@@ -6,6 +6,7 @@
 - feat: 新增 `DISABLE_CUSTOM_ADDRESS_NAME` 配置: 禁用自定义邮箱地址名称功能
 - feat: 新增 `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` 配置: 创建地址时优先使用第一个域名
 - feat: |UI| 主页增加进入极简模式按钮
+- feat: |Webhook| 增加白名单开关功能，支持灵活控制访问权限
 
 ## v1.0.4
 

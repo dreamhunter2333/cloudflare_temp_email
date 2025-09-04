@@ -14,9 +14,11 @@ export type Passkey = {
 };
 
 export class AdminWebhookSettings {
+    enableAllowList: boolean;
     allowList: string[];
 
-    constructor(allowList: string[]) {
+    constructor(enableAllowList: boolean, allowList: string[]) {
+        this.enableAllowList = enableAllowList;
         this.allowList = allowList;
     }
 }

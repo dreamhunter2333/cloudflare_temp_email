@@ -21,6 +21,7 @@ const { t } = useI18n({
             successTip: 'Save Success',
             enable: 'Enable',
             enableMailAllowList: 'Enable Mail Address Allow List(Manually enterable)',
+            manualInputPrompt: 'Type and press Enter to add',
             mailAllowList: 'Mail Address Allow List',
             addOauth2: 'Add Oauth2',
             name: 'Name',
@@ -33,6 +34,7 @@ const { t } = useI18n({
             successTip: '保存成功',
             enable: '启用',
             enableMailAllowList: '启用邮件地址白名单(可手动输入, 回车增加)',
+            manualInputPrompt: '输入后按回车键添加',
             mailAllowList: '邮件地址白名单',
             addOauth2: '添加 Oauth2',
             name: '名称',
@@ -184,7 +186,7 @@ onMounted(async () => {
             </template>
         </n-modal>
         <n-card :bordered="false" embedded style="max-width: 600px;">
-            <n-alert :show-icon="false" type="warning" closable style="margin-bottom: 10px;">
+            <n-alert :show-icon="false" :bordered="false" type="warning" closable style="margin-bottom: 10px;">
                 {{ t("tip") }}
             </n-alert>
             <n-flex justify="end">
@@ -246,7 +248,13 @@ onMounted(async () => {
                                 </n-checkbox>
                                 <n-select v-model:value="item.mailAllowList" v-if="item.enableMailAllowList" filterable
                                     multiple tag style="width: 80%;" :options="mailAllowOptions"
-                                    :placeholder="t('mailAllowList')" />
+                                    :placeholder="t('mailAllowList')">
+                                    <template #empty>
+                                        <n-text depth="3">
+                                            {{ t('manualInputPrompt') }}
+                                        </n-text>
+                                    </template>
+                                </n-select>
                             </n-input-group>
                         </n-form-item-row>
                     </n-form>

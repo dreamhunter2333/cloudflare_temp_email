@@ -480,7 +480,7 @@ export async function triggerWebhook(
 
     // user mail webhook
     const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (adminSettings?.allowList.includes(address)) {
+    if (!adminSettings?.enableAllowList || adminSettings?.allowList.includes(address)) {
         const settings = await c.env.KV.get<WebhookSettings>(
             `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`, "json"
         );

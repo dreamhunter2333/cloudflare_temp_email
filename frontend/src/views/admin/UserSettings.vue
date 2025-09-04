@@ -18,6 +18,7 @@ const { t } = useI18n({
             enableMailVerify: 'Enable Mail Verify (Send address must be an address in the system with a balance and can send mail normally)',
             verifyMailSender: 'Verify Mail Sender',
             enableMailAllowList: 'Enable Mail Address Allow List(Manually enterable)',
+            manualInputPrompt: 'Type and press Enter to add',
             mailAllowList: 'Mail Address Allow List',
             maxAddressCount: 'Maximum number of email addresses that can be binded',
         },
@@ -29,6 +30,7 @@ const { t } = useI18n({
             enableMailVerify: '启用邮件验证(发送地址必须是系统中能有余额且能正常发送邮件的地址)',
             verifyMailSender: '验证邮件发送地址',
             enableMailAllowList: '启用邮件地址白名单(可手动输入, 回车增加)',
+            manualInputPrompt: '输入后按回车键添加',
             mailAllowList: '邮件地址白名单',
             maxAddressCount: '可绑定最大邮箱地址数量',
         }
@@ -83,9 +85,14 @@ onMounted(async () => {
 <template>
     <div class="center">
         <n-card :bordered="false" embedded style="max-width: 600px;">
+            <n-flex justify="end">
+                <n-button @click="save" type="primary" :loading="loading">
+                    {{ t('save') }}
+                </n-button>
+            </n-flex>
             <n-form :model="userSettings">
                 <n-form-item-row :label="t('enableUserRegister')">
-                    <n-checkbox v-model:checked="userSettings.enable" />
+                    <n-switch v-model:value="userSettings.enable" :round="false" />
                 </n-form-item-row>
                 <n-form-item-row :label="t('enableMailVerify')">
                     <n-input-group>
@@ -103,7 +110,13 @@ onMounted(async () => {
                         </n-checkbox>
                         <n-select v-model:value="userSettings.mailAllowList" v-if="userSettings.enableMailAllowList"
                             filterable multiple tag style="width: 80%;" :options="mailAllowOptions"
-                            :placeholder="t('mailAllowList')" />
+                            :placeholder="t('mailAllowList')">
+                            <template #empty>
+                                <n-text depth="3">
+                                    {{ t('manualInputPrompt') }}
+                                </n-text>
+                            </template>
+                        </n-select>
                     </n-input-group>
                 </n-form-item-row>
                 <n-form-item-row :label="t('maxAddressCount')">
@@ -112,9 +125,6 @@ onMounted(async () => {
                             :placeholder="t('maxAddressCount')" />
                     </n-input-group>
                 </n-form-item-row>
-                <n-button @click="save" type="primary" block :loading="loading">
-                    {{ t('save') }}
-                </n-button>
             </n-form>
         </n-card>
     </div>

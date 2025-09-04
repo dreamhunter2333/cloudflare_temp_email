@@ -13,6 +13,7 @@ const { t } = useI18n({
     messages: {
         en: {
             tip: 'You can manually input the following multiple select input and enter',
+            manualInputPrompt: 'Type and press Enter to add',
             save: 'Save',
             successTip: 'Save Success',
             address_block_list: 'Address Block Keywords for Users(Admin can skip)',
@@ -38,6 +39,7 @@ const { t } = useI18n({
         },
         zh: {
             tip: '您可以手动输入以下多选输入框, 回车增加',
+            manualInputPrompt: '输入后按回车键添加',
             save: '保存',
             successTip: '保存成功',
             address_block_list: '邮件地址屏蔽关键词(管理员可跳过检查)',
@@ -209,25 +211,55 @@ onMounted(async () => {
             </n-flex>
             <n-form-item-row :label="t('address_block_list')">
                 <n-select v-model:value="addressBlockList" filterable multiple tag
-                    :placeholder="t('address_block_list_placeholder')" />
+                    :placeholder="t('address_block_list_placeholder')">
+                    <template #empty>
+                        <n-text depth="3">
+                            {{ t('manualInputPrompt') }}
+                        </n-text>
+                    </template>
+                </n-select>
             </n-form-item-row>
             <n-form-item-row :label="t('send_address_block_list')">
                 <n-select v-model:value="sendAddressBlockList" filterable multiple tag
-                    :placeholder="t('address_block_list_placeholder')" />
+                    :placeholder="t('address_block_list_placeholder')">
+                    <template #empty>
+                        <n-text depth="3">
+                            {{ t('manualInputPrompt') }}
+                        </n-text>
+                    </template>
+                </n-select>
             </n-form-item-row>
             <n-form-item-row :label="t('noLimitSendAddressList')">
                 <n-select v-model:value="noLimitSendAddressList" filterable multiple tag
-                    :placeholder="t('noLimitSendAddressList')" />
+                    :placeholder="t('noLimitSendAddressList')">
+                    <template #empty>
+                        <n-text depth="3">
+                            {{ t('manualInputPrompt') }}
+                        </n-text>
+                    </template>
+                </n-select>
             </n-form-item-row>
             <n-form-item-row :label="t('verified_address_list')">
                 <n-select v-model:value="verifiedAddressList" filterable multiple tag
-                    :placeholder="t('verified_address_list')" />
+                    :placeholder="t('verified_address_list')">
+                    <template #empty>
+                        <n-text depth="3">
+                            {{ t('manualInputPrompt') }}
+                        </n-text>
+                    </template>
+                </n-select>
             </n-form-item-row>
             <n-form-item-row :label="t('fromBlockList')">
-                <n-select v-model:value="fromBlockList" filterable multiple tag :placeholder="t('fromBlockList')" />
+                <n-select v-model:value="fromBlockList" filterable multiple tag :placeholder="t('fromBlockList')">
+                    <template #empty>
+                        <n-text depth="3">
+                            {{ t('manualInputPrompt') }}
+                        </n-text>
+                    </template>
+                </n-select>
             </n-form-item-row>
             <n-form-item-row :label="t('block_receive_unknow_address_email')">
-                <n-checkbox v-model:checked="emailRuleSettings.blockReceiveUnknowAddressEmail" />
+                <n-switch v-model:value="emailRuleSettings.blockReceiveUnknowAddressEmail" :round="false" />
             </n-form-item-row>
             <n-form-item-row :label="t('email_forwarding_config')">
                 <n-button @click="openEmailForwardingModal">{{ t('config') }}</n-button>
