@@ -22,6 +22,7 @@ export const useGlobalState = createGlobalState(
             adminContact: '',
             enableUserCreateEmail: false,
             disableAnonymousUserCreateEmail: false,
+            disableCustomAddressName: false,
             enableUserDeleteEmail: false,
             enableAutoReply: false,
             enableIndexAbout: false,

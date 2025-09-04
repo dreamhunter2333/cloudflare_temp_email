@@ -8,6 +8,31 @@ import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 
+export const generateRandomName = (c: Context<HonoCustomType>): string => {
+    // name min length min 1
+    const minLength = Math.max(
+        getIntValue(c.env.MIN_ADDRESS_LEN, 1),
+        1
+    );
+    // name max length min 1
+    const maxLength = Math.max(
+        getIntValue(c.env.MAX_ADDRESS_LEN, 30),
+        1
+    );
+
+    // Build full name recursively until minimum length is reached
+    const buildName = (currentName: string = ""): string => {
+        return currentName.length >= minLength
+            ? currentName
+            : buildName(currentName + Math.random().toString(36).substring(2, 15));
+    };
+
+    const fullName = buildName();
+
+    // Return truncated to max length
+    return fullName.substring(0, Math.min(fullName.length, maxLength));
+};
+
 const checkNameRegex = (c: Context<HonoCustomType>, name: string) => {
     let error = null;
     try {
@@ -76,8 +101,8 @@ export const newAddress = async (
         enableCheckNameRegex?: boolean,
     }
 ): Promise<{ address: string, jwt: string }> => {
-    // remove special characters
-    name = name.replace(getNameRegex(c), '')
+    // trim whitespace and remove special characters
+    name = name.trim().replace(getNameRegex(c), '')
     // check name
     if (enableCheckNameRegex) {
         await checkNameBlockList(c, name);
@@ -102,15 +127,20 @@ export const newAddress = async (
     }
     // create address with prefix
     if (typeof addressPrefix === "string") {
-        name = addressPrefix + name;
+        name = addressPrefix.trim() + name;
     } else if (enablePrefix) {
-        name = getStringValue(c.env.PREFIX) + name;
+        name = getStringValue(c.env.PREFIX).trim() + name;
     }
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
-    // if domain is not set, use the random domain
+    // if domain is not set, select domain based on environment configuration
     if (!domain && allowDomains.length > 0) {
-        domain = allowDomains[Math.floor(Math.random() * allowDomains.length)];
+        const createAddressDefaultDomainFirst = getBooleanValue(c.env.CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST);
+        if (createAddressDefaultDomainFirst) {
+            domain = allowDomains[0];
+        } else {
+            domain = allowDomains[Math.floor(Math.random() * allowDomains.length)];
+        }
     }
     // check domain is valid
     if (!domain || !allowDomains.includes(domain)) {

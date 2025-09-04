@@ -2,7 +2,7 @@ import { Context, Hono } from 'hono'
 
 import i18n from '../i18n';
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue } from '../utils';
-import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt } from '../common'
+import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt, generateRandomName } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
@@ -123,9 +123,13 @@ api.post('/api/new_address', async (c) => {
     } catch (error) {
         return c.text(msgs.TurnstileCheckFailedMsg, 500)
     }
-    // if no name, generate random name
-    if (!name) {
-        name = Math.random().toString(36).substring(2, 15);
+    // Check if custom email names are disabled from environment variable
+    const disableCustomAddressName = getBooleanValue(c.env.DISABLE_CUSTOM_ADDRESS_NAME);
+
+    // if no name or custom names are disabled, generate random name
+    if (!name || disableCustomAddressName) {
+        // Generate random name with context-based length configuration
+        name = generateRandomName(c);
     }
     // check name block list
     try {

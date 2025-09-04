@@ -24,9 +24,9 @@ res = requests.post(
 print(res.json())
 ```
 
-# 批量创建随机用户名邮箱地址 API 示例
+## 批量创建随机用户名邮箱地址 API 示例
 
-## 通过 admin API 批量新建邮箱地址
+### 通过 admin API 批量新建邮箱地址
 
 这是一个 `python` 的例子，使用 `requests` 库发送邮件。
 

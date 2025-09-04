@@ -14,6 +14,7 @@ api.get('/open_api/settings', async (c) => {
         const auth = c.req.raw.headers.get("x-custom-auth");
         needAuth = !auth || !passwords.includes(auth);
     }
+
     return c.json({
         "title": c.env.TITLE,
         "announcement": utils.getStringValue(c.env.ANNOUNCEMENT),
@@ -29,6 +30,7 @@ api.get('/open_api/settings', async (c) => {
         "adminContact": c.env.ADMIN_CONTACT,
         "enableUserCreateEmail": utils.getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
         "disableAnonymousUserCreateEmail": utils.getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL),
+        "disableCustomAddressName": utils.getBooleanValue(c.env.DISABLE_CUSTOM_ADDRESS_NAME),
         "enableUserDeleteEmail": utils.getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),
         "enableAutoReply": utils.getBooleanValue(c.env.ENABLE_AUTO_REPLY),
         "enableIndexAbout": utils.getBooleanValue(c.env.ENABLE_INDEX_ABOUT),
