@@ -33,7 +33,12 @@ const { t } = useI18n({
             itemCount: 'itemCount',
             query: 'Query',
             addressQueryTip: 'Leave blank to query all addresses',
-            actions: 'Actions'
+            clearInbox: 'Clear Inbox',
+            clearSentItems: 'Clear Sent Items',
+            clearInboxTip: 'Are you sure to clear inbox for this email?',
+            clearSentItemsTip: 'Are you sure to clear sent items for this email?',
+            actions: 'Actions',
+            success: 'Success',
         },
         zh: {
             name: '名称',
@@ -52,7 +57,12 @@ const { t } = useI18n({
             itemCount: '总数',
             query: '查询',
             addressQueryTip: '留空查询所有地址',
+            clearInbox: '清空收件箱',
+            clearSentItems: '清空发件箱',
+            clearInboxTip: '确定要清空这个邮箱的收件箱吗？',
+            clearSentItemsTip: '确定要清空这个邮箱的发件箱吗？',
             actions: '操作',
+            success: '成功',
         }
     }
 });
@@ -60,6 +70,8 @@ const { t } = useI18n({
 const showEmailCredential = ref(false)
 const curEmailCredential = ref("")
 const curDeleteAddressId = ref(0);
+const curClearInboxAddressId = ref(0);
+const curClearSentItemsAddressId = ref(0);
 
 const addressQuery = ref("")
 
@@ -68,6 +80,8 @@ const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const showDeleteAccount = ref(false)
+const showClearInbox = ref(false)
+const showClearSentItems = ref(false)
 
 const showCredential = async (id) => {
     try {
@@ -83,12 +97,40 @@ const showCredential = async (id) => {
 const deleteEmail = async () => {
     try {
         await api.adminDeleteAddress(curDeleteAddressId.value)
-        message.success("success");
+        message.success(t("success"));
         await fetchData()
     } catch (error) {
         message.error(error.message || "error");
     } finally {
         showDeleteAccount.value = false
+    }
+}
+
+const clearInbox = async () => {
+    try {
+        await api.fetch(`/admin/clear_inbox/${curClearInboxAddressId.value}`, {
+            method: 'DELETE'
+        });
+        message.success(t("success"));
+        await fetchData()
+    } catch (error) {
+        message.error(error.message || "error");
+    } finally {
+        showClearInbox.value = false
+    }
+}
+
+const clearSentItems = async () => {
+    try {
+        await api.fetch(`/admin/clear_sent_items/${curClearSentItemsAddressId.value}`, {
+            method: 'DELETE'
+        });
+        message.success(t("success"));
+        await fetchData()
+    } catch (error) {
+        message.error(error.message || "error");
+    } finally {
+        showClearSentItems.value = false
     }
 }
 
@@ -233,6 +275,32 @@ const columns = [
                                         {
                                             text: true,
                                             onClick: () => {
+                                                curClearInboxAddressId.value = row.id;
+                                                showClearInbox.value = true;
+                                            }
+                                        },
+                                        { default: () => t('clearInbox') }
+                                    ),
+                                    show: row.mail_count > 0
+                                },
+                                {
+                                    label: () => h(NButton,
+                                        {
+                                            text: true,
+                                            onClick: () => {
+                                                curClearSentItemsAddressId.value = row.id;
+                                                showClearSentItems.value = true;
+                                            }
+                                        },
+                                        { default: () => t('clearSentItems') }
+                                    ),
+                                    show: row.send_count > 0
+                                },
+                                {
+                                    label: () => h(NButton,
+                                        {
+                                            text: true,
+                                            onClick: () => {
                                                 curDeleteAddressId.value = row.id;
                                                 showDeleteAccount.value = true;
                                             }
@@ -278,6 +346,22 @@ onMounted(async () => {
             <template #action>
                 <n-button :loading="loading" @click="deleteEmail" size="small" tertiary type="error">
                     {{ t('deleteAccount') }}
+                </n-button>
+            </template>
+        </n-modal>
+        <n-modal v-model:show="showClearInbox" preset="dialog" :title="t('clearInbox')">
+            <p>{{ t('clearInboxTip') }}</p>
+            <template #action>
+                <n-button :loading="loading" @click="clearInbox" size="small" tertiary type="error">
+                    {{ t('clearInbox') }}
+                </n-button>
+            </template>
+        </n-modal>
+        <n-modal v-model:show="showClearSentItems" preset="dialog" :title="t('clearSentItems')">
+            <p>{{ t('clearSentItemsTip') }}</p>
+            <template #action>
+                <n-button :loading="loading" @click="clearSentItems" size="small" tertiary type="error">
+                    {{ t('clearSentItems') }}
                 </n-button>
             </template>
         </n-modal>

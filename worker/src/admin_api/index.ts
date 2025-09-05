@@ -89,6 +89,34 @@ api.delete('/admin/delete_address/:id', async (c) => {
     })
 })
 
+api.delete('/admin/clear_inbox/:id', async (c) => {
+    const { id } = c.req.param();
+    const { success: mailSuccess } = await c.env.DB.prepare(
+        `DELETE FROM raw_mails WHERE address IN`
+        + ` (select name from address where id = ?) `
+    ).bind(id).run();
+    if (!mailSuccess) {
+        return c.text("Failed to clear inbox", 500)
+    }
+    return c.json({
+        success: mailSuccess
+    })
+})
+
+api.delete('/admin/clear_sent_items/:id', async (c) => {
+    const { id } = c.req.param();
+    const { success: sendboxSuccess } = await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE address IN`
+        + ` (select name from address where id = ?) `
+    ).bind(id).run();
+    if (!sendboxSuccess) {
+        return c.text("Failed to clear sent items", 500)
+    }
+    return c.json({
+        success: sendboxSuccess
+    })
+})
+
 api.get('/admin/show_password/:id', async (c) => {
     const { id } = c.req.param();
     const name = await c.env.DB.prepare(
