@@ -4,7 +4,7 @@ import { AdminWebhookSettings } from "../models";
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    return c.json(settings || new AdminWebhookSettings([]));
+    return c.json(settings || new AdminWebhookSettings(false, []));
 }
 
 async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {

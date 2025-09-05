@@ -7,7 +7,7 @@ import { commonParseMail, sendWebhook } from "../common";
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const { address } = c.get("jwtPayload")
     const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (!adminSettings?.allowList.includes(address)) {
+    if (adminSettings?.enableAllowList && !adminSettings?.allowList.includes(address)) {
         return c.text("Webhook settings is not allowed for this user", 403);
     }
     const settings = await c.env.KV.get<WebhookSettings>(
@@ -20,7 +20,7 @@ async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response>
 async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const { address } = c.get("jwtPayload")
     const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (!adminSettings?.allowList.includes(address)) {
+    if (adminSettings?.enableAllowList && !adminSettings?.allowList.includes(address)) {
         return c.text("Webhook settings is not allowed for this user", 403);
     }
     const settings = await c.req.json<WebhookSettings>();

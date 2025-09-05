@@ -77,7 +77,7 @@ onMounted(async () => {
         </n-modal>
         <n-card :bordered="false" embedded style="max-width: 600px;">
             <n-form-item-row v-if="openSettings.prefix" :label="t('enablePrefix')">
-                <n-checkbox v-model:checked="enablePrefix" />
+                <n-switch v-model:value="enablePrefix" :round="false" />
             </n-form-item-row>
             <n-form-item-row :label="t('address')">
                 <n-input-group>
