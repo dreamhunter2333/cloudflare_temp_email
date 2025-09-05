@@ -162,3 +162,39 @@ api.delete('/api/delete_address', async (c) => {
         success: success
     })
 })
+
+api.delete('/api/clear_inbox', async (c) => {
+    const lang = c.get("lang") || c.env.DEFAULT_LANG;
+    const msgs = i18n.getMessages(lang);
+    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
+        return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
+    }
+    const { address } = c.get("jwtPayload")
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM raw_mails WHERE address = ?`
+    ).bind(address).run();
+    if (!success) {
+        return c.text("Failed to clear inbox", 500)
+    }
+    return c.json({
+        success: success
+    })
+})
+
+api.delete('/api/clear_sent_items', async (c) => {
+    const lang = c.get("lang") || c.env.DEFAULT_LANG;
+    const msgs = i18n.getMessages(lang);
+    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
+        return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
+    }
+    const { address } = c.get("jwtPayload")
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE address = ?`
+    ).bind(address).run();
+    if (!success) {
+        return c.text("Failed to clear sent items", 500)
+    }
+    return c.json({
+        success: success
+    })
+})

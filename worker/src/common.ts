@@ -268,9 +268,7 @@ const batchDeleteAddressWithData = async (
     return true;
 }
 
-/**
- * TODO: need senbox delete?
- */
+
 export const deleteAddressWithData = async (
     c: Context<HonoCustomType>,
     address: string | undefined | null,
