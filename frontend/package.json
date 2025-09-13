@@ -24,7 +24,7 @@
     "@vueuse/core": "^12.8.2",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
-    "axios": "^1.11.0",
+    "axios": "^1.12.0",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.1",
     "naive-ui": "^2.42.0",
