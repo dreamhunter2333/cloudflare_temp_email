@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS raw_mails (
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_address ON raw_mails(address);
 
+CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
+
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
@@ -22,6 +24,10 @@ CREATE TABLE IF NOT EXISTS address (
 );
 
 CREATE INDEX IF NOT EXISTS idx_address_name ON address(name);
+
+CREATE INDEX IF NOT EXISTS idx_address_created_at ON address(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_address_updated_at ON address(updated_at);
 
 CREATE TABLE IF NOT EXISTS auto_reply_mails (
     id INTEGER PRIMARY KEY,
@@ -54,6 +60,7 @@ CREATE TABLE IF NOT EXISTS sendbox (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sendbox_address ON sendbox(address);
+CREATE INDEX IF NOT EXISTS idx_sendbox_created_at ON sendbox(created_at);
 
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -131,7 +138,13 @@ export default {
         const version = await utils.getSetting(c, CONSTANTS.DB_VERSION_KEY);
         if (version != CONSTANTS.DB_VERSION) {
             // TODO: Perform migration logic here
-
+            // remove all \r and \n characters from the query string
+            // split by ; and join with a ;\n
+            const query = DB_INIT_QUERIES.replace(/[\r\n]/g, "")
+                .split(";")
+                .map((query) => query.trim())
+                .join(";\n");
+            await c.env.DB.exec(query);
             // Update the version in the settings table
             await utils.saveSetting(c, CONSTANTS.DB_VERSION_KEY, CONSTANTS.DB_VERSION);
             return c.json({
