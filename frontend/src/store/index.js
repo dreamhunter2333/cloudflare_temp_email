@@ -105,8 +105,6 @@ export const useGlobalState = createGlobalState(
             || userSettings.value.is_admin
             || openSettings.value.disableAdminPasswordCheck
         );
-        const telegramApp = ref(window.Telegram?.WebApp || {});
-        const isTelegram = ref(!!window.Telegram?.WebApp?.initData);
         const userOauth2SessionState = useSessionStorage('userOauth2SessionState', '');
         const userOauth2SessionClientID = useSessionStorage('userOauth2SessionClientID', '');
         return {
@@ -139,8 +137,6 @@ export const useGlobalState = createGlobalState(
             useUTCDate,
             autoRefresh,
             configAutoRefreshInterval,
-            telegramApp,
-            isTelegram,
             showAdminPage,
             userOauth2SessionState,
             userOauth2SessionClientID,

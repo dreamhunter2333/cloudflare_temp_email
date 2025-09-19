@@ -4,7 +4,6 @@ import { Jwt } from 'hono/utils/jwt'
 import { UserSettings } from "../models";
 import { getJsonSetting } from "../utils"
 import { CONSTANTS } from "../constants";
-import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
 import { updateAddressUpdatedAt } from '../common';
 
@@ -214,8 +213,6 @@ const UserBindAddressModule = {
             `SELECT user_id FROM users_address where user_id = ? and address_id = ?`
         ).bind(user_id, address_id).first("user_id");
         if (!db_user_address_id) return c.text("Address not binded", 400)
-        // unbind telegram address
-        await unbindTelegramByAddress(c, address);
         // unbind user address
         try {
             const { success } = await c.env.DB.prepare(

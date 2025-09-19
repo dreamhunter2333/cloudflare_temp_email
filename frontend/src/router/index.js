@@ -31,11 +31,6 @@ const router = createRouter({
             component: () => import('../views/Admin.vue')
         },
         {
-            path: '/telegram_mail',
-            alias: "/:lang/telegram_mail",
-            component: () => import('../views/telegram/Mail.vue')
-        },
-        {
             name: 'not-found',
             path: '/:pathMatch(.*)*',
             redirect: '/'

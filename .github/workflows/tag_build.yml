@@ -32,12 +32,6 @@ jobs:
       - name: Zip Frontend dist
         run: cd frontend/dist/ && zip -r frontend.zip * && mv frontend.zip ../
 
-      - name: Build Telegram Frontend
-        run: cd frontend && pnpm install --no-frozen-lockfile && pnpm build:telegram:release
-
-      - name: Zip Telegram Frontend dist
-        run: cd frontend/dist/ && zip -r telegram-frontend.zip * && mv telegram-frontend.zip ../
-
       - name: cp wrangler.toml
         run: cd worker && cp wrangler.toml.template wrangler.toml
 
@@ -62,6 +56,5 @@ jobs:
         with:
           files: |
             frontend/frontend.zip
-            frontend/telegram-frontend.zip
             worker/worker.js
             worker/worker-with-wasm-mail-parser.zip

@@ -20,7 +20,6 @@ import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
 import DatabaseManager from './admin/DatabaseManager.vue';
 import Appearance from './common/Appearance.vue';
-import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
 import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
@@ -64,7 +63,6 @@ const { t } = useI18n({
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
-      telegram: 'Telegram Bot',
       webhookSettings: 'Webhook Settings',
       statistics: 'Statistics',
       maintenance: 'Maintenance',
@@ -91,7 +89,6 @@ const { t } = useI18n({
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
-      telegram: '电报机器人',
       webhookSettings: 'Webhook 设置',
       statistics: '统计',
       maintenance: '维护',
@@ -193,9 +190,6 @@ onMounted(async () => {
             <MailWebhook />
           </n-tab-pane>
         </n-tabs>
-      </n-tab-pane>
-      <n-tab-pane name="telegram" :tab="t('telegram')">
-        <Telegram />
       </n-tab-pane>
       <n-tab-pane name="statistics" :tab="t('statistics')">
         <Statistics />

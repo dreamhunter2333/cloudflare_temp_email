@@ -16,8 +16,6 @@ export const CONSTANTS = {
     EMAIL_RULE_SETTINGS_KEY: 'email_rule_settings',
 
     // KV
-    TG_KV_PREFIX: "temp-mail-telegram",
-    TG_KV_SETTINGS_KEY: "temp-mail-telegram-settings",
     WEBHOOK_KV_SETTINGS_KEY: "temp-mail-webhook-settings",
     WEBHOOK_KV_USER_SETTINGS_KEY: "temp-mail-webhook-user-settings",
     EMAIL_KV_BLACK_LIST: "temp-mail-email-black-list",

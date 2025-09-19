@@ -78,11 +78,6 @@ type Bindings = {
     // SMTP config
     SMTP_CONFIG: string | object | undefined
 
-    // telegram config
-    TELEGRAM_BOT_TOKEN: string
-    TG_MAX_ADDRESS: number | undefined
-    TG_BOT_INFO: string | object | undefined
-
     // webhook config
     FRONTEND_URL: string | undefined
 }

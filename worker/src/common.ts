@@ -2,7 +2,6 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList } from './utils';
-import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 
@@ -294,8 +293,6 @@ export const deleteAddressWithData = async (
     if (!address || !address_id) {
         throw new Error("Can't find address");
     }
-    // unbind telegram
-    await unbindTelegramByAddress(c, address);
     // delete address and related data
     const { success: mailSuccess } = await c.env.DB.prepare(
         `DELETE FROM raw_mails WHERE address = ? `

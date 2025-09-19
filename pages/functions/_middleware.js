@@ -3,7 +3,6 @@ const API_PATHS = [
     "/open_api/",
     "/user_api/",
     "/admin/",
-    "/telegram/",
     "/external/",
 ];
 

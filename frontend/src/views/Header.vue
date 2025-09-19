@@ -18,7 +18,7 @@ const message = useMessage()
 const notification = useNotification()
 
 const {
-    toggleDark, isDark, isTelegram, showAdminPage,
+    toggleDark, isDark, showAdminPage,
     showAuth, auth, loading, openSettings, userSettings
 } = useGlobalState()
 const route = useRoute()
@@ -115,7 +115,7 @@ const menuOptions = computed(() => [
             }
         ),
         key: "user",
-        show: !isTelegram.value
+        show: true
     },
     {
         label: () => h(

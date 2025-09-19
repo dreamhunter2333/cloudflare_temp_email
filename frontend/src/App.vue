@@ -10,7 +10,7 @@ import Footer from './views/Footer.vue';
 import { api } from './api'
 
 const {
-  isDark, loading, useSideMargin, telegramApp, isTelegram
+  isDark, loading, useSideMargin
 } = useGlobalState()
 const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
 const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
@@ -50,25 +50,6 @@ onMounted(async () => {
     });
     (window.adsbygoogle = window.adsbygoogle || []).push({});
     (window.adsbygoogle = window.adsbygoogle || []).push({});
-  }
-
-
-  // check if telegram is enabled
-  const enableTelegram = import.meta.env.VITE_IS_TELEGRAM;
-  if (
-    (typeof enableTelegram === 'boolean' && enableTelegram === true)
-    ||
-    (typeof enableTelegram === 'string' && enableTelegram === 'true')
-  ) {
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://telegram.org/js/telegram-web-app.js';
-      script.onload = resolve;
-      script.onerror = reject;
-      document.body.appendChild(script);
-    });
-    telegramApp.value = window.Telegram?.WebApp || {};
-    isTelegram.value = !!window.Telegram?.WebApp?.initData;
   }
 });
 </script>

@@ -9,7 +9,6 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import Login from '../common/Login.vue'
 import AddressManagement from '../user/AddressManagement.vue'
-import TelegramAddress from './TelegramAddress.vue'
 import LocalAddress from './LocalAddress.vue'
 import { getRouterPathWithLang } from '../../utils'
 
@@ -18,8 +17,7 @@ const message = useMessage()
 const router = useRouter()
 
 const {
-    jwt, settings, showAddressCredential, userJwt,
-    isTelegram, openSettings
+    jwt, settings, showAddressCredential, userJwt, openSettings
 } = useGlobalState()
 
 const { locale, t } = useI18n({
@@ -52,7 +50,6 @@ const { locale, t } = useI18n({
 });
 
 const showChangeAddress = ref(false)
-const showTelegramChangeAddress = ref(false)
 const showLocalAddress = ref(false)
 const addressLabel = computed(() => {
     if (settings.value.address) {
@@ -93,15 +90,11 @@ onMounted(async () => {
         <n-card :bordered="false" embedded v-if="!settings.fetched">
             <n-skeleton style="height: 50vh" />
         </n-card>
-        <div v-else-if="settings.address">
+        <div v-if="settings.address">
             <n-alert type="info" :show-icon="false" :bordered="false">
                 <span>
                     <b>{{ addressLabel }}</b>
-                    <n-button v-if="isTelegram" style="margin-left: 10px" @click="showTelegramChangeAddress = true"
-                        size="small" tertiary type="primary">
-                        <n-icon :component="ExchangeAlt" /> {{ t('addressManage') }}
-                    </n-button>
-                    <n-button v-else-if="userJwt" style="margin-left: 10px" @click="showChangeAddress = true"
+                    <n-button v-if="userJwt" style="margin-left: 10px" @click="showChangeAddress = true"
                         size="small" tertiary type="primary">
                         <n-icon :component="ExchangeAlt" /> {{ t('changeAddress') }}
                     </n-button>
@@ -114,9 +107,6 @@ onMounted(async () => {
                     </n-button>
                 </span>
             </n-alert>
-        </div>
-        <div v-else-if="isTelegram">
-            <TelegramAddress />
         </div>
         <div v-else class="center">
             <n-card :bordered="false" embedded style="max-width: 600px;">
@@ -133,9 +123,6 @@ onMounted(async () => {
                 </n-button>
             </n-card>
         </div>
-        <n-modal v-model:show="showTelegramChangeAddress" preset="card" :title="t('changeAddress')">
-            <TelegramAddress />
-        </n-modal>
         <n-modal v-model:show="showChangeAddress" preset="card" :title="t('changeAddress')">
             <AddressManagement />
         </n-modal>

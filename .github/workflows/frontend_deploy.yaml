@@ -47,18 +47,6 @@ jobs:
           echo "Deploying production for ${{ github.ref_name }}"
           echo "Deployed for tag ${{ github.ref_name }}"
 
-          export tg_mini_app_project_name=${{ secrets.TG_FRONTEND_NAME }}
-          if [ -n "$tg_mini_app_project_name" ]; then
-            echo "Deploying telegram mini app $tg_mini_app_project_name"
-            if [ -n "$frontend_branch" ]; then
-              echo "Deploying telegram mini app branch $frontend_branch"
-              pnpm run deploy:actions:telegram --project-name=$tg_mini_app_project_name --branch $frontend_branch
-            else
-              echo "Deploying telegram mini app branch production"
-              pnpm run deploy:telegram --project-name=$tg_mini_app_project_name
-            fi
-            echo "Deployed telegram mini app for ${{ github.ref_name }}"
-          fi
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

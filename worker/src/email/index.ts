@@ -1,7 +1,6 @@
 import { Context } from "hono";
 
 import { getEnvStringList, getJsonObjectValue, getJsonSetting } from "../utils";
-import { sendMailToTelegram } from "../telegram_api";
 import { auto_reply } from "./auto_reply";
 import { isBlocked } from "./black_list";
 import { triggerWebhook, triggerAnotherWorker, commonParseMail } from "../common";
@@ -117,15 +116,6 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
         }
     } catch (error) {
         console.error("subdomain forward email error", error);
-    }
-
-    // send email to telegram
-    try {
-        await sendMailToTelegram(
-            { env: env } as Context<HonoCustomType>,
-            message.to, parsedEmailContext, message_id);
-    } catch (error) {
-        console.error("send mail to telegram error", error);
     }
 
     // send webhook
