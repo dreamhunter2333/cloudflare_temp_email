@@ -1,5 +1,0 @@
-aiosmtpd==1.4.6
-pydantic-settings==2.9.1
-requests==2.32.4
-Twisted==25.5.0
-httpx==0.28.1

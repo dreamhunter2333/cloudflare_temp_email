@@ -12,7 +12,6 @@ import mail_webhook_settings from './mail_webhook_settings'
 import oauth2_settings from './oauth2_settings'
 import worker_config from './worker_config'
 import admin_mail_api from './admin_mail_api'
-import { sendMailbyAdmin } from './send_mail'
 import db_api from './db_api'
 import { EmailRuleSettings } from '../models'
 
@@ -337,9 +336,6 @@ api.post("/admin/mail_webhook/test", mail_webhook_settings.testWebhookSettings);
 
 // worker config
 api.get("/admin/worker/configs", worker_config.getConfig);
-
-// send mail by admin
-api.post("/admin/send_mail", sendMailbyAdmin);
 
 // db api
 api.get('admin/db_version', db_api.getVersion);

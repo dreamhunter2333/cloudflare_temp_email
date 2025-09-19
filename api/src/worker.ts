@@ -7,10 +7,8 @@ import { api as commonApi } from './commom_api';
 import { api as mailsApi } from './mails_api'
 import { api as userApi } from './user_api';
 import { api as adminApi } from './admin_api';
-import { api as apiSendMail } from './mails_api/send_mail_api'
 
 import i18n from './i18n';
-import { email } from './email';
 import { scheduled } from './scheduled';
 import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
 
@@ -244,7 +242,6 @@ app.route('/', commonApi)
 app.route('/', mailsApi)
 app.route('/', userApi)
 app.route('/', adminApi)
-app.route('/', apiSendMail)
 
 const health_check = async (c: Context<HonoCustomType>) => {
 	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
@@ -268,6 +265,5 @@ app.all('/*', async c => c.text("Not Found", 404))
 
 export default {
 	fetch: app.fetch,
-	email: email,
 	scheduled: scheduled,
 }

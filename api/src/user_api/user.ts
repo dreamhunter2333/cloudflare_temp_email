@@ -5,7 +5,6 @@ import i18n from '../i18n';
 import { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue } from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
-import { sendMail } from "../mails_api/send_mail_api";
 
 export default {
     verifyCode: async (c: Context<HonoCustomType>) => {
@@ -38,19 +37,6 @@ export default {
         }
         // generate code 6 digits and convert to string
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        // send code to email
-        try {
-            await sendMail(c, settings.verifyMailSender, {
-                from_name: "Temp Mail Verify",
-                to_name: '',
-                to_mail: email as string,
-                subject: "Temp Mail Verify code",
-                content: `Your verify code is ${code}`,
-                is_html: false,
-            })
-        } catch (e) {
-            return c.text(`Failed to send verify code: ${(e as Error).message}`, 500)
-        }
         // save to KV
         await c.env.KV.put(`temp-mail:${email}`, code, { expirationTtl: 300 });
         return c.json({
