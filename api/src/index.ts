@@ -17,7 +17,6 @@ const API_PATHS = [
 	"/open_api/",
 	"/user_api/",
 	"/admin/",
-	"/external/",
 ];
 
 const app = new Hono<HonoCustomType>()
@@ -47,7 +46,6 @@ app.use('/*', async (c, next) => {
 	if (
 		c.req.path.startsWith("/api/new_address")
 		|| c.req.path.startsWith("/api/send_mail")
-		|| c.req.path.startsWith("/external/api/send_mail")
 		|| c.req.path.startsWith("/user_api/register")
 		|| c.req.path.startsWith("/user_api/verify_code")
 	) {

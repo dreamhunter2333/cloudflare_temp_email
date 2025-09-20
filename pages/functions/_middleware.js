@@ -3,7 +3,6 @@ const API_PATHS = [
     "/open_api/",
     "/user_api/",
     "/admin/",
-    "/external/",
 ];
 
 export async function onRequest(context) {

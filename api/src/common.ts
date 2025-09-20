@@ -363,24 +363,6 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
         return parsedEmailContext.parsedEmail;
     }
     const raw_mail = parsedEmailContext.rawEmail;
-    // TODO: WASM parse email
-    // try {
-    //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
-
-    //     const parsedEmail = parse_message_wrapper(raw_mail);
-    //     parsedEmailContext.parsedEmail = {
-    //         sender: parsedEmail.sender || "",
-    //         subject: parsedEmail.subject || "",
-    //         text: parsedEmail.text || "",
-    //         headers: parsedEmail.headers?.map(
-    //             (header) => ({ key: header.key, value: header.value })
-    //         ) || [],
-    //         html: parsedEmail.body_html || "",
-    //     };
-    //     return parsedEmailContext.parsedEmail;
-    // } catch (e) {
-    //     console.error("Failed use mail-parser-wasm-worker to parse email", e);
-    // }
     try {
         const { default: PostalMime } = await import('postal-mime');
         const parsedEmail = await PostalMime.parse(raw_mail);
