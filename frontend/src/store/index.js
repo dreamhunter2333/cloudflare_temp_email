@@ -32,7 +32,6 @@ export const useGlobalState = createGlobalState(
             domains: [],
             copyright: 'Dream Hunter',
             cfTurnstileSiteKey: '',
-            enableWebhook: false,
             isS3Enabled: false,
             showGithub: true,
             disableAdminPasswordCheck: false,

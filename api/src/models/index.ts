@@ -13,27 +13,6 @@ export type Passkey = {
     transports?: AuthenticatorTransportFuture[];
 };
 
-export class AdminWebhookSettings {
-    enableAllowList: boolean;
-    allowList: string[];
-
-    constructor(enableAllowList: boolean, allowList: string[]) {
-        this.enableAllowList = enableAllowList;
-        this.allowList = allowList;
-    }
-}
-
-export type WebhookMail = {
-    id: string;
-    url?: string;
-    from: string;
-    to: string;
-    subject: string;
-    raw: string;
-    parsedText: string;
-    parsedHtml: string;
-}
-
 export type CleanupSettings = {
 
     enableMailsAutoCleanup: boolean | undefined;
@@ -111,25 +90,6 @@ export class UserInfo {
         this.geoData = geoData;
         this.userEmail = userEmail;
     }
-}
-
-export class WebhookSettings {
-    enabled: boolean = false
-    url: string = ''
-    method: string = 'POST'
-    headers: string = JSON.stringify({
-        "Content-Type": "application/json"
-    }, null, 2)
-    body: string = JSON.stringify({
-        "id": "${id}",
-        "url": "${url}",
-        "from": "${from}",
-        "to": "${to}",
-        "subject": "${subject}",
-        "raw": "${raw}",
-        "parsedText": "${parsedText}",
-        "parsedHtml": "${parsedHtml}",
-    }, null, 2)
 }
 
 export type UserOauth2Settings = {

@@ -196,7 +196,7 @@ const refresh = async () => {
       pageSize.value, (page.value - 1) * pageSize.value
     );
     loading.value = true;
-    data.value = await Promise.all(results.map(async (item) => {
+    data.value = await Promise.all(results?.map(async (item) => {
       item.checked = false;
       return await processItem(item);
     }));

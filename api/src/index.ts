@@ -59,19 +59,6 @@ app.use('/*', async (c, next) => {
 			}
 		}
 	}
-	// webhook check
-	if (
-		c.req.path.startsWith("/api/webhook")
-		|| c.req.path.startsWith("/admin/webhook")
-		|| c.req.path.startsWith("/admin/mail_webhook")
-	) {
-		if (!c.env.KV) {
-			return c.text(msgs.KVNotAvailableMsg, 400);
-		}
-		if (!getBooleanValue(c.env.ENABLE_WEBHOOK)) {
-			return c.text(msgs.WebhookNotEnabledMsg, 403);
-		}
-	}
 	if (!c.env.DB) {
 		return c.text(msgs.DBNotAvailableMsg, 400);
 	}

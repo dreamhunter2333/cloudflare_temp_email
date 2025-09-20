@@ -39,7 +39,6 @@ export default {
             "ENABLE_USER_DELETE_EMAIL": utils.getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),
             "ENABLE_AUTO_REPLY": utils.getBooleanValue(c.env.ENABLE_AUTO_REPLY),
             "COPYRIGHT": c.env.COPYRIGHT,
-            "ENABLE_WEBHOOK": utils.getBooleanValue(c.env.ENABLE_WEBHOOK),
             "S3_ENABLED": isS3Enabled(c),
             "VERSION": CONSTANTS.VERSION,
             "DISABLE_SHOW_GITHUB": !utils.getBooleanValue(c.env.DISABLE_SHOW_GITHUB),

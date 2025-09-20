@@ -20,8 +20,6 @@ import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
 import DatabaseManager from './admin/DatabaseManager.vue';
 import Appearance from './common/Appearance.vue';
-import Webhook from './admin/Webhook.vue';
-import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
 
 const {
@@ -63,7 +61,6 @@ const { t } = useI18n({
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
-      webhookSettings: 'Webhook Settings',
       statistics: 'Statistics',
       maintenance: 'Maintenance',
       database: 'Database',
@@ -71,7 +68,6 @@ const { t } = useI18n({
       appearance: 'Appearance',
       about: 'About',
       ok: 'OK',
-      mailWebhook: 'Mail Webhook',
     },
     zh: {
       accessHeader: 'Admin 密码',
@@ -89,7 +85,6 @@ const { t } = useI18n({
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
-      webhookSettings: 'Webhook 设置',
       statistics: '统计',
       maintenance: '维护',
       database: '数据库',
@@ -97,7 +92,6 @@ const { t } = useI18n({
       appearance: '外观',
       about: '关于',
       ok: '确定',
-      mailWebhook: '邮件 Webhook',
     }
   }
 });
@@ -154,9 +148,6 @@ onMounted(async () => {
           <n-tab-pane name="senderAccess" :tab="t('senderAccess')">
             <SenderAccess />
           </n-tab-pane>
-          <n-tab-pane name="webhook" :tab="t('webhookSettings')">
-            <Webhook />
-          </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="user" :tab="t('user')">
@@ -185,9 +176,6 @@ onMounted(async () => {
           </n-tab-pane>
           <n-tab-pane name="sendMail" :tab="t('sendMail')">
             <SendMail />
-          </n-tab-pane>
-          <n-tab-pane name="mailWebhook" :tab="t('mailWebhook')">
-            <MailWebhook />
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>

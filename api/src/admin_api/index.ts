@@ -7,8 +7,6 @@ import { newAddress, handleListQuery } from '../common'
 import { CONSTANTS } from '../constants'
 import cleanup_api from './cleanup_api'
 import admin_user_api from './admin_user_api'
-import webhook_settings from './webhook_settings'
-import mail_webhook_settings from './mail_webhook_settings'
 import oauth2_settings from './oauth2_settings'
 import worker_config from './worker_config'
 import admin_mail_api from './admin_mail_api'
@@ -324,15 +322,6 @@ api.post('/admin/users/bind_address', admin_user_api.bindAddress)
 // user oauth2 settings
 api.get('/admin/user_oauth2_settings', oauth2_settings.getUserOauth2Settings)
 api.post('/admin/user_oauth2_settings', oauth2_settings.saveUserOauth2Settings)
-
-// webhook settings
-api.get("/admin/webhook/settings", webhook_settings.getWebhookSettings);
-api.post("/admin/webhook/settings", webhook_settings.saveWebhookSettings);
-
-// mail webhook settings
-api.get("/admin/mail_webhook/settings", mail_webhook_settings.getWebhookSettings);
-api.post("/admin/mail_webhook/settings", mail_webhook_settings.saveWebhookSettings);
-api.post("/admin/mail_webhook/test", mail_webhook_settings.testWebhookSettings);
 
 // worker config
 api.get("/admin/worker/configs", worker_config.getConfig);

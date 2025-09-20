@@ -36,7 +36,6 @@ type Bindings = {
     JWT_SECRET: string
     BLACK_LIST: string | undefined
     ENABLE_AUTO_REPLY: string | boolean | undefined
-    ENABLE_WEBHOOK: string | boolean | undefined
     ENABLE_USER_CREATE_EMAIL: string | boolean | undefined
     DISABLE_ANONYMOUS_USER_CREATE_EMAIL: string | boolean | undefined
     ENABLE_USER_DELETE_EMAIL: string | boolean | undefined
@@ -77,9 +76,6 @@ type Bindings = {
 
     // SMTP config
     SMTP_CONFIG: string | object | undefined
-
-    // webhook config
-    FRONTEND_URL: string | undefined
 }
 
 type JwtPayload = {

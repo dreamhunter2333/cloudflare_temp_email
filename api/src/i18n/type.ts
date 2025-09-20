@@ -8,7 +8,6 @@ export type LocaleMessages = {
     KVNotAvailableMsg: string
     DBNotAvailableMsg: string
     JWTSecretNotSetMsg: string
-    WebhookNotEnabledMsg: string
     DomainsNotSetMsg: string
 
     TurnstileCheckFailedMsg: string

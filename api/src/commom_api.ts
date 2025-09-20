@@ -36,7 +36,6 @@ api.get('/open_api/settings', async (c) => {
         "enableIndexAbout": utils.getBooleanValue(c.env.ENABLE_INDEX_ABOUT),
         "copyright": c.env.COPYRIGHT,
         "cfTurnstileSiteKey": c.env.CF_TURNSTILE_SITE_KEY,
-        "enableWebhook": utils.getBooleanValue(c.env.ENABLE_WEBHOOK),
         "isS3Enabled": isS3Enabled(c),
         "version": CONSTANTS.VERSION,
         "showGithub": !utils.getBooleanValue(c.env.DISABLE_SHOW_GITHUB),

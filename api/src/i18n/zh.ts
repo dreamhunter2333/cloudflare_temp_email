@@ -10,7 +10,6 @@ const messages: LocaleMessages = {
     KVNotAvailableMsg: "KV 不可用, 请联系管理员",
     DBNotAvailableMsg: "DB 不可用, 请联系管理员",
     JWTSecretNotSetMsg: "JWT_SECRET 未设置, 请联系管理员",
-    WebhookNotEnabledMsg: "Webhook 未启用, 请联系管理员",
     DomainsNotSetMsg: "域名列表未设置, 请联系管理员",
 
     TurnstileCheckFailedMsg: "人机验证检查失败",

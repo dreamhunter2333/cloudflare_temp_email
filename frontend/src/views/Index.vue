@@ -14,7 +14,6 @@ import SendBox from '../components/SendBox.vue';
 import AutoReply from './index/AutoReply.vue';
 import AccountSettings from './index/AccountSettings.vue';
 import Appearance from './common/Appearance.vue';
-import Webhook from './index/Webhook.vue';
 import Attachment from './index/Attachment.vue';
 import About from './common/About.vue';
 import SimpleIndex from './index/SimpleIndex.vue';
@@ -42,7 +41,6 @@ const { t } = useI18n({
       about: 'About',
       s3Attachment: 'S3 Attachment',
       saveToS3Success: 'save to s3 success',
-      webhookSettings: 'Webhook Settings',
       query: 'Query',
       enterSimpleMode: 'Simple Mode',
     },
@@ -56,7 +54,6 @@ const { t } = useI18n({
       about: '关于',
       s3Attachment: 'S3附件',
       saveToS3Success: '保存到s3成功',
-      webhookSettings: 'Webhook 设置',
       query: '查询',
       enterSimpleMode: '极简模式',
     }
@@ -175,9 +172,6 @@ onMounted(() => {
         </n-tab-pane>
         <n-tab-pane v-if="openSettings.enableAutoReply" name="auto_reply" :tab="t('auto_reply')">
           <AutoReply />
-        </n-tab-pane>
-        <n-tab-pane v-if="openSettings.enableWebhook" name="webhook" :tab="t('webhookSettings')">
-          <Webhook />
         </n-tab-pane>
         <n-tab-pane v-if="openSettings.isS3Enabled" name="s3_attachment" :tab="t('s3Attachment')">
           <Attachment />

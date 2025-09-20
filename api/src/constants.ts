@@ -16,8 +16,5 @@ export const CONSTANTS = {
     EMAIL_RULE_SETTINGS_KEY: 'email_rule_settings',
 
     // KV
-    WEBHOOK_KV_SETTINGS_KEY: "temp-mail-webhook-settings",
-    WEBHOOK_KV_USER_SETTINGS_KEY: "temp-mail-webhook-user-settings",
     EMAIL_KV_BLACK_LIST: "temp-mail-email-black-list",
-    WEBHOOK_KV_ADMIN_MAIL_SETTINGS_KEY: "temp-mail-webhook-admin-mail-settings",
 }

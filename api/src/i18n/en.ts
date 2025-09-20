@@ -10,7 +10,6 @@ const messages: LocaleMessages = {
     KVNotAvailableMsg: "KV is not available, please contact the administrator",
     DBNotAvailableMsg: "DB is not available, please contact the administrator",
     JWTSecretNotSetMsg: "JWT_SECRET is not set, please contact the administrator",
-    WebhookNotEnabledMsg: "Webhook is not enabled, please contact the administrator",
     DomainsNotSetMsg: "Domains are not set, please contact the administrator",
 
     TurnstileCheckFailedMsg: "Human verification check failed",
