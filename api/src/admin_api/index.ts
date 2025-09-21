@@ -242,14 +242,12 @@ api.get('/admin/account_settings', async (c) => {
         const blockList = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
         const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
         const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY);
-        const fromBlockList = c.env.KV ? await c.env.KV.get<string[]>(CONSTANTS.EMAIL_KV_BLACK_LIST, 'json') : [];
         const emailRuleSettings = await getJsonSetting<EmailRuleSettings>(c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY);
         const noLimitSendAddressList = await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY);
         return c.json({
             blockList: blockList || [],
             sendBlockList: sendBlockList || [],
             verifiedAddressList: verifiedAddressList || [],
-            fromBlockList: fromBlockList || [],
             noLimitSendAddressList: noLimitSendAddressList || [],
             emailRuleSettings: emailRuleSettings || {}
         })
@@ -263,7 +261,7 @@ api.post('/admin/account_settings', async (c) => {
     /** @type {{ blockList: Array<string>, sendBlockList: Array<string> }} */
     const {
         blockList, sendBlockList, noLimitSendAddressList,
-        verifiedAddressList, fromBlockList, emailRuleSettings
+        verifiedAddressList, emailRuleSettings
     } = await c.req.json();
     if (!blockList || !sendBlockList || !verifiedAddressList) {
         return c.text("Invalid blockList or sendBlockList", 400)
@@ -283,12 +281,6 @@ api.post('/admin/account_settings', async (c) => {
         c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY,
         JSON.stringify(verifiedAddressList)
     )
-    if (fromBlockList?.length > 0 && !c.env.KV) {
-        return c.text("Please enable KV to use fromBlockList", 400)
-    }
-    if (fromBlockList) {
-        await c.env.KV.put(CONSTANTS.EMAIL_KV_BLACK_LIST, JSON.stringify(fromBlockList || []))
-    }
     await saveSetting(
         c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY,
         JSON.stringify(noLimitSendAddressList || [])

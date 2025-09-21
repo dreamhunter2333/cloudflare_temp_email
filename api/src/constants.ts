@@ -14,7 +14,4 @@ export const CONSTANTS = {
     VERIFIED_ADDRESS_LIST_KEY: 'verified_address_list',
     NO_LIMIT_SEND_ADDRESS_LIST_KEY: 'no_limit_send_address_list',
     EMAIL_RULE_SETTINGS_KEY: 'email_rule_settings',
-
-    // KV
-    EMAIL_KV_BLACK_LIST: "temp-mail-email-black-list",
 }

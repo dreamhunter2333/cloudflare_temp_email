@@ -7,7 +7,6 @@ const messages: LocaleMessages = {
     UserRoleIsNotAdminMsg: "Your user role is not admin, no access to visit this page",
     NeedAdminPasswordMsg: "You need to provide the admin password to access this page",
 
-    KVNotAvailableMsg: "KV is not available, please contact the administrator",
     DBNotAvailableMsg: "DB is not available, please contact the administrator",
     JWTSecretNotSetMsg: "JWT_SECRET is not set, please contact the administrator",
     DomainsNotSetMsg: "Domains are not set, please contact the administrator",

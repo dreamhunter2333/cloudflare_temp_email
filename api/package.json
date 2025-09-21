@@ -4,27 +4,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "lint": "eslint src",
-    "deploy": "wrangler deploy --minify",
-    "start": "wrangler dev",
-    "build": "wrangler deploy --dry-run --outdir dist --minify"
+    "dev": "deno serve --allow-all --env-file=.env.local --host 127.0.0.1 --watch src/index.ts",
+    "start": "deno run --allow-net --allow-env --allow-read --allow-write --allow-ffi src/index.ts",
+    "lint": "eslint src"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250913.0",
-    "@eslint/js": "9.18.0",
-    "@simplewebauthn/types": "10.0.0",
-    "@types/node": "^22.18.3",
-    "eslint": "9.18.0",
-    "globals": "^15.15.0",
-    "typescript-eslint": "^8.43.0",
-    "wrangler": "^4.38.0"
+    "@deno/types": "^0.0.1",
+    "@eslint/js": "9.36.0",
+    "@simplewebauthn/types": "12.0.0",
+    "@types/deno": "^2.3.0",
+    "@types/node": "^24.5.2",
+    "eslint": "9.36.0",
+    "globals": "^16.4.0",
+    "typescript-eslint": "^8.44.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.888.0",
-    "@aws-sdk/s3-request-presigner": "^3.888.0",
-    "@simplewebauthn/server": "10.0.1",
-    "hono": "^4.9.7",
+    "@aws-sdk/client-s3": "^3.893.0",
+    "@aws-sdk/s3-request-presigner": "^3.893.0",
+    "@simplewebauthn/server": "13.2.1",
+    "hono": "^4.9.8",
     "jsonpath-plus": "^10.3.0",
     "jsx-runtime": "^1.2.0",
     "mimetext": "^3.0.27",
@@ -32,7 +30,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.1",
-    "resend": "^4.8.0",
+    "resend": "^6.1.0",
     "telegraf": "4.16.3",
     "worker-mailer": "^1.1.5"
   },

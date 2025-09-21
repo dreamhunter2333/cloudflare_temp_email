@@ -31,14 +31,14 @@ export default {
             return c.text(msgs.VerifyMailSenderNotSetMsg, 400)
         }
         // check if code exists in KV
-        const tmpcode = await c.env.KV.get(`temp-mail:${email}`)
+        const tmpcode = await Deno.openKv().get(`temp-mail:${email}`)
         if (tmpcode) {
             return c.text(msgs.CodeAlreadySentMsg, 400)
         }
         // generate code 6 digits and convert to string
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         // save to KV
-        await c.env.KV.put(`temp-mail:${email}`, code, { expirationTtl: 300 });
+        await Deno.openKv().put(`temp-mail:${email}`, code, { expirationTtl: 300 });
         return c.json({
             success: true,
             expirationTtl: 300
@@ -72,7 +72,7 @@ export default {
         }
         // check code
         if (settings.enableMailVerify) {
-            const verifyCode = await c.env.KV.get(`temp-mail:${email}`)
+            const verifyCode = await Deno.openKv().get(`temp-mail:${email}`)
             if (verifyCode != code) {
                 return c.text(msgs.InvalidVerifyCodeMsg, 400)
             }

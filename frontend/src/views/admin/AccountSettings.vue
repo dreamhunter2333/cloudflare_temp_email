@@ -21,7 +21,6 @@ const { t } = useI18n({
             send_address_block_list: 'Address Block Keywords for send email',
             noLimitSendAddressList: 'No Balance Limit Send Address List',
             verified_address_list: 'Verified Address List(Can send email by cf internal api)',
-            fromBlockList: 'Block Keywords for receive email',
             block_receive_unknow_address_email: 'Block receive unknow address email',
             email_forwarding_config: 'Email Forwarding Configuration',
             domain_list: 'Domain List',
@@ -47,7 +46,6 @@ const { t } = useI18n({
             send_address_block_list: '发送邮件地址屏蔽关键词',
             noLimitSendAddressList: '无余额限制发送地址列表',
             verified_address_list: '已验证地址列表(可通过 cf 内部 api 发送邮件)',
-            fromBlockList: '接收邮件地址屏蔽关键词',
             block_receive_unknow_address_email: '禁止接收未知地址邮件',
             email_forwarding_config: '邮件转发配置',
             domain_list: '域名列表',
@@ -70,7 +68,6 @@ const addressBlockList = ref([])
 const sendAddressBlockList = ref([])
 const noLimitSendAddressList = ref([])
 const verifiedAddressList = ref([])
-const fromBlockList = ref([])
 const emailRuleSettings = ref({
     blockReceiveUnknowAddressEmail: false,
     emailForwardingList: []
@@ -162,7 +159,6 @@ const fetchData = async () => {
         addressBlockList.value = res.blockList || []
         sendAddressBlockList.value = res.sendBlockList || []
         verifiedAddressList.value = res.verifiedAddressList || []
-        fromBlockList.value = res.fromBlockList || []
         noLimitSendAddressList.value = res.noLimitSendAddressList || []
         emailRuleSettings.value = res.emailRuleSettings || {
             blockReceiveUnknowAddressEmail: false,
@@ -181,7 +177,6 @@ const save = async () => {
                 blockList: addressBlockList.value || [],
                 sendBlockList: sendAddressBlockList.value || [],
                 verifiedAddressList: verifiedAddressList.value || [],
-                fromBlockList: fromBlockList.value || [],
                 noLimitSendAddressList: noLimitSendAddressList.value || [],
                 emailRuleSettings: emailRuleSettings.value,
             })
@@ -242,15 +237,6 @@ onMounted(async () => {
             <n-form-item-row :label="t('verified_address_list')">
                 <n-select v-model:value="verifiedAddressList" filterable multiple tag
                     :placeholder="t('verified_address_list')">
-                    <template #empty>
-                        <n-text depth="3">
-                            {{ t('manualInputPrompt') }}
-                        </n-text>
-                    </template>
-                </n-select>
-            </n-form-item-row>
-            <n-form-item-row :label="t('fromBlockList')">
-                <n-select v-model:value="fromBlockList" filterable multiple tag :placeholder="t('fromBlockList')">
                     <template #empty>
                         <n-text depth="3">
                             {{ t('manualInputPrompt') }}

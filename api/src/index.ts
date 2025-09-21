@@ -11,6 +11,11 @@ import { api as adminApi } from './admin_api';
 import i18n from './i18n';
 import { scheduled } from './scheduled';
 import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
+import { Database } from "@db/sqlite";
+
+
+const db = new Database("dev.db");
+
 
 const API_PATHS = [
 	"/api/",
@@ -29,6 +34,13 @@ app.onError((err, c) => {
 })
 // global middlewares
 app.use('/*', async (c, next) => {
+
+	c.env.DB = db;
+	c.env.JWT_SECRET = Deno.env.get("JWT_SECRET");
+	c.env.DOMAINS = [ Deno.env.get("DOMAIN") ];
+	c.env.DEFAULT_LANG = Deno.env.get("DEFAULT_LANG");
+	c.env.PASSWORDS = [ Deno.env.get("PASSWORD") ];
+	c.env.ADMIN_PASSWORDS = [ Deno.env.get("ADMIN_PASSWORD") ];
 
 	// check if the request is for static files
 	if (c.env.ASSETS && !API_PATHS.some(path => c.req.path.startsWith(path))) {

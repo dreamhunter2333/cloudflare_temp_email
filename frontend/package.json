@@ -21,6 +21,7 @@
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.12.2",
+    "deno-server": "^1.1.2",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.1",
     "naive-ui": "^2.43.1",

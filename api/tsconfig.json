@@ -6,10 +6,9 @@
     "strict": true,
     "skipLibCheck": true,
     "lib": [
-      "ESNext"
+      "ESNext",
+      "DOM",
     ],
-    "types": [
-      "@cloudflare/workers-types"
-    ]
+    "types": [],
   },
 }

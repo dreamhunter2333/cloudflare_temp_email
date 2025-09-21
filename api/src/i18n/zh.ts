@@ -7,7 +7,6 @@ const messages: LocaleMessages = {
     UserRoleIsNotAdminMsg: "您的用户角色不是管理员, 无权访问",
     NeedAdminPasswordMsg: "您需要提供管理员密码才能访问此页面",
 
-    KVNotAvailableMsg: "KV 不可用, 请联系管理员",
     DBNotAvailableMsg: "DB 不可用, 请联系管理员",
     JWTSecretNotSetMsg: "JWT_SECRET 未设置, 请联系管理员",
     DomainsNotSetMsg: "域名列表未设置, 请联系管理员",

@@ -2372,6 +2372,11 @@ delegate@^3.1.2:
   resolved "https://registry.yarnpkg.com/delegate/-/delegate-3.2.0.tgz#b66b71c3158522e8ab5744f720d8ca0c2af59166"
   integrity sha512-IofjkYBZaZivn0V8nnsMJGBr4jVLxHDheKSW88PyxS5QC4Vo9ZbZVvhzlSxY87fVq3STR6r+4cGepyHkcWOQSw==
 
+deno-server@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/deno-server/-/deno-server-1.1.2.tgz#817721ba5ffc57020983bf86bdde5bd0112444e2"
+  integrity sha512-VJKPk5RSanufrt4xxYB3JqrI5Zc+VVqPT4BqAPSxve/0efv4ns632BTnJ6JWZGRIHXGB925LviMxmbDLITZbRQ==
+
 detect-libc@^2.0.3:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.1.0.tgz#3ca811f60a7b504b0480e5008adacc660b0b8c4f"

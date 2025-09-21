@@ -5,7 +5,6 @@ export type LocaleMessages = {
     UserRoleIsNotAdminMsg: string
     NeedAdminPasswordMsg: string
 
-    KVNotAvailableMsg: string
     DBNotAvailableMsg: string
     JWTSecretNotSetMsg: string
     DomainsNotSetMsg: string
