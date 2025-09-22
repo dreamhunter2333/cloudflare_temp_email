@@ -10,6 +10,7 @@
     "build:pages": "vite build -m pages --emptyOutDir",
     "build:pages:nopwa": "VITE_PWA_DISABLED=true vite build -m pages --emptyOutDir",
     "build:telegram": "VITE_IS_TELEGRAM=true vite build -m prod --emptyOutDir",
+    "build:telegram:pages": "VITE_IS_TELEGRAM=true vite build -m pages --emptyOutDir",
     "build:telegram:release": "VITE_IS_TELEGRAM=true vite build -m example --emptyOutDir",
     "preview": "vite preview",
     "deploy:telegram": "npm run build:telegram && wrangler pages deploy ./dist --branch production",
