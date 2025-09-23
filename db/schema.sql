@@ -14,6 +14,7 @@ CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
+    password TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -55,6 +56,7 @@ CREATE TABLE IF NOT EXISTS sendbox (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sendbox_address ON sendbox(address);
+
 CREATE INDEX IF NOT EXISTS idx_sendbox_created_at ON sendbox(created_at);
 
 CREATE TABLE IF NOT EXISTS settings (

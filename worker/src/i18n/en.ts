@@ -38,6 +38,14 @@ const messages: LocaleMessages = {
     Oauth2FailedGetUserInfoMsg: "Failed to get user info from Oauth2 provider",
     Oauth2FailedGetAccessTokenMsg: "Failed to get access token from Oauth2 provider",
     Oauth2FailedGetUserEmailMsg: "Failed to get user email from Oauth2 provider",
+
+    PasswordChangeDisabledMsg: "Password change is disabled",
+    NewPasswordRequiredMsg: "New password is required",
+    InvalidAddressTokenMsg: "Invalid address token",
+    FailedUpdatePasswordMsg: "Failed to update password",
+    PasswordLoginDisabledMsg: "Password login is disabled",
+    EmailPasswordRequiredMsg: "Email and password are required",
+    AddressNotFoundMsg: "Address not found",
 }
 
 export default messages;

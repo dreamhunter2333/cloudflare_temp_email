@@ -38,6 +38,14 @@ const messages: LocaleMessages = {
     Oauth2FailedGetUserInfoMsg: "从 Oauth2 提供商获取用户信息失败",
     Oauth2FailedGetAccessTokenMsg: "从 Oauth2 提供商获取访问令牌失败",
     Oauth2FailedGetUserEmailMsg: "从 Oauth2 提供商获取用户邮箱失败",
+
+    PasswordChangeDisabledMsg: "密码修改已禁用",
+    NewPasswordRequiredMsg: "新密码不能为空",
+    InvalidAddressTokenMsg: "无效的地址令牌",
+    FailedUpdatePasswordMsg: "更新密码失败",
+    PasswordLoginDisabledMsg: "密码登录已禁用",
+    EmailPasswordRequiredMsg: "邮箱和密码不能为空",
+    AddressNotFoundMsg: "邮箱地址不存在",
 }
 
 export default messages;

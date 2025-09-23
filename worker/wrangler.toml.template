@@ -70,6 +70,8 @@ ENABLE_USER_DELETE_EMAIL = true
 ENABLE_AUTO_REPLY = false
 # Allow webhook
 # ENABLE_WEBHOOK = true
+# Enable address password feature, if set true, will generate password for new address and support password login and change
+# ENABLE_ADDRESS_PASSWORD = false
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # DISABLE_SHOW_GITHUB = true

@@ -7,6 +7,7 @@ import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
 import s3_attachment from './s3_attachment';
+import address_auth from './address_auth';
 
 export const api = new Hono<HonoCustomType>()
 
@@ -198,3 +199,6 @@ api.delete('/api/clear_sent_items', async (c) => {
         success: success
     })
 })
+
+api.post('/api/address_change_password', address_auth.changePassword)
+api.post('/api/address_login', address_auth.login)

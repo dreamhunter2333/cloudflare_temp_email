@@ -86,6 +86,7 @@ const getOpenSettings = async (message, notification) => {
             cfTurnstileSiteKey: res["cfTurnstileSiteKey"] || "",
             enableWebhook: res["enableWebhook"] || false,
             isS3Enabled: res["isS3Enabled"] || false,
+            enableAddressPassword: res["enableAddressPassword"] || false,
         });
         if (openSettings.value.needAuth) {
             showAuth.value = true;

@@ -148,6 +148,10 @@ app.use('/api/*', async (c, next) => {
 	) {
 		await checkoutUserRolePayload(c);
 	}
+	if (c.req.path.startsWith("/api/address_login")) {
+		await next();
+		return;
+	}
 
 	try {
 		return await jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
