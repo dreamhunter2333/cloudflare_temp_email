@@ -60,7 +60,7 @@ jobs:
             echo "Applied mail-parser-wasm-worker patch"
           fi
 
-          if [ -n "$debug_mode" ]; then
+          if [ "$debug_mode" = "true" ]; then
             pnpm run deploy
           else
             output=$(pnpm run deploy 2>&1)
