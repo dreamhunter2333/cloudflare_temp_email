@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList } from './utils';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
@@ -82,6 +82,37 @@ export async function updateAddressUpdatedAt(
     }
 }
 
+export const generateRandomPassword = (): string => {
+    const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let password = "";
+    for (let i = 0; i < 8; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
+}
+
+const generatePasswordForAddress = async (
+    c: Context<HonoCustomType>,
+    address: string
+): Promise<string | null> => {
+    if (!getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)) {
+        return null;
+    }
+
+    const plainPassword = generateRandomPassword();
+    const hashedPassword = await hashPassword(plainPassword);
+    const { success } = await c.env.DB.prepare(
+        `UPDATE address SET password = ?, updated_at = datetime('now') WHERE name = ?`
+    ).bind(hashedPassword, address).run();
+
+    if (!success) {
+        console.warn("Failed to set generated password for address:", address);
+        return null;
+    }
+
+    return plainPassword;
+}
+
 export const newAddress = async (
     c: Context<HonoCustomType>,
     {
@@ -100,7 +131,7 @@ export const newAddress = async (
         checkAllowDomains?: boolean,
         enableCheckNameRegex?: boolean,
     }
-): Promise<{ address: string, jwt: string }> => {
+): Promise<{ address: string, jwt: string, password?: string | null }> => {
     // trim whitespace and remove special characters
     name = name.trim().replace(getNameRegex(c), '')
     // check name
@@ -166,6 +197,10 @@ export const newAddress = async (
     const address_id = await c.env.DB.prepare(
         `SELECT id FROM address where name = ?`
     ).bind(name).first<number>("id");
+
+    // 如果启用地址密码功能，自动生成密码
+    const generatedPassword = await generatePasswordForAddress(c, name);
+
     // create jwt
     const jwt = await Jwt.sign({
         address: name,
@@ -174,6 +209,7 @@ export const newAddress = async (
     return {
         jwt: jwt,
         address: name,
+        password: generatedPassword,
     }
 }
 

@@ -9,7 +9,7 @@ import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 
 const {
-    loading, adminTab,
+    loading, adminTab, openSettings,
     adminMailTabAddress, adminSendBoxTabAddress
 } = useGlobalState()
 const message = useMessage()
@@ -39,6 +39,9 @@ const { t } = useI18n({
             clearSentItemsTip: 'Are you sure to clear sent items for this email?',
             actions: 'Actions',
             success: 'Success',
+            resetPassword: 'Reset Password',
+            newPassword: 'New Password',
+            passwordResetSuccess: 'Password reset successfully',
         },
         zh: {
             name: '名称',
@@ -63,6 +66,9 @@ const { t } = useI18n({
             clearSentItemsTip: '确定要清空这个邮箱的发件箱吗？',
             actions: '操作',
             success: '成功',
+            resetPassword: '重置密码',
+            newPassword: '新密码',
+            passwordResetSuccess: '密码重置成功',
         }
     }
 });
@@ -72,6 +78,9 @@ const curEmailCredential = ref("")
 const curDeleteAddressId = ref(0);
 const curClearInboxAddressId = ref(0);
 const curClearSentItemsAddressId = ref(0);
+const showResetPassword = ref(false);
+const curResetPasswordAddressId = ref(0);
+const newPassword = ref('');
 
 const addressQuery = ref("")
 
@@ -131,6 +140,22 @@ const clearSentItems = async () => {
         message.error(error.message || "error");
     } finally {
         showClearSentItems.value = false
+    }
+}
+
+const resetPassword = async () => {
+    try {
+        await api.fetch(`/admin/address/${curResetPasswordAddressId.value}/reset_password`, {
+            method: 'POST',
+            body: JSON.stringify({
+                password: newPassword.value
+            })
+        });
+        message.success(t("passwordResetSuccess"));
+        newPassword.value = '';
+        showResetPassword.value = false;
+    } catch (error) {
+        message.error(error.message || "error");
     }
 }
 
@@ -301,6 +326,19 @@ const columns = [
                                         {
                                             text: true,
                                             onClick: () => {
+                                                curResetPasswordAddressId.value = row.id;
+                                                showResetPassword.value = true;
+                                            }
+                                        },
+                                        { default: () => t('resetPassword') }
+                                    ),
+                                    show: openSettings.value?.enableAddressPassword
+                                },
+                                {
+                                    label: () => h(NButton,
+                                        {
+                                            text: true,
+                                            onClick: () => {
                                                 curDeleteAddressId.value = row.id;
                                                 showDeleteAccount.value = true;
                                             }
@@ -362,6 +400,17 @@ onMounted(async () => {
             <template #action>
                 <n-button :loading="loading" @click="clearSentItems" size="small" tertiary type="error">
                     {{ t('clearSentItems') }}
+                </n-button>
+            </template>
+        </n-modal>
+
+        <n-modal v-model:show="showResetPassword" preset="dialog" :title="t('resetPassword')">
+            <n-form-item :label="t('newPassword')">
+                <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click" />
+            </n-form-item>
+            <template #action>
+                <n-button :loading="loading" @click="resetPassword" size="small" tertiary type="info">
+                    {{ t('resetPassword') }}
                 </n-button>
             </template>
         </n-modal>

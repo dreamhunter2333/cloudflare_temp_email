@@ -4,6 +4,7 @@
 ## main(v1.0.6)
 
 - feat: |DB| update db schema add index
+- feat: |地址密码| 增加地址密码登录功能, 通过 `ENABLE_ADDRESS_PASSWORD` 配置启用
 
 ## v1.0.5
 

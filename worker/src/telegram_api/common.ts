@@ -6,7 +6,7 @@ import { deleteAddressWithData, newAddress, generateRandomName } from "../common
 
 export const tgUserNewAddress = async (
     c: Context<HonoCustomType>, userId: string, address: string
-): Promise<{ address: string, jwt: string }> => {
+): Promise<{ address: string, jwt: string, password?: string | null }> => {
     if (c.env.RATE_LIMITER) {
         const { success } = await c.env.RATE_LIMITER.limit(
             { key: `${CONSTANTS.TG_KV_PREFIX}:${userId}` }

@@ -36,6 +36,7 @@ export const useGlobalState = createGlobalState(
             isS3Enabled: false,
             showGithub: true,
             disableAdminPasswordCheck: false,
+            enableAddressPassword: false,
         })
         const settings = ref({
             fetched: false,
@@ -63,6 +64,7 @@ export const useGlobalState = createGlobalState(
         const auth = useStorage('auth', '');
         const adminAuth = useStorage('adminAuth', '');
         const jwt = useStorage('jwt', '');
+        const addressPassword = useSessionStorage('addressPassword', '');
         const adminTab = useSessionStorage('adminTab', "account");
         const adminMailTabAddress = ref("");
         const adminSendBoxTabAddress = ref("");
@@ -145,6 +147,7 @@ export const useGlobalState = createGlobalState(
             userOauth2SessionState,
             userOauth2SessionClientID,
             useSimpleIndex,
+            addressPassword,
         }
     },
 )

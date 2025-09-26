@@ -19,6 +19,7 @@ CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
+    password TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -136,6 +137,11 @@ export default {
     },
     migrate: async (c: Context<HonoCustomType>) => {
         const version = await utils.getSetting(c, CONSTANTS.DB_VERSION_KEY);
+        if (version == "v0.0.2") {
+            // example migration from v0.0.2 to v0.0.3
+            const query = `ALTER TABLE address ADD password TEXT;`
+            await c.env.DB.exec(query);
+        }
         if (version != CONSTANTS.DB_VERSION) {
             // TODO: Perform migration logic here
             // remove all \r and \n characters from the query string

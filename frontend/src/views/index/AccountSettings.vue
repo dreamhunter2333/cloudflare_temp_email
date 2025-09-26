@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import { hashPassword } from '../../utils'
 import { getRouterPathWithLang } from '../../utils'
 
 const {
@@ -17,6 +18,9 @@ const showLogout = ref(false)
 const showDeleteAccount = ref(false)
 const showClearInbox = ref(false)
 const showClearSentItems = ref(false)
+const showChangePassword = ref(false)
+const newPassword = ref('')
+const confirmPassword = ref('')
 const { locale, t } = useI18n({
     messages: {
         en: {
@@ -31,6 +35,11 @@ const { locale, t } = useI18n({
             clearInboxConfirm: "Are you sure to clear all emails in your inbox?",
             clearSentItemsConfirm: "Are you sure to clear all emails in your sent items?",
             success: "Success",
+            changePassword: "Change Password",
+            newPassword: "New Password",
+            confirmPassword: "Confirm Password",
+            passwordMismatch: "Passwords do not match",
+            passwordChanged: "Password changed successfully",
         },
         zh: {
             logout: '退出登录',
@@ -44,6 +53,11 @@ const { locale, t } = useI18n({
             clearInboxConfirm: "确定要清空你收件箱中的所有邮件吗？",
             clearSentItemsConfirm: "确定要清空你发件箱中的所有邮件吗？",
             success: "成功",
+            changePassword: "修改密码",
+            newPassword: "新密码",
+            confirmPassword: "确认密码",
+            passwordMismatch: "密码不匹配",
+            passwordChanged: "密码修改成功",
         }
     }
 });
@@ -92,6 +106,27 @@ const clearSentItems = async () => {
         showClearSentItems.value = false;
     }
 };
+
+const changePassword = async () => {
+    if (newPassword.value !== confirmPassword.value) {
+        message.error(t("passwordMismatch"));
+        return;
+    }
+    try {
+        await api.fetch(`/api/address_change_password`, {
+            method: 'POST',
+            body: JSON.stringify({
+                new_password: await hashPassword(newPassword.value)
+            })
+        });
+        message.success(t("passwordChanged"));
+        newPassword.value = '';
+        confirmPassword.value = '';
+        showChangePassword.value = false;
+    } catch (error) {
+        message.error(error.message || "error");
+    }
+};
 </script>
 
 <template>
@@ -99,6 +134,9 @@ const clearSentItems = async () => {
         <n-card :bordered="false" embedded>
             <n-button @click="showAddressCredential = true" type="primary" secondary block strong>
                 {{ t('showAddressCredential') }}
+            </n-button>
+            <n-button v-if="openSettings?.enableAddressPassword" @click="showChangePassword = true" type="info" secondary block strong>
+                {{ t('changePassword') }}
             </n-button>
             <n-button v-if="openSettings.enableUserDeleteEmail" @click="showClearInbox = true" type="warning" secondary
                 block strong>
@@ -145,6 +183,22 @@ const clearSentItems = async () => {
             <template #action>
                 <n-button :loading="loading" @click="clearSentItems" size="small" tertiary type="warning">
                     {{ t('clearSentItems') }}
+                </n-button>
+            </template>
+        </n-modal>
+        
+        <n-modal v-model:show="showChangePassword" preset="dialog" :title="t('changePassword')">
+            <n-form :model="{ newPassword, confirmPassword }">
+                <n-form-item :label="t('newPassword')">
+                    <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click" />
+                </n-form-item>
+                <n-form-item :label="t('confirmPassword')">
+                    <n-input v-model:value="confirmPassword" type="password" placeholder="" show-password-on="click" />
+                </n-form-item>
+            </n-form>
+            <template #action>
+                <n-button :loading="loading" @click="changePassword" size="small" tertiary type="info">
+                    {{ t('changePassword') }}
                 </n-button>
             </template>
         </n-modal>
