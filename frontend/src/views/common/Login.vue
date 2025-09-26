@@ -38,7 +38,7 @@ const notification = useNotification()
 const router = useRouter()
 
 const {
-    jwt, loading, openSettings,
+    jwt, loading, openSettings, settings,
     showAddressCredential, userSettings, addressPassword
 } = useGlobalState()
 
