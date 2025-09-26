@@ -38,7 +38,7 @@ const notification = useNotification()
 const router = useRouter()
 
 const {
-    jwt, loading, openSettings, settings,
+    jwt, loading, openSettings,
     showAddressCredential, userSettings, addressPassword
 } = useGlobalState()
 
@@ -207,7 +207,6 @@ const newEmail = async () => {
         );
         jwt.value = res["jwt"];
         addressPassword.value = res["password"] || '';
-        settings.value.address = res["address"] || '';
         await api.getSettings();
         await router.push(getRouterPathWithLang("/", locale.value));
         showAddressCredential.value = true;
