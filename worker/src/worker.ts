@@ -194,6 +194,9 @@ app.use('/user_api/*', async (c, next) => {
 		console.error(e);
 		return c.text(msgs.UserTokenExpiredMsg, 401)
 	}
+	if (c.req.path.startsWith("/user_api/bind_address")) {
+		await checkoutUserRolePayload(c);
+	}
 	if (c.req.path.startsWith('/user_api/bind_address')
 		&& c.req.method === 'POST'
 	) {
