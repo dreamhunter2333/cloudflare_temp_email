@@ -14,6 +14,7 @@ export const CONSTANTS = {
     VERIFIED_ADDRESS_LIST_KEY: 'verified_address_list',
     NO_LIMIT_SEND_ADDRESS_LIST_KEY: 'no_limit_send_address_list',
     EMAIL_RULE_SETTINGS_KEY: 'email_rule_settings',
+    ROLE_ADDRESS_CONFIG_KEY: 'role_address_config',
 
     // KV
     TG_KV_PREFIX: "temp-mail-telegram",

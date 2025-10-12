@@ -1,12 +1,26 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { UserSettings } from "../models";
+import { UserSettings, RoleAddressConfig } from "../models";
 import { getJsonSetting } from "../utils"
 import { CONSTANTS } from "../constants";
 import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
-import { updateAddressUpdatedAt } from '../common';
+import { updateAddressUpdatedAt, commonGetUserRole } from '../common';
+
+const getMaxAddressCount = async (
+    c: Context<HonoCustomType>,
+    userRole: string | null | undefined,
+    settings: UserSettings
+): Promise<number> => {
+    if (!userRole) return settings.maxAddressCount;
+    const roleConfigs = await getJsonSetting<RoleAddressConfig>(c, CONSTANTS.ROLE_ADDRESS_CONFIG_KEY);
+    if (!roleConfigs) return settings.maxAddressCount;
+    const roleMaxCount = roleConfigs[userRole]?.maxAddressCount;
+    if (typeof roleMaxCount !== 'number') return settings.maxAddressCount;
+    if (roleMaxCount <= 0) return settings.maxAddressCount;
+    return roleMaxCount;
+};
 
 const UserBindAddressModule = {
     bind: async (c: Context<HonoCustomType>) => {
@@ -43,11 +57,15 @@ const UserBindAddressModule = {
         // check if binded address count
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value);
-        if (settings.maxAddressCount > 0) {
+        // get user role
+        const userRole = c.get("userRolePayload");
+        // check role-based max address count first, fallback to global settings
+        const maxAddressCount = await getMaxAddressCount(c, userRole, settings);
+        if (maxAddressCount > 0) {
             const { count } = await c.env.DB.prepare(
                 `SELECT COUNT(*) as count FROM users_address where user_id = ?`
             ).bind(user_id).first<{ count: number }>() || { count: 0 };
-            if (count >= settings.maxAddressCount) {
+            if (count >= maxAddressCount) {
                 return c.text("Max address count reached", 400)
             }
         }
@@ -194,18 +212,22 @@ const UserBindAddressModule = {
         // check if target user exists
         const target_user_id = await c.env.DB.prepare(
             `SELECT id FROM users where user_email = ?`
-        ).bind(target_user_email).first("id");
+        ).bind(target_user_email).first<number>("id");
         if (!target_user_id) {
             return c.text("Target user not found", 400)
         }
         // check target user binded address count
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value);
-        if (settings.maxAddressCount > 0) {
+        // get target user role
+        const userRoleObj = await commonGetUserRole(c, target_user_id);
+        // check role-based max address count first, fallback to global settings
+        const maxAddressCount = await getMaxAddressCount(c, userRoleObj?.role, settings);
+        if (maxAddressCount > 0) {
             const { count } = await c.env.DB.prepare(
                 `SELECT COUNT(*) as count FROM users_address where user_id = ?`
             ).bind(target_user_id).first<{ count: number }>() || { count: 0 };
-            if (count >= settings.maxAddressCount) {
+            if (count >= maxAddressCount) {
                 return c.text("Target User Max address count reached", 400)
             }
         }

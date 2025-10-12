@@ -154,3 +154,10 @@ export type EmailRuleSettings = {
     blockReceiveUnknowAddressEmail: boolean;
     emailForwardingList: SubdomainForwardAddressList[]
 }
+
+export type RoleConfig = {
+    maxAddressCount?: number;
+    // future configs can be added here
+}
+
+export type RoleAddressConfig = Record<string, RoleConfig>;
