@@ -46,6 +46,8 @@ export type CleanupSettings = {
     cleanAddressDays: number;
     enableInactiveAddressAutoCleanup: boolean | undefined;
     cleanInactiveAddressDays: number;
+    enableUnboundAddressAutoCleanup: boolean | undefined;
+    cleanUnboundAddressDays: number;
 }
 
 export class GeoData {

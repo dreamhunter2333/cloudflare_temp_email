@@ -251,6 +251,12 @@ export const cleanup = async (
                 `created_at < datetime('now', '-${cleanDays} day')`
             )
             break;
+        case "unboundAddress":
+            await batchDeleteAddressWithData(
+                c,
+                `id NOT IN (SELECT address_id FROM users_address) AND created_at < datetime('now', '-${cleanDays} day')`
+            )
+            break;
         case "mails":
             await c.env.DB.prepare(`
                 DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
