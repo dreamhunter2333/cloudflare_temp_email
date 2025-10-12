@@ -17,6 +17,8 @@ const cleanupModel = ref({
     cleanAddressDays: 30,
     enableInactiveAddressAutoCleanup: false,
     cleanInactiveAddressDays: 30,
+    enableUnboundAddressAutoCleanup: false,
+    cleanUnboundAddressDays: 30,
 })
 
 const { t } = useI18n({
@@ -28,6 +30,7 @@ const { t } = useI18n({
             sendBoxLabel: "Cleanup the sendbox before n days",
             addressCreateLabel: "Cleanup the address created before n days",
             inactiveAddressLabel: "Cleanup the inactive address before n days",
+            unboundAddressLabel: "Cleanup the unbound address before n days",
             cleanupNow: "Cleanup now",
             autoCleanup: "Auto cleanup",
             cleanupSuccess: "Cleanup success",
@@ -41,6 +44,7 @@ const { t } = useI18n({
             sendBoxLabel: "清理 n 天前的发件箱",
             addressCreateLabel: "清理 n 天前创建的地址",
             inactiveAddressLabel: "清理 n 天前的未活跃地址",
+            unboundAddressLabel: "清理 n 天前的未绑定用户地址",
             autoCleanup: "自动清理",
             cleanupSuccess: "清理成功",
             cleanupNow: "立即清理",
@@ -155,6 +159,18 @@ onMounted(async () => {
                     </n-checkbox>
                     <n-input-number v-model:value="cleanupModel.cleanInactiveAddressDays" :placeholder="t('tip')" />
                     <n-button @click="cleanup('inactiveAddress', cleanupModel.cleanInactiveAddressDays)">
+                        <template #icon>
+                            <n-icon :component="CleaningServicesFilled" />
+                        </template>
+                        {{ t('cleanupNow') }}
+                    </n-button>
+                </n-form-item-row>
+                <n-form-item-row :label="t('unboundAddressLabel')">
+                    <n-checkbox v-model:checked="cleanupModel.enableUnboundAddressAutoCleanup">
+                        {{ t('autoCleanup') }}
+                    </n-checkbox>
+                    <n-input-number v-model:value="cleanupModel.cleanUnboundAddressDays" :placeholder="t('tip')" />
+                    <n-button @click="cleanup('unboundAddress', cleanupModel.cleanUnboundAddressDays)">
                         <template #icon>
                             <n-icon :component="CleaningServicesFilled" />
                         </template>

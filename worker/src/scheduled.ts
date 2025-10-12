@@ -50,4 +50,11 @@ export async function scheduled(event: ScheduledEvent, env: Bindings, ctx: any) 
             autoCleanupSetting.cleanAddressDays
         );
     }
+    if (autoCleanupSetting.enableUnboundAddressAutoCleanup) {
+        await cleanup(
+            { env: env, } as Context<HonoCustomType>,
+            "unboundAddress",
+            autoCleanupSetting.cleanUnboundAddressDays
+        );
+    }
 }
