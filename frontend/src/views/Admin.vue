@@ -14,6 +14,7 @@ import AccountSettings from './admin/AccountSettings.vue';
 import UserManagement from './admin/UserManagement.vue';
 import UserSettings from './admin/UserSettings.vue';
 import UserOauth2Settings from './admin/UserOauth2Settings.vue';
+import RoleAddressConfig from './admin/RoleAddressConfig.vue';
 import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
 import About from './common/About.vue';
@@ -61,6 +62,7 @@ const { t } = useI18n({
       user_management: 'User Management',
       user_settings: 'User Settings',
       userOauth2Settings: 'Oauth2 Settings',
+      roleAddressConfig: 'Role Address Config',
       unknow: 'Mails with unknow receiver',
       senderAccess: 'Sender Access Control',
       sendBox: 'Send Box',
@@ -88,6 +90,7 @@ const { t } = useI18n({
       user_management: '用户管理',
       user_settings: '用户设置',
       userOauth2Settings: 'Oauth2 设置',
+      roleAddressConfig: '角色地址配置',
       unknow: '无收件人邮件',
       senderAccess: '发件权限控制',
       sendBox: '发件箱',
@@ -172,6 +175,9 @@ onMounted(async () => {
           </n-tab-pane>
           <n-tab-pane name="userOauth2Settings" :tab="t('userOauth2Settings')">
             <UserOauth2Settings />
+          </n-tab-pane>
+          <n-tab-pane name="roleAddressConfig" :tab="t('roleAddressConfig')">
+            <RoleAddressConfig />
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>

@@ -2,7 +2,7 @@ import { Context } from 'hono';
 
 import { CONSTANTS } from '../constants';
 import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles } from '../utils';
-import { UserSettings, GeoData, UserInfo } from "../models";
+import { UserSettings, GeoData, UserInfo, RoleAddressConfig } from "../models";
 import { handleListQuery } from '../common'
 import UserBindAddressModule from '../user_api/bind_address';
 import i18n from '../i18n';
@@ -165,5 +165,15 @@ export default {
         return c.json({
             results: results,
         });
+    },
+    getRoleAddressConfig: async (c: Context<HonoCustomType>) => {
+        const value = await getJsonSetting<RoleAddressConfig>(c, CONSTANTS.ROLE_ADDRESS_CONFIG_KEY);
+        const configs = value || {};
+        return c.json({ configs });
+    },
+    saveRoleAddressConfig: async (c: Context<HonoCustomType>) => {
+        const { configs } = await c.req.json<{ configs: RoleAddressConfig }>();
+        await saveSetting(c, CONSTANTS.ROLE_ADDRESS_CONFIG_KEY, JSON.stringify(configs));
+        return c.json({ success: true });
     },
 }

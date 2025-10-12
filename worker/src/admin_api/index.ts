@@ -344,6 +344,8 @@ api.post('/admin/users', admin_user_api.createUser)
 api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
 api.get('/admin/user_roles', async (c) => c.json(getUserRoles(c)))
 api.post('/admin/user_roles', admin_user_api.updateUserRoles)
+api.get('/admin/role_address_config', admin_user_api.getRoleAddressConfig)
+api.post('/admin/role_address_config', admin_user_api.saveRoleAddressConfig)
 api.get('/admin/users/bind_address/:user_id', admin_user_api.getBindedAddresses)
 api.post('/admin/users/bind_address', admin_user_api.bindAddress)
 
