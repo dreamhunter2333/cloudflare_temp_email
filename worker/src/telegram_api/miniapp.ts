@@ -129,6 +129,8 @@ async function unbindAddress(c: Context<HonoCustomType>): Promise<Response> {
 
 async function getMail(c: Context<HonoCustomType>): Promise<Response> {
     const { initData, mailId } = await c.req.json();
+    const lang = c.env.DEFAULT_LANG || "en";
+    const t = i18n.getTelegramMessages(lang);
     try {
         const userId = await checkTelegramAuth(c, initData);
         const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
@@ -140,14 +142,14 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
         const superUser = settings?.enableGlobalMailPush && settings?.globalMailPushList.includes(userId);
         if (!superUser) {
             if (result?.address && !(result.address as string in addressIdMap)) {
-                return c.text("无权查看此邮件", 403);
+                return c.text(t.noPermissionViewMail, 403);
             }
             const address_id = addressIdMap[result?.address as string];
             const db_address_id = await c.env.DB.prepare(
                 `SELECT id FROM address where id = ? `
             ).bind(address_id).first("id");
             if (!db_address_id) {
-                return c.text("无权查看此邮件", 403);
+                return c.text(t.noPermissionViewMail, 403);
             }
         }
         return c.json(result);

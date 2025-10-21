@@ -1,4 +1,4 @@
-import { LocaleMessages } from "./type";
+import { LocaleMessages, TelegramMessages } from "./type";
 
 const messages: LocaleMessages = {
     CustomAuthPasswordMsg: "You have enabled the private site password, please provide the password",
@@ -46,6 +46,67 @@ const messages: LocaleMessages = {
     PasswordLoginDisabledMsg: "Password login is disabled",
     EmailPasswordRequiredMsg: "Email and password are required",
     AddressNotFoundMsg: "Address not found",
+}
+
+export const telegram: TelegramMessages = {
+    commands: {
+        start: "Start using",
+        new: "Create new email address. To customize, use /new <name>@<domain>. Name [a-z0-9] valid, empty name generates random, @<domain> optional",
+        address: "View email address list",
+        bind: "Bind email address, use /bind <email_address_token>",
+        unbind: "Unbind email address, use /unbind <email_address>",
+        delete: "Delete email address, use /delete <email_address>",
+        mails: "View emails, use /mails <email_address>, defaults to first address if not specified",
+        cleaninvalidaddress: "Clean invalid addresses, use /cleaninvalidaddress"
+    },
+    unableGetUserInfo: "Unable to get user information",
+    noPermission: "You don't have permission to use this bot",
+    welcome: "Welcome to use this bot, you can open the mini app\n\n",
+    currentPrefix: "Current prefix enabled: ",
+    currentDomains: "Current available domains: ",
+    pleaseUseCommands: "Please use the following commands:\n",
+    address: "Address: ",
+    password: "Password: ",
+    credential: "Credential: ",
+    createSuccess: "Address created successfully:\n",
+    createFailed: "Failed to create address: ",
+    pleaseInputCredential: "Please input credential",
+    bindSuccess: "Bind successful:\n",
+    bindFailed: "Bind failed: ",
+    pleaseInputAddress: "Please input address",
+    unbindSuccess: "Unbind successful:\nAddress: ",
+    unbindFailed: "Unbind failed: ",
+    deleteSuccess: "Delete successful: ",
+    deleteFailed: "Delete failed: ",
+    addressList: "Address list:\n\n",
+    getAddressListFailed: "Failed to get address list: ",
+    cleanSuccess: "Clean invalid addresses successful:\n\n",
+    currentAddressList: "Current address list:\n\n",
+    cleanFailed: "Failed to clean invalid addresses: ",
+    noMoreMails: "No more mails",
+    viewMail: "View mail",
+    previous: "Previous",
+    next: "Next",
+    getMailFailed: "Failed to get mail: ",
+    noMail: "No mail",
+    addressNotBound: "Address not bound: ",
+    invalidAddress: "Invalid address",
+    from: "From: ",
+    noSender: "No sender",
+    to: "To: ",
+    date: "Date: ",
+    subject: "Subject: ",
+    content: "Content:\n",
+    parseFailed: "Parse failed, please open mini app to view",
+    messageTooLong: "\n\n...\nMessage too long, please view in miniapp",
+    parseMailFailed: "Failed to parse mail: ",
+    noPermissionViewMail: "No permission to view this mail",
+    addressLimitReached: "Address limit reached",
+    addressLimitReachedClean: "Address limit reached, please /cleaninvalidaddress first",
+    nameBlocked: "Name is blocked",
+    invalidCredential: "Invalid credential",
+    invalidJwt: "Invalid JWT",
+    addressNotYours: "This address does not belong to you"
 }
 
 export default messages;
