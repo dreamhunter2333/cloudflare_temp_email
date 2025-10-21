@@ -217,7 +217,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         ).bind(
             queryAddress, mailIndex
         ).first<{ raw: string, id: string, created_at: string }>() || {};
-        const { mail } = raw ? await parseMail({ rawEmail: raw }, queryAddress, created_at) : { mail: t.noMoreMails };
+        const { mail } = raw ? await parseMail({ rawEmail: raw }, queryAddress, created_at, lang) : { mail: t.noMoreMails };
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const miniAppButtons = []
         if (settings?.miniAppUrl && settings?.miniAppUrl?.length > 0 && mailId) {
