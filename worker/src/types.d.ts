@@ -86,6 +86,9 @@ type Bindings = {
 
     // webhook config
     FRONTEND_URL: string | undefined
+
+    // rate limiter config
+    RATE_LIMIT_API_DAILY_REQUESTS: number | string | undefined
 }
 
 type JwtPayload = {
