@@ -68,7 +68,7 @@ app.use('/*', async (c, next) => {
 			if (reqIp && c.env.KV && c.env.RATE_LIMIT_API_DAILY_REQUESTS) {
 				const daily_count_key = `limit|${reqIp}|${new Date().toISOString().slice(0, 10)}`
 				const dailyLimit = parseInt(c.env.RATE_LIMIT_API_DAILY_REQUESTS.toString(), 10);
-				const current_count = await c.env.KV.get<number>(daily_count_key);
+				const current_count = parseInt(await c.env.KV.get(daily_count_key) || "0", 10);
 				if (current_count && current_count >= dailyLimit) {
 					return c.text(`IP=${reqIp} Exceeded daily limit of ${dailyLimit} requests`, 429);
 				}
