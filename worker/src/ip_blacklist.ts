@@ -8,6 +8,7 @@ import { CONSTANTS } from './constants';
 export type IpBlacklistSettings = {
     enabled: boolean;
     blacklist: string[];  // Array of regex patterns or plain strings
+    asnBlacklist?: string[];  // Array of ASN organization patterns (e.g., "Google LLC", "Amazon")
 }
 
 /**
@@ -16,40 +17,35 @@ export type IpBlacklistSettings = {
  */
 function looksLikeRegex(pattern: string): boolean {
     // Check if pattern contains common regex metacharacters
+    // eslint-disable-next-line no-useless-escape
     return /[\^$.*+?\[\]{}()|\\]/.test(pattern);
 }
 
 /**
- * Check if an IP address matches any blacklist pattern
+ * Check if a value matches any blacklist pattern
  * Supports both regex patterns and plain string matching
  *
- * @param ip - The IP address to check (e.g., "192.168.1.100")
+ * @param value - The value to check (e.g., IP address, ASN organization)
  * @param blacklist - Array of patterns (regex or plain strings)
- * @returns true if IP is blacklisted, false otherwise
+ * @param caseSensitive - Whether to use case-sensitive matching for plain strings (default: true for IP, false for ASN)
+ * @returns true if value is blacklisted, false otherwise
  *
  * @example
- * // Regex mode (has special chars: ^ $ . * + ? [ ] { } ( ) | \):
- * isIpBlacklisted("192.168.1.100", ["^192\\.168\\.1\\."]) // true (regex match)
- * isIpBlacklisted("10.0.0.5", ["^10\\.0\\.0\\.5$"]) // true (exact match)
- * isIpBlacklisted("192.168.10.1", ["^192\\.168\\.1\\."]) // false (no match)
+ * // IP address matching (case-sensitive):
+ * isBlacklisted("192.168.1.100", ["192.168.1"], true) // true (substring match)
+ * isBlacklisted("10.0.0.5", ["^10\\.0\\.0\\.5$"], true) // true (regex match)
  *
- * // Plain string mode (no special chars - substring matching):
- * // Rule: IP contains the pattern string
- * isIpBlacklisted("192.168.1.100", ["192.168.1"]) // true (IP包含"192.168.1")
- * isIpBlacklisted("192.168.1.255", ["192.168.1"]) // true (IP包含"192.168.1")
- * isIpBlacklisted("10.0.0.5", ["10.0.0"]) // true (IP包含"10.0.0")
- * isIpBlacklisted("192.168.2.100", ["192.168.1"]) // false (IP不包含"192.168.1")
- * isIpBlacklisted("192.168.10.1", ["192.168.1"]) // true (IP包含"192.168.1")
+ * // ASN organization matching (case-insensitive):
+ * isBlacklisted("Google LLC", ["google"], false) // true (case-insensitive)
+ * isBlacklisted("Amazon.com, Inc.", ["amazon"], false) // true
  */
-export function isIpBlacklisted(ip: string | null, blacklist: string[]): boolean {
-    if (!ip || !blacklist || blacklist.length === 0) {
+function isBlacklisted(value: string | null | undefined, blacklist: string[], caseSensitive: boolean = true): boolean {
+    if (!value || !blacklist || blacklist.length === 0) {
         return false;
     }
 
-    // Normalize IP (trim whitespace)
-    const normalizedIp = ip.trim();
+    const normalizedValue = value.trim();
 
-    // Check if IP matches any pattern in blacklist
     return blacklist.some(pattern => {
         const normalizedPattern = pattern.trim();
         if (!normalizedPattern) {
@@ -57,21 +53,24 @@ export function isIpBlacklisted(ip: string | null, blacklist: string[]): boolean
         }
 
         try {
-            // Try to detect if this is a regex pattern
             if (looksLikeRegex(normalizedPattern)) {
-                // Regex mode: test as regular expression
                 const regex = new RegExp(normalizedPattern);
-                return regex.test(normalizedIp);
+                return regex.test(normalizedValue);
             } else {
                 // Plain string mode: substring matching
-                // 匹配规则：IP中包含设置的字符串就算匹配
-                // Example: "192.168.1.100".includes("192.168.1") → true
-                return normalizedIp.includes(normalizedPattern);
+                if (caseSensitive) {
+                    return normalizedValue.includes(normalizedPattern);
+                } else {
+                    return normalizedValue.toLowerCase().includes(normalizedPattern.toLowerCase());
+                }
             }
         } catch (error) {
-            // If regex parsing fails, fall back to plain string matching
             console.warn(`Pattern "${normalizedPattern}" failed regex parsing, using plain matching`);
-            return normalizedIp.includes(normalizedPattern);
+            if (caseSensitive) {
+                return normalizedValue.includes(normalizedPattern);
+            } else {
+                return normalizedValue.toLowerCase().includes(normalizedPattern.toLowerCase());
+            }
         }
     });
 }
@@ -133,10 +132,20 @@ export async function checkIpBlacklist(
             return null;
         }
 
-        // Check if IP is blacklisted
-        if (isIpBlacklisted(reqIp, settings.blacklist)) {
+        // Check if IP is blacklisted (case-sensitive matching)
+        if (isBlacklisted(reqIp, settings.blacklist, true)) {
             console.warn(`Blocked blacklisted IP: ${reqIp} for path: ${c.req.path}`);
             return c.text(`Access denied: IP ${reqIp} is blacklisted`, 403);
+        }
+
+        // Check ASN organization blacklist
+        if (settings.asnBlacklist && settings.asnBlacklist.length > 0) {
+            const asOrganization = c.req.raw.cf?.asOrganization;
+            // Check ASN with case-insensitive matching
+            if (asOrganization && isBlacklisted(asOrganization as string, settings.asnBlacklist, false)) {
+                console.warn(`Blocked blacklisted ASN: ${asOrganization} (IP: ${reqIp}) for path: ${c.req.path}`);
+                return c.text(`Access denied: ASN organization is blacklisted`, 403);
+            }
         }
 
         return null;

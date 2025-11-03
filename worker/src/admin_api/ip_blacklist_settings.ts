@@ -48,9 +48,29 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
         .map(pattern => pattern.trim())
         .filter(pattern => pattern.length > 0);
 
+    // Validate and sanitize ASN blacklist if provided
+    let sanitizedAsnBlacklist: string[] = [];
+    if (settings.asnBlacklist) {
+        if (!Array.isArray(settings.asnBlacklist)) {
+            return c.text("Invalid asnBlacklist value", 400);
+        }
+
+        if (settings.asnBlacklist.length > MAX_BLACKLIST_SIZE) {
+            return c.text(
+                `ASN blacklist exceeds maximum size (${MAX_BLACKLIST_SIZE} entries)`,
+                400
+            );
+        }
+
+        sanitizedAsnBlacklist = settings.asnBlacklist
+            .map(pattern => pattern.trim())
+            .filter(pattern => pattern.length > 0);
+    }
+
     const sanitizedSettings: IpBlacklistSettings = {
         enabled: settings.enabled,
-        blacklist: sanitizedBlacklist
+        blacklist: sanitizedBlacklist,
+        asnBlacklist: sanitizedAsnBlacklist
     };
 
     await saveSetting(

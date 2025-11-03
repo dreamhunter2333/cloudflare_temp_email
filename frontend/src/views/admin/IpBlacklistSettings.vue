@@ -20,6 +20,9 @@ const { t } = useI18n({
             enable_tip: 'Block IPs matching blacklist patterns from accessing rate-limited APIs',
             ip_blacklist: 'IP Blacklist Patterns',
             ip_blacklist_placeholder: 'Enter pattern (e.g., 192.168.1 or ^10\\.0\\.0\\.5$)',
+            asn_blacklist: 'ASN Organization Blacklist',
+            asn_blacklist_placeholder: 'Enter ASN organization (e.g., Google, Amazon)',
+            asn_tip: 'Block by ASN organization (ISP/provider). Case-insensitive text matching or regex.',
         },
         zh: {
             title: 'IP 黑名单设置',
@@ -31,12 +34,16 @@ const { t } = useI18n({
             enable_tip: '阻止匹配黑名单的 IP 访问限流 API',
             ip_blacklist: 'IP 黑名单匹配模式',
             ip_blacklist_placeholder: '输入匹配模式（例如：192.168.1 或 ^10\\.0\\.0\\.5$）',
+            asn_blacklist: 'ASN 组织（运营商）黑名单',
+            asn_blacklist_placeholder: '输入 ASN 组织名称（例如：Google, Amazon）',
+            asn_tip: '根据 ASN 组织（运营商/ISP）拉黑。支持不区分大小写的文本匹配或正则表达式。',
         }
     }
 });
 
 const enabled = ref(false)
 const ipBlacklist = ref([])
+const asnBlacklist = ref([])
 
 const fetchData = async () => {
     try {
@@ -44,6 +51,7 @@ const fetchData = async () => {
         const res = await api.fetch(`/admin/ip_blacklist/settings`)
         enabled.value = res.enabled || false
         ipBlacklist.value = res.blacklist || []
+        asnBlacklist.value = res.asnBlacklist || []
     } catch (error) {
         message.error(error.message || "error");
     } finally {
@@ -59,6 +67,7 @@ const save = async () => {
             body: JSON.stringify({
                 enabled: enabled.value,
                 blacklist: ipBlacklist.value || [],
+                asnBlacklist: asnBlacklist.value || [],
             })
         })
         message.success(t('successTip'))
@@ -110,6 +119,28 @@ onMounted(async () => {
                         </template>
                     </n-select>
                 </n-form-item-row>
+
+                <n-form-item-row :label="t('asn_blacklist')">
+                    <n-select
+                        v-model:value="asnBlacklist"
+                        filterable
+                        multiple
+                        tag
+                        :placeholder="t('asn_blacklist_placeholder')"
+                        :disabled="!enabled">
+                        <template #empty>
+                            <n-text depth="3">
+                                {{ t('manualInputPrompt') }}
+                            </n-text>
+                        </template>
+                    </n-select>
+                </n-form-item-row>
+
+                <n-alert :show-icon="false" :bordered="false" type="default">
+                    <n-text depth="3" style="font-size: 12px;">
+                        {{ t('asn_tip') }}
+                    </n-text>
+                </n-alert>
             </n-space>
         </n-card>
     </div>
