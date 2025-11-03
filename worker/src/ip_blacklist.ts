@@ -105,38 +105,44 @@ export async function getIpBlacklistSettings(
 
 /**
  * Middleware to check IP blacklist for rate-limited endpoints
- * Returns 403 response if IP is blacklisted
+ * Returns 403 response if IP is blacklisted, null if any error occurs
  *
  * @param c - Hono context
- * @returns Response if blacklisted, undefined otherwise
+ * @returns Response if blacklisted, null otherwise (including errors)
  */
 export async function checkIpBlacklist(
     c: Context<HonoCustomType>
-): Promise<Response | undefined> {
-    // Get IP blacklist settings from database
-    const settings = await getIpBlacklistSettings(c);
+): Promise<Response | null> {
+    try {
+        // Get IP blacklist settings from database
+        const settings = await getIpBlacklistSettings(c);
 
-    // Check if blacklist feature is enabled
-    if (!settings.enabled) {
-        return undefined;
+        // Check if blacklist feature is enabled
+        if (!settings.enabled) {
+            return null;
+        }
+
+        // Get IP address from CloudFlare header
+        const reqIp = c.req.raw.headers.get("cf-connecting-ip");
+        if (!reqIp) {
+            return null;
+        }
+
+        // Get blacklist
+        if (!settings.blacklist || settings.blacklist.length === 0) {
+            return null;
+        }
+
+        // Check if IP is blacklisted
+        if (isIpBlacklisted(reqIp, settings.blacklist)) {
+            console.warn(`Blocked blacklisted IP: ${reqIp} for path: ${c.req.path}`);
+            return c.text(`Access denied: IP ${reqIp} is blacklisted`, 403);
+        }
+
+        return null;
+    } catch (error) {
+        // Log error but don't block request
+        console.error('Error checking IP blacklist:', error);
+        return null;
     }
-
-    // Get IP address from CloudFlare header
-    const reqIp = c.req.raw.headers.get("cf-connecting-ip");
-    if (!reqIp) {
-        return undefined;
-    }
-
-    // Get blacklist
-    if (!settings.blacklist || settings.blacklist.length === 0) {
-        return undefined;
-    }
-
-    // Check if IP is blacklisted
-    if (isIpBlacklisted(reqIp, settings.blacklist)) {
-        console.warn(`Blocked blacklisted IP: ${reqIp} for path: ${c.req.path}`);
-        return c.text(`Access denied: IP ${reqIp} is blacklisted`, 403);
-    }
-
-    return undefined;
 }
