@@ -25,6 +25,7 @@ import Telegram from './admin/Telegram.vue';
 import Webhook from './admin/Webhook.vue';
 import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
+import IpBlacklistSettings from './admin/IpBlacklistSettings.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
@@ -72,6 +73,7 @@ const { t } = useI18n({
       maintenance: 'Maintenance',
       database: 'Database',
       workerconfig: 'Worker Config',
+      ipBlacklistSettings: 'IP Blacklist',
       appearance: 'Appearance',
       about: 'About',
       ok: 'OK',
@@ -100,6 +102,7 @@ const { t } = useI18n({
       maintenance: '维护',
       database: '数据库',
       workerconfig: 'Worker 配置',
+      ipBlacklistSettings: 'IP 黑名单',
       appearance: '外观',
       about: '关于',
       ok: '确定',
@@ -159,6 +162,9 @@ onMounted(async () => {
           </n-tab-pane>
           <n-tab-pane name="senderAccess" :tab="t('senderAccess')">
             <SenderAccess />
+          </n-tab-pane>
+          <n-tab-pane name="ipBlacklistSettings" :tab="t('ipBlacklistSettings')">
+            <IpBlacklistSettings />
           </n-tab-pane>
           <n-tab-pane name="webhook" :tab="t('webhookSettings')">
             <Webhook />

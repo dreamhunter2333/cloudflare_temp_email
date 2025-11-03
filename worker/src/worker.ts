@@ -14,6 +14,7 @@ import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
 import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
+import { checkIpBlacklist } from './ip_blacklist';
 
 const API_PATHS = [
 	"/api/",
@@ -55,6 +56,12 @@ app.use('/*', async (c, next) => {
 		|| c.req.path.startsWith("/user_api/register")
 		|| c.req.path.startsWith("/user_api/verify_code")
 	) {
+		// Check IP blacklist first (early rejection for blacklisted IPs)
+		const blacklistResponse = await checkIpBlacklist(c);
+		if (blacklistResponse) {
+			return blacklistResponse;
+		}
+
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
 			const { success } = await c.env.RATE_LIMITER.limit(

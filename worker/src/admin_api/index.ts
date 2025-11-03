@@ -14,6 +14,7 @@ import worker_config from './worker_config'
 import admin_mail_api from './admin_mail_api'
 import { sendMailbyAdmin } from './send_mail'
 import db_api from './db_api'
+import ip_blacklist_settings from './ip_blacklist_settings'
 import { EmailRuleSettings } from '../models'
 
 export const api = new Hono<HonoCustomType>()
@@ -372,3 +373,7 @@ api.post("/admin/send_mail", sendMailbyAdmin);
 api.get('admin/db_version', db_api.getVersion);
 api.post('admin/db_initialize', db_api.initialize);
 api.post('admin/db_migration', db_api.migrate);
+
+// IP blacklist settings
+api.get("/admin/ip_blacklist/settings", ip_blacklist_settings.getIpBlacklistSettings);
+api.post("/admin/ip_blacklist/settings", ip_blacklist_settings.saveIpBlacklistSettings);
