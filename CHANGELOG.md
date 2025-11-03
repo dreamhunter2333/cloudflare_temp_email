@@ -1,6 +1,12 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## v1.0.7
+
+- feat: |Admin| 新增 IP 黑名单功能，用于限制访问频率较高的 API
+- feat: |Admin| 新增 `RATE_LIMIT_API_DAILY_REQUESTS` 配置，用于限制每日 API 请求次数
+- fix: |Admin| IP 黑名单检查增加错误处理，提高系统稳定性
+
 ## v1.0.6
 
 - feat: |DB| update db schema add index
