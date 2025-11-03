@@ -14,7 +14,8 @@ async function getIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Respo
     // Return default settings if not found
     return c.json(settings || {
         enabled: false,
-        blacklist: []
+        blacklist: [],
+        asnBlacklist: []
     });
 }
 

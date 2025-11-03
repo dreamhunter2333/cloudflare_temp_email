@@ -54,7 +54,9 @@ function isBlacklisted(value: string | null | undefined, blacklist: string[], ca
 
         try {
             if (looksLikeRegex(normalizedPattern)) {
-                const regex = new RegExp(normalizedPattern);
+                // For regex patterns, add 'i' flag if case-insensitive matching is needed
+                const flags = caseSensitive ? '' : 'i';
+                const regex = new RegExp(normalizedPattern, flags);
                 return regex.test(normalizedValue);
             } else {
                 // Plain string mode: substring matching
@@ -91,14 +93,16 @@ export async function getIpBlacklistSettings(
     if (dbSettings) {
         return {
             enabled: dbSettings.enabled || false,
-            blacklist: dbSettings.blacklist || []
+            blacklist: dbSettings.blacklist || [],
+            asnBlacklist: dbSettings.asnBlacklist || []
         };
     }
 
     // Return default settings
     return {
         enabled: false,
-        blacklist: []
+        blacklist: [],
+        asnBlacklist: []
     };
 }
 
@@ -127,15 +131,12 @@ export async function checkIpBlacklist(
             return null;
         }
 
-        // Get blacklist
-        if (!settings.blacklist || settings.blacklist.length === 0) {
-            return null;
-        }
-
         // Check if IP is blacklisted (case-sensitive matching)
-        if (isBlacklisted(reqIp, settings.blacklist, true)) {
-            console.warn(`Blocked blacklisted IP: ${reqIp} for path: ${c.req.path}`);
-            return c.text(`Access denied: IP ${reqIp} is blacklisted`, 403);
+        if (settings.blacklist && settings.blacklist.length > 0) {
+            if (isBlacklisted(reqIp, settings.blacklist, true)) {
+                console.warn(`Blocked blacklisted IP: ${reqIp} for path: ${c.req.path}`);
+                return c.text(`Access denied: IP ${reqIp} is blacklisted`, 403);
+            }
         }
 
         // Check ASN organization blacklist
