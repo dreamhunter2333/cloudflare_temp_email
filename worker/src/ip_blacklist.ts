@@ -9,6 +9,7 @@ export type IpBlacklistSettings = {
     enabled: boolean;
     blacklist: string[];  // Array of regex patterns or plain strings
     asnBlacklist?: string[];  // Array of ASN organization patterns (e.g., "Google LLC", "Amazon")
+    fingerprintBlacklist?: string[];  // Array of browser fingerprint patterns
 }
 
 /**
@@ -94,7 +95,8 @@ export async function getIpBlacklistSettings(
         return {
             enabled: dbSettings.enabled || false,
             blacklist: dbSettings.blacklist || [],
-            asnBlacklist: dbSettings.asnBlacklist || []
+            asnBlacklist: dbSettings.asnBlacklist || [],
+            fingerprintBlacklist: dbSettings.fingerprintBlacklist || []
         };
     }
 
@@ -102,7 +104,8 @@ export async function getIpBlacklistSettings(
     return {
         enabled: false,
         blacklist: [],
-        asnBlacklist: []
+        asnBlacklist: [],
+        fingerprintBlacklist: []
     };
 }
 
@@ -146,6 +149,16 @@ export async function checkIpBlacklist(
             if (asOrganization && isBlacklisted(asOrganization as string, settings.asnBlacklist, false)) {
                 console.warn(`Blocked blacklisted ASN: ${asOrganization} (IP: ${reqIp}) for path: ${c.req.path}`);
                 return c.text(`Access denied: ASN organization is blacklisted`, 403);
+            }
+        }
+
+        // Check browser fingerprint blacklist
+        if (settings.fingerprintBlacklist && settings.fingerprintBlacklist.length > 0) {
+            const fingerprint = c.req.raw.headers.get("x-fingerprint");
+            // Check fingerprint with case-sensitive matching
+            if (fingerprint && isBlacklisted(fingerprint, settings.fingerprintBlacklist, true)) {
+                console.warn(`Blocked blacklisted fingerprint: ${fingerprint} (IP: ${reqIp}) for path: ${c.req.path}`);
+                return c.text(`Access denied: Browser fingerprint is blacklisted`, 403);
             }
         }
 

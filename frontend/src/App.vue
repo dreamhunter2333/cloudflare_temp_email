@@ -8,6 +8,7 @@ import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
 import Footer from './views/Footer.vue';
 import { api } from './api'
+import { getFingerprint } from './utils/fingerprint'
 
 const {
   isDark, loading, useSideMargin, telegramApp, isTelegram
@@ -23,6 +24,8 @@ const showAd = computed(() => !isMobile.value && adClient && adSlot);
 const gridMaxCols = computed(() => showAd.value ? 8 : 12);
 
 onMounted(async () => {
+  // Initialize browser fingerprint before other operations
+  await getFingerprint();
 
   try {
     await api.getUserSettings();
