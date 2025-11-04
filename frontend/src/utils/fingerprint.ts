@@ -6,7 +6,7 @@ const { browserFingerprint } = useGlobalState();
 /**
  * Get browser fingerprint
  * Uses cached value from global state if available to avoid unnecessary computation
- * @returns Fingerprint visitor ID
+ * @returns Fingerprint visitor ID, or 'ERROR' if failed
  */
 export const getFingerprint = async (): Promise<string> => {
     // Return cached fingerprint if available
@@ -21,16 +21,10 @@ export const getFingerprint = async (): Promise<string> => {
         return browserFingerprint.value;
     } catch (error) {
         console.error('Failed to get fingerprint:', error);
-        // Return empty string on error to prevent blocking requests
-        return '';
+        // Return special error value to prevent blocking requests
+        const errorValue = 'ERROR';
+        browserFingerprint.value = errorValue;
+        return errorValue;
     }
-};
-
-/**
- * Clear cached fingerprint
- * Useful for testing or when fingerprint needs to be regenerated
- */
-export const clearFingerprintCache = (): void => {
-    browserFingerprint.value = '';
 };
 
