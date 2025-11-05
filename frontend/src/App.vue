@@ -23,7 +23,6 @@ const showAd = computed(() => !isMobile.value && adClient && adSlot);
 const gridMaxCols = computed(() => showAd.value ? 8 : 12);
 
 onMounted(async () => {
-
   try {
     await api.getUserSettings();
   } catch (error) {

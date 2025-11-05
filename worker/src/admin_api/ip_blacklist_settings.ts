@@ -15,7 +15,8 @@ async function getIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Respo
     return c.json(settings || {
         enabled: false,
         blacklist: [],
-        asnBlacklist: []
+        asnBlacklist: [],
+        fingerprintBlacklist: []
     });
 }
 
@@ -68,10 +69,30 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
             .filter(pattern => pattern.length > 0);
     }
 
+    // Validate and sanitize fingerprint blacklist if provided
+    let sanitizedFingerprintBlacklist: string[] = [];
+    if (settings.fingerprintBlacklist) {
+        if (!Array.isArray(settings.fingerprintBlacklist)) {
+            return c.text("Invalid fingerprintBlacklist value", 400);
+        }
+
+        if (settings.fingerprintBlacklist.length > MAX_BLACKLIST_SIZE) {
+            return c.text(
+                `Fingerprint blacklist exceeds maximum size (${MAX_BLACKLIST_SIZE} entries)`,
+                400
+            );
+        }
+
+        sanitizedFingerprintBlacklist = settings.fingerprintBlacklist
+            .map(pattern => pattern.trim())
+            .filter(pattern => pattern.length > 0);
+    }
+
     const sanitizedSettings: IpBlacklistSettings = {
         enabled: settings.enabled,
         blacklist: sanitizedBlacklist,
-        asnBlacklist: sanitizedAsnBlacklist
+        asnBlacklist: sanitizedAsnBlacklist,
+        fingerprintBlacklist: sanitizedFingerprintBlacklist
     };
 
     await saveSetting(

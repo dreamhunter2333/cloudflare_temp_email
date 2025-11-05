@@ -20,6 +20,7 @@
     "deploy:actions": "npm run build && wrangler pages deploy ./dist"
   },
   "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@simplewebauthn/browser": "10.0.0",
     "@unhead/vue": "^1.11.20",
     "@vueuse/core": "^12.8.2",

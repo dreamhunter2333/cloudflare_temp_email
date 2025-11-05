@@ -12,7 +12,6 @@ const { t } = useI18n({
     messages: {
         en: {
             title: 'IP Blacklist Settings',
-            tip: 'Block specific IPs from accessing rate-limited APIs. Supports text matching (e.g., "192.168.1") or regex (e.g., "^10\\.0\\.0\\.5$").',
             manualInputPrompt: 'Type pattern and press Enter to add',
             save: 'Save',
             successTip: 'Save Success',
@@ -22,11 +21,14 @@ const { t } = useI18n({
             ip_blacklist_placeholder: 'Enter pattern (e.g., 192.168.1 or ^10\\.0\\.0\\.5$)',
             asn_blacklist: 'ASN Organization Blacklist',
             asn_blacklist_placeholder: 'Enter ASN organization (e.g., Google, Amazon)',
-            asn_tip: 'Block by ASN organization (ISP/provider). Case-insensitive text matching or regex.',
+            fingerprint_blacklist: 'Browser Fingerprint Blacklist',
+            fingerprint_blacklist_placeholder: 'Enter fingerprint ID (e.g., a1b2c3d4e5f6g7h8)',
+            tip_ip: 'IP Blacklist: Supports text matching (e.g., "192.168.1") or regex (e.g., "^10\\.0\\.0\\.5$").',
+            tip_asn: 'ASN Organization: Block by ISP/provider. Case-insensitive text matching or regex.',
+            tip_fingerprint: 'Browser Fingerprint: Block by browser fingerprint. Supports exact matching or regex patterns.',
         },
         zh: {
             title: 'IP 黑名单设置',
-            tip: '阻止特定 IP 访问限流 API。支持文本匹配（如 "192.168.1"）或正则表达式（如 "^10\\.0\\.0\\.5$"）。',
             manualInputPrompt: '输入匹配模式后按回车键添加',
             save: '保存',
             successTip: '保存成功',
@@ -36,7 +38,11 @@ const { t } = useI18n({
             ip_blacklist_placeholder: '输入匹配模式（例如：192.168.1 或 ^10\\.0\\.0\\.5$）',
             asn_blacklist: 'ASN 组织（运营商）黑名单',
             asn_blacklist_placeholder: '输入 ASN 组织名称（例如：Google, Amazon）',
-            asn_tip: '根据 ASN 组织（运营商/ISP）拉黑。支持不区分大小写的文本匹配或正则表达式。',
+            fingerprint_blacklist: '浏览器指纹黑名单',
+            fingerprint_blacklist_placeholder: '输入指纹 ID（例如：a1b2c3d4e5f6g7h8）',
+            tip_ip: 'IP 黑名单：支持文本匹配（如 "192.168.1"）或正则表达式（如 "^10\\.0\\.0\\.5$"）。',
+            tip_asn: 'ASN 组织：根据运营商/ISP 拉黑。支持不区分大小写的文本匹配或正则表达式。',
+            tip_fingerprint: '浏览器指纹：根据浏览器指纹拉黑。支持完全匹配或正则表达式。',
         }
     }
 });
@@ -44,6 +50,7 @@ const { t } = useI18n({
 const enabled = ref(false)
 const ipBlacklist = ref([])
 const asnBlacklist = ref([])
+const fingerprintBlacklist = ref([])
 
 const fetchData = async () => {
     try {
@@ -52,6 +59,7 @@ const fetchData = async () => {
         enabled.value = res.enabled || false
         ipBlacklist.value = res.blacklist || []
         asnBlacklist.value = res.asnBlacklist || []
+        fingerprintBlacklist.value = res.fingerprintBlacklist || []
     } catch (error) {
         message.error(error.message || "error");
     } finally {
@@ -68,6 +76,7 @@ const save = async () => {
                 enabled: enabled.value,
                 blacklist: ipBlacklist.value || [],
                 asnBlacklist: asnBlacklist.value || [],
+                fingerprintBlacklist: fingerprintBlacklist.value || [],
             })
         })
         message.success(t('successTip'))
@@ -94,7 +103,11 @@ onMounted(async () => {
 
             <n-space vertical :size="20">
                 <n-alert :show-icon="false" :bordered="false" type="info">
-                    <span>{{ t("tip") }}</span>
+                    <div style="line-height: 1.8;">
+                        <div>• {{ t("tip_ip") }}</div>
+                        <div>• {{ t("tip_asn") }}</div>
+                        <div>• {{ t("tip_fingerprint") }}</div>
+                    </div>
                 </n-alert>
 
                 <n-form-item-row :label="t('enable_ip_blacklist')">
@@ -136,11 +149,21 @@ onMounted(async () => {
                     </n-select>
                 </n-form-item-row>
 
-                <n-alert :show-icon="false" :bordered="false" type="default">
-                    <n-text depth="3" style="font-size: 12px;">
-                        {{ t('asn_tip') }}
-                    </n-text>
-                </n-alert>
+                <n-form-item-row :label="t('fingerprint_blacklist')">
+                    <n-select
+                        v-model:value="fingerprintBlacklist"
+                        filterable
+                        multiple
+                        tag
+                        :placeholder="t('fingerprint_blacklist_placeholder')"
+                        :disabled="!enabled">
+                        <template #empty>
+                            <n-text depth="3">
+                                {{ t('manualInputPrompt') }}
+                            </n-text>
+                        </template>
+                    </n-select>
+                </n-form-item-row>
             </n-space>
         </n-card>
     </div>
