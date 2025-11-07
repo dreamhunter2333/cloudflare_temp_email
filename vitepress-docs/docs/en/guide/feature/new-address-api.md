@@ -1,34 +1,34 @@
-# 新建邮箱地址 API
+# Create New Email Address API
 
-## 通过 admin API 新建邮箱地址
+## Create Email Address via Admin API
 
-这是一个 `python` 的例子，使用 `requests` 库发送邮件。
+This is a `python` example using the `requests` library to send emails.
 
 ```python
 res = requests.post(
-    # 替换 xxxx.xxxx 为你的 worker 域名
+    # Replace xxxx.xxxx with your worker domain
     "https://xxxx.xxxx/admin/new_address",
     json={
-        # 是否启用前缀 (True/False)
+        # Enable prefix (True/False)
         "enablePrefix": True,
-        "name": "<邮箱名称>",
-        "domain": "<邮箱域名>",
+        "name": "<email_name>",
+        "domain": "<email_domain>",
     },
     headers={
-        'x-admin-auth': "<你的网站admin密码>",
+        'x-admin-auth': "<your_website_admin_password>",
         "Content-Type": "application/json"
     }
 )
 
-# 返回值 {"jwt": "<Jwt>"}
+# Returns {"jwt": "<Jwt>"}
 print(res.json())
 ```
 
-## 批量创建随机用户名邮箱地址 API 示例
+## Batch Create Random Username Email Addresses API Example
 
-### 通过 admin API 批量新建邮箱地址
+### Batch Create Email Addresses via Admin API
 
-这是一个 `python` 的例子，使用 `requests` 库发送邮件。
+This is a `python` example using the `requests` library to send emails.
 
 ```python
 import requests
@@ -38,41 +38,41 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def generate_random_name():
-    # 生成5位英文字符
+    # Generate 5 lowercase letters
     letters1 = ''.join(random.choices(string.ascii_lowercase, k=5))
-    # 生成1-3个数字
+    # Generate 1-3 digits
     numbers = ''.join(random.choices(string.digits, k=random.randint(1, 3)))
-    # 生成1-3个英文字符
+    # Generate 1-3 lowercase letters
     letters2 = ''.join(random.choices(string.ascii_lowercase, k=random.randint(1, 3)))
-    # 组合成最终名称
+    # Combine into final name
     return letters1 + numbers + letters2
 
 
 def fetch_email_data(name):
     try:
         res = requests.post(
-            "https://<worker 域名>/admin/new_address",
+            "https://<worker_domain>/admin/new_address",
             json={
                 "enablePrefix": True,
                 "name": name,
-                "domain": "<邮箱域名>",
+                "domain": "<email_domain>",
             },
             headers={
-                'x-admin-auth': "<你的网站admin密码>",
+                'x-admin-auth': "<your_website_admin_password>",
                 "Content-Type": "application/json"
             }
         )
 
         if res.status_code == 200:
             response_data = res.json()
-            email = response_data.get("address", "无地址")
-            jwt = response_data.get("jwt", "无jwt")
+            email = response_data.get("address", "no address")
+            jwt = response_data.get("jwt", "no jwt")
             return f"{email}----{jwt}\n"
         else:
-            print(f"请求失败，状态码: {res.status_code}")
+            print(f"Request failed, status code: {res.status_code}")
             return None
     except requests.RequestException as e:
-        print(f"请求出现错误: {e}")
+        print(f"Request error: {e}")
         return None
 
 
@@ -86,7 +86,7 @@ def generate_and_save_emails(num_emails):
                 file.write(result)
 
 
-# 生成10个邮箱并追加到现有文件
+# Generate 10 emails and append to existing file
 generate_and_save_emails(10)
 
 ```

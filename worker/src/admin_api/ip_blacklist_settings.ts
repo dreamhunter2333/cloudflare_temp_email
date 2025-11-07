@@ -16,7 +16,9 @@ async function getIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Respo
         enabled: false,
         blacklist: [],
         asnBlacklist: [],
-        fingerprintBlacklist: []
+        fingerprintBlacklist: [],
+        enableDailyLimit: false,
+        dailyRequestLimit: 1000
     });
 }
 
@@ -35,11 +37,42 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
         return c.text("Invalid blacklist value", 400);
     }
 
+    if (!Array.isArray(settings.asnBlacklist)) {
+        return c.text("Invalid asnBlacklist value", 400);
+    }
+
+    if (!Array.isArray(settings.fingerprintBlacklist)) {
+        return c.text("Invalid fingerprintBlacklist value", 400);
+    }
+
+    if (typeof settings.enableDailyLimit !== 'boolean') {
+        return c.text("Invalid enableDailyLimit value", 400);
+    }
+
+    const limit = Number(settings.dailyRequestLimit);
+    if (isNaN(limit) || limit < 1 || limit > 1000000) {
+        return c.text("Invalid dailyRequestLimit value (must be between 1 and 1000000)", 400);
+    }
+
     // Add size limit
     const MAX_BLACKLIST_SIZE = 1000;
     if (settings.blacklist.length > MAX_BLACKLIST_SIZE) {
         return c.text(
             `Blacklist exceeds maximum size (${MAX_BLACKLIST_SIZE} entries)`,
+            400
+        );
+    }
+
+    if (settings.asnBlacklist.length > MAX_BLACKLIST_SIZE) {
+        return c.text(
+            `ASN blacklist exceeds maximum size (${MAX_BLACKLIST_SIZE} entries)`,
+            400
+        );
+    }
+
+    if (settings.fingerprintBlacklist.length > MAX_BLACKLIST_SIZE) {
+        return c.text(
+            `Fingerprint blacklist exceeds maximum size (${MAX_BLACKLIST_SIZE} entries)`,
             400
         );
     }
@@ -50,49 +83,21 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
         .map(pattern => pattern.trim())
         .filter(pattern => pattern.length > 0);
 
-    // Validate and sanitize ASN blacklist if provided
-    let sanitizedAsnBlacklist: string[] = [];
-    if (settings.asnBlacklist) {
-        if (!Array.isArray(settings.asnBlacklist)) {
-            return c.text("Invalid asnBlacklist value", 400);
-        }
+    const sanitizedAsnBlacklist = settings.asnBlacklist
+        .map(pattern => pattern.trim())
+        .filter(pattern => pattern.length > 0);
 
-        if (settings.asnBlacklist.length > MAX_BLACKLIST_SIZE) {
-            return c.text(
-                `ASN blacklist exceeds maximum size (${MAX_BLACKLIST_SIZE} entries)`,
-                400
-            );
-        }
-
-        sanitizedAsnBlacklist = settings.asnBlacklist
-            .map(pattern => pattern.trim())
-            .filter(pattern => pattern.length > 0);
-    }
-
-    // Validate and sanitize fingerprint blacklist if provided
-    let sanitizedFingerprintBlacklist: string[] = [];
-    if (settings.fingerprintBlacklist) {
-        if (!Array.isArray(settings.fingerprintBlacklist)) {
-            return c.text("Invalid fingerprintBlacklist value", 400);
-        }
-
-        if (settings.fingerprintBlacklist.length > MAX_BLACKLIST_SIZE) {
-            return c.text(
-                `Fingerprint blacklist exceeds maximum size (${MAX_BLACKLIST_SIZE} entries)`,
-                400
-            );
-        }
-
-        sanitizedFingerprintBlacklist = settings.fingerprintBlacklist
-            .map(pattern => pattern.trim())
-            .filter(pattern => pattern.length > 0);
-    }
+    const sanitizedFingerprintBlacklist = settings.fingerprintBlacklist
+        .map(pattern => pattern.trim())
+        .filter(pattern => pattern.length > 0);
 
     const sanitizedSettings: IpBlacklistSettings = {
         enabled: settings.enabled,
         blacklist: sanitizedBlacklist,
         asnBlacklist: sanitizedAsnBlacklist,
-        fingerprintBlacklist: sanitizedFingerprintBlacklist
+        fingerprintBlacklist: sanitizedFingerprintBlacklist,
+        enableDailyLimit: settings.enableDailyLimit,
+        dailyRequestLimit: settings.dailyRequestLimit
     };
 
     await saveSetting(
