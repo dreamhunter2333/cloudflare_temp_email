@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## v1.1.0(main)
+
 ## v1.0.7
 
 - feat: |Admin| 新增 IP 黑名单功能，用于限制访问频率较高的 API
