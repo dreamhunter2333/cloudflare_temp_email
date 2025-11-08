@@ -4,8 +4,8 @@
 ## v1.0.7
 
 - feat: |Admin| 新增 IP 黑名单功能，用于限制访问频率较高的 API
-- feat: |Admin| 新增 `RATE_LIMIT_API_DAILY_REQUESTS` 配置，用于限制每日 API 请求次数
-- fix: |Admin| IP 黑名单检查增加错误处理，提高系统稳定性
+- feat: |Admin| 新增 ASN 组织黑名单功能，支持基于 ASN 组织名称过滤请求（支持文本匹配和正则表达式）
+- feat: |Admin| 新增浏览器指纹黑名单功能，支持基于浏览器指纹过滤请求（支持精确匹配和正则表达式）
 
 ## v1.0.6
 

@@ -14,7 +14,7 @@ import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
 import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
-import { checkIpBlacklist } from './ip_blacklist';
+import { checkAccessControl } from './ip_blacklist';
 
 const API_PATHS = [
 	"/api/",
@@ -49,6 +49,17 @@ app.use('/*', async (c, next) => {
 	const lang = c.req.raw.headers.get("x-lang");
 	if (lang) { c.set("lang", lang); }
 	const msgs = i18n.getMessages(lang || c.env.DEFAULT_LANG);
+
+	// check header x-custom-auth
+	const passwords = getPasswords(c);
+	if (passwords && passwords.length > 0) {
+		const auth = c.req.raw.headers.get("x-custom-auth");
+		if (!auth || !passwords.includes(auth)) {
+			return c.text(msgs.CustomAuthPasswordMsg, 401)
+		}
+	}
+
+	// rate limit for specific endpoints
 	if (
 		c.req.path.startsWith("/api/new_address")
 		|| c.req.path.startsWith("/api/send_mail")
@@ -56,12 +67,6 @@ app.use('/*', async (c, next) => {
 		|| c.req.path.startsWith("/user_api/register")
 		|| c.req.path.startsWith("/user_api/verify_code")
 	) {
-		// Check IP blacklist first (early rejection for blacklisted IPs)
-		const blacklistResponse = await checkIpBlacklist(c);
-		if (blacklistResponse) {
-			return blacklistResponse;
-		}
-
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
 			const { success } = await c.env.RATE_LIMITER.limit(
@@ -71,18 +76,10 @@ app.use('/*', async (c, next) => {
 				return c.text(`IP=${reqIp} Rate limit exceeded for ${c.req.path}`, 429)
 			}
 		}
-		try {
-			if (reqIp && c.env.KV && c.env.RATE_LIMIT_API_DAILY_REQUESTS) {
-				const daily_count_key = `limit|${reqIp}|${new Date().toISOString().slice(0, 10)}`
-				const dailyLimit = parseInt(c.env.RATE_LIMIT_API_DAILY_REQUESTS.toString(), 10);
-				const current_count = parseInt(await c.env.KV.get(daily_count_key) || "0", 10);
-				if (current_count && current_count >= dailyLimit) {
-					return c.text(`IP=${reqIp} Exceeded daily limit of ${dailyLimit} requests`, 429);
-				}
-				await c.env.KV.put(daily_count_key, ((current_count || 0) + 1).toString(), { expirationTtl: 24 * 60 * 60 });
-			}
-		} catch (e) {
-			console.error(e);
+		// Check access control (blacklist and daily limit)
+		const accessControlResponse = await checkAccessControl(c);
+		if (accessControlResponse) {
+			return accessControlResponse;
 		}
 	}
 	// webhook check
@@ -148,16 +145,6 @@ const checkoutUserRolePayload = async (
 
 // api auth
 app.use('/api/*', async (c, next) => {
-	// check header x-custom-auth
-	const passwords = getPasswords(c);
-	if (passwords && passwords.length > 0) {
-		const auth = c.req.raw.headers.get("x-custom-auth");
-		if (!auth || !passwords.includes(auth)) {
-			const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
-			const messages = i18n.getMessages(lang);
-			return c.text(messages.CustomAuthPasswordMsg, 401)
-		}
-	}
 	if (c.req.path.startsWith("/api/new_address")) {
 		await checkUserPayload(c);
 		await next();
