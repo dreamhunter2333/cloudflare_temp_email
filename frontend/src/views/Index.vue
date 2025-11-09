@@ -90,12 +90,13 @@ const saveToS3 = async (mail_id, filename, blob) => {
       method: 'POST',
       body: JSON.stringify({ key: `${mail_id}/${filename}` })
     });
-    // upload to s3 by formdata
-    const formData = new FormData();
-    formData.append(filename, blob);
+    // upload to s3 directly with blob
     await fetch(url, {
       method: 'PUT',
-      body: formData
+      body: blob,
+      headers: {
+        'Content-Type': blob.type || 'application/octet-stream'
+      }
     });
     message.success(t('saveToS3Success'));
   } catch (error) {
