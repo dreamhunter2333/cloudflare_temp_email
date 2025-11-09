@@ -93,7 +93,7 @@ const emailForwardingColumns = [
                 },
                 options: [
                     ...addressOptions.value,
-                    ...(openSettings.value?.domains?.map(d => ({ label: `*@${d}`, value: `*@${d}` })) || [])
+                    ...(openSettings.value?.domains?.map(d => ({ label: `*@${d.value}`, value: `*@${d.value}` })) || [])
                 ],
                 multiple: true,
                 filterable: true,
