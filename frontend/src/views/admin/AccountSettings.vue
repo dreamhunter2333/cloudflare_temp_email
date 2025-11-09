@@ -139,8 +139,24 @@ const emailForwardingColumns = [
 
 const fetchAddressList = async () => {
     try {
-        const { results } = await api.fetch(`/admin/address?limit=1000&offset=0`)
-        addressOptions.value = results.map(addr => ({
+        // 后端限制 limit 最大为 100，需要分页获取
+        let allAddresses = []
+        let offset = 0
+        const limit = 100
+
+        while (true) {
+            const { results } = await api.fetch(`/admin/address?limit=${limit}&offset=${offset}`)
+            if (!results || results.length === 0) break
+
+            allAddresses.push(...results)
+
+            // 如果返回的结果少于 limit，说明已经是最后一页
+            if (results.length < limit) break
+
+            offset += limit
+        }
+
+        addressOptions.value = allAddresses.map(addr => ({
             label: addr.name,
             value: addr.name
         }))
