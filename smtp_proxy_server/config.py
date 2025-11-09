@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     port: int = 8025
     imap_port: int = 11143
     basic_password: str = ""
+    batch_size: int = 20  # IMAP 邮件批量获取大小
 
     class Config:
         env_file = ".env"

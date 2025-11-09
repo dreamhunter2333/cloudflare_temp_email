@@ -181,7 +181,8 @@ class SimpleMailbox:
             return
 
         # 分批处理，每次获取一小批就立即返回
-        batch_size = 20
+        # 可通过环境变量 batch_size 配置，默认 20
+        batch_size = settings.batch_size
         current_start = start
         current_end = min(end or total_count, total_count)
 
