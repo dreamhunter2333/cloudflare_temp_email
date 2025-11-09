@@ -83,7 +83,8 @@ class SimpleMailbox:
                     "Authorization": f"Bearer {self.password}",
                     "x-custom-auth": f"{settings.basic_password}",
                     "Content-Type": "application/json"
-                }
+                },
+                timeout=30.0
             )
             if res.status_code == 200:
                 self.message_count = res.json()["count"]
@@ -165,7 +166,8 @@ class SimpleMailbox:
                 "Authorization": f"Bearer {self.password}",
                 "x-custom-auth": f"{settings.basic_password}",
                 "Content-Type": "application/json"
-            }
+            },
+            timeout=30.0  # 30 秒超时
         )
         if count_res.status_code != 200:
             _logger.error(
@@ -206,7 +208,8 @@ class SimpleMailbox:
                     "Authorization": f"Bearer {self.password}",
                     "x-custom-auth": f"{settings.basic_password}",
                     "Content-Type": "application/json"
-                }
+                },
+                timeout=30.0  # 30 秒超时
             )
             if res.status_code != 200:
                 _logger.error(
