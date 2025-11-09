@@ -1,5 +1,5 @@
 # ============================================
-# 构建阶段 - 使用 Slim 构建（兼容性好）
+# 构建阶段 - 编译 Python 依赖
 # ============================================
 FROM python:3.12-slim AS builder
 
@@ -10,9 +10,9 @@ COPY requirements.txt .
 RUN python3 -m pip install --user --no-cache-dir -r requirements.txt
 
 # ============================================
-# 运行阶段 - 使用 Alpine（镜像最小）
+# 运行阶段 - 使用 Slim 镜像（体积小且兼容性好）
 # ============================================
-FROM python:3.12-alpine
+FROM python:3.12-slim
 
 WORKDIR /app
 
