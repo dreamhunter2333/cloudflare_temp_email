@@ -25,6 +25,10 @@
 ## ✨ Key Features
 
 - **� Email Processing**: Rust WASM parser, SMTP/IMAP support, attachments, auto-reply
+- **📮 Email Forwarding**: Smart forwarding with priority rules
+  - Exact match: `support@example.com` → forward to specific address
+  - Wildcard match: `*@example.com` → forward all uncreated addresses
+  - Priority: Exact match first, prevents duplicate forwarding
 - **👥 User Management**: OAuth2 login, Passkey authentication, role management
 - **🌐 Admin Panel**: Complete admin console, user management, scheduled cleanup
 - **🤖 Integrations**: Telegram Bot, webhooks, CAPTCHA, rate limiting
