@@ -99,19 +99,45 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
             ...(subdomainForwardAddressList || []),
             ...(emailRuleSettings?.emailForwardingList || []),
         ];
+
+        // 检查收件地址是否在 address 表中
+        const db_address_id = await env.DB.prepare(
+            `SELECT id FROM address where name = ? `
+        ).bind(message.to).first("id");
+
         for (const subdomainForwardAddress of allSubdomainForwardAddressList) {
+            let shouldForward = false;
+
             // 检查邮件是否匹配 domains
             if (subdomainForwardAddress.domains && subdomainForwardAddress.domains.length > 0) {
                 for (const domain of subdomainForwardAddress.domains) {
-                    if (message.to.endsWith(domain) && subdomainForwardAddress.forward) {
-                        // 转发邮件
-                        await message.forward(subdomainForwardAddress.forward);
-                        // 支持多邮箱转发收件，不进行截止
-                        // break;
+                    // 支持通配符 *@domain.com 匹配未创建的邮箱
+                    if (domain.startsWith('*@')) {
+                        const wildcardDomain = domain.substring(2); // 去掉 *@
+                        if (message.to.endsWith('@' + wildcardDomain) && !db_address_id) {
+                            shouldForward = true;
+                            console.log(`Wildcard match: ${message.to} matches ${domain} (not in address table)`);
+                            break;
+                        }
+                    }
+                    // 精确匹配邮箱地址
+                    else if (message.to === domain) {
+                        shouldForward = true;
+                        console.log(`Exact match: ${message.to} matches ${domain}`);
+                        break;
+                    }
+                    // 域名匹配（原有逻辑）
+                    else if (message.to.endsWith(domain)) {
+                        shouldForward = true;
+                        break;
                     }
                 }
             } else {
                 // 如果 domains 为空，则转发所有邮件
+                shouldForward = true;
+            }
+
+            if (shouldForward && subdomainForwardAddress.forward) {
                 await message.forward(subdomainForwardAddress.forward);
             }
         }

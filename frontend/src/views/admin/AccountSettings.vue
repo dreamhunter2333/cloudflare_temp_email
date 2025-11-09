@@ -32,7 +32,7 @@ const { t } = useI18n({
             delete_rule: 'Delete',
             delete_rule_confirm: 'Are you sure you want to delete this rule?',
             delete_success: 'Delete Success',
-            forwarding_rule_warning: 'Each rule will run, if domains is empty, all emails will be forwarded, forward address needs to be a verified address',
+            forwarding_rule_warning: 'Supports: 1) Select created addresses 2) Custom email addresses 3) Wildcard *@domain.com (forwards all uncreated addresses under this domain)',
             add: 'Add',
             cancel: 'Cancel',
             config: 'Config',
@@ -58,7 +58,7 @@ const { t } = useI18n({
             delete_rule: '删除',
             delete_rule_confirm: '确定要删除这条规则吗？',
             delete_success: '删除成功',
-            forwarding_rule_warning: '每条规则都会运行，如果 domains 为空，则转发所有邮件，转发地址需要为已验证的地址',
+            forwarding_rule_warning: '支持：1) 选择已创建的邮箱 2) 自定义邮箱地址 3) 通配符 *@domain.com（转发该域名下所有未创建的邮箱）',
             add: '添加',
             cancel: '取消',
             config: '配置',
@@ -78,6 +78,7 @@ const emailRuleSettings = ref({
 
 const showEmailForwardingModal = ref(false)
 const emailForwardingList = ref([])
+const addressOptions = ref([])
 
 
 const emailForwardingColumns = [
@@ -90,7 +91,10 @@ const emailForwardingColumns = [
                 onUpdateValue: (val) => {
                     emailForwardingList.value[index].domains = val
                 },
-                options: openSettings.value?.domains || [],
+                options: [
+                    ...addressOptions.value,
+                    ...(openSettings.value?.domains?.map(d => ({ label: `*@${d}`, value: `*@${d}` })) || [])
+                ],
                 multiple: true,
                 filterable: true,
                 tag: true,
@@ -133,7 +137,21 @@ const emailForwardingColumns = [
     }
 ]
 
-const openEmailForwardingModal = () => {
+const fetchAddressList = async () => {
+    try {
+        const { results } = await api.fetch(`/admin/address?limit=1000&offset=0`)
+        addressOptions.value = results.map(addr => ({
+            label: addr.name,
+            value: addr.name
+        }))
+    } catch (error) {
+        console.error('Failed to fetch address list:', error)
+    }
+}
+
+const openEmailForwardingModal = async () => {
+    // 获取地址列表
+    await fetchAddressList()
     // 从 emailRuleSettings 转换出列表数据
     emailForwardingList.value = emailRuleSettings.value.emailForwardingList ?
         [...emailRuleSettings.value.emailForwardingList] : []
