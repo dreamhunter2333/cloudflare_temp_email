@@ -135,16 +135,16 @@ class SimpleMailbox:
 
     def fetch(self, messages, uid):
         """边查边返回邮件"""
-        def email_generator():
-            for range_item in messages.ranges:
-                start, end = range_item
-                _logger.info(f"Fetching messages: {self.name}, range: {start}-{end}")
+        result = []
+        for range_item in messages.ranges:
+            start, end = range_item
+            _logger.info(f"Fetching messages: {self.name}, range: {start}-{end}")
 
-                for email_data in self.fetchGenerator(start, end):
-                    yield email_data
+            for email_data in self.fetchGenerator(start, end):
+                result.append(email_data)
 
-        # 返回生成器，让IMAP4服务器逐个处理
-        return email_generator()
+        # 返回列表而不是生成器，以支持 IMAP SEARCH 等需要索引访问的操作
+        return result
 
     def fetchGenerator(self, start, end):
         """通用的邮件获取生成器，边查边返回"""
