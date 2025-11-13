@@ -273,6 +273,13 @@ export const cleanup = async (
                 DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
             ).run();
             break;
+        case "emptyAddress":
+            // Delete addresses that have no emails and were created more than N days ago
+            await batchDeleteAddressWithData(
+                c,
+                `name NOT IN (SELECT DISTINCT address FROM raw_mails WHERE address IS NOT NULL) AND created_at < datetime('now', '-${cleanDays} day')`
+            )
+            break;
         default:
             throw new Error("Invalid cleanType")
     }
