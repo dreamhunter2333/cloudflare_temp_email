@@ -41,7 +41,7 @@ const apiFetch = async (path, options = {}) => {
         if (response.status === 401 && path.startsWith("/admin")) {
             showAdminAuth.value = true;
         }
-        if (response.status === 401 && openSettings.value.auth) {
+        if (response.status === 401 && openSettings.value.needAuth) {
             showAuth.value = true;
         }
         if (response.status >= 300) {

@@ -52,7 +52,7 @@ app.use('/*', async (c, next) => {
 
 	// check header x-custom-auth
 	const passwords = getPasswords(c);
-	if (passwords && passwords.length > 0) {
+	if (!c.req.path.startsWith("/open_api") && passwords && passwords.length > 0) {
 		const auth = c.req.raw.headers.get("x-custom-auth");
 		if (!auth || !passwords.includes(auth)) {
 			return c.text(msgs.CustomAuthPasswordMsg, 401)
