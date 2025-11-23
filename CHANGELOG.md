@@ -1,6 +1,10 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## v1.1.1(feature/email)
+
+- fix: 修复自定义认证密码功能异常的问题 (前端属性名错误 & /open_api 接口被拦截)
+
 ## v1.1.0(main)
 
 - feat: |Admin| 维护页面增加清理 n 天前空邮件的邮箱地址功能
