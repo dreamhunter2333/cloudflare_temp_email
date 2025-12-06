@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     source TEXT,
     address TEXT,
     raw TEXT,
+    metadata TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -142,8 +143,11 @@ export default {
             const query = `ALTER TABLE address ADD password TEXT;`
             await c.env.DB.exec(query);
         }
+        if (version == "v0.0.3") {
+            // migration from v0.0.3 to v0.0.4
+            await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN metadata TEXT;`);
+        }
         if (version != CONSTANTS.DB_VERSION) {
-            // TODO: Perform migration logic here
             // remove all \r and \n characters from the query string
             // split by ; and join with a ;\n
             const query = DB_INIT_QUERIES.replace(/[\r\n]/g, "")

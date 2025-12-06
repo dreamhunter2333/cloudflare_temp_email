@@ -142,6 +142,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             text: 'Additional Features',
             collapsed: false,
             items: [
+                { text: 'AI Email Recognition', link: 'feature/ai-extract' },
                 { text: 'Configure SMTP IMAP Proxy', link: 'feature/config-smtp-proxy' },
                 { text: 'Send Email API', link: 'feature/send-mail-api' },
                 { text: 'View Email API', link: 'feature/mail-api' },

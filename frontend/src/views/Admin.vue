@@ -26,6 +26,7 @@ import Webhook from './admin/Webhook.vue';
 import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
 import IpBlacklistSettings from './admin/IpBlacklistSettings.vue';
+import AiExtractSettings from './admin/AiExtractSettings.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
@@ -74,6 +75,7 @@ const { t } = useI18n({
       database: 'Database',
       workerconfig: 'Worker Config',
       ipBlacklistSettings: 'IP Blacklist',
+      aiExtractSettings: 'AI Extract Settings',
       appearance: 'Appearance',
       about: 'About',
       ok: 'OK',
@@ -103,6 +105,7 @@ const { t } = useI18n({
       database: '数据库',
       workerconfig: 'Worker 配置',
       ipBlacklistSettings: 'IP 黑名单',
+      aiExtractSettings: 'AI 提取设置',
       appearance: '外观',
       about: '关于',
       ok: '确定',
@@ -165,6 +168,9 @@ onMounted(async () => {
           </n-tab-pane>
           <n-tab-pane name="ipBlacklistSettings" :tab="t('ipBlacklistSettings')">
             <IpBlacklistSettings />
+          </n-tab-pane>
+          <n-tab-pane name="aiExtractSettings" :tab="t('aiExtractSettings')">
+            <AiExtractSettings />
           </n-tab-pane>
           <n-tab-pane name="webhook" :tab="t('webhookSettings')">
             <Webhook />

@@ -142,6 +142,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             text: '附加功能',
             collapsed: false,
             items: [
+                { text: 'AI 邮件识别', link: 'feature/ai-extract' },
                 { text: '配置 SMTP IMAP 代理服务', link: 'feature/config-smtp-proxy' },
                 { text: '发送邮件 API', link: 'feature/send-mail-api' },
                 { text: '查看邮件 API', link: 'feature/mail-api' },

@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useI18n } from 'vue-i18n'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
+import AiExtractInfo from "./AiExtractInfo.vue";
 import { getDownloadEmlUrl } from '../utils/email-parser';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
@@ -178,6 +179,9 @@ const handleSaveToS3 = async (filename, blob) => {
         {{ t('fullscreen') }}
       </n-button>
     </n-space>
+
+    <!-- AI 提取信息 -->
+    <AiExtractInfo :metadata="mail.metadata" />
 
     <!-- 邮件内容 -->
     <div class="mail-content">

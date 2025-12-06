@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     source TEXT,
     address TEXT,
     raw TEXT,
+    metadata TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
