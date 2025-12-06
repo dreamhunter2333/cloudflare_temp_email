@@ -24,7 +24,7 @@
 
 ## ✨ Key Features
 
-- **� Email Processing**: Rust WASM parser, SMTP/IMAP support, attachments, auto-reply
+- **📧 Email Processing**: Rust WASM parser, **AI email extraction** (verification codes, auth links), SMTP/IMAP support, attachments, auto-reply
 - **👥 User Management**: OAuth2 login, Passkey authentication, role management
 - **🌐 Admin Panel**: Complete admin console, user management, scheduled cleanup
 - **🤖 Integrations**: Telegram Bot, webhooks, CAPTCHA, rate limiting
