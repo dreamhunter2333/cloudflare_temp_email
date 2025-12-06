@@ -6,7 +6,7 @@
   "devDependencies": {
     "@types/node": "^24.10.1",
     "vitepress": "^1.6.4",
-    "wrangler": "^4.47.0"
+    "wrangler": "^4.53.0"
   },
   "scripts": {
     "dev": "vitepress dev docs",

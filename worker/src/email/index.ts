@@ -7,6 +7,7 @@ import { isBlocked } from "./black_list";
 import { triggerWebhook, triggerAnotherWorker, commonParseMail } from "../common";
 import { check_if_junk_mail } from "./check_junk";
 import { remove_attachment_if_need } from "./check_attachment";
+import { extractEmailInfo } from "./ai_extract";
 import { EmailRuleSettings } from "../models";
 import { CONSTANTS } from "../constants";
 
@@ -155,6 +156,9 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
 
     // auto reply email
     await auto_reply(message, env);
+
+    // AI email content extraction
+    await extractEmailInfo(parsedEmailContext, env, message_id, message.to);
 }
 
 export { email }

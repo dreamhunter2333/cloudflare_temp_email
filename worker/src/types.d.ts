@@ -11,6 +11,7 @@ type Bindings = {
     RATE_LIMITER: any
     SEND_MAIL: any
     ASSETS: Fetcher
+    AI: Ai
 
     // config
     DEFAULT_LANG: string | undefined
@@ -86,6 +87,10 @@ type Bindings = {
 
     // webhook config
     FRONTEND_URL: string | undefined
+
+    // AI extraction config
+    ENABLE_AI_EMAIL_EXTRACT: string | boolean | undefined
+    AI_EXTRACT_MODEL: string | undefined
 }
 
 type JwtPayload = {

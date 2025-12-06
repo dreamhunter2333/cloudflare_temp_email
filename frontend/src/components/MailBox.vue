@@ -8,6 +8,7 @@ import { useIsMobile } from '../utils/composables'
 import { processItem } from '../utils/email-parser'
 import { utcToLocalDate } from '../utils';
 import MailContentRenderer from "./MailContentRenderer.vue";
+import AiExtractInfo from "./AiExtractInfo.vue";
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -439,6 +440,7 @@ onBeforeUnmount(() => {
                         TO: {{ row.address }}
                       </n-ellipsis>
                     </n-tag>
+                    <AiExtractInfo :metadata="row.metadata" compact />
                   </template>
                 </n-thing>
               </n-list-item>
@@ -513,6 +515,7 @@ onBeforeUnmount(() => {
                 <n-tag v-if="showEMailTo" type="info">
                   TO: {{ row.address }}
                 </n-tag>
+                <AiExtractInfo :metadata="row.metadata" compact />
               </template>
             </n-thing>
           </n-list-item>
