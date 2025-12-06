@@ -82,6 +82,11 @@ const isLink = computed(() => {
 
 const displayText = computed(() => {
   if (!aiExtract.value) return '';
+  // For auth_code, always show the raw result (verification code)
+  if (aiExtract.value.type === 'auth_code') {
+    return aiExtract.value.result;
+  }
+  // For links, prefer result_text as display label
   return aiExtract.value.result_text || aiExtract.value.result;
 });
 
