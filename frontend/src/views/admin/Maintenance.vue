@@ -50,7 +50,7 @@ const { t } = useI18n({
             sqlName: "Name",
             sqlStatement: "SQL Statement (DELETE only)",
             sqlNamePlaceholder: "e.g. Clean old logs",
-            sqlPlaceholder: "e.g. DELETE FROM raw_mails WHERE source GLOB '*@example.com' AND created_at < datetime('now', '-3 day')",
+            sqlPlaceholder: "e.g. DELETE FROM raw_mails WHERE source GLOB '*{'@'}example.com' AND created_at < datetime('now', '-3 day')",
             deleteCustomSql: "Delete",
         },
         zh: {
@@ -75,7 +75,7 @@ const { t } = useI18n({
             sqlName: "名称",
             sqlStatement: "SQL 语句 (仅限 DELETE)",
             sqlNamePlaceholder: "例如: 清理旧日志",
-            sqlPlaceholder: "例如: DELETE FROM raw_mails WHERE source GLOB '*@example.com' AND created_at < datetime('now', '-3 day')",
+            sqlPlaceholder: "例如: DELETE FROM raw_mails WHERE source GLOB '*{'@'}example.com' AND created_at < datetime('now', '-3 day')",
             deleteCustomSql: "删除",
         }
     }
