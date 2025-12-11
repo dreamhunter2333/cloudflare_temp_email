@@ -113,6 +113,9 @@ const fetchData = async () => {
     try {
         const res = await api.fetch('/admin/auto_cleanup');
         if (res) Object.assign(cleanupModel.value, res);
+        if (!cleanupModel.value.customSqlCleanupList) {
+            cleanupModel.value.customSqlCleanupList = [];
+        }
     } catch (error) {
         message.error(error.message || "error");
     }
