@@ -22,6 +22,15 @@ const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
 const showAd = computed(() => !isMobile.value && adClient && adSlot);
 const gridMaxCols = computed(() => showAd.value ? 8 : 12);
 
+// Load Google Ad script at top level (not inside onMounted)
+if (showAd.value) {
+  useScript({
+    src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`,
+    async: true,
+    crossorigin: "anonymous",
+  })
+}
+
 onMounted(async () => {
   try {
     await api.getUserSettings();
@@ -42,11 +51,6 @@ onMounted(async () => {
 
   // check if google ad is enabled
   if (showAd.value) {
-    useScript({
-      src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`,
-      async: true,
-      crossorigin: "anonymous",
-    });
     (window.adsbygoogle = window.adsbygoogle || []).push({});
     (window.adsbygoogle = window.adsbygoogle || []).push({});
   }
