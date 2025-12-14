@@ -148,6 +148,14 @@ onMounted(() => {
           </n-button>
         </template>
         <n-tab-pane name="mailbox" :tab="t('mailbox')">
+          <div v-if="showMailIdQuery" style="margin-bottom: 10px;">
+            <n-input-group>
+              <n-input v-model:value="mailIdQuery" />
+              <n-button @click="queryMail" type="primary" tertiary>
+                {{ t('query') }}
+              </n-button>
+            </n-input-group>
+          </div>
           <MailBox :key="mailBoxKey" :showEMailTo="false" :showReply="true" :showSaveS3="openSettings.isS3Enabled"
             :saveToS3="saveToS3" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
             :fetchMailData="fetchMailData" :deleteMail="deleteMail" :showFilterInput="true" />
