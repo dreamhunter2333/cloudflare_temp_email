@@ -19,7 +19,7 @@ res = requests.get(
 
 ## Admin Mail API
 
-Supports `address` filter and `keyword` filter
+Supports `address` filter
 
 ```python
 import requests
@@ -29,9 +29,8 @@ url = "https://<your-worker-address>/admin/mails"
 querystring = {
     "limit":"20",
     "offset":"0",
-    # address and keyword are optional parameters
-    "address":"xxxx@awsl.uk",
-    "keyword":"xxxx"
+    # address is optional parameter
+    "address":"xxxx@awsl.uk"
 }
 
 headers = {"x-admin-auth": "<your-Admin-password>"}
@@ -41,9 +40,11 @@ response = requests.get(url, headers=headers, params=querystring)
 print(response.json())
 ```
 
+**Note**: Keyword filtering has been removed from the backend API. If you need to filter emails by content, please use the frontend filter input in the UI, which filters the currently displayed page.
+
 ## User Mail API
 
-Supports `address` filter and `keyword` filter
+Supports `address` filter
 
 ```python
 import requests
@@ -53,9 +54,8 @@ url = "https://<your-worker-address>/user_api/mails"
 querystring = {
     "limit":"20",
     "offset":"0",
-    # address and keyword are optional parameters
-    "address":"xxxx@awsl.uk",
-    "keyword":"xxxx"
+    # address is optional parameter
+    "address":"xxxx@awsl.uk"
 }
 
 headers = {"x-admin-auth": "<your-Admin-password>"}
@@ -64,3 +64,5 @@ response = requests.get(url, headers=headers, params=querystring)
 
 print(response.json())
 ```
+
+**Note**: Keyword filtering has been removed from the backend API. If you need to filter emails by content, please use the frontend filter input in the UI, which filters the currently displayed page.

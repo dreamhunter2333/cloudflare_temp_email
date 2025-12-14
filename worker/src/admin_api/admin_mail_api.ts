@@ -3,14 +3,12 @@ import { handleListQuery } from "../common";
 
 export default {
     getMails: async (c: Context<HonoCustomType>) => {
-        const { address, limit, offset, keyword } = c.req.query();
+        const { address, limit, offset } = c.req.query();
         const addressQuery = address ? `address = ?` : "";
         const addressParams = address ? [address] : [];
-        const keywordQuery = keyword ? `raw like ?` : "";
-        const keywordParams = keyword ? [`%${keyword}%`] : [];
-        const filterQuerys = [addressQuery, keywordQuery].filter((item) => item).join(" and ");
+        const filterQuerys = [addressQuery].filter((item) => item).join(" and ");
         const finalQuery = filterQuerys.length > 0 ? `where ${filterQuerys}` : "";
-        const filterParams = [...addressParams, ...keywordParams]
+        const filterParams = [...addressParams]
         return await handleListQuery(c,
             `SELECT * FROM raw_mails ${finalQuery}`,
             `SELECT count(*) as count FROM raw_mails ${finalQuery}`,

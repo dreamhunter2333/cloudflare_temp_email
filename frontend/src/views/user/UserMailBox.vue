@@ -10,12 +10,10 @@ const { t } = useI18n({
     messages: {
         en: {
             addressQueryTip: 'Leave blank to query all addresses',
-            keywordQueryTip: 'Leave blank to not query by keyword',
             query: 'Query',
         },
         zh: {
             addressQueryTip: '留空查询所有地址',
-            keywordQueryTip: '留空不按关键字查询',
             query: '查询',
         }
     }
@@ -23,12 +21,10 @@ const { t } = useI18n({
 
 const mailBoxKey = ref("")
 const addressFilter = ref();
-const mailKeyword = ref("")
 const addressFilterOptions = ref([]);
 
 const queryMail = () => {
     addressFilter.value = addressFilter.value ? addressFilter.value.trim() : addressFilter.value;
-    mailKeyword.value = mailKeyword.value.trim();
     mailBoxKey.value = Date.now();
 }
 
@@ -38,7 +34,6 @@ const fetchMailData = async (limit, offset) => {
         + `?limit=${limit}`
         + `&offset=${offset}`
         + (addressFilter.value ? `&address=${addressFilter.value}` : '')
-        + (mailKeyword.value ? `&keyword=${mailKeyword.value}` : '')
     );
 }
 
@@ -77,13 +72,12 @@ onMounted(() => {
         <n-input-group>
             <n-select v-model:value="addressFilter" :options="addressFilterOptions" clearable
                 :placeholder="t('addressQueryTip')" />
-            <n-input v-model:value="mailKeyword" :placeholder="t('keywordQueryTip')" @keydown.enter="queryMail" />
             <n-button @click="queryMail" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>
         </n-input-group>
         <div style="margin-top: 10px;"></div>
         <MailBox :key="mailBoxKey" :enableUserDeleteEmail="true" :fetchMailData="fetchMailData"
-            :deleteMail="deleteMail" />
+            :deleteMail="deleteMail" :showFilterInput="true" />
     </div>
 </template>
