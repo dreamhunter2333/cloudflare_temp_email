@@ -19,7 +19,7 @@ res = requests.get(
 
 ## admin 邮件 API
 
-支持 `address` filter 和 `keyword` filter
+支持 `address` 过滤
 
 ```python
 import requests
@@ -29,9 +29,8 @@ url = "https://<你的worker地址>/admin/mails"
 querystring = {
     "limit":"20",
     "offset":"0",
-    # adress 和 keyword 为可选参数
-    "address":"xxxx@awsl.uk",
-    "keyword":"xxxx"
+    # address 为可选参数
+    "address":"xxxx@awsl.uk"
 }
 
 headers = {"x-admin-auth": "<你的Admin密码>"}
@@ -41,9 +40,11 @@ response = requests.get(url, headers=headers, params=querystring)
 print(response.json())
 ```
 
+**注意**：后端 API 已移除关键词过滤功能。如需按内容过滤邮件，请使用前端界面的过滤输入框，该功能可过滤当前显示的页面。
+
 ## user 邮件 API
 
-支持 `address` filter 和 `keyword` filter
+支持 `address` 过滤
 
 ```python
 import requests
@@ -53,9 +54,8 @@ url = "https://<你的worker地址>/user_api/mails"
 querystring = {
     "limit":"20",
     "offset":"0",
-    # adress 和 keyword 为可选参数
-    "address":"xxxx@awsl.uk",
-    "keyword":"xxxx"
+    # address 为可选参数
+    "address":"xxxx@awsl.uk"
 }
 
 headers = {"x-admin-auth": "<你的Admin密码>"}
@@ -64,3 +64,5 @@ response = requests.get(url, headers=headers, params=querystring)
 
 print(response.json())
 ```
+
+**注意**：后端 API 已移除关键词过滤功能。如需按内容过滤邮件，请使用前端界面的过滤输入框，该功能可过滤当前显示的页面。
