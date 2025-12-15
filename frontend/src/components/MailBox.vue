@@ -527,7 +527,7 @@ onBeforeUnmount(() => {
           {{ t('refresh') }}
         </n-button>
       </n-space>
-      <div v-if="showFilterInput" style="padding: 0 10px; margin-top: 8px;">
+      <div v-if="showFilterInput" style="padding: 0 10px; margin-top: 8px; margin-bottom: 10px;">
         <n-input v-model:value="localFilterKeyword"
           :placeholder="t('keywordQueryTip')" size="small" clearable />
       </div>
@@ -543,10 +543,14 @@ onBeforeUnmount(() => {
                   {{ utcToLocalDate(row.created_at, useUTCDate) }}
                 </n-tag>
                 <n-tag type="info">
-                  {{ showEMailTo ? "FROM: " + row.source : row.source }}
+                  <n-ellipsis style="max-width: 240px;">
+                    {{ showEMailTo ? "FROM: " + row.source : row.source }}
+                  </n-ellipsis>
                 </n-tag>
                 <n-tag v-if="showEMailTo" type="info">
-                  TO: {{ row.address }}
+                  <n-ellipsis style="max-width: 240px;">
+                    TO: {{ row.address }}
+                  </n-ellipsis>
                 </n-tag>
                 <AiExtractInfo :metadata="row.metadata" compact />
               </template>
