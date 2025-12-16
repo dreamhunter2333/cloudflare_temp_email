@@ -110,7 +110,7 @@
 - [x] 使用 `rust wasm` 解析邮件，解析速度快，几乎所有邮件都能解析，node 的解析模块解析邮件失败的邮件，rust wasm 也能解析成功
 - [x] **AI 邮件识别** - 使用 Cloudflare Workers AI 自动提取邮件中的验证码、认证链接、服务链接等重要信息
 - [x] 支持发送邮件，支持 `DKIM` 验证
-- [x] 支持 `SMTP` 和 `Resend` 等多种发送方式
+- [x] 支持 `SMTP` 和 `Resend` 等多种发送方式 
 - [x] 增加查看 `附件` 功能，支持附件图片显示
 - [x] 支持 S3 附件存储和删除功能
 - [x] 垃圾邮件检测和黑白名单配置
@@ -181,6 +181,14 @@
 - **SMTP Proxy Server**: Python 邮件代理服务
 - **Pages Functions**: Cloudflare Pages 中间件
 - **Documentation**: VitePress 文档站点
+
+### 提醒
+
+- 在Resend添加域名记录时，如果您域名解析服务商正在托管您的3级域名a.b.com，请删除Resend生成的默认name中二级域名前缀b，否则将会添加a.b.b.com，导致验证失败。添加记录后，可通过
+```bash
+nslookup -qt="mx" a.b.com 1.1.1.1
+```
+进行验证。 
 
 </details>
 
