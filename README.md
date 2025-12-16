@@ -182,6 +182,8 @@
 - **Pages Functions**: Cloudflare Pages 中间件
 - **Documentation**: VitePress 文档站点
 
+</details>
+
 ### 提醒
 
 - 在Resend添加域名记录时，如果您域名解析服务商正在托管您的3级域名a.b.com，请删除Resend生成的默认name中二级域名前缀b，否则将会添加a.b.b.com，导致验证失败。添加记录后，可通过
@@ -189,8 +191,6 @@
 nslookup -qt="mx" a.b.com 1.1.1.1
 ```
 进行验证。 
-
-</details>
 
 ## 🌟 加入社区
 
