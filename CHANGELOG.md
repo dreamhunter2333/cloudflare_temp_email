@@ -1,5 +1,10 @@
-<!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
+<!-- markdownlint-disable-file MD004 MD024 MD033 MD034 MD036 -->
 # CHANGE LOG
+
+<p align="center">
+  <a href="CHANGELOG.md">🇨🇳 中文</a> |
+  <a href="CHANGELOG_EN.md">🇺🇸 English</a>
+</p>
 
 ## v1.2.0(main)
 
