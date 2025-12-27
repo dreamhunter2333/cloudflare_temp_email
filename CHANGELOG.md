@@ -8,6 +8,13 @@
 
 ## v1.2.0(main)
 
+### Breaking Changes
+
+- |数据库| 新增 `source_meta` 字段，需执行 `db/2025-12-27-source-meta.sql` 更新数据库或到 admin 维护页面点击数据库更新按钮
+
+### Features
+
+- feat: |地址来源| 新增地址来源追踪功能，记录地址创建来源（Web 记录 IP，Telegram 记录用户 ID，Admin 后台标记）
 - feat: |邮件过滤| 移除后端 keyword 参数，改为前端过滤当前页邮件，优化查询性能
 - feat: |数据库| 为 `message_id` 字段添加索引，优化邮件更新操作性能，需执行 `db/2025-12-15-message-id-index.sql` 更新数据库
 - feat: |Admin| 维护页面增加自定义 SQL 清理功能，支持定时任务执行自定义清理语句

@@ -38,7 +38,8 @@ export const tgUserNewAddress = async (
     const res = await newAddress(c, {
         name: finalName,
         domain,
-        enablePrefix: true
+        enablePrefix: true,
+        sourceMeta: `tg:${userId}`
     });
     // for mail push to telegram
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, res.jwt]));
