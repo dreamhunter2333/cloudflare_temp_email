@@ -57,6 +57,7 @@ api.post('/admin/new_address', async (c) => {
             addressPrefix: null,
             checkAllowDomains: false,
             enableCheckNameRegex: false,
+            sourceMeta: 'admin'
         });
 
         return c.json(res);
