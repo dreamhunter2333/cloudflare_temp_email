@@ -3,10 +3,14 @@ import { Jwt } from "hono/utils/jwt";
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getIntValue, getJsonSetting } from "../utils";
 import { deleteAddressWithData, newAddress, generateRandomName } from "../common";
+import i18n from "../i18n";
 
 export const tgUserNewAddress = async (
     c: Context<HonoCustomType>, userId: string, address: string
 ): Promise<{ address: string, jwt: string, password?: string | null }> => {
+    const lang = c.env.DEFAULT_LANG || "en";
+    const t = i18n.getTelegramMessages(lang);
+    
     if (c.env.RATE_LIMITER) {
         const { success } = await c.env.RATE_LIMITER.limit(
             { key: `${CONSTANTS.TG_KV_PREFIX}:${userId}` }
@@ -23,7 +27,7 @@ export const tgUserNewAddress = async (
     const [name, domain] = trimmedAddress.includes("@") ? trimmedAddress.split("@") : [trimmedAddress, null];
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
-        throw Error("绑定地址数量已达上限");
+        throw Error(t.addressLimitReached);
     }
     // Generate name if disabled or not provided
     const finalName = (!name || disableCustomAddressName) ? generateRandomName(c) : name;
@@ -32,7 +36,7 @@ export const tgUserNewAddress = async (
     const value = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
     const blockList = (value || []) as string[];
     if (blockList.some((item) => finalName.includes(item))) {
-        throw Error(`Name[${finalName}]is blocked`);
+        throw Error(`${t.nameBlocked}[${finalName}]`);
     }
 
     const res = await newAddress(c, {
@@ -53,6 +57,8 @@ export const jwtListToAddressData = async (
     addressList: string[], addressIdMap: Record<string, number>,
     invalidJwtList: string[]
 }> => {
+    const lang = c.env.DEFAULT_LANG || "en";
+    const t = i18n.getTelegramMessages(lang);
     const addressList = [] as string[];
     const addressIdMap = {} as Record<string, number>;
     const invalidJwtList = [] as string[];
@@ -63,16 +69,16 @@ export const jwtListToAddressData = async (
                 `SELECT name FROM address WHERE id = ? `
             ).bind(address_id).first("name");
             if (!name) {
-                addressList.push("无效地址");
+                addressList.push(t.invalidAddress);
                 invalidJwtList.push(jwt);
                 continue;
             }
             addressList.push(address as string);
             addressIdMap[address as string] = address_id as number;
         } catch (e) {
-            addressList.push("无效凭证");
+            addressList.push(t.invalidJwt);
             invalidJwtList.push(jwt);
-            console.log(`获取地址列表失败: ${(e as Error).message}`);
+            console.log(`${t.getAddressListFailed}${(e as Error).message}`);
         }
     }
     return { addressList, addressIdMap, invalidJwtList };
@@ -81,9 +87,11 @@ export const jwtListToAddressData = async (
 export const bindTelegramAddress = async (
     c: Context<HonoCustomType>, userId: string, jwt: string
 ): Promise<string> => {
+    const lang = c.env.DEFAULT_LANG || "en";
+    const t = i18n.getTelegramMessages(lang);
     const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
     if (!address) {
-        throw Error("无效凭证");
+        throw Error(t.invalidCredential);
     }
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     const { addressIdMap } = await jwtListToAddressData(c, jwtList);
@@ -91,7 +99,7 @@ export const bindTelegramAddress = async (
         return address as string;
     }
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
-        throw Error("绑定地址数量已达上限, 请先 /cleaninvalidaddress");
+        throw Error(t.addressLimitReachedClean);
     }
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, jwt]));
     // for mail push to telegram
@@ -111,7 +119,9 @@ export const unbindTelegramAddress = async (
                 continue;
             }
         } catch (e) {
-            console.log(`解绑失败: ${(e as Error).message}`);
+            const lang = c.env.DEFAULT_LANG || "en";
+            const t = i18n.getTelegramMessages(lang);
+            console.log(`${t.unbindFailed}${(e as Error).message}`);
         }
         newJwtList.push(jwt);
     }
@@ -135,10 +145,12 @@ export const unbindTelegramByAddress = async (
 export const deleteTelegramAddress = async (
     c: Context<HonoCustomType>, userId: string, address: string
 ): Promise<boolean> => {
+    const lang = c.env.DEFAULT_LANG || "en";
+    const t = i18n.getTelegramMessages(lang);
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     const { addressIdMap } = await jwtListToAddressData(c, jwtList);
     if (!(address in addressIdMap)) {
-        throw Error("此地址不属于您");
+        throw Error(t.addressNotYours);
     }
     await deleteAddressWithData(c, null, addressIdMap[address])
     return true;

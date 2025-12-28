@@ -1,4 +1,4 @@
-import { LocaleMessages } from "./type";
+import { LocaleMessages, TelegramMessages } from "./type";
 
 const messages: LocaleMessages = {
     CustomAuthPasswordMsg: "你已启用私有站点密码,请提供密码",
@@ -46,6 +46,67 @@ const messages: LocaleMessages = {
     PasswordLoginDisabledMsg: "密码登录已禁用",
     EmailPasswordRequiredMsg: "邮箱和密码不能为空",
     AddressNotFoundMsg: "邮箱地址不存在",
+}
+
+export const telegram: TelegramMessages = {
+    commands: {
+        start: "开始使用",
+        new: "新建邮箱地址, 如果要自定义邮箱地址, 请输入 /new, 通过 /new <name>@<domain> 可以指定, name [a-z0-9] 有效, name 为空则随机生成, @<domain> 可选",
+        address: "查看邮箱地址列表",
+        bind: "绑定邮箱地址, 请输入 /bind <邮箱地址凭证>",
+        unbind: "解绑邮箱地址, 请输入 /unbind <邮箱地址>",
+        delete: "删除邮箱地址, 请输入 /delete <邮箱地址>",
+        mails: "查看邮件, 请输入 /mails <邮箱地址>, 不输入地址默认查看第一个地址",
+        cleaninvalidaddress: "清理无效地址, 请输入 /cleaninvalidaddress"
+    },
+    unableGetUserInfo: "无法获取用户信息",
+    noPermission: "您没有权限使用此机器人",
+    welcome: "欢迎使用本机器人, 您可以打开 mini app\n\n",
+    currentPrefix: "当前已启用前缀: ",
+    currentDomains: "当前可用域名: ",
+    pleaseUseCommands: "请使用以下命令:\n",
+    address: "地址: ",
+    password: "密码: ",
+    credential: "凭证: ",
+    createSuccess: "创建地址成功:\n",
+    createFailed: "创建地址失败: ",
+    pleaseInputCredential: "请输入凭证",
+    bindSuccess: "绑定成功:\n",
+    bindFailed: "绑定失败: ",
+    pleaseInputAddress: "请输入地址",
+    unbindSuccess: "解绑成功:\n地址: ",
+    unbindFailed: "解绑失败: ",
+    deleteSuccess: "删除成功: ",
+    deleteFailed: "删除失败: ",
+    addressList: "地址列表:\n\n",
+    getAddressListFailed: "获取地址列表失败: ",
+    cleanSuccess: "清理无效地址成功:\n\n",
+    currentAddressList: "当前地址列表:\n\n",
+    cleanFailed: "清理无效地址失败: ",
+    noMoreMails: "已经没有邮件了",
+    viewMail: "查看邮件",
+    previous: "上一条",
+    next: "下一条",
+    getMailFailed: "获取邮件失败: ",
+    noMail: "无邮件",
+    addressNotBound: "未绑定此地址 ",
+    invalidAddress: "无效地址",
+    from: "From: ",
+    noSender: "无发件人",
+    to: "To: ",
+    date: "Date: ",
+    subject: "Subject: ",
+    content: "Content:\n",
+    parseFailed: "解析失败，请打开 mini app 查看",
+    messageTooLong: "\n\n...\n消息过长请到miniapp查看",
+    parseMailFailed: "解析邮件失败: ",
+    noPermissionViewMail: "无权查看此邮件",
+    addressLimitReached: "绑定地址数量已达上限",
+    addressLimitReachedClean: "绑定地址数量已达上限, 请先 /cleaninvalidaddress",
+    nameBlocked: "名称已被屏蔽",
+    invalidCredential: "无效凭证",
+    invalidJwt: "无效凭证",
+    addressNotYours: "此地址不属于您"
 }
 
 export default messages;
