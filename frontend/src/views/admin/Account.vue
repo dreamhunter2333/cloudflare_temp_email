@@ -22,6 +22,7 @@ const { t } = useI18n({
             updated_at: 'Update At',
             mail_count: 'Mail Count',
             send_count: 'Send Count',
+            source_meta: 'Source',
             showCredential: 'Show Mail Address Credential',
             addressCredential: 'Mail Address Credential',
             addressCredentialTip: 'Please copy the Mail Address Credential and you can use it to login to your email account.',
@@ -59,6 +60,7 @@ const { t } = useI18n({
             updated_at: '更新时间',
             mail_count: '邮件数量',
             send_count: '发送数量',
+            source_meta: '来源',
             showCredential: '查看邮箱地址凭证',
             addressCredential: '邮箱地址凭证',
             addressCredentialTip: '请复制邮箱地址凭证，你可以使用它登录你的邮箱。',
@@ -318,6 +320,10 @@ const columns = [
     {
         title: t('updated_at'),
         key: "updated_at"
+    },
+    {
+        title: t('source_meta'),
+        key: "source_meta"
     },
     {
         title: t('mail_count'),

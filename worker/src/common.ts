@@ -123,6 +123,7 @@ export const newAddress = async (
         addressPrefix = null,
         checkAllowDomains = true,
         enableCheckNameRegex = true,
+        sourceMeta = null,
     }: {
         name: string, domain: string | undefined | null,
         enablePrefix: boolean,
@@ -130,6 +131,7 @@ export const newAddress = async (
         addressPrefix?: string | undefined | null,
         checkAllowDomains?: boolean,
         enableCheckNameRegex?: boolean,
+        sourceMeta?: string | undefined | null,
     }
 ): Promise<{ address: string, jwt: string, password?: string | null }> => {
     // trim whitespace and remove special characters
@@ -180,19 +182,30 @@ export const newAddress = async (
     // create address
     name = name + "@" + domain;
     try {
-        const { success } = await c.env.DB.prepare(
-            `INSERT INTO address(name) VALUES(?)`
-        ).bind(name).run();
-        if (!success) {
+        // Try insert with source_meta field first
+        const result = await c.env.DB.prepare(
+            `INSERT INTO address(name, source_meta) VALUES(?, ?)`
+        ).bind(name, sourceMeta).run();
+        if (!result.success) {
             throw new Error("Failed to create address")
         }
         await updateAddressUpdatedAt(c, name);
     } catch (e) {
         const message = (e as Error).message;
-        if (message && message.includes("UNIQUE")) {
+        // Fallback: source_meta field may not exist, try without it
+        if (message && message.includes("source_meta")) {
+            const result = await c.env.DB.prepare(
+                `INSERT INTO address(name) VALUES(?)`
+            ).bind(name).run();
+            if (!result.success) {
+                throw new Error("Failed to create address")
+            }
+            await updateAddressUpdatedAt(c, name);
+        } else if (message && message.includes("UNIQUE")) {
             throw new Error("Address already exists")
+        } else {
+            throw new Error("Failed to create address")
         }
-        throw new Error("Failed to create address")
     }
     const address_id = await c.env.DB.prepare(
         `SELECT id FROM address where name = ?`

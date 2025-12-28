@@ -144,11 +144,17 @@ api.post('/api/new_address', async (c) => {
     }
     try {
         const addressPrefix = await getAddressPrefix(c);
+        // Get client IP for source tracking
+        const sourceMeta = c.req.header('CF-Connecting-IP')
+            || c.req.header('X-Forwarded-For')?.split(',')[0]?.trim()
+            || c.req.header('X-Real-IP')
+            || 'web:unknown';
         const res = await newAddress(c, {
             name, domain,
             enablePrefix: true,
             checkLengthByConfig: true,
-            addressPrefix
+            addressPrefix,
+            sourceMeta
         });
         return c.json(res);
     } catch (e) {

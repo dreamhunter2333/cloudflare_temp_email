@@ -8,6 +8,13 @@
 
 ## v1.2.0(main)
 
+### Breaking Changes
+
+- |Database| Add `source_meta` field, need to execute `db/2025-12-27-source-meta.sql` to update database or click database update button on admin maintenance page
+
+### Features
+
+- feat: |Address Source| Add address source tracking feature, record address creation source (Web records IP, Telegram records user ID, Admin panel marked)
 - feat: |Email Filtering| Remove backend keyword parameter, switch to frontend filtering of current page emails, optimize query performance
 - feat: |Database| Add index for `message_id` field to optimize email update operations, need to execute `db/2025-12-15-message-id-index.sql` to update database
 - feat: |Admin| Add custom SQL cleanup feature to maintenance page, support scheduled task execution of custom cleanup statements
