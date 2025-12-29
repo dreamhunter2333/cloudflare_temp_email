@@ -7,8 +7,7 @@ export default {
     // 修改地址密码
     changePassword: async (c: Context<HonoCustomType>) => {
         const { new_password } = await c.req.json();
-        const lang = c.get("lang") || c.env.DEFAULT_LANG;
-        const msgs = i18n.getMessages(lang);
+        const msgs = i18n.getMessagesbyContext(c);
         const { address, address_id } = c.get("jwtPayload");
 
         // 检查功能是否启用
@@ -39,8 +38,7 @@ export default {
     // 地址密码登录
     login: async (c: Context<HonoCustomType>) => {
         const { email, password, cf_token } = await c.req.json();
-        const lang = c.get("lang") || c.env.DEFAULT_LANG;
-        const msgs = i18n.getMessages(lang);
+        const msgs = i18n.getMessagesbyContext(c);
 
         // 检查功能是否启用
         if (!getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)) {

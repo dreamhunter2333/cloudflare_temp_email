@@ -10,6 +10,7 @@ import {
 import { Passkey } from '../models';
 import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
+import i18n from '../i18n';
 
 export default {
     getPassKeys: async (c: Context<HonoCustomType>) => {
@@ -20,10 +21,11 @@ export default {
         return c.json(results);
     },
     renamePassKey: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
         const user = c.get("userPayload");
         const { passkey_id, passkey_name } = await c.req.json();
         if (!passkey_name || passkey_name.length > 255) {
-            return c.text("Invalid passkey name", 400);
+            return c.text(msgs.InvalidPasskeyNameMsg, 400);
         }
         const { success } = await c.env.DB.prepare(
             `UPDATE user_passkeys SET passkey_name = ? WHERE user_id = ? AND passkey_id = ?`
@@ -71,6 +73,7 @@ export default {
         return c.json(options);
     },
     registerResponse: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
         const user = c.get("userPayload");
         const { credential, origin, passkey_name } = await c.req.json();
         // Verify the registration response
@@ -90,7 +93,7 @@ export default {
         const { verified, registrationInfo } = verification;
 
         if (!verified || !registrationInfo) {
-            return c.text("Registration failed", 400);
+            return c.text(msgs.RegistrationFailedMsg, 400);
         }
 
         const {
@@ -131,10 +134,11 @@ export default {
         return c.json(options);
     },
     authenticateResponse: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
         const { domain, credential, origin } = await c.req.json();
         const passkey_id = credential?.id;
         if (!passkey_id) {
-            return c.text("Invalid request", 400);
+            return c.text(msgs.InvalidInputMsg, 400);
         }
         const { user_id, counter, passkey } = await c.env.DB.prepare(
             `SELECT user_id, counter, passkey FROM user_passkeys WHERE passkey_id = ?`
@@ -142,7 +146,7 @@ export default {
             counter: number; passkey: string; user_id: number;
         }>() || {};
         if (!passkey) {
-            return c.text("Passkey not found", 404);
+            return c.text(msgs.PasskeyNotFoundMsg, 404);
         }
         const passkeyData = JSON.parse(passkey) as Passkey;
         // Verify the registration response
@@ -166,7 +170,7 @@ export default {
         });
         const { verified, authenticationInfo } = verification;
         if (!verified) {
-            return c.text("Authentication failed", 400);
+            return c.text(msgs.AuthenticationFailedMsg, 400);
         }
 
         if (authenticationInfo) {
@@ -186,7 +190,7 @@ export default {
             `SELECT user_email FROM users WHERE id = ?`
         ).bind(user_id).first<{ user_email: string }>() || {};
         if (!user_email) {
-            return c.text("User not found", 404);
+            return c.text(msgs.UserNotFoundMsg, 404);
         }
         // create jwt
         const jwt = await Jwt.sign({

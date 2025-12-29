@@ -3,9 +3,11 @@ import { Jwt } from "hono/utils/jwt";
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getIntValue, getJsonSetting } from "../utils";
 import { deleteAddressWithData, newAddress, generateRandomName } from "../common";
+import { LocaleMessages } from "../i18n/type";
 
 export const tgUserNewAddress = async (
-    c: Context<HonoCustomType>, userId: string, address: string
+    c: Context<HonoCustomType>, userId: string, address: string,
+    msgs: LocaleMessages
 ): Promise<{ address: string, jwt: string, password?: string | null }> => {
     if (c.env.RATE_LIMITER) {
         const { success } = await c.env.RATE_LIMITER.limit(
@@ -23,7 +25,7 @@ export const tgUserNewAddress = async (
     const [name, domain] = trimmedAddress.includes("@") ? trimmedAddress.split("@") : [trimmedAddress, null];
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
-        throw Error("绑定地址数量已达上限");
+        throw Error(msgs.TgMaxAddressReachedMsg);
     }
     // Generate name if disabled or not provided
     const finalName = (!name || disableCustomAddressName) ? generateRandomName(c) : name;
@@ -48,7 +50,8 @@ export const tgUserNewAddress = async (
 }
 
 export const jwtListToAddressData = async (
-    c: Context<HonoCustomType>, jwtList: string[]
+    c: Context<HonoCustomType>, jwtList: string[],
+    msgs: LocaleMessages
 ): Promise<{
     addressList: string[], addressIdMap: Record<string, number>,
     invalidJwtList: string[]
@@ -63,35 +66,36 @@ export const jwtListToAddressData = async (
                 `SELECT name FROM address WHERE id = ? `
             ).bind(address_id).first("name");
             if (!name) {
-                addressList.push("无效地址");
+                addressList.push(msgs.TgInvalidAddressMsg);
                 invalidJwtList.push(jwt);
                 continue;
             }
             addressList.push(address as string);
             addressIdMap[address as string] = address_id as number;
         } catch (e) {
-            addressList.push("无效凭证");
+            addressList.push(msgs.TgInvalidCredentialMsg);
             invalidJwtList.push(jwt);
-            console.log(`获取地址列表失败: ${(e as Error).message}`);
+            console.log(`Failed to get address list: ${(e as Error).message}`);
         }
     }
     return { addressList, addressIdMap, invalidJwtList };
 }
 
 export const bindTelegramAddress = async (
-    c: Context<HonoCustomType>, userId: string, jwt: string
+    c: Context<HonoCustomType>, userId: string, jwt: string,
+    msgs: LocaleMessages
 ): Promise<string> => {
     const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
     if (!address) {
-        throw Error("无效凭证");
+        throw Error(msgs.TgInvalidCredentialMsg);
     }
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-    const { addressIdMap } = await jwtListToAddressData(c, jwtList);
+    const { addressIdMap } = await jwtListToAddressData(c, jwtList, msgs);
     if (address as string in addressIdMap) {
         return address as string;
     }
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
-        throw Error("绑定地址数量已达上限, 请先 /cleaninvalidaddress");
+        throw Error(msgs.TgMaxAddressReachedCleanMsg);
     }
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, jwt]));
     // for mail push to telegram
@@ -133,12 +137,13 @@ export const unbindTelegramByAddress = async (
 
 
 export const deleteTelegramAddress = async (
-    c: Context<HonoCustomType>, userId: string, address: string
+    c: Context<HonoCustomType>, userId: string, address: string,
+    msgs: LocaleMessages
 ): Promise<boolean> => {
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-    const { addressIdMap } = await jwtListToAddressData(c, jwtList);
+    const { addressIdMap } = await jwtListToAddressData(c, jwtList, msgs);
     if (!(address in addressIdMap)) {
-        throw Error("此地址不属于您");
+        throw Error(msgs.TgAddressNotYoursMsg);
     }
     await deleteAddressWithData(c, null, addressIdMap[address])
     return true;

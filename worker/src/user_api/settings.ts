@@ -31,8 +31,7 @@ export default {
     },
     settings: async (c: Context<HonoCustomType>) => {
         const user = c.get("userPayload");
-        const lang = c.get("lang") || c.env.DEFAULT_LANG;
-        const msgs = i18n.getMessages(lang);
+        const msgs = i18n.getMessagesbyContext(c);
         // check if user exists
         const db_user_id = await c.env.DB.prepare(
             `SELECT id FROM users where id = ?`

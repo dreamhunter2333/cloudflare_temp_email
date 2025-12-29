@@ -10,8 +10,7 @@ import { sendMail } from "../mails_api/send_mail_api";
 export default {
     verifyCode: async (c: Context<HonoCustomType>) => {
         const { email, cf_token } = await c.req.json();
-        const lang = c.get("lang") || c.env.DEFAULT_LANG;
-        const msgs = i18n.getMessages(lang);
+        const msgs = i18n.getMessagesbyContext(c);
         // check cf turnstile
         try {
             await checkCfTurnstile(c, cf_token);
@@ -61,8 +60,7 @@ export default {
     register: async (c: Context<HonoCustomType>) => {
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value)
-        const lang = c.get("lang") || c.env.DEFAULT_LANG;
-        const msgs = i18n.getMessages(lang);
+        const msgs = i18n.getMessagesbyContext(c);
         // check enable
         if (!settings.enable) {
             return c.text(msgs.UserRegistrationDisabledMsg, 403);
@@ -154,8 +152,7 @@ export default {
     },
     login: async (c: Context<HonoCustomType>) => {
         const { email, password } = await c.req.json();
-        const lang = c.get("lang") || c.env.DEFAULT_LANG;
-        const msgs = i18n.getMessages(lang);
+        const msgs = i18n.getMessagesbyContext(c);
         if (!email || !password) return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
         const { id: user_id, password: dbPassword } = await c.env.DB.prepare(
             `SELECT id, password FROM users where user_email = ?`
