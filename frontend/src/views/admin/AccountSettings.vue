@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, h } from 'vue';
 import { useI18n } from 'vue-i18n'
-import { NButton, NPopconfirm, NInput, NSelect } from 'naive-ui'
+import { NButton, NPopconfirm, NInput, NSelect, NRadioGroup, NRadio } from 'naive-ui'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
@@ -24,7 +24,7 @@ const { t } = useI18n({
             fromBlockList: 'Block Keywords for receive email',
             block_receive_unknow_address_email: 'Block receive unknow address email',
             email_forwarding_config: 'Email Forwarding Configuration',
-            domain_list: 'Domain List',
+            domain_list: 'Domain List (Optional)',
             forward_address: 'Forward Address',
             actions: 'Actions',
             select_domain: 'Select Domain',
@@ -32,10 +32,20 @@ const { t } = useI18n({
             delete_rule: 'Delete',
             delete_rule_confirm: 'Are you sure you want to delete this rule?',
             delete_success: 'Delete Success',
-            forwarding_rule_warning: 'Each rule will run, if domains is empty, all emails will be forwarded, forward address needs to be a verified address',
+            forwarding_rule_warning: 'Each rule will run independently. Forward address needs to be a verified address.',
             add: 'Add',
             cancel: 'Cancel',
             config: 'Config',
+            source_patterns: 'Source Address Regex (Optional)',
+            source_patterns_placeholder: 'e.g. @gmail\\.com$',
+            source_match_mode: 'Match Mode',
+            match_any: 'Any',
+            match_all: 'All',
+            source_patterns_tip: 'Domain list filters by recipient address, source regex filters by sender address. Both conditions must match for forwarding (AND logic). Leave either empty to skip that filter.',
+            regex_too_long: 'Regex pattern too long (max 200 characters)',
+            regex_invalid: 'Invalid regex pattern',
+            forward_address_required: 'Forward address is required',
+            rule_index: 'Rule',
         },
         zh: {
             tip: '您可以手动输入以下多选输入框, 回车增加',
@@ -50,7 +60,7 @@ const { t } = useI18n({
             fromBlockList: '接收邮件地址屏蔽关键词',
             block_receive_unknow_address_email: '禁止接收未知地址邮件',
             email_forwarding_config: '邮件转发配置',
-            domain_list: '域名列表',
+            domain_list: '域名列表（可选）',
             forward_address: '转发地址',
             actions: '操作',
             select_domain: '选择域名',
@@ -58,10 +68,20 @@ const { t } = useI18n({
             delete_rule: '删除',
             delete_rule_confirm: '确定要删除这条规则吗？',
             delete_success: '删除成功',
-            forwarding_rule_warning: '每条规则都会运行，如果 domains 为空，则转发所有邮件，转发地址需要为已验证的地址',
+            forwarding_rule_warning: '每条规则独立运行，转发地址需要为已验证的地址。',
             add: '添加',
             cancel: '取消',
             config: '配置',
+            source_patterns: '来源地址正则（可选）',
+            source_patterns_placeholder: '例如: @gmail\\.com$',
+            source_match_mode: '匹配模式',
+            match_any: '任一',
+            match_all: '全部',
+            source_patterns_tip: '域名列表按收件地址过滤，来源正则按发件地址过滤，两者均为可选。同时配置时需同时满足（AND 逻辑），留空则跳过该条件。',
+            regex_too_long: '正则表达式过长（最大200字符）',
+            regex_invalid: '无效的正则表达式',
+            forward_address_required: '转发地址不能为空',
+            rule_index: '规则',
         }
     }
 });
@@ -96,6 +116,39 @@ const emailForwardingColumns = [
                 tag: true,
                 placeholder: t('select_domain')
             })
+        }
+    },
+    {
+        title: t('source_patterns'),
+        key: 'sourcePatterns',
+        render: (row, index) => {
+            return h('div', { style: 'display: flex; flex-direction: column; gap: 4px;' }, [
+                h(NSelect, {
+                    value: Array.isArray(row.sourcePatterns) ? row.sourcePatterns : [],
+                    onUpdateValue: (val) => {
+                        emailForwardingList.value[index].sourcePatterns = val
+                    },
+                    multiple: true,
+                    filterable: true,
+                    tag: true,
+                    placeholder: t('source_patterns_placeholder')
+                }, {
+                    empty: () => h('span', { style: 'color: #999; font-size: 12px;' }, t('manualInputPrompt'))
+                }),
+                h(NRadioGroup, {
+                    value: row.sourceMatchMode || 'any',
+                    onUpdateValue: (val) => {
+                        emailForwardingList.value[index].sourceMatchMode = val
+                    },
+                    size: 'small',
+                    style: 'margin-top: 4px;'
+                }, {
+                    default: () => [
+                        h(NRadio, { value: 'any' }, { default: () => t('match_any') }),
+                        h(NRadio, { value: 'all' }, { default: () => t('match_all') })
+                    ]
+                })
+            ])
         }
     },
     {
@@ -145,12 +198,50 @@ const addNewEmailForwardingItem = () => {
         ...emailForwardingList.value,
         {
             domains: [],
-            forward: ''
+            forward: '',
+            sourcePatterns: [],
+            sourceMatchMode: 'any'
         }
     ]
 }
 
+const MAX_REGEX_LENGTH = 200
+
+const validateForwardingRules = () => {
+    for (let i = 0; i < emailForwardingList.value.length; i++) {
+        const rule = emailForwardingList.value[i]
+
+        // 验证转发地址
+        if (!rule.forward || rule.forward.trim() === '') {
+            message.error(`${t('forward_address_required')} (${t('rule_index')} ${i + 1})`)
+            return false
+        }
+
+        // 验证正则表达式
+        if (rule.sourcePatterns && rule.sourcePatterns.length > 0) {
+            for (const pattern of rule.sourcePatterns) {
+                // 检查长度
+                if (pattern.length > MAX_REGEX_LENGTH) {
+                    message.error(`${t('regex_too_long')}: ${pattern.substring(0, 30)}...`)
+                    return false
+                }
+                // 检查正则有效性
+                try {
+                    new RegExp(pattern, 'i')
+                } catch (e) {
+                    message.error(`${t('regex_invalid')}: ${pattern}`)
+                    return false
+                }
+            }
+        }
+    }
+    return true
+}
+
 const saveEmailForwardingConfig = () => {
+    if (!validateForwardingRules()) {
+        return
+    }
     emailRuleSettings.value.emailForwardingList = [...emailForwardingList.value]
     showEmailForwardingModal.value = false
 }
@@ -269,10 +360,12 @@ onMounted(async () => {
 
     <!-- 邮件转发配置弹窗 -->
     <n-modal v-model:show="showEmailForwardingModal" preset="card" :title="t('email_forwarding_config')"
-        style="max-width: 800px;">
+        style="max-width: 1000px;">
         <n-space vertical>
             <n-alert :show-icon="false" :bordered="false" type="warning">
                 <span>{{ t('forwarding_rule_warning') }}</span>
+                <br />
+                <span>{{ t('source_patterns_tip') }}</span>
             </n-alert>
             <n-space justify="end">
                 <n-button @click="addNewEmailForwardingItem">{{ t('add') }}</n-button>

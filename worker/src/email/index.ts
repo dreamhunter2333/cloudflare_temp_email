@@ -1,6 +1,6 @@
 import { Context } from "hono";
 
-import { getEnvStringList, getJsonObjectValue, getJsonSetting } from "../utils";
+import { getJsonSetting } from "../utils";
 import { sendMailToTelegram } from "../telegram_api";
 import { auto_reply } from "./auto_reply";
 import { isBlocked } from "./black_list";
@@ -8,6 +8,7 @@ import { triggerWebhook, triggerAnotherWorker, commonParseMail } from "../common
 import { check_if_junk_mail } from "./check_junk";
 import { remove_attachment_if_need } from "./check_attachment";
 import { extractEmailInfo } from "./ai_extract";
+import { forwardEmail } from "./forward";
 import { EmailRuleSettings } from "../models";
 import { CONSTANTS } from "../constants";
 
@@ -79,46 +80,7 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     }
 
     // forward email
-    try {
-        const forwardAddressList = getEnvStringList(env.FORWARD_ADDRESS_LIST)
-        for (const forwardAddress of forwardAddressList) {
-            await message.forward(forwardAddress);
-        }
-    } catch (error) {
-        console.error("forward email error", error);
-    }
-
-    // forward subdomain email
-    try {
-        // 遍历 FORWARD_ADDRESS_LIST
-        const subdomainForwardAddressList = getJsonObjectValue<SubdomainForwardAddressList[]>(env.SUBDOMAIN_FORWARD_ADDRESS_LIST) || [];
-        const emailRuleSettings = await getJsonSetting<EmailRuleSettings>(
-            { env: env } as Context<HonoCustomType>, CONSTANTS.EMAIL_RULE_SETTINGS_KEY
-        );
-        // 合并两个配置, env 里的配置优先级更高
-        const allSubdomainForwardAddressList = [
-            ...(subdomainForwardAddressList || []),
-            ...(emailRuleSettings?.emailForwardingList || []),
-        ];
-        for (const subdomainForwardAddress of allSubdomainForwardAddressList) {
-            // 检查邮件是否匹配 domains
-            if (subdomainForwardAddress.domains && subdomainForwardAddress.domains.length > 0) {
-                for (const domain of subdomainForwardAddress.domains) {
-                    if (message.to.endsWith(domain) && subdomainForwardAddress.forward) {
-                        // 转发邮件
-                        await message.forward(subdomainForwardAddress.forward);
-                        // 支持多邮箱转发收件，不进行截止
-                        // break;
-                    }
-                }
-            } else {
-                // 如果 domains 为空，则转发所有邮件
-                await message.forward(subdomainForwardAddress.forward);
-            }
-        }
-    } catch (error) {
-        console.error("subdomain forward email error", error);
-    }
+    await forwardEmail(message, env);
 
     // send email to telegram
     try {
