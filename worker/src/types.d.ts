@@ -144,4 +144,7 @@ type ParsedEmailContext = {
 type SubdomainForwardAddressList = {
     domains: string[] | undefined | null,
     forward: string,
+    // 来源地址正则匹配 (可选，兼容原配置)
+    sourcePatterns?: string[] | undefined | null,  // 来源地址正则表达式列表
+    sourceMatchMode?: 'any' | 'all' | undefined,   // 匹配模式: any-任一匹配, all-全部匹配
 }
