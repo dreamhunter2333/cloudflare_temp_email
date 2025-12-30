@@ -255,9 +255,9 @@ const fetchData = async () => {
         verifiedAddressList.value = res.verifiedAddressList || []
         fromBlockList.value = res.fromBlockList || []
         noLimitSendAddressList.value = res.noLimitSendAddressList || []
-        emailRuleSettings.value = res.emailRuleSettings || {
-            blockReceiveUnknowAddressEmail: false,
-            emailForwardingList: []
+        emailRuleSettings.value = {
+            blockReceiveUnknowAddressEmail: res.emailRuleSettings?.blockReceiveUnknowAddressEmail || false,
+            emailForwardingList: res.emailRuleSettings?.emailForwardingList || []
         }
     } catch (error) {
         message.error(error.message || "error");
