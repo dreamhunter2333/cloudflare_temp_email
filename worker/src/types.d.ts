@@ -84,6 +84,7 @@ type Bindings = {
     TELEGRAM_BOT_TOKEN: string
     TG_MAX_ADDRESS: number | undefined
     TG_BOT_INFO: string | object | undefined
+    TG_ALLOW_USER_LANG: string | boolean | undefined
 
     // webhook config
     FRONTEND_URL: string | undefined

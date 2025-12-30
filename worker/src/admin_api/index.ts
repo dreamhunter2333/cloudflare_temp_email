@@ -45,10 +45,9 @@ api.get('/admin/address', async (c) => {
 
 api.post('/admin/new_address', async (c) => {
     const { name, domain, enablePrefix } = await c.req.json();
-    const lang = c.get("lang") || c.env.DEFAULT_LANG;
-    const msgs = i18n.getMessages(lang);
+    const msgs = i18n.getMessagesbyContext(c);
     if (!name) {
-        return c.text("Please provide a name", 400)
+        return c.text(msgs.RequiredFieldMsg, 400)
     }
     try {
         const res = await newAddress(c, {
@@ -67,19 +66,20 @@ api.post('/admin/new_address', async (c) => {
 })
 
 api.delete('/admin/delete_address/:id', async (c) => {
+    const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
     const { success } = await c.env.DB.prepare(
         `DELETE FROM address WHERE id = ? `
     ).bind(id).run();
     if (!success) {
-        return c.text("Failed to delete address", 500)
+        return c.text(msgs.OperationFailedMsg, 500)
     }
     const { success: mailSuccess } = await c.env.DB.prepare(
         `DELETE FROM raw_mails WHERE address IN`
         + ` (select name from address where id = ?) `
     ).bind(id).run();
     if (!mailSuccess) {
-        return c.text("Failed to delete mails", 500)
+        return c.text(msgs.OperationFailedMsg, 500)
     }
     const { success: sendAccess } = await c.env.DB.prepare(
         `DELETE FROM address_sender WHERE address IN`
@@ -94,13 +94,14 @@ api.delete('/admin/delete_address/:id', async (c) => {
 })
 
 api.delete('/admin/clear_inbox/:id', async (c) => {
+    const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
     const { success: mailSuccess } = await c.env.DB.prepare(
         `DELETE FROM raw_mails WHERE address IN`
         + ` (select name from address where id = ?) `
     ).bind(id).run();
     if (!mailSuccess) {
-        return c.text("Failed to clear inbox", 500)
+        return c.text(msgs.OperationFailedMsg, 500)
     }
     return c.json({
         success: mailSuccess
@@ -108,13 +109,14 @@ api.delete('/admin/clear_inbox/:id', async (c) => {
 })
 
 api.delete('/admin/clear_sent_items/:id', async (c) => {
+    const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
     const { success: sendboxSuccess } = await c.env.DB.prepare(
         `DELETE FROM sendbox WHERE address IN`
         + ` (select name from address where id = ?) `
     ).bind(id).run();
     if (!sendboxSuccess) {
-        return c.text("Failed to clear sent items", 500)
+        return c.text(msgs.OperationFailedMsg, 500)
     }
     return c.json({
         success: sendboxSuccess
@@ -136,15 +138,16 @@ api.get('/admin/show_password/:id', async (c) => {
 })
 
 api.post('/admin/address/:id/reset_password', async (c) => {
+    const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
     const { password } = await c.req.json();
     // 检查功能是否启用
     if (!getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)) {
-        return c.text("Password management is disabled", 403);
+        return c.text(msgs.PasswordChangeDisabledMsg, 403);
     }
 
     if (!password) {
-        return c.text("Password is required", 400);
+        return c.text(msgs.NewPasswordRequiredMsg, 400);
     }
 
     const hashedPassword = await hashPassword(password);
@@ -153,7 +156,7 @@ api.post('/admin/address/:id/reset_password', async (c) => {
     ).bind(hashedPassword, id).run();
 
     if (!success) {
-        return c.text("Failed to reset password", 500);
+        return c.text(msgs.FailedUpdatePasswordMsg, 500);
     }
 
     return c.json({ success: true });
@@ -181,18 +184,19 @@ api.get('/admin/address_sender', async (c) => {
 })
 
 api.post('/admin/address_sender', async (c) => {
+    const msgs = i18n.getMessagesbyContext(c);
     /* eslint-disable prefer-const */
     let { address, address_id, balance, enabled } = await c.req.json();
     /* eslint-enable prefer-const */
     if (!address_id) {
-        return c.text("Invalid address_id", 400)
+        return c.text(msgs.InvalidAddressIdMsg, 400)
     }
     enabled = enabled ? 1 : 0;
     const { success } = await c.env.DB.prepare(
         `UPDATE address_sender SET enabled = ?, balance = ? WHERE id = ? `
     ).bind(enabled, balance, address_id).run();
     if (!success) {
-        return c.text("Failed to update address sender", 500)
+        return c.text(msgs.OperationFailedMsg, 500)
     }
     await sendAdminInternalMail(
         c, address, "Account Send Access Updated",
@@ -291,16 +295,17 @@ api.get('/admin/account_settings', async (c) => {
 })
 
 api.post('/admin/account_settings', async (c) => {
+    const msgs = i18n.getMessagesbyContext(c);
     /** @type {{ blockList: Array<string>, sendBlockList: Array<string> }} */
     const {
         blockList, sendBlockList, noLimitSendAddressList,
         verifiedAddressList, fromBlockList, emailRuleSettings
     } = await c.req.json();
     if (!blockList || !sendBlockList || !verifiedAddressList) {
-        return c.text("Invalid blockList or sendBlockList", 400)
+        return c.text(msgs.InvalidInputMsg, 400)
     }
     if (!c.env.SEND_MAIL && verifiedAddressList.length > 0) {
-        return c.text("Please enable SEND_MAIL to use verifiedAddressList", 400)
+        return c.text(msgs.EnableSendMailMsg, 400)
     }
     await saveSetting(
         c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
@@ -315,7 +320,7 @@ api.post('/admin/account_settings', async (c) => {
         JSON.stringify(verifiedAddressList)
     )
     if (fromBlockList?.length > 0 && !c.env.KV) {
-        return c.text("Please enable KV to use fromBlockList", 400)
+        return c.text(msgs.EnableKVMsg, 400)
     }
     if (fromBlockList) {
         await c.env.KV.put(CONSTANTS.EMAIL_KV_BLACK_LIST, JSON.stringify(fromBlockList || []))

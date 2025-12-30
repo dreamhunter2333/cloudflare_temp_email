@@ -11,8 +11,7 @@ export default {
     getOauth2LoginUrl: async (c: Context<HonoCustomType>) => {
         const settings = await getJsonSetting<UserOauth2Settings[]>(c, CONSTANTS.OAUTH2_SETTINGS_KEY);
         const { clientID, state } = c.req.query();
-        const lang = c.get("lang") || c.env.DEFAULT_LANG;
-        const msgs = i18n.getMessages(lang);
+        const msgs = i18n.getMessagesbyContext(c);
         const setting = settings?.find(s => s.clientID === clientID);
         if (!setting) {
             return c.text(msgs.Oauth2ClientIDNotFoundMsg, 400);
@@ -22,8 +21,7 @@ export default {
     },
     oauth2Login: async (c: Context<HonoCustomType>) => {
         const { clientID, code } = await c.req.json<{ clientID?: string, code?: string }>();
-        const lang = c.get("lang") || c.env.DEFAULT_LANG;
-        const msgs = i18n.getMessages(lang);
+        const msgs = i18n.getMessagesbyContext(c);
         if (!clientID || !code) {
             return c.text(msgs.Oauth2CliendIDOrCodeMissingMsg, 400);
         }
