@@ -166,4 +166,5 @@ export type LocaleMessages = {
     TgSelectLangMsg: string
     TgNoPermissionViewMailMsg: string
     TgBotTokenRequiredMsg: string
+    TgLangFeatureDisabledMsg: string
 }

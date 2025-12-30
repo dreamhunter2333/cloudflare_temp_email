@@ -54,7 +54,7 @@ api.post("/admin/telegram/init", async (c) => {
     console.log(`setting webhook to ${webhookUrl}`);
     const bot = newTelegramBot(c, token);
     await bot.telegram.setWebhook(webhookUrl)
-    await initTelegramBotCommands(bot);
+    await initTelegramBotCommands(c, bot);
     return c.json({
         message: "webhook set successfully",
     });

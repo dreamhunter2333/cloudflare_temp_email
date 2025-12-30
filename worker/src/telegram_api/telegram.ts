@@ -4,7 +4,7 @@ import { Telegraf, Context as TgContext, Markup } from "telegraf";
 import { callbackQuery } from "telegraf/filters";
 
 import { CONSTANTS } from "../constants";
-import { getDomains, getJsonObjectValue, getStringValue } from '../utils';
+import { getBooleanValue, getDomains, getJsonObjectValue, getStringValue } from '../utils';
 import { TelegramSettings } from "./settings";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 import { commonParseMail } from "../common";
@@ -18,12 +18,17 @@ const getTgMessages = async (
     ctx?: TgContext,
     userId?: string | null
 ): Promise<LocaleMessages> => {
+    // Check if user language config is enabled (default false)
+    if (!getBooleanValue(c.env.TG_ALLOW_USER_LANG)) {
+        return i18n.getMessages(c.env.DEFAULT_LANG || 'zh');
+    }
+
     const uid = userId || ctx?.message?.from?.id?.toString() || ctx?.callbackQuery?.from?.id?.toString();
     if (uid) {
         const savedLang = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:lang:${uid}`);
         if (savedLang) { return i18n.getMessages(savedLang); }
     }
-    return i18n.getMessages('zh');
+    return i18n.getMessages(c.env.DEFAULT_LANG || 'zh');
 };
 
 // Bilingual command descriptions with full usage instructions
@@ -66,6 +71,12 @@ const COMMANDS = [
     },
 ]
 
+export const getTelegramCommands = (c: Context<HonoCustomType>) => {
+    return getBooleanValue(c.env.TG_ALLOW_USER_LANG)
+        ? COMMANDS
+        : COMMANDS.filter(cmd => cmd.command !== "lang");
+}
+
 export function newTelegramBot(c: Context<HonoCustomType>, token: string): Telegraf {
     const bot = new Telegraf(token);
     const botInfo = getJsonObjectValue<UserFromGetMe>(c.env.TG_BOT_INFO);
@@ -104,12 +115,13 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         const msgs = await getTgMessages(c, ctx);
         const prefix = getStringValue(c.env.PREFIX)
         const domains = getDomains(c);
+        const commands = getTelegramCommands(c);
         return await ctx.reply(
             `${msgs.TgWelcomeMsg}\n\n`
             + (prefix ? `${msgs.TgCurrentPrefixMsg} ${prefix}\n` : '')
             + `${msgs.TgCurrentDomainsMsg} ${JSON.stringify(domains)}\n`
             + `${msgs.TgAvailableCommandsMsg}\n`
-            + COMMANDS.map(cmd => `/${cmd.command}: ${cmd.description}`).join("\n")
+            + commands.map(cmd => `/${cmd.command}: ${cmd.description}`).join("\n")
         );
     });
 
@@ -242,14 +254,21 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             const msgs = await getTgMessages(c, ctx);
             return await ctx.reply(msgs.TgUnableGetUserInfoMsg);
         }
+
+        const msgs = await getTgMessages(c, ctx);
+
+        // Check if user language config is enabled
+        if (!getBooleanValue(c.env.TG_ALLOW_USER_LANG)) {
+            return await ctx.reply(msgs.TgLangFeatureDisabledMsg);
+        }
+
         // @ts-ignore
         const lang = ctx?.message?.text.slice("/lang".length).trim().toLowerCase();
         if (lang === 'zh' || lang === 'en') {
             await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:lang:${userId}`, lang);
-            const msgs = await getTgMessages(c, ctx);
             return await ctx.reply(`${msgs.TgLangSetSuccessMsg} ${lang === 'zh' ? '中文' : 'English'}`);
         }
-        const msgs = await getTgMessages(c, ctx);
+
         const currentLang = await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:lang:${userId}`);
         return await ctx.reply(
             `${msgs.TgCurrentLangMsg} ${currentLang || 'auto'}\n`
@@ -348,8 +367,8 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
 }
 
 
-export async function initTelegramBotCommands(bot: Telegraf) {
-    await bot.telegram.setMyCommands(COMMANDS);
+export async function initTelegramBotCommands(c: Context<HonoCustomType>, bot: Telegraf) {
+    await bot.telegram.setMyCommands(getTelegramCommands(c));
 }
 
 const parseMail = async (

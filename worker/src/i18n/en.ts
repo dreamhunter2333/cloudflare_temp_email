@@ -168,6 +168,7 @@ const messages: LocaleMessages = {
     TgSelectLangMsg: "Please select language:",
     TgNoPermissionViewMailMsg: "No permission to view this mail",
     TgBotTokenRequiredMsg: "TELEGRAM_BOT_TOKEN is required",
+    TgLangFeatureDisabledMsg: "Language setting feature is disabled. System default language is used.",
 }
 
 export default messages;
