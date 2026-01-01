@@ -17,6 +17,7 @@ import Login from '../common/Login.vue'
 import AccountSettings from './AccountSettings.vue'
 import { processItem } from '../../utils/email-parser'
 import MailContentRenderer from '../../components/MailContentRenderer.vue'
+import AddressSelect from '../../components/AddressSelect.vue'
 
 const { jwt, settings, useSimpleIndex, showAddressCredential, openSettings, loading } = useGlobalState()
 const message = useMessage()
@@ -171,7 +172,7 @@ onBeforeUnmount(() => {
         <div v-else>
             <n-card :bordered="false" embedded>
                 <div style="text-align: center; margin-bottom: 16px; font-size: 18px;">
-                    <n-text strong size="large">{{ settings.address }}</n-text>
+                    <AddressSelect :showCopy="false" size="small" />
                 </div>
                 <n-flex justify="center">
                     <n-button @click="refreshMails" :loading="loading" type="primary" tertiary size="small">
