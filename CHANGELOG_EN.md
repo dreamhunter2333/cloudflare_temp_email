@@ -17,6 +17,7 @@
 - feat: |Email Forwarding| Add source address regex forwarding, filter by sender address, fully backward compatible
 - feat: |Address Source| Add address source tracking feature, record address creation source (Web records IP, Telegram records user ID, Admin panel marked)
 - feat: |Email Filtering| Remove backend keyword parameter, switch to frontend filtering of current page emails, optimize query performance
+- feat: |Frontend| Unify address switching into a dropdown component, support switching in simple mode, add address management entry on the homepage
 - feat: |Database| Add index for `message_id` field to optimize email update operations, need to execute `db/2025-12-15-message-id-index.sql` to update database
 - feat: |Admin| Add custom SQL cleanup feature to maintenance page, support scheduled task execution of custom cleanup statements
 - feat: |i18n| Backend API error messages now fully support Chinese and English internationalization
