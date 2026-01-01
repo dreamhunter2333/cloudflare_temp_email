@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { api } from '../../api'
 import MailBox from '../../components/MailBox.vue';
 
+const message = useMessage()
 
 const { t } = useI18n({
     messages: {

@@ -48,7 +48,7 @@ const data = computed(() => {
     }
     return localAddressCache.value.map((curJwt: string) => {
         try {
-            var payload = JSON.parse(
+            const payload = JSON.parse(
                 decodeURIComponent(
                     atob(curJwt.split(".")[1]
                         .replace(/-/g, "+").replace(/_/g, "/")
