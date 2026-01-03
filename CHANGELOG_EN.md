@@ -14,6 +14,7 @@
 
 ### Features
 
+- feat: |Admin| Add admin account page, display current login method and support logout (password login only)
 - feat: |Email Forwarding| Add source address regex forwarding, filter by sender address, fully backward compatible
 - feat: |Address Source| Add address source tracking feature, record address creation source (Web records IP, Telegram records user ID, Admin panel marked)
 - feat: |Email Filtering| Remove backend keyword parameter, switch to frontend filtering of current page emails, optimize query performance
