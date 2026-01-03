@@ -150,6 +150,7 @@ onMounted(async () => {
 }
 
 .address-manage {
-    margin-left: 10px;
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 </style>
