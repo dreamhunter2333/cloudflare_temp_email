@@ -24,6 +24,10 @@ Extraction results are automatically saved to the `metadata` field in the databa
 | `ENABLE_AI_EMAIL_EXTRACT`  | Text/JSON | Whether to enable AI email recognition feature                                                                                   | `true`                           |
 | `AI_EXTRACT_MODEL`         | Text      | AI model name, choose from [models supporting JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models) | `@cf/meta/llama-3.1-8b-instruct` |
 
+## Content Length Limit
+
+To avoid AI model token limits, the maximum email content length for processing is **4000 characters**. Email content exceeding this limit will be truncated before AI analysis.
+
 ## Workers AI Binding
 
 Configure Workers AI binding in `wrangler.toml`:
