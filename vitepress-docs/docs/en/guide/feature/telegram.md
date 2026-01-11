@@ -36,6 +36,25 @@ pnpm wrangler secret put TELEGRAM_BOT_TOKEN
 
 ![telegram](/feature/telegram.png)
 
+## Language Switching
+
+> [!NOTE]
+> This feature is available since v1.2.0
+
+Telegram Bot supports Chinese and English switching. Users can set their language preference via the `/lang` command.
+
+### Enable Language Switching
+
+You need to configure `TG_ALLOW_USER_LANG = true` in worker variables to enable this feature.
+
+### Usage
+
+- `/lang zh` - Switch to Chinese
+- `/lang en` - Switch to English
+- `/lang` - View current language setting
+
+Language preferences are saved to KV, and each user can set their preference independently.
+
 ## Mini App
 
 Can be deployed via command line or UI interface

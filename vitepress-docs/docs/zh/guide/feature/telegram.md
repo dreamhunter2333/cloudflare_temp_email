@@ -36,6 +36,25 @@ pnpm wrangler secret put TELEGRAM_BOT_TOKEN
 
 ![telegram](/feature/telegram.png)
 
+## 语言切换功能
+
+> [!NOTE]
+> 此功能从 v1.2.0 版本开始支持
+
+Telegram Bot 支持中英文切换，用户可以通过 `/lang` 命令设置语言偏好。
+
+### 启用语言切换
+
+需要在 worker 变量中配置 `TG_ALLOW_USER_LANG = true` 才能启用此功能。
+
+### 使用方法
+
+- `/lang zh` - 切换为中文
+- `/lang en` - 切换为英文
+- `/lang` - 查看当前语言设置
+
+语言偏好会保存到 KV 中，每个用户可以独立设置。
+
 ## Mini App
 
 可以通过命令行部署，或者 UI 界面部署
