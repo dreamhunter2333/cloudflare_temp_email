@@ -105,10 +105,11 @@
 
 ## Telegram Bot Related Variables
 
-| Variable Name    | Type   | Description                                                                 | Example |
-| ---------------- | ------ | --------------------------------------------------------------------------- | ------- |
-| `TG_MAX_ADDRESS` | Number | Maximum number of mailboxes that can be bound to telegram bot               | `5`     |
-| `TG_BOT_INFO`    | Text   | Optional, telegram BOT_INFO, predefined BOT_INFO can reduce webhook latency | `{}`    |
+| Variable Name        | Type      | Description                                                                 | Example |
+| -------------------- | --------- | --------------------------------------------------------------------------- | ------- |
+| `TG_MAX_ADDRESS`     | Number    | Maximum number of mailboxes that can be bound to telegram bot               | `5`     |
+| `TG_BOT_INFO`        | Text      | Optional, telegram BOT_INFO, predefined BOT_INFO can reduce webhook latency | `{}`    |
+| `TG_ALLOW_USER_LANG` | Text/JSON | Allow users to switch language via `/lang` command, default `false`         | `true`  |
 
 > [!NOTE]
 > Telegram functionality requires email parsing, free tier CPU is limited, may cause large email parsing timeout
@@ -116,6 +117,33 @@
 > If you want stronger email parsing capabilities
 >
 > Refer to [Configure worker to use wasm for email parsing](/en/guide/feature/mail_parser_wasm_worker)
+
+## Email Forwarding Related Variables
+
+| Variable Name                     | Type | Description                                                                              | Example   |
+| --------------------------------- | ---- | ---------------------------------------------------------------------------------------- | --------- |
+| `SUBDOMAIN_FORWARD_ADDRESS_LIST`  | JSON | Subdomain/rule forwarding configuration, supports filtering by domain and source regex  | See below |
+
+> [!NOTE] SUBDOMAIN_FORWARD_ADDRESS_LIST Configuration
+>
+> v1.2.0 added `sourcePatterns` and `sourceMatchMode` fields for filtering by sender address regex:
+>
+> - `domains`: Target domain list, matches all domains if empty
+> - `forward`: Forward destination address
+> - `sourcePatterns`: Source address regex list (optional)
+> - `sourceMatchMode`: Match mode, `any` (match any, default) or `all` (match all)
+>
+> Regex pattern max length is 200 characters to prevent ReDoS attacks
+>
+> ```toml
+> SUBDOMAIN_FORWARD_ADDRESS_LIST = """
+> [
+>     {"domains":[""],"forward":"xxx1@xxx.com"},
+>     {"domains":["subdomain-1.domain.com","subdomain-2.domain.com"],"forward":"xxx2@xxx.com"},
+>     {"domains":["example.com"],"forward":"admin@xxx.com","sourcePatterns":[".*@github.com",".*@gitlab.com"],"sourceMatchMode":"any"}
+> ]
+> """
+> ```
 
 ## Other Variables
 

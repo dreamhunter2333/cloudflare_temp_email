@@ -105,10 +105,11 @@
 
 ## Telegram Bot 相关变量
 
-| 变量名           | 类型 | 说明                                                                   | 示例 |
-| ---------------- | ---- | ---------------------------------------------------------------------- | ---- |
-| `TG_MAX_ADDRESS` | 数字 | telegram bot 最多绑定邮箱数量                                          | `5`  |
-| `TG_BOT_INFO`    | 文本 | 可不配置，telegram BOT_INFO，预定义的 BOT_INFO 可以降低 webhook 的延迟 | `{}` |
+| 变量名              | 类型      | 说明                                                                   | 示例  |
+| ------------------- | --------- | ---------------------------------------------------------------------- | ----- |
+| `TG_MAX_ADDRESS`    | 数字      | telegram bot 最多绑定邮箱数量                                          | `5`   |
+| `TG_BOT_INFO`       | 文本      | 可不配置，telegram BOT_INFO，预定义的 BOT_INFO 可以降低 webhook 的延迟 | `{}`  |
+| `TG_ALLOW_USER_LANG`| 文本/JSON | 是否允许用户通过 `/lang` 命令切换语言，默认 `false`                    | `true`|
 
 > [!NOTE]
 > Telegram 功能需要解析邮件，免费版 CPU 有限，可能会导致大邮件解析超时
@@ -116,6 +117,33 @@
 > 如果你想解析邮件能力更强
 >
 > 参考 [配置 worker 使用 wasm 解析邮件](/zh/guide/feature/mail_parser_wasm_worker)
+
+## 邮件转发相关变量
+
+| 变量名                            | 类型 | 说明                                                                                                       | 示例   |
+| --------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------- | ------ |
+| `SUBDOMAIN_FORWARD_ADDRESS_LIST`  | JSON | 子域名/规则转发配置，支持按域名和来源地址正则过滤转发                                                       | 见下方 |
+
+> [!NOTE] SUBDOMAIN_FORWARD_ADDRESS_LIST 配置说明
+>
+> v1.2.0 新增 `sourcePatterns` 和 `sourceMatchMode` 字段，支持按发件人地址正则过滤转发：
+>
+> - `domains`: 目标域名列表，为空则匹配所有域名
+> - `forward`: 转发目标地址
+> - `sourcePatterns`: 来源地址正则表达式列表（可选）
+> - `sourceMatchMode`: 匹配模式，`any`(任一匹配，默认) 或 `all`(全部匹配)
+>
+> 正则表达式最大长度 200 字符，防止 ReDoS 攻击
+>
+> ```toml
+> SUBDOMAIN_FORWARD_ADDRESS_LIST = """
+> [
+>     {"domains":[""],"forward":"xxx1@xxx.com"},
+>     {"domains":["subdomain-1.domain.com","subdomain-2.domain.com"],"forward":"xxx2@xxx.com"},
+>     {"domains":["example.com"],"forward":"admin@xxx.com","sourcePatterns":[".*@github.com",".*@gitlab.com"],"sourceMatchMode":"any"}
+> ]
+> """
+> ```
 
 ## 其他变量
 
