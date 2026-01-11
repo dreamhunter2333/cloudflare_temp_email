@@ -24,6 +24,10 @@ AI 邮件识别功能使用 Cloudflare Workers AI 自动分析收到的邮件内
 | `ENABLE_AI_EMAIL_EXTRACT` | 文本/JSON | 是否启用 AI 邮件识别功能                                                                                                       | `true`                           |
 | `AI_EXTRACT_MODEL`        | 文本      | AI 模型名称，从[支持 JSON 模式的模型](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models)中选择 | `@cf/meta/llama-3.1-8b-instruct` |
 
+## 内容长度限制
+
+为避免 AI 模型 token 限制，邮件内容最大处理长度为 **4000 字符**。超过此长度的邮件内容将被截断后再进行 AI 分析。
+
 ## Workers AI 绑定
 
 需要在 `wrangler.toml` 中配置 Workers AI 绑定：
