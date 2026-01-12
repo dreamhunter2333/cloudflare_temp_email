@@ -34,32 +34,32 @@ PREFIX = "tmp"
 # address name replace REGEX, if not set, the default is [^a-z0-9]
 # ADDRESS_REGEX = "[^a-z0-9]"
 # (min, max) length of the adderss, if not set, the default is (1, 30)
-# MIN_ADDRESS_LEN = 1
+MIN_ADDRESS_LEN = 3
 # MAX_ADDRESS_LEN = 30
 # Disable custom email address name, if set true, users cannot input custom email name, will auto generate
 # DISABLE_CUSTOM_ADDRESS_NAME = true
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
 # PASSWORDS = ["123", "456"]
 # For admin panel
-# ADMIN_PASSWORDS = ["123", "456"]
+ADMIN_PASSWORDS = ["Ubuntu@1"]
 # warning: no password or user check for admin portal
 # DISABLE_ADMIN_PASSWORD_CHECK = false
 # ADMIN CONTACT, CAN BE ANY STRING
-# ADMIN_CONTACT = "xx@xx.xxx"
+ADMIN_CONTACT = "admin@20.us.ci"
 # Create new address with default domain first, if set true, will use first domain from DEFAULT_DOMAINS when no domain specified
 # CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST = false
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
-DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all domain names
+DOMAINS = ["20.us.ci" , "89.de5.net"] # all domain names
 # For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
 # DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
 # USER_DEFAULT_ROLE = "vip" # default role for new users(only when enable mail verification)
-# ADMIN_USER_ROLE = "admin" # the role which can access admin panel
+ADMIN_USER_ROLE = "admin" # the role which can access admin panel
 # User roles configuration, if domains is empty will use default_domains, if prefix is null will use default prefix, if prefix is empty string will not use prefix
-# USER_ROLES = [
+USER_ROLES = [
 #    { domains = ["xxx.xxx1" , "xxx.xxx2"], role = "vip", prefix = "vip" },
-#    { domains = ["xxx.xxx1" , "xxx.xxx2"], role = "admin", prefix = "" },
+    { domains = ["20.us.ci" , "89.de5.net"], role = "admin", prefix = "" },
 # ]
-JWT_SECRET = "xxx"
+JWT_SECRET = "d29c55a4e30d1b4d3ac5eba7be00c342fd5dd72a0c404f895a50b512b9bd6281"
 BLACK_LIST = ""
 # Allow users to create email addresses
 ENABLE_USER_CREATE_EMAIL = true
@@ -129,17 +129,17 @@ ENABLE_AUTO_REPLY = false
 
 [[d1_databases]]
 binding = "DB"
-database_name = "xxx"
-database_id = "xxx"
+database_name = "tempmail"
+database_id = "e12ca95b-a2af-4b14-b665-35c9caf88d8e"
 
 # Workers AI binding (required for AI email extraction)
 # [ai]
 # binding = "AI"
 
-# kv config for send email verification code
-# [[kv_namespaces]]
-# binding = "KV"
-# id = "xxxx"
+kv config for send email verification code
+[[kv_namespaces]]
+binding = "KV"
+id = "2ef917ea4d124e8f9f03ec548799c516"
 
 # ratelimit config for /api/new_address
 # [[unsafe.bindings]]
