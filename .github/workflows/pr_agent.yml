@@ -3,6 +3,7 @@ name: Codium PR Agent
 on:
   pull_request:
     types: [opened, reopened, ready_for_review]
+  issue_comment:
 jobs:
   pr_agent_job:
     if: ${{ github.event.sender.type != 'Bot' }}
@@ -10,11 +11,12 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
+      contents: write
     name: Run pr agent on every pull request, respond to user comments
     steps:
       - name: PR Agent action step
         id: pragent
-        uses: docker://codiumai/pr-agent:0.29-github_action
+        uses: qodo-ai/pr-agent@main
         env:
           PR_REVIEWER.REQUIRE_TESTS_REVIEW: "false"
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
