@@ -3,8 +3,34 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ContentCopyOutlined, LinkRound, CodeRound } from '@vicons/material';
 import { useMessage } from 'naive-ui';
+import { useGlobalState } from '../store';
 
 const message = useMessage();
+const { isDark } = useGlobalState();
+
+// Dark mode: use Gmail's softer blue (#A8C7FA) for better readability
+const alertThemeOverrides = computed(() => {
+  if (isDark.value) {
+    return {
+      colorSuccess: 'rgba(168, 199, 250, 0.15)',
+      borderSuccess: '1px solid rgba(168, 199, 250, 0.3)',
+      iconColorSuccess: '#A8C7FA',
+      titleTextColorSuccess: '#A8C7FA',
+    }
+  }
+  return {}
+});
+
+const tagThemeOverrides = computed(() => {
+  if (isDark.value) {
+    return {
+      colorSuccess: 'rgba(168, 199, 250, 0.15)',
+      borderSuccess: '1px solid rgba(168, 199, 250, 0.3)',
+      textColorSuccess: '#A8C7FA',
+    }
+  }
+  return {}
+});
 
 const { t } = useI18n({
   messages: {
@@ -108,7 +134,7 @@ const openLink = () => {
 
 <template>
   <div v-if="aiExtract && aiExtract.result" class="ai-extract-info">
-    <n-alert v-if="!compact" type="success" closable>
+    <n-alert v-if="!compact" type="success" closable :theme-overrides="alertThemeOverrides">
       <template #icon>
         <n-icon :component="typeIcon" />
       </template>
@@ -132,7 +158,7 @@ const openLink = () => {
         </n-button>
       </n-space>
     </n-alert>
-    <n-tag v-else type="success" @click="copyToClipboard" style="cursor: pointer;" size="small">
+    <n-tag v-else type="success" @click="copyToClipboard" style="cursor: pointer;" size="small" :theme-overrides="tagThemeOverrides">
       <template #icon>
         <n-icon :component="typeIcon" />
       </template>
