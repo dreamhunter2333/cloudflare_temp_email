@@ -1,7 +1,7 @@
 import { Context, Hono } from 'hono'
 
 import i18n from '../i18n';
-import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue } from '../utils';
+import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue, isAddressCountLimitReached } from '../utils';
 import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt, generateRandomName } from '../common'
 import { CONSTANTS } from '../constants'
 import auto_reply from './auto_reply'
@@ -105,14 +105,25 @@ api.get('/api/settings', async (c) => {
 
 api.post('/api/new_address', async (c) => {
     const msgs = i18n.getMessagesbyContext(c);
+    const userPayload = c.get("userPayload");
+
     if (getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL)
-        && !c.get("userPayload")
+        && !userPayload
     ) {
         return c.text(msgs.NewAddressAnonymousDisabledMsg, 403)
     }
     if (!getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL)) {
         return c.text(msgs.NewAddressDisabledMsg, 403)
     }
+
+    // 如果启用了禁止匿名创建，且用户已登录，检查地址数量限制
+    if (getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL) && userPayload) {
+        const userRole = c.get("userRolePayload");
+        if (await isAddressCountLimitReached(c, userPayload.user_id, userRole)) {
+            return c.text(msgs.MaxAddressCountReachedMsg, 400)
+        }
+    }
+
     // eslint-disable-next-line prefer-const
     let { name, domain, cf_token } = await c.req.json();
     // check cf turnstile

@@ -1,5 +1,7 @@
 import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
+import { UserSettings, RoleAddressConfig } from "./models";
+import { CONSTANTS } from "./constants";
 
 export const getJsonObjectValue = <T = any>(
     value: string | any
@@ -302,6 +304,45 @@ export const hashPassword = async (password: string): Promise<string> => {
     const hashArray = Array.from(new Uint8Array(digest));
     return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
+
+export const getMaxAddressCount = async (
+    c: Context<HonoCustomType>,
+    userRole: string | null | undefined,
+    settings: UserSettings
+): Promise<number> => {
+    if (!userRole) return settings.maxAddressCount;
+    const roleConfigs = await getJsonSetting<RoleAddressConfig>(c, CONSTANTS.ROLE_ADDRESS_CONFIG_KEY);
+    if (!roleConfigs) return settings.maxAddressCount;
+    const roleMaxCount = roleConfigs[userRole]?.maxAddressCount;
+    if (typeof roleMaxCount !== 'number') return settings.maxAddressCount;
+    if (roleMaxCount <= 0) return settings.maxAddressCount;
+    return roleMaxCount;
+};
+
+/**
+ * 检查用户是否已达到地址数量限制
+ * @param c - Hono Context
+ * @param user_id - 用户 ID
+ * @param userRole - 用户角色
+ * @returns true 表示已超限，false 表示未超限
+ */
+export const isAddressCountLimitReached = async (
+    c: Context<HonoCustomType>,
+    user_id: number | string,
+    userRole: string | null | undefined
+): Promise<boolean> => {
+    const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
+    const settings = new UserSettings(value);
+    const maxAddressCount = await getMaxAddressCount(c, userRole, settings);
+
+    if (maxAddressCount <= 0) return false;
+
+    const { count } = await c.env.DB.prepare(
+        `SELECT COUNT(*) as count FROM users_address where user_id = ?`
+    ).bind(user_id).first<{ count: number }>() || { count: 0 };
+
+    return count >= maxAddressCount;
+};
 
 export default {
     getJsonObjectValue,

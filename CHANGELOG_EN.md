@@ -6,7 +6,21 @@
   <a href="CHANGELOG_EN.md">🇺🇸 English</a>
 </p>
 
-## v1.2.1(main)
+## v1.3.0(main)
+
+### Features
+
+- feat: |OAuth2| Add email format transformation support for OAuth2, allowing regex-based email format conversion from third-party login providers (e.g., transform `user@domain` to `user@custom.domain`)
+
+### Bug Fixes
+
+- fix: |User Address| Fix address count limit check failure when anonymous creation is disabled for logged-in users, add public function `isAddressCountLimitReached` to unify address count limit logic
+
+### Improvements
+
+- refactor: |Code Refactoring| Extract address count limit check as a public function to improve code reusability
+
+## v1.2.1
 
 ### Bug Fixes
 
