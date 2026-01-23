@@ -4,7 +4,7 @@ export type UserOauth2Settings = {
     clientSecret: string;
     authorizationURL: string;
     accessTokenURL: string;
-    accessTokenFormat: string;
+    accessTokenFormat?: string;
     userInfoURL: string;
     redirectURL: string;
     logoutURL?: string;
