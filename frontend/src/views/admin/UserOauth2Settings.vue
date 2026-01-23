@@ -26,6 +26,10 @@ const { t } = useI18n({
             addOauth2: 'Add Oauth2',
             name: 'Name',
             oauth2Type: 'Oauth2 Type',
+            enableEmailFormat: 'Enable Email Format',
+            userEmailFormat: 'Email Regex Pattern',
+            userEmailReplace: 'Replace Template',
+            userEmailFormatTip: 'Use regex to transform email. Example: ^(.+)@old\\.com$ with $1@new.com',
             tip: 'Third-party login will automatically use the user\'s email to register an account (the same email will be regarded as the same account), this account is the same as the registered account, and you can also set the password through the forget password',
         },
         zh: {
@@ -39,6 +43,10 @@ const { t } = useI18n({
             addOauth2: '添加 Oauth2',
             name: '名称',
             oauth2Type: 'Oauth2 类型',
+            enableEmailFormat: '启用邮箱格式转换',
+            userEmailFormat: '邮箱正则表达式',
+            userEmailReplace: '替换模板',
+            userEmailFormatTip: '使用正则转换邮箱。示例: ^(.+)@old\\.com$ 配合 $1@new.com',
             tip: '第三方登录会自动使用用户邮箱注册账号(邮箱相同将视为同一账号), 此账号和注册的账号相同, 也可以通过忘记密码设置密码',
         }
     }
@@ -75,80 +83,55 @@ const save = async () => {
 }
 
 const addNewOauth2 = () => {
-    const authorizationURL = () => {
-        switch (newOauth2Type.value) {
-            case 'github':
-                return 'https://github.com/login/oauth/authorize'
-            case 'authentik':
-                return 'https://youdomain/application/o/authorize/'
-            default:
-                return ''
-        }
+    const templates: Record<string, Partial<UserOauth2Settings>> = {
+        github: {
+            authorizationURL: 'https://github.com/login/oauth/authorize',
+            accessTokenURL: 'https://github.com/login/oauth/access_token',
+            accessTokenFormat: 'json',
+            userInfoURL: 'https://api.github.com/user',
+            userEmailKey: 'email',
+            scope: 'user:email',
+        },
+        linuxdo: {
+            authorizationURL: 'https://connect.linux.do/oauth2/authorize',
+            accessTokenURL: 'https://connect.linux.do/oauth2/token',
+            accessTokenFormat: 'urlencoded',
+            userInfoURL: 'https://connect.linux.do/api/user',
+            userEmailKey: 'id',
+            scope: 'user',
+            enableEmailFormat: true,
+            userEmailFormat: '^(.+)$',
+            userEmailReplace: 'linux_do_$1@oauth.linux.do',
+        },
+        authentik: {
+            authorizationURL: 'https://youdomain/application/o/authorize/',
+            accessTokenURL: 'https://youdomain/application/o/token/',
+            accessTokenFormat: 'urlencoded',
+            userInfoURL: 'https://youdomain/application/o/userinfo/',
+            userEmailKey: 'email',
+            scope: 'email openid',
+        },
+        custom: {},
     }
-    const accessTokenURL = () => {
-        switch (newOauth2Type.value) {
-            case 'github':
-                return 'https://github.com/login/oauth/access_token'
-            case 'authentik':
-                return 'https://youdomain/application/o/token/'
-            default:
-                return ''
-        }
-    }
-    const accessTokenFormat = () => {
-        switch (newOauth2Type.value) {
-            case 'github':
-                return 'json'
-            case 'authentik':
-                return 'urlencoded'
-            default:
-                return ''
-        }
-    }
-    const userInfoURL = () => {
-        switch (newOauth2Type.value) {
-            case 'github':
-                return 'https://api.github.com/user'
-            case 'authentik':
-                return 'https://youdomain/application/o/userinfo/'
-            default:
-                return ''
-        }
-    }
-    const userEmailKey = () => {
-        switch (newOauth2Type.value) {
-            case 'github':
-                return 'email'
-            case 'authentik':
-                return 'email'
-            default:
-                return ''
-        }
-    }
-    const scope = () => {
-        switch (newOauth2Type.value) {
-            case 'github':
-                return 'user:email'
-            case 'authentik':
-                return 'email openid'
-            default:
-                return ''
-        }
-    }
+    const template = templates[newOauth2Type.value] || {}
     userOauth2Settings.value.push({
         name: newOauth2Name.value,
         clientID: '',
         clientSecret: '',
-        authorizationURL: authorizationURL(),
-        accessTokenURL: accessTokenURL(),
-        accessTokenFormat: accessTokenFormat(),
-        userInfoURL: userInfoURL(),
-        userEmailKey: userEmailKey(),
+        authorizationURL: '',
+        accessTokenURL: '',
+        accessTokenFormat: '',
+        userInfoURL: '',
+        userEmailKey: '',
         redirectURL: `${window.location.origin}/user/oauth2/callback`,
         logoutURL: '',
-        scope: scope(),
+        scope: '',
+        enableEmailFormat: false,
+        userEmailFormat: '',
+        userEmailReplace: '',
         enableMailAllowList: false,
-        mailAllowList: constant.COMMOM_MAIL
+        mailAllowList: constant.COMMOM_MAIL,
+        ...template,
     } as UserOauth2Settings)
     newOauth2Name.value = ''
     showAddOauth2.value = false
@@ -174,6 +157,7 @@ onMounted(async () => {
                 <n-form-item-row :label="t('oauth2Type')" required>
                     <n-radio-group v-model:value="newOauth2Type">
                         <n-radio-button value="github" label="Github" />
+                        <n-radio-button value="linuxdo" label="Linux Do" />
                         <n-radio-button value="authentik" label="Authentik" />
                         <n-radio-button value="custom" label="Custom" />
                     </n-radio-group>
@@ -218,7 +202,7 @@ onMounted(async () => {
                             <n-input v-model:value="item.clientID" />
                         </n-form-item-row>
                         <n-form-item-row label="Client Secret" required>
-                            <n-input v-model:value="item.clientSecret" type="password" show-password-on="click" />
+                            <n-input v-model:value="item.clientSecret" />
                         </n-form-item-row>
                         <n-form-item-row label="Authorization URL" required>
                             <n-input v-model:value="item.authorizationURL" />
@@ -234,6 +218,27 @@ onMounted(async () => {
                         </n-form-item-row>
                         <n-form-item-row label="User Email Key (Support JSONPATH like $[0].email)" required>
                             <n-input v-model:value="item.userEmailKey" />
+                        </n-form-item-row>
+                        <n-form-item-row :label="t('enableEmailFormat')">
+                            <n-checkbox v-model:checked="item.enableEmailFormat">
+                                {{ t('enable') }}
+                            </n-checkbox>
+                        </n-form-item-row>
+                        <n-form-item-row v-if="item.enableEmailFormat" :label="t('userEmailFormat')">
+                            <n-tooltip trigger="hover">
+                                <template #trigger>
+                                    <n-input v-model:value="item.userEmailFormat" :placeholder="'^(.+)@old\\.com$'" />
+                                </template>
+                                {{ t('userEmailFormatTip') }}
+                            </n-tooltip>
+                        </n-form-item-row>
+                        <n-form-item-row v-if="item.enableEmailFormat" :label="t('userEmailReplace')">
+                            <n-tooltip trigger="hover">
+                                <template #trigger>
+                                    <n-input v-model:value="item.userEmailReplace" placeholder="$1@new.com" />
+                                </template>
+                                {{ t('userEmailFormatTip') }}
+                            </n-tooltip>
                         </n-form-item-row>
                         <n-form-item-row label="Redirect URL" required>
                             <n-input v-model:value="item.redirectURL" />
