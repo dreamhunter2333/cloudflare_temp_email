@@ -34,6 +34,7 @@ export const useGlobalState = createGlobalState(
             cfTurnstileSiteKey: '',
             enableWebhook: false,
             isS3Enabled: false,
+            enableSendMail: false,
             showGithub: true,
             disableAdminPasswordCheck: false,
             enableAddressPassword: false,

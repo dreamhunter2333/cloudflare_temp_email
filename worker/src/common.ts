@@ -1,13 +1,45 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
+import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword } from './utils';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
+
+/**
+ * Check if send mail is enabled for a specific domain
+ */
+export const isSendMailEnabled = (
+    c: Context<HonoCustomType>,
+    mailDomain: string
+): boolean => {
+    // Check resend token for domain or global
+    const resendEnabled = c.env.RESEND_TOKEN || c.env[
+        `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
+    ];
+    if (resendEnabled) return true;
+
+    // Check SMTP config for domain
+    const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
+    if (smtpConfigMap && smtpConfigMap[mailDomain]) return true;
+
+    // Check SEND_MAIL binding
+    if (c.env.SEND_MAIL) return true;
+
+    return false;
+}
+
+/**
+ * Check if send mail is enabled for any configured domain
+ */
+export const isAnySendMailEnabled = (c: Context<HonoCustomType>): boolean => {
+    const domains = getDomains(c);
+    return domains.some(domain => isSendMailEnabled(c, domain));
+}
 
 export const generateRandomName = (c: Context<HonoCustomType>): string => {
     // name min length min 1
