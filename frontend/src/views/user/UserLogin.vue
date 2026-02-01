@@ -233,6 +233,9 @@ onMounted(async () => {
                     </n-button>
                     <n-button @click="oauth2Login(item.clientID)" v-for="item in userOpenSettings.oauth2ClientIDs"
                         :key="item.clientID" block secondary strong>
+                        <template #icon v-if="item.icon">
+                            <span class="oauth2-icon" v-html="item.icon"></span>
+                        </template>
                         {{ t('loginWith', { provider: item.name }) }}
                     </n-button>
                 </n-form>
@@ -304,5 +307,18 @@ onMounted(async () => {
 
 .n-button {
     margin-top: 10px;
+}
+
+.oauth2-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+}
+
+.oauth2-icon :deep(svg) {
+    width: 100%;
+    height: 100%;
 }
 </style>

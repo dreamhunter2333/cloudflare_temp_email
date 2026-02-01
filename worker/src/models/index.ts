@@ -146,6 +146,7 @@ export class WebhookSettings {
 
 export type UserOauth2Settings = {
     name: string;
+    icon?: string;                // SVG icon string for the provider
     clientID: string;
     clientSecret: string;
     authorizationURL: string;

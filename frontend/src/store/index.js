@@ -83,7 +83,7 @@ export const useGlobalState = createGlobalState(
             fetched: false,
             enable: false,
             enableMailVerify: false,
-            /** @type {{ clientID: string, name: string }[]} */
+            /** @type {{ clientID: string, name: string, icon?: string }[]} */
             oauth2ClientIDs: [],
         });
         const userSettings = ref({
