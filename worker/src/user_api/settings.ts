@@ -64,16 +64,17 @@ export default {
             exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
             iat: Math.floor(Date.now() / 1000),
         }, c.env.JWT_SECRET, "HS256");
-        // update address updated_at
-        try {
-            await c.env.DB.prepare(
-                `UPDATE address SET updated_at = datetime('now') where id IN `
-                + `(SELECT address_id FROM users_address WHERE user_id = ?)`
-            ).bind(user.user_id).run();
-
-        } catch (e) {
-            console.warn("Failed to update address updated_at")
-        }
+        // update address updated_at asynchronously
+        c.executionCtx.waitUntil((async () => {
+            try {
+                await c.env.DB.prepare(
+                    `UPDATE address SET updated_at = datetime('now') where id IN `
+                    + `(SELECT address_id FROM users_address WHERE user_id = ?)`
+                ).bind(user.user_id).run();
+            } catch (e) {
+                console.warn("[user_api/settings] updateAddressUpdatedAt failed:", user.user_id, e);
+            }
+        })());
         return c.json({
             ...user,
             is_admin: is_admin,

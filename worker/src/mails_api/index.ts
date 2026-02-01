@@ -27,7 +27,7 @@ api.get('/api/mails', async (c) => {
         return c.json({ "error": "No address" }, 400)
     }
     const { limit, offset } = c.req.query();
-    if (Number.parseInt(offset) <= 0) await updateAddressUpdatedAt(c, address);
+    if (Number.parseInt(offset) <= 0) updateAddressUpdatedAt(c, address);
     return await handleListQuery(c,
         `SELECT * FROM raw_mails where address = ?`,
         `SELECT count(*) as count FROM raw_mails where address = ?`,
@@ -90,7 +90,7 @@ api.get('/api/settings', async (c) => {
         return c.text(msgs.InvalidAddressMsg, 400)
     }
 
-    await updateAddressUpdatedAt(c, address);
+    updateAddressUpdatedAt(c, address);
 
     const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
     const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
