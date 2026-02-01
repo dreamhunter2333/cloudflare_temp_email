@@ -11,13 +11,14 @@ export default {
     openSettings: async (c: Context<HonoCustomType>) => {
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value);
-        const oauth2ClientIDs = [] as { clientID: string, name: string }[];
+        const oauth2ClientIDs = [] as { clientID: string, name: string, icon?: string }[];
         try {
             const oauth2Settings = await getJsonSetting<UserOauth2Settings[]>(c, CONSTANTS.OAUTH2_SETTINGS_KEY);
             oauth2ClientIDs.push(
                 ...oauth2Settings?.map(s => ({
                     clientID: s.clientID,
-                    name: s.name
+                    name: s.name,
+                    icon: s.icon,
                 })) || []
             );
         } catch (e) {
