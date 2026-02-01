@@ -11,6 +11,8 @@
 ### Features
 
 - feat: |OAuth2| Add email format transformation support for OAuth2, allowing regex-based email format conversion from third-party login providers (e.g., transform `user@domain` to `user@custom.domain`)
+- feat: |OAuth2| Add SVG icon support for OAuth2 providers, admins can configure custom icons for login buttons, preset icons for GitHub, Linux Do, Authentik templates
+- feat: |Send Mail| Auto-hide sendmail tab, sendbox tab, and reply button when send mail is not configured
 
 ### Bug Fixes
 
@@ -19,6 +21,7 @@
 ### Improvements
 
 - refactor: |Code Refactoring| Extract address count limit check as a public function to improve code reusability
+- perf: |Performance| Change address activity time update in GET requests to async execution using `waitUntil`, non-blocking response
 
 ## v1.2.1
 

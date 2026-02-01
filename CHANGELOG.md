@@ -11,6 +11,8 @@
 ### Features
 
 - feat: |OAuth2| 新增 OAuth2 邮箱格式转换功能，支持通过正则表达式转换第三方登录返回的邮箱格式（如将 `user@domain` 转换为 `user@custom.domain`）
+- feat: |OAuth2| 新增 OAuth2 提供商 SVG 图标支持，管理员可为登录按钮配置自定义图标，预置 GitHub、Linux Do、Authentik 模板图标
+- feat: |发送邮件| 未配置发送邮件功能时自动隐藏发送邮件 tab、发件箱 tab 和回复按钮
 
 ### Bug Fixes
 
@@ -19,6 +21,7 @@
 ### Improvements
 
 - refactor: |代码重构| 提取地址数量限制检查为公共函数，优化代码复用性
+- perf: |性能优化| GET 请求中的地址活动时间更新改为异步执行，使用 `waitUntil` 不阻塞响应
 
 ## v1.2.1
 
