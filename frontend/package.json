@@ -23,10 +23,10 @@
     "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@simplewebauthn/browser": "10.0.0",
     "@unhead/vue": "^2.1.2",
-    "@vueuse/core": "^14.1.0",
+    "@vueuse/core": "^14.2.0",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
-    "axios": "^1.13.2",
+    "axios": "^1.13.4",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.1",
     "naive-ui": "^2.43.2",
@@ -49,7 +49,7 @@
     "vite-plugin-wasm": "^3.5.0",
     "workbox-build": "^7.4.0",
     "workbox-window": "^7.4.0",
-    "wrangler": "^4.60.0"
+    "wrangler": "^4.61.1"
   },
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }
