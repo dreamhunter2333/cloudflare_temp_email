@@ -6,7 +6,15 @@
   <a href="CHANGELOG_EN.md">🇺🇸 English</a>
 </p>
 
-## v1.3.0(main)
+## v1.4.0(main)
+
+### Features
+
+### Bug Fixes
+
+### Improvements
+
+## v1.3.0
 
 ### Features
 
