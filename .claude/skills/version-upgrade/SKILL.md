@@ -11,10 +11,11 @@ description: 升级项目版本号。当用户要求升级版本、更新版本�
 
 1. `frontend/package.json` - version 字段
 2. `worker/package.json` - version 字段
-3. `pages/package.json` - version 字段
-4. `vitepress-docs/package.json` - version 字段
-5. `CHANGELOG.md` - 添加新版本占位符
-6. `CHANGELOG_EN.md` - 添加新版本占位符（英文）
+3. `worker/src/constants.ts` - VERSION 常量（格式：`VERSION: 'v' + '1.4.0'`）
+4. `pages/package.json` - version 字段
+5. `vitepress-docs/package.json` - version 字段
+6. `CHANGELOG.md` - 添加新版本占位符
+7. `CHANGELOG_EN.md` - 添加新版本占位符（英文）
 
 ## 版本升级流程
 
