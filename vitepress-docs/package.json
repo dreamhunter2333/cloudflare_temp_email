@@ -1,7 +1,7 @@
 {
   "name": "temp-mail-docs",
   "private": true,
-  "version": "1.2.1",
+  "version": "1.4.0",
   "type": "module",
   "devDependencies": {
     "@types/node": "^25.1.0",
