@@ -14,6 +14,8 @@
 
 ### Improvements
 
+- style: |Mail List| Improve empty state display for inbox and sent box, show different messages based on mail count, add semantic icons
+
 ## v1.3.0
 
 ### Features
