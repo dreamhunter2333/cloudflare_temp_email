@@ -3,7 +3,7 @@ import { watch, onMounted, ref, onBeforeUnmount, computed } from "vue";
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
-import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled } from '@vicons/material'
+import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled, InboxRound } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
 import { processItem } from '../utils/email-parser'
 import { utcToLocalDate } from '../utils';
@@ -147,6 +147,7 @@ const { t } = useI18n({
       attachments: 'Show Attachments',
       downloadMail: 'Download Mail',
       pleaseSelectMail: "Please select mail",
+      emptyInbox: "Your inbox is empty",
       delete: 'Delete',
       deleteMailTip: 'Are you sure you want to delete mail?',
       reply: 'Reply',
@@ -171,6 +172,7 @@ const { t } = useI18n({
       downloadMail: '下载邮件',
       attachments: '查看附件',
       pleaseSelectMail: "请选择邮件",
+      emptyInbox: "收件箱为空",
       delete: '删除',
       deleteMailTip: '确定要删除邮件吗?',
       reply: '回复',
@@ -446,7 +448,7 @@ onBeforeUnmount(() => {
       <n-split class="left" direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
         :on-update:size="onSpiltSizeChange">
         <template #1>
-          <div style="overflow: auto; min-height: 50vh; max-height: 100vh;">
+          <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
@@ -506,7 +508,10 @@ onBeforeUnmount(() => {
               :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
-            <n-result status="info" :title="t('pleaseSelectMail')">
+            <n-result status="info" :title="count === 0 ? t('emptyInbox') : t('pleaseSelectMail')">
+              <template #icon>
+                <n-icon :component="InboxRound" :size="100" />
+              </template>
             </n-result>
           </n-card>
         </template>
@@ -531,7 +536,7 @@ onBeforeUnmount(() => {
         <n-input v-model:value="localFilterKeyword"
           :placeholder="t('keywordQueryTip')" size="small" clearable />
       </div>
-      <div style="overflow: auto; height: 80vh;">
+      <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
         <n-list hoverable clickable>
           <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
             <n-thing :title="row.subject">

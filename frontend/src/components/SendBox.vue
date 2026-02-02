@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
 import { useIsMobile } from '../utils/composables'
 import { utcToLocalDate } from '../utils';
+import { SendRound } from '@vicons/material'
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -52,6 +53,7 @@ const { t } = useI18n({
       refresh: 'Refresh',
       showCode: 'Change View Original Code',
       pleaseSelectMail: "Please select a mail to view.",
+      emptySent: "No sent emails",
       delete: 'Delete',
       deleteMailTip: 'Are you sure you want to delete mail?',
       multiAction: 'Multi Action',
@@ -64,6 +66,7 @@ const { t } = useI18n({
       refresh: '刷新',
       showCode: '切换查看元数据',
       pleaseSelectMail: "请选择一封邮件查看。",
+      emptySent: "发件箱为空",
       delete: '删除',
       deleteMailTip: '确定要删除邮件吗?',
       multiAction: '多选',
@@ -239,7 +242,7 @@ onMounted(async () => {
       <n-split direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
         :on-update:size="onSpiltSizeChange">
         <template #1>
-          <div style="overflow: auto; height: 80vh;">
+          <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
@@ -297,7 +300,10 @@ onMounted(async () => {
             <div v-else v-html="curMail.content" style="margin-top: 10px;"></div>
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
-            <n-result status="info" :title="t('pleaseSelectMail')">
+            <n-result status="info" :title="count === 0 ? t('emptySent') : t('pleaseSelectMail')">
+              <template #icon>
+                <n-icon :component="SendRound" :size="100" />
+              </template>
             </n-result>
           </n-card>
         </template>
@@ -312,7 +318,7 @@ onMounted(async () => {
           {{ t('refresh') }}
         </n-button>
       </div>
-      <div style="overflow: auto; height: 80vh;">
+      <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
         <n-list hoverable clickable>
           <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
             <n-thing :title="row.subject">
