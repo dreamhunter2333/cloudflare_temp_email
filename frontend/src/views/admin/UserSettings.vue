@@ -21,6 +21,8 @@ const { t } = useI18n({
             manualInputPrompt: 'Type and press Enter to add',
             mailAllowList: 'Mail Address Allow List',
             maxAddressCount: 'Maximum number of email addresses that can be binded',
+            emailCheckRegex: 'Email Check Regex (e.g. ^[^.]+@.+$ to disallow dots before @)',
+            enableEmailCheckRegex: 'Enable Email Check Regex',
         },
         zh: {
             save: '保存',
@@ -33,6 +35,8 @@ const { t } = useI18n({
             manualInputPrompt: '输入后按回车键添加',
             mailAllowList: '邮件地址白名单',
             maxAddressCount: '可绑定最大邮箱地址数量',
+            emailCheckRegex: '邮箱正则校验 (例如 ^[^.]+@.+$ 禁止@前面有.)',
+            enableEmailCheckRegex: '启用邮箱正则校验',
         }
     }
 });
@@ -53,6 +57,8 @@ const userSettings = ref({
     enableMailAllowList: false,
     mailAllowList: commonMail,
     maxAddressCount: 5,
+    enableEmailCheckRegex: false,
+    emailCheckRegex: "",
 });
 
 const fetchData = async () => {
@@ -123,6 +129,16 @@ onMounted(async () => {
                     <n-input-group>
                         <n-input-number v-model:value="userSettings.maxAddressCount"
                             :placeholder="t('maxAddressCount')" />
+                    </n-input-group>
+                </n-form-item-row>
+                <n-form-item-row :label="t('enableEmailCheckRegex')">
+                    <n-input-group>
+                        <n-checkbox v-model:checked="userSettings.enableEmailCheckRegex" style="width: 20%;">
+                            {{ t('enable') }}
+                        </n-checkbox>
+                        <n-input v-model:value="userSettings.emailCheckRegex"
+                            v-if="userSettings.enableEmailCheckRegex"
+                            style="width: 80%;" :placeholder="t('emailCheckRegex')" />
                     </n-input-group>
                 </n-form-item-row>
             </n-form>

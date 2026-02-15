@@ -99,11 +99,14 @@ export class UserSettings {
     enableMailAllowList: boolean | undefined;
     mailAllowList: string[] | undefined;
     maxAddressCount: number;
+    enableEmailCheckRegex: boolean | undefined;
+    emailCheckRegex: string | undefined;
 
     constructor(data: UserSettings | undefined | null) {
         const {
             enable, enableMailVerify, verifyMailSender,
-            enableMailAllowList, mailAllowList, maxAddressCount
+            enableMailAllowList, mailAllowList, maxAddressCount,
+            enableEmailCheckRegex, emailCheckRegex
         } = data || {};
         this.enable = enable;
         this.enableMailVerify = enableMailVerify;
@@ -111,6 +114,8 @@ export class UserSettings {
         this.enableMailAllowList = enableMailAllowList;
         this.mailAllowList = mailAllowList;
         this.maxAddressCount = maxAddressCount || 5;
+        this.enableEmailCheckRegex = enableEmailCheckRegex;
+        this.emailCheckRegex = emailCheckRegex;
     }
 }
 

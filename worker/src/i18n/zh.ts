@@ -26,6 +26,7 @@ const messages: LocaleMessages = {
     FailedToRegisterMsg: "注册失败",
     UserRegistrationDisabledMsg: "用户注册已禁用, 请联系管理员",
     UserMailDomainMustInMsg: "用户邮箱域必须在此列表中",
+    UserEmailNotMatchRegexMsg: "邮箱地址格式不符合要求",
     InvalidVerifyCodeMsg: "无效的验证码",
     InvalidEmailOrPasswordMsg: "无效的邮箱或密码",
     VerifyMailSenderNotSetMsg: "验证邮件发送邮箱未设置, 请联系管理员",

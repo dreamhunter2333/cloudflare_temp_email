@@ -27,6 +27,17 @@ export default {
         ) {
             return c.text(`${msgs.UserMailDomainMustInMsg} ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
         }
+        // check email regex
+        if (settings.enableEmailCheckRegex && settings.emailCheckRegex) {
+            try {
+                const regex = new RegExp(settings.emailCheckRegex);
+                if (!regex.test(email)) {
+                    return c.text(`${msgs.UserEmailNotMatchRegexMsg}: /${settings.emailCheckRegex}/`, 400)
+                }
+            } catch (e) {
+                console.error("Failed to check user email regex", e);
+            }
+        }
         if (!settings.verifyMailSender) {
             return c.text(msgs.VerifyMailSenderNotSetMsg, 400)
         }
@@ -81,6 +92,17 @@ export default {
             && !settings.mailAllowList.includes(mailDomain)
         ) {
             return c.text(`${msgs.UserMailDomainMustInMsg} ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
+        }
+        // check email regex
+        if (settings.enableEmailCheckRegex && settings.emailCheckRegex) {
+            try {
+                const regex = new RegExp(settings.emailCheckRegex);
+                if (!regex.test(email)) {
+                    return c.text(`${msgs.UserEmailNotMatchRegexMsg}: /${settings.emailCheckRegex}/`, 400)
+                }
+            } catch (e) {
+                console.error("Failed to check user email regex", e);
+            }
         }
         // check code
         if (settings.enableMailVerify) {
