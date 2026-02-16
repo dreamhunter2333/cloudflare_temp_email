@@ -10,7 +10,12 @@
 
 ### Features
 
+- feat: |User Registration| Add email regex validation for user registration, admins can configure email format validation rules
+
 ### Bug Fixes
+
+- fix: |Docs| Fix User Mail API documentation incorrectly using `x-admin-auth`, changed to correct `x-user-token`
+- docs: |Docs| Add Admin API documentation for delete mail, delete address, clear inbox, and clear sent items
 
 ### Improvements
 
