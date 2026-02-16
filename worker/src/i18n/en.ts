@@ -26,6 +26,7 @@ const messages: LocaleMessages = {
     FailedToRegisterMsg: "Failed to register",
     UserRegistrationDisabledMsg: "User registration is disabled, please contact the administrator",
     UserMailDomainMustInMsg: "User mail domain must be in this list",
+    UserEmailNotMatchRegexMsg: "Email address format does not match the required pattern",
     InvalidVerifyCodeMsg: "Invalid verify code",
     InvalidEmailOrPasswordMsg: "Invalid email or password",
     VerifyMailSenderNotSetMsg: "Verify mail sender address is not set, please contact the administrator",
