@@ -24,7 +24,7 @@
     "@aws-sdk/client-s3": "3.888.0",
     "@aws-sdk/s3-request-presigner": "3.888.0",
     "@simplewebauthn/server": "10.0.1",
-    "hono": "^4.11.9",
+    "hono": "^4.11.10",
     "jsonpath-plus": "^10.4.0",
     "mimetext": "^3.0.28",
     "postal-mime": "^2.7.3",
