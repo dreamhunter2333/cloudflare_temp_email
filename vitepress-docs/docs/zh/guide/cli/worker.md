@@ -1,4 +1,7 @@
-# Cloudflare workers 后端
+# Cloudflare Worker 后端
+
+> [!warning] 注意
+> `worker.dev` 域名在中国无法访问，请自定义域名
 
 ## 初始化项目
 
@@ -22,6 +25,9 @@ wrangler kv:namespace create DEV
 
 ## 修改 `wrangler.toml` 配置文件
 
+> [!NOTE] 注意
+> 更多变量的配置请查看 [worker变量说明](/zh/guide/worker-vars)
+
 ```toml
 name = "cloudflare_temp_email"
 main = "src/worker.ts"
@@ -32,7 +38,12 @@ compatibility_flags = [ "nodejs_compat" ]
 # routes = [
 #  { pattern = "temp-email-api.xxxxx.xyz", custom_domain = true },
 # ]
-node_compat = true
+
+# 如果你想要部署带有前端资源的 worker, 你需要添加 assets 配置
+# [assets]
+# directory = "../frontend/dist/"
+# binding = "ASSETS"
+# run_worker_first = true
 
 # 如果你想要使用定时任务清理邮件，取消下面的注释，并修改 cron 表达式
 # [triggers]
@@ -44,65 +55,20 @@ node_compat = true
 # ]
 
 [vars]
-# TITLE = "Custom Title" # 自定义网站标题
-PREFIX = "tmp" # 要处理的邮箱名称前缀，不需要后缀可配置为空字符串
-# (min, max) adderss的长度，如果不设置，默认为(1, 30)
-# ANNOUNCEMENT = "Custom Announcement" # 自定义公告
-# address name 的正则表达式, 只用于检查，符合条件将通过检查
-# ADDRESS_CHECK_REGEX = "^(?!.*admin).*"
-# address name 替换非法符号的正则表达式, 不在其中的符号将被替换，如果不设置，默认为 [^a-z0-9], 需谨慎使用, 有些符号可能导致无法收件
-# ADDRESS_REGEX = "[^a-z0-9]"
-# MIN_ADDRESS_LEN = 1
-# MAX_ADDRESS_LEN = 30
-# 如果你想要你的网站私有，取消下面的注释，并修改密码
-# PASSWORDS = ["123", "456"]
+# 邮箱名称前缀，不需要后缀可配置为空字符串或者不配置
+PREFIX = "tmp"
+# 用于临时邮箱的所有域名, 支持多个域名
+DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
+# 用于生成 jwt 的密钥, jwt 用于给用户登录以及鉴权
+JWT_SECRET = "xxx"
+
 # admin 控制台密码, 不配置则不允许访问控制台
 # ADMIN_PASSWORDS = ["123", "456"]
-# 警告: 管理员控制台没有密码或用户检查
-# DISABLE_ADMIN_PASSWORD_CHECK = false
-# admin 联系方式，不配置则不显示，可配置任意字符串
-# ADMIN_CONTACT = "xx@xx.xxx"
-# DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 默认用户可用的域名(未登录或未分配角色的用户)
-DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # 你的域名, 支持多个域名
-# 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称
-# DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
-# 新用户默认角色, 仅在启用邮件验证时有效
-# USER_DEFAULT_ROLE = "vip"
-# admin 角色配置, 如果用户角色等于 ADMIN_USER_ROLE 则可以访问 admin 控制台
-# ADMIN_USER_ROLE = "admin" # the role which can access admin panel
-# 用户角色配置, 如果 domains 为空将使用 default_domains
-# 如果 prefix 为 null 将使用默认前缀, 如果 prefix 为空字符串将不使用前缀
-# USER_ROLES = [
-#    { domains = ["xxx.xxx1" , "xxx.xxx2"], role = "vip", prefix = "vip" },
-#    { domains = ["xxx.xxx1" , "xxx.xxx2"], role = "admin", prefix = "" },
-# ]
-JWT_SECRET = "xxx" # 用于生成 jwt 的密钥, jwt 用于给用户登录以及鉴权
-BLACK_LIST = "" # 黑名单，用于过滤发件人，逗号分隔
+
 # 是否允许用户创建邮件, 不配置则不允许
 ENABLE_USER_CREATE_EMAIL = true
 # 允许用户删除邮件, 不配置则不允许
 ENABLE_USER_DELETE_EMAIL = true
-# 允许自动回复邮件
-ENABLE_AUTO_REPLY = false
-# 是否启用 webhook
-# ENABLE_WEBHOOK = true
-# 前端界面页脚文本
-# COPYRIGHT = "Dream Hunter"
-# DISABLE_SHOW_GITHUB = true # 是否显示 GitHub 链接
-# 默认发送邮件余额，如果不设置，将为 0
-# DEFAULT_SEND_BALANCE = 1
-# NO_LIMIT_SEND_ROLE = "vip" # 可以无限发送邮件的角色
-# Turnstile 人机验证配置
-# CF_TURNSTILE_SITE_KEY = ""
-# CF_TURNSTILE_SECRET_KEY = ""
-# telegram bot 最多绑定邮箱数量
-# TG_MAX_ADDRESS = 5
-# telegram BOT_INFO，预定义的 BOT_INFO 可以降低 webhook 的延迟
-# TG_BOT_INFO = "{}"
-# 全局转发地址列表，如果不配置则不启用，启用后所有邮件都会转发到列表中的地址
-# FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
-# 前端地址，用于发送 webhook 的邮件 url
-# FRONTEND_URL = "https://xxxx.xxx"
 
 # D1 数据库的名称和 ID 可以在 cloudflare 控制台查看
 [[d1_databases]]
@@ -122,6 +88,34 @@ database_id = "xxx" # D1 数据库 ID
 # namespace_id = "1001"
 # # 10 requests per minute
 # simple = { limit = 10, period = 60 }
+
+# 绑定其他 worker 处理邮件，例如通过 auth-inbox ai 能力解析验证码或激活链接
+# [[services]]
+# binding = "AUTH_INBOX"
+# service = "auth-inbox"
+```
+
+## 部署带有前端页面的 worker(可选)
+
+> [!NOTE]
+> 如果不需要 [带有前端页面的 worker]，可以跳过此步骤
+> 参考之后部署前端文档，可以进行前后端分离部署
+
+确认已构建前端资源到 `frontend/dist` 目录
+
+```bash
+cd frontend
+pnpm install --no-frozen-lockfile
+pnpm build:pages
+```
+
+`worker` 目录下的 `wrangler.toml` 文件中添加下面的配置
+
+```toml
+[assets]
+directory = "../frontend/dist/"
+binding = "ASSETS"
+run_worker_first = true
 ```
 
 ## Telegram Bot 配置

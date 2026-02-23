@@ -1,10 +1,10 @@
-import { HonoCustomType } from "../types";
 import { Context } from "hono";
 import {
     S3Client,
     ListObjectsV2Command,
     GetObjectCommand,
-    PutObjectCommand
+    PutObjectCommand,
+    DeleteObjectCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -81,4 +81,16 @@ export default {
             }
         );
     },
+    deleteKey: async (c: Context<HonoCustomType>) => {
+        const { address } = c.get("jwtPayload")
+        const { key } = await c.req.json()
+        const client = getS3Client(c);
+        await client.send(
+            new DeleteObjectCommand({
+                Bucket: c.env.S3_BUCKET,
+                Key: `${address}/${key}`
+            })
+        );
+        return c.json({ success: true });
+    }
 }

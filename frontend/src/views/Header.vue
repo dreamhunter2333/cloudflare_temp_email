@@ -15,6 +15,7 @@ import { api } from '../api'
 import { getRouterPathWithLang } from '../utils'
 
 const message = useMessage()
+const notification = useNotification()
 
 const {
     toggleDark, isDark, isTelegram, showAdminPage,
@@ -125,7 +126,9 @@ const menuOptions = computed(() => [
                 type: menuValue.value == "admin" ? "primary" : "default",
                 style: "width: 100%",
                 onClick: async () => {
+                    loading.value = true;
                     await router.push(getRouterPathWithLang('/admin', locale.value));
+                    loading.value = false;
                     showMobileMenu.value = false;
                 }
             },
@@ -213,7 +216,9 @@ const logoClick = async () => {
     if (logoClickCount.value >= 5) {
         logoClickCount.value = 0;
         message.info("Change to admin Page");
+        loading.value = true;
         await router.push(getRouterPathWithLang('/admin', locale.value));
+        loading.value = false;
     } else {
         logoClickCount.value++;
     }
@@ -223,7 +228,7 @@ const logoClick = async () => {
 }
 
 onMounted(async () => {
-    await api.getOpenSettings(message);
+    await api.getOpenSettings(message, notification);
     // make sure user_id is fetched
     if (!userSettings.value.user_id) await api.getUserSettings(message);
 });

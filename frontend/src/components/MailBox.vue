@@ -1,11 +1,14 @@
 <script setup>
-import { watch, onMounted, ref, onBeforeUnmount } from "vue";
+import { watch, onMounted, ref, onBeforeUnmount, computed } from "vue";
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
-import { CloudDownloadRound, ReplyFilled } from '@vicons/material'
+import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled, InboxRound } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
-import { processItem, getDownloadEmlUrl } from '../utils/email-parser'
+import { processItem } from '../utils/email-parser'
+import { utcToLocalDate } from '../utils';
+import MailContentRenderer from "./MailContentRenderer.vue";
+import AiExtractInfo from "./AiExtractInfo.vue";
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -46,25 +49,87 @@ const props = defineProps({
     default: (mail_id, filename, blob) => { },
     required: false
   },
+  showFilterInput: {
+    type: Boolean,
+    default: false,
+    required: false
+  },
 })
 
+const localFilterKeyword = ref('')
+
 const {
-  isDark, mailboxSplitSize, indexTab, loading,
-  useIframeShowMail, sendMailModel, preferShowTextMail
+  isDark, mailboxSplitSize, indexTab, loading, useUTCDate,
+  autoRefresh, configAutoRefreshInterval, sendMailModel
 } = useGlobalState()
-const autoRefresh = ref(false)
-const autoRefreshInterval = ref(30)
-const data = ref([])
+const autoRefreshInterval = ref(configAutoRefreshInterval.value)
+const rawData = ref([])
 const timer = ref(null)
 
 const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 
-const showAttachments = ref(false)
-const curAttachments = ref([])
+// Computed property for filtered data (only filter current page)
+const data = computed(() => {
+  if (!localFilterKeyword.value || localFilterKeyword.value.trim() === '') {
+    return rawData.value;
+  }
+  const keyword = localFilterKeyword.value.toLowerCase();
+  return rawData.value.filter(mail => {
+    // Search in subject, text, message fields
+    const searchFields = [
+      mail.subject || '',
+      mail.text || '',
+      mail.message || ''
+    ].map(field => field.toLowerCase());
+    return searchFields.some(field => field.includes(keyword));
+  });
+})
+
+const canGoPrevMail = computed(() => {
+  if (!curMail.value) return false
+  const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
+  return currentIndex > 0 || page.value > 1
+})
+
+const canGoNextMail = computed(() => {
+  if (!curMail.value) return false
+  const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
+  return currentIndex < data.value.length - 1 || count.value > page.value * pageSize.value
+})
+
+const prevMail = async () => {
+  if (!canGoPrevMail.value) return
+  const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
+
+  if (currentIndex > 0) {
+    curMail.value = data.value[currentIndex - 1]
+  } else if (page.value > 1) {
+    page.value--
+    await refresh()
+    if (data.value.length > 0) {
+      curMail.value = data.value[data.value.length - 1]
+    }
+  }
+}
+
+const nextMail = async () => {
+  if (!canGoNextMail.value) return
+  const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
+
+  if (currentIndex < data.value.length - 1) {
+    curMail.value = data.value[currentIndex + 1]
+  } else if (count.value > page.value * pageSize.value) {
+    page.value++
+    await refresh()
+    if (data.value.length > 0) {
+      curMail.value = data.value[0]
+    }
+  }
+}
+
 const curMail = ref(null);
-const showTextMail = ref(preferShowTextMail.value)
 
 const multiActionMode = ref(false)
 const showMultiActionDownload = ref(false)
@@ -82,9 +147,11 @@ const { t } = useI18n({
       attachments: 'Show Attachments',
       downloadMail: 'Download Mail',
       pleaseSelectMail: "Please select mail",
+      emptyInbox: "Your inbox is empty",
       delete: 'Delete',
       deleteMailTip: 'Are you sure you want to delete mail?',
       reply: 'Reply',
+      forwardMail: 'Forward',
       showTextMail: 'Show Text Mail',
       showHtmlMail: 'Show Html Mail',
       saveToS3: 'Save to S3',
@@ -92,6 +159,10 @@ const { t } = useI18n({
       cancelMultiAction: 'Cancel Multi Action',
       selectAll: 'Select All of This Page',
       unselectAll: 'Unselect All',
+      prevMail: 'Previous',
+      nextMail: 'Next',
+      keywordQueryTip: 'Filter current page',
+      query: 'Query',
     },
     zh: {
       success: '成功',
@@ -101,9 +172,11 @@ const { t } = useI18n({
       downloadMail: '下载邮件',
       attachments: '查看附件',
       pleaseSelectMail: "请选择邮件",
+      emptyInbox: "收件箱为空",
       delete: '删除',
       deleteMailTip: '确定要删除邮件吗?',
       reply: '回复',
+      forwardMail: '转发',
       showTextMail: '显示纯文本邮件',
       showHtmlMail: '显示HTML邮件',
       saveToS3: '保存到S3',
@@ -111,19 +184,25 @@ const { t } = useI18n({
       cancelMultiAction: '取消多选',
       selectAll: '全选本页',
       unselectAll: '取消全选',
+      prevMail: '上一封',
+      nextMail: '下一封',
+      keywordQueryTip: '过滤当前页',
+      query: '查询',
     }
   }
 });
 
 const setupAutoRefresh = async (autoRefresh) => {
-  // auto refresh every 30 seconds
-  autoRefreshInterval.value = 30;
+  // auto refresh every configAutoRefreshInterval seconds
+  autoRefreshInterval.value = configAutoRefreshInterval.value;
   if (autoRefresh) {
+    clearInterval(timer.value);
     timer.value = setInterval(async () => {
+      if (loading.value) return;
       autoRefreshInterval.value--;
       if (autoRefreshInterval.value <= 0) {
-        autoRefreshInterval.value = 30;
-        await refresh();
+        autoRefreshInterval.value = configAutoRefreshInterval.value;
+        await backFirstPageAndRefresh();
       }
     }, 1000)
   } else {
@@ -134,7 +213,7 @@ const setupAutoRefresh = async (autoRefresh) => {
 
 watch(autoRefresh, async (autoRefresh, old) => {
   setupAutoRefresh(autoRefresh)
-})
+}, { immediate: true })
 
 watch([page, pageSize], async ([page, pageSize], [oldPage, oldPageSize]) => {
   if (page !== oldPage || pageSize !== oldPageSize) {
@@ -148,7 +227,7 @@ const refresh = async () => {
       pageSize.value, (page.value - 1) * pageSize.value
     );
     loading.value = true;
-    data.value = await Promise.all(results.map(async (item) => {
+    rawData.value = await Promise.all(results.map(async (item) => {
       item.checked = false;
       return await processItem(item);
     }));
@@ -167,6 +246,11 @@ const refresh = async () => {
   }
 };
 
+const backFirstPageAndRefresh = async () => {
+  page.value = 1;
+  await refresh();
+}
+
 const clickRow = async (row) => {
   if (multiActionMode.value) {
     row.checked = !row.checked;
@@ -175,10 +259,6 @@ const clickRow = async (row) => {
   curMail.value = row;
 };
 
-const getAttachments = (attachments) => {
-  curAttachments.value = attachments;
-  showAttachments.value = true;
-};
 
 const mailItemClass = (row) => {
   return curMail.value && row.id == curMail.value.id ? (isDark.value ? 'overlay overlay-dark-backgroud' : 'overlay overlay-light-backgroud') : '';
@@ -214,18 +294,21 @@ const replyMail = async () => {
   indexTab.value = 'sendmail';
 };
 
+const forwardMail = async () => {
+  Object.assign(sendMailModel.value, {
+    subject: `${t('forwardMail')}: ${curMail.value.subject}`,
+    contentType: curMail.value.message ? 'html' : 'text',
+    content: curMail.value.message || curMail.value.text,
+  });
+  indexTab.value = 'sendmail';
+};
+
 const onSpiltSizeChange = (size) => {
   mailboxSplitSize.value = size;
 }
 
-const attachmentLoding = ref(false)
 const saveToS3Proxy = async (filename, blob) => {
-  attachmentLoding.value = true
-  try {
-    await props.saveToS3(curMail.value.id, filename, blob);
-  } finally {
-    attachmentLoding.value = false
-  }
+  await props.saveToS3(curMail.value.id, filename, blob);
 }
 
 const multiActionModeClick = (enableMulti) => {
@@ -317,7 +400,7 @@ onBeforeUnmount(() => {
   <div>
     <div v-if="!isMobile" class="left">
       <div style="margin-bottom: 10px;">
-        <n-space v-if="multiActionMode">
+        <n-space v-if="multiActionMode" align="center">
           <n-button @click="multiActionModeClick(false)" tertiary>
             {{ t('cancelMultiAction') }}
           </n-button>
@@ -340,7 +423,7 @@ onBeforeUnmount(() => {
             {{ t('downloadMail') }}
           </n-button>
         </n-space>
-        <n-space v-else>
+        <n-space v-else align="center">
           <n-button @click="multiActionModeClick(true)" type="primary" tertiary>
             {{ t('multiAction') }}
           </n-button>
@@ -354,15 +437,18 @@ onBeforeUnmount(() => {
               {{ t('autoRefresh') }}
             </template>
           </n-switch>
-          <n-button @click="refresh" type="primary" tertiary>
+          <n-button @click="backFirstPageAndRefresh" type="primary" tertiary>
             {{ t('refresh') }}
           </n-button>
+          <n-input v-if="showFilterInput" v-model:value="localFilterKeyword"
+            :placeholder="t('keywordQueryTip')" style="width: 200px; display: flex; align-items: center;"
+            clearable />
         </n-space>
       </div>
       <n-split class="left" direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
         :on-update:size="onSpiltSizeChange">
         <template #1>
-          <div style="overflow: auto; height: 80vh;">
+          <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="mailItemClass(row)">
@@ -375,14 +461,19 @@ onBeforeUnmount(() => {
                       ID: {{ row.id }}
                     </n-tag>
                     <n-tag type="info">
-                      {{ `${row.created_at} UTC` }}
+                      {{ utcToLocalDate(row.created_at, useUTCDate) }}
                     </n-tag>
                     <n-tag type="info">
-                      FROM: {{ row.source }}
+                      <n-ellipsis style="max-width: 240px;">
+                        {{ showEMailTo ? "FROM: " + row.source : row.source }}
+                      </n-ellipsis>
                     </n-tag>
                     <n-tag v-if="showEMailTo" type="info">
-                      TO: {{ row.address }}
+                      <n-ellipsis style="max-width: 240px;">
+                        TO: {{ row.address }}
+                      </n-ellipsis>
                     </n-tag>
+                    <AiExtractInfo :metadata="row.metadata" compact />
                   </template>
                 </n-thing>
               </n-list-item>
@@ -390,66 +481,45 @@ onBeforeUnmount(() => {
           </div>
         </template>
         <template #2>
+          <div v-if="curMail" style="margin: 8px;">
+            <n-flex justify="space-between">
+              <n-button @click="prevMail" :disabled="!canGoPrevMail" text size="small">
+                <template #icon>
+                  <n-icon>
+                    <ArrowBackIosNewFilled />
+                  </n-icon>
+                </template>
+                {{ t('prevMail') }}
+              </n-button>
+              <n-button @click="nextMail" :disabled="!canGoNextMail" text size="small" icon-placement="right">
+                <template #icon>
+                  <n-icon>
+                    <ArrowForwardIosFilled />
+                  </n-icon>
+                </template>
+                {{ t('nextMail') }}
+              </n-button>
+            </n-flex>
+          </div>
           <n-card :bordered="false" embedded v-if="curMail" class="mail-item" :title="curMail.subject"
             style="overflow: auto; max-height: 100vh;">
-            <n-space>
-              <n-tag type="info">
-                ID: {{ curMail.id }}
-              </n-tag>
-              <n-tag type="info">
-                {{ `${curMail.created_at} UTC` }}
-              </n-tag>
-              <n-tag type="info">
-                FROM: {{ curMail.source }}
-              </n-tag>
-              <n-tag v-if="showEMailTo" type="info">
-                TO: {{ curMail.address }}
-              </n-tag>
-              <n-popconfirm v-if="enableUserDeleteEmail" @positive-click="deleteMail">
-                <template #trigger>
-                  <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
-                </template>
-                {{ t('deleteMailTip') }}
-              </n-popconfirm>
-              <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
-                @click="getAttachments(curMail.attachments)">
-                {{ t('attachments') }}
-              </n-button>
-              <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="curMail.id + '.eml'"
-                :href="getDownloadEmlUrl(curMail.raw)">
-                <template #icon>
-                  <n-icon :component="CloudDownloadRound" />
-                </template>
-                {{ t('downloadMail') }}
-              </n-button>
-              <n-button v-if="showReply" size="small" tertiary type="info" @click="replyMail">
-                <template #icon>
-                  <n-icon :component="ReplyFilled" />
-                </template>
-                {{ t('reply') }}
-              </n-button>
-              <n-button size="small" tertiary type="info" @click="showTextMail = !showTextMail">
-                {{ showTextMail ? t('showHtmlMail') : t('showTextMail') }}
-              </n-button>
-            </n-space>
-            <pre v-if="showTextMail" style="margin-top: 10px;">{{ curMail.text }}</pre>
-            <iframe v-else-if="useIframeShowMail" :srcdoc="curMail.message"
-              style="margin-top: 10px;width: 100%; height: 100%;">
-            </iframe>
-            <div v-else v-html="curMail.message" style="margin-top: 10px;"></div>
+            <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
+              :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
+              :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
-            <n-result status="info" :title="t('pleaseSelectMail')">
+            <n-result status="info" :title="count === 0 ? t('emptyInbox') : t('pleaseSelectMail')">
+              <template #icon>
+                <n-icon :component="InboxRound" :size="100" />
+              </template>
             </n-result>
           </n-card>
         </template>
       </n-split>
     </div>
     <div class="left" v-else>
-      <n-space justify="center">
-        <div style="display: inline-block;">
-          <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
-        </div>
+      <n-space justify="space-around" align="center" :wrap="false" style="display: flex; align-items: center;">
+        <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
         <n-switch v-model:value="autoRefresh" size="small" :round="false">
           <template #checked>
             {{ t('refreshAfter', { msg: autoRefreshInterval }) }}
@@ -458,11 +528,15 @@ onBeforeUnmount(() => {
             {{ t('autoRefresh') }}
           </template>
         </n-switch>
-        <n-button @click="refresh" tertiary size="small" type="primary">
+        <n-button @click="backFirstPageAndRefresh" tertiary size="small" type="primary">
           {{ t('refresh') }}
         </n-button>
       </n-space>
-      <div style="overflow: auto; height: 80vh;">
+      <div v-if="showFilterInput" style="padding: 0 10px; margin-top: 8px; margin-bottom: 10px;">
+        <n-input v-model:value="localFilterKeyword"
+          :placeholder="t('keywordQueryTip')" size="small" clearable />
+      </div>
+      <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
         <n-list hoverable clickable>
           <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
             <n-thing :title="row.subject">
@@ -471,14 +545,19 @@ onBeforeUnmount(() => {
                   ID: {{ row.id }}
                 </n-tag>
                 <n-tag type="info">
-                  {{ `${row.created_at} UTC` }}
+                  {{ utcToLocalDate(row.created_at, useUTCDate) }}
                 </n-tag>
                 <n-tag type="info">
-                  FROM: {{ row.source }}
+                  <n-ellipsis style="max-width: 240px;">
+                    {{ showEMailTo ? "FROM: " + row.source : row.source }}
+                  </n-ellipsis>
                 </n-tag>
                 <n-tag v-if="showEMailTo" type="info">
-                  TO: {{ row.address }}
+                  <n-ellipsis style="max-width: 240px;">
+                    TO: {{ row.address }}
+                  </n-ellipsis>
                 </n-tag>
+                <AiExtractInfo :metadata="row.metadata" compact />
               </template>
             </n-thing>
           </n-list-item>
@@ -488,83 +567,14 @@ onBeforeUnmount(() => {
         style="height: 80vh;">
         <n-drawer-content :title="curMail ? curMail.subject : ''" closable>
           <n-card :bordered="false" embedded style="overflow: auto;">
-            <n-space>
-              <n-tag type="info">
-                ID: {{ curMail.id }}
-              </n-tag>
-              <n-tag type="info">
-                {{ `${curMail.created_at} UTC` }}
-              </n-tag>
-              <n-tag type="info">
-                FROM: {{ curMail.source }}
-              </n-tag>
-              <n-tag v-if="showEMailTo" type="info">
-                TO: {{ curMail.address }}
-              </n-tag>
-              <n-popconfirm v-if="enableUserDeleteEmail" @positive-click="deleteMail">
-                <template #trigger>
-                  <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
-                </template>
-                {{ t('deleteMailTip') }}
-              </n-popconfirm>
-              <n-button v-if="curMail.attachments && curMail.attachments.length > 0" size="small" tertiary type="info"
-                @click="getAttachments(curMail.attachments)">
-                {{ t('attachments') }}
-              </n-button>
-              <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="curMail.id + '.eml'"
-                :href="getDownloadEmlUrl(curMail)">
-                <n-icon :component="CloudDownloadRound" />
-                {{ t('downloadMail') }}
-              </n-button>
-              <n-button v-if="showReply" size="small" tertiary type="info" @click="replyMail">
-                <template #icon>
-                  <n-icon :component="ReplyFilled" />
-                </template>
-                {{ t('reply') }}
-              </n-button>
-              <n-button size="small" tertiary type="info" @click="showTextMail = !showTextMail">
-                {{ showTextMail ? t('showHtmlMail') : t('showTextMail') }}
-              </n-button>
-            </n-space>
-            <pre v-if="showTextMail" style="margin-top: 10px;">{{ curMail.text }}</pre>
-            <iframe v-else-if="useIframeShowMail" :srcdoc="curMail.message"
-              style="margin-top: 10px;width: 100%; height: 100%;">
-            </iframe>
-            <div v-else v-html="curMail.message" style="margin-top: 10px;"></div>
+            <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
+              :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
+              :useUTCDate="useUTCDate" :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail"
+              :onSaveToS3="saveToS3Proxy" />
           </n-card>
         </n-drawer-content>
       </n-drawer>
     </div>
-    <n-modal v-model:show="showAttachments" preset="dialog" title="Dialog">
-      <template #header>
-        <div>{{ t("attachments") }}</div>
-      </template>
-      <n-spin v-model:show="attachmentLoding">
-        <n-list hoverable clickable>
-          <n-list-item v-for="row in curAttachments" v-bind:key="row.id">
-            <n-thing class="center" :title="row.filename">
-              <template #description>
-                <n-space>
-                  <n-tag type="info">
-                    Size: {{ row.size }}
-                  </n-tag>
-                  <n-button v-if="showSaveS3" @click="saveToS3Proxy(row.filename, row.blob)" ghost type="info"
-                    size="small">
-                    {{ t('saveToS3') }}
-                  </n-button>
-                </n-space>
-              </template>
-            </n-thing>
-            <template #suffix>
-              <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="row.filename"
-                :href="row.url">
-                <n-icon :component="CloudDownloadRound" />
-              </n-button>
-            </template>
-          </n-list-item>
-        </n-list>
-      </n-spin>
-    </n-modal>
     <n-modal v-model:show="showMultiActionDownload" preset="dialog" :title="t('downloadMail')">
       <n-tag type="info">
         {{ multiActionDownloadZip.filename }}

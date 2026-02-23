@@ -1,6 +1,7 @@
 import { Context } from "hono";
 import { createMimeMessage } from "mimetext";
-import { HonoCustomType, UserRole } from "./types";
+import { UserSettings, RoleAddressConfig } from "./models";
+import { CONSTANTS } from "./constants";
 
 export const getJsonObjectValue = <T = any>(
     value: string | any
@@ -67,6 +68,15 @@ export const getStringValue = (value: any): string => {
         return value;
     }
     return "";
+}
+
+export const getSplitStringListValue = (
+    value: any, demiliter: string = ","
+): string[] => {
+    const valueToSplit = getStringValue(value);
+    return valueToSplit.split(demiliter)
+        .map((item: string) => item.trim())
+        .filter((item: string) => item.length > 0);
 }
 
 export const getBooleanValue = (
@@ -154,6 +164,22 @@ export const getUserRoles = (c: Context<HonoCustomType>): UserRole[] => {
         }
     }
     return c.env.USER_ROLES;
+}
+
+export const getAnotherWorkerList = (c: Context<HonoCustomType>): AnotherWorker[] => {
+    if (!c.env.ANOTHER_WORKER_LIST) {
+        return [];
+    }
+    // check if ANOTHER_WORKER_LIST is an array, if not use json.parse
+    if (!Array.isArray(c.env.ANOTHER_WORKER_LIST)) {
+        try {
+            return JSON.parse(c.env.ANOTHER_WORKER_LIST);
+        } catch (e) {
+            console.error("Failed to parse ANOTHER_WORKER_LIST", e);
+            return [];
+        }
+    }
+    return c.env.ANOTHER_WORKER_LIST;
 }
 
 export const getPasswords = (c: Context<HonoCustomType>): string[] => {
@@ -270,4 +296,74 @@ export const checkUserPassword = (password: string) => {
         throw new Error("Invalid password")
     }
     return true;
+}
+
+export const hashPassword = async (password: string): Promise<string> => {
+    // use crypto to hash password
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+    const hashArray = Array.from(new Uint8Array(digest));
+    return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export const getMaxAddressCount = async (
+    c: Context<HonoCustomType>,
+    userRole: string | null | undefined,
+    settings: UserSettings
+): Promise<number> => {
+    if (!userRole) return settings.maxAddressCount;
+    const roleConfigs = await getJsonSetting<RoleAddressConfig>(c, CONSTANTS.ROLE_ADDRESS_CONFIG_KEY);
+    if (!roleConfigs) return settings.maxAddressCount;
+    const roleMaxCount = roleConfigs[userRole]?.maxAddressCount;
+    if (typeof roleMaxCount !== 'number') return settings.maxAddressCount;
+    if (roleMaxCount <= 0) return settings.maxAddressCount;
+    return roleMaxCount;
+};
+
+/**
+ * 检查用户是否已达到地址数量限制
+ * @param c - Hono Context
+ * @param user_id - 用户 ID
+ * @param userRole - 用户角色
+ * @returns true 表示已超限，false 表示未超限
+ */
+export const isAddressCountLimitReached = async (
+    c: Context<HonoCustomType>,
+    user_id: number | string,
+    userRole: string | null | undefined
+): Promise<boolean> => {
+    const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
+    const settings = new UserSettings(value);
+    const maxAddressCount = await getMaxAddressCount(c, userRole, settings);
+
+    if (maxAddressCount <= 0) return false;
+
+    const { count } = await c.env.DB.prepare(
+        `SELECT COUNT(*) as count FROM users_address where user_id = ?`
+    ).bind(user_id).first<{ count: number }>() || { count: 0 };
+
+    return count >= maxAddressCount;
+};
+
+export default {
+    getJsonObjectValue,
+    getSetting,
+    saveSetting,
+    getStringValue,
+    getSplitStringListValue,
+    getBooleanValue,
+    getIntValue,
+    getStringArray,
+    getDefaultDomains,
+    getDomains,
+    getUserRoles,
+    getAnotherWorkerList,
+    getPasswords,
+    getAdminPasswords,
+    getEnvStringList,
+    sendAdminInternalMail,
+    checkCfTurnstile,
+    checkUserPassword,
+    getJsonSetting,
+    getJsonValue: getJsonObjectValue,
+    getStringList: getStringArray
 }

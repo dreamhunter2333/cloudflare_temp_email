@@ -74,16 +74,19 @@ compatibility_flags = [ "nodejs_compat" ]
 # ]
 
 [vars]
+# DEFAULT_LANG = "zh"
 # TITLE = "Custom Title" # The title of the site
 PREFIX = "tmp" # The mailbox name prefix to be processed
 # (min, max) length of the adderss, if not set, the default is (1, 30)
+# MIN_ADDRESS_LEN = 1
+# MAX_ADDRESS_LEN = 30
 # ANNOUNCEMENT = "Custom Announcement"
+# always show ANNOUNCEMENT even no changes
+# ALWAYS_SHOW_ANNOUNCEMENT = true
 # address check REGEX, if not set, will not check
 # ADDRESS_CHECK_REGEX = "^(?!.*admin).*"
 # address name replace REGEX, if not set, the default is [^a-z0-9]
 # ADDRESS_REGEX = "[^a-z0-9]"
-# MIN_ADDRESS_LEN = 1
-# MAX_ADDRESS_LEN = 30
 # If you want your site to be private, uncomment below and change your password
 # PASSWORDS = ["123", "456"]
 # admin console password, if not configured, access to the console is not allowed
@@ -107,6 +110,8 @@ JWT_SECRET = "xxx" # Key used to generate jwt
 BLACK_LIST = "" # Blacklist, used to filter senders, comma separated
 # Allow users to create email addresses
 ENABLE_USER_CREATE_EMAIL = true
+# Disable anonymous user create email, if set true, users can only create email addresses after logging in
+# DISABLE_ANONYMOUS_USER_CREATE_EMAIL = true
 # Allow users to delete messages
 ENABLE_USER_DELETE_EMAIL = true
 # Allow automatic replies to emails
@@ -118,7 +123,8 @@ ENABLE_AUTO_REPLY = false
 # DISABLE_SHOW_GITHUB = true # Disable Show GitHub link
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
-# NO_LIMIT_SEND_ROLE = "vip" # the role which can send emails without limit
+# the role which can send emails without limit, multiple roles can be separated by ,
+# NO_LIMIT_SEND_ROLE = "vip"
 # Turnstile verification configuration
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
@@ -130,6 +136,16 @@ ENABLE_AUTO_REPLY = false
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 # Frontend URL
 # FRONTEND_URL = "https://xxxx.xxx"
+# Enable check junk mail
+# ENABLE_CHECK_JUNK_MAIL = false
+# junk mail check list, if status exists and status is not pass, will be marked as junk mail
+# JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
+# junk mail force check pass list, if no status or status is not pass, will be marked as junk mail
+# JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
+# remove attachment if size exceed 2MB, mail maybe mising some information due to parsing
+# REMOVE_EXCEED_SIZE_ATTACHMENT = true
+# remove all attachment, mail maybe mising some information due to parsing
+# REMOVE_ALL_ATTACHMENT = true
 
 [[d1_databases]]
 binding = "DB"

@@ -1,6 +1,9 @@
-name: Deploy Backend Production
+name: Deploy Backend
 
 on:
+  workflow_run:
+    workflows: [Upstream Sync]
+    types: [completed]
   push:
     tags:
       - "*"
@@ -18,7 +21,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - uses: pnpm/action-setup@v3
         name: Install pnpm
@@ -29,14 +32,43 @@ jobs:
 
       - name: Deploy Backend for ${{ github.ref_name }}
         run: |
+          export use_worker_assets=${{ secrets.USE_WORKER_ASSETS }}
+          export use_worker_assets_with_telegram=${{ secrets.USE_WORKER_ASSETS_WITH_TELEGRAM }}
+          if [ -n "$use_worker_assets" ]; then
+            cd frontend/
+            pnpm install --no-frozen-lockfile
+            if [ -n "$use_worker_assets_with_telegram" ]; then
+              echo "Building with telegram pages"
+              pnpm build:telegram:pages
+            else
+              echo "Building with normal pages"
+              pnpm build:pages
+            fi
+            cd ..
+          fi
+
+          export debug_mode=${{ secrets.DEBUG_MODE }}
+          export use_mail_wasm_parser=${{ secrets.BACKEND_USE_MAIL_WASM_PARSER }}
           cd worker/
           echo '${{ secrets.BACKEND_TOML }}' > wrangler.toml
           pnpm install --no-frozen-lockfile
-          output=$(pnpm run deploy 2>&1)
-          if [ $? -ne 0 ]; then
-              code=$?
-              echo "Command failed with exit code $code"
-              exit $code
+
+          if [ -n "$use_mail_wasm_parser" ]; then
+            echo "Using mail-parser-wasm-worker"
+            pnpm add mail-parser-wasm-worker
+            git apply ../.github/config/mail-parser-wasm-worker.patch
+            echo "Applied mail-parser-wasm-worker patch"
+          fi
+
+          if [ "$debug_mode" = "true" ]; then
+            pnpm run deploy
+          else
+            output=$(pnpm run deploy 2>&1)
+            if [ $? -ne 0 ]; then
+                code=$?
+                echo "Command failed with exit code $code"
+                exit $code
+            fi
           fi
           echo "Deployed for tag ${{ github.ref_name }}"
         env:

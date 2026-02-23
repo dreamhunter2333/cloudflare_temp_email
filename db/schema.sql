@@ -4,19 +4,32 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     source TEXT,
     address TEXT,
     raw TEXT,
+    metadata TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_address ON raw_mails(address);
 
+CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);
+
 CREATE TABLE IF NOT EXISTS address (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
+    password TEXT,
+    source_meta TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_address_name ON address(name);
+
+CREATE INDEX IF NOT EXISTS idx_address_created_at ON address(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_address_updated_at ON address(updated_at);
+
+CREATE INDEX IF NOT EXISTS idx_address_source_meta ON address(source_meta);
 
 CREATE TABLE IF NOT EXISTS auto_reply_mails (
     id INTEGER PRIMARY KEY,
@@ -49,6 +62,8 @@ CREATE TABLE IF NOT EXISTS sendbox (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sendbox_address ON sendbox(address);
+
+CREATE INDEX IF NOT EXISTS idx_sendbox_created_at ON sendbox(created_at);
 
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,

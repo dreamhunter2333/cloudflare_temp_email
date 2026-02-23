@@ -2,7 +2,6 @@ import { Context } from 'hono';
 
 import { CONSTANTS } from '../constants';
 import { UserOauth2Settings } from "../models";
-import { HonoCustomType } from '../types';
 import { getJsonSetting, saveSetting } from '../utils';
 
 async function getUserOauth2Settings(c: Context<HonoCustomType>): Promise<Response> {

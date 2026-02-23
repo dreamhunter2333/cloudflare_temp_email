@@ -1,6 +1,6 @@
 [package]
 name = "mail-parser-wasm"
-version = "0.1.8"
+version = "0.2.1"
 edition = "2021"
 description = "A simple mail parser for wasm"
 license = "MIT"
@@ -9,5 +9,5 @@ license = "MIT"
 crate-type = ["cdylib"]
 
 [dependencies]
-mail-parser = "0.9.3"
-wasm-bindgen = "0.2.92"
+mail-parser = "0.9.4"
+wasm-bindgen = "0.2.99"

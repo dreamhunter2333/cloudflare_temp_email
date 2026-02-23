@@ -8,6 +8,8 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { getRouterPathWithLang } from '../../utils'
 
+import Login from '../common/Login.vue';
+
 const { jwt } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
@@ -20,9 +22,14 @@ const { locale, t } = useI18n({
             mail_count: 'Mail Count',
             send_count: 'Send Count',
             actions: 'Actions',
-            changeMailAddress: 'Change Mail Address',
+            changeMailAddress: 'Change Address',
             unbindAddress: 'Unbind Address',
             unbindAddressTip: 'Before unbinding, please switch to this email address and save the email address credential.',
+            transferAddress: 'Transfer Address',
+            targetUserEmail: 'Target User Email',
+            transferAddressTip: 'Transfer address to another user will remove the address from your account and transfer it to another user. Are you sure to transfer the address?',
+            address: 'Address',
+            create_or_bind: 'Create or Bind',
         },
         zh: {
             success: '成功',
@@ -30,14 +37,23 @@ const { locale, t } = useI18n({
             mail_count: '邮件数量',
             send_count: '发送数量',
             actions: '操作',
-            changeMailAddress: '切换邮箱地址',
+            changeMailAddress: '切换地址',
             unbindAddress: '解绑地址',
             unbindAddressTip: '解绑前请切换到此邮箱地址并保存邮箱地址凭证。',
+            transferAddress: '转移地址',
+            targetUserEmail: '目标用户邮箱',
+            transferAddressTip: '转移地址到其他用户将会从你的账户中移除此地址并转移给其他用户。确定要转移地址吗？',
+            address: '地址',
+            create_or_bind: '创建或绑定',
         }
     }
 });
 
 const data = ref([])
+const showTranferAddress = ref(false)
+const currentAddress = ref("")
+const currentAddressId = ref(0)
+const targetUserEmail = ref('')
 
 const changeMailAddress = async (address_id) => {
     try {
@@ -70,15 +86,41 @@ const unbindAddress = async (address_id) => {
     }
 }
 
+const transferAddress = async () => {
+    if (!targetUserEmail.value) {
+        message.error("targetUserEmail is required");
+        return;
+    }
+    if (!currentAddressId.value) {
+        message.error("currentAddressId is required");
+        return;
+    }
+    try {
+        const res = await api.fetch(`/user_api/transfer_address`, {
+            method: 'POST',
+            body: JSON.stringify({
+                address_id: currentAddressId.value,
+                target_user_email: targetUserEmail.value
+            })
+        });
+        message.success(t('transferAddress') + " " + t('success'));
+        await fetchData();
+        showTranferAddress.value = false;
+        currentAddressId.value = 0;
+        currentAddress.value = "";
+        targetUserEmail.value = "";
+    } catch (error) {
+        console.log(error)
+        message.error(error.message || "error");
+    }
+}
+
 const fetchData = async () => {
     try {
-        const { results, count: addressCount } = await api.fetch(
+        const { results } = await api.fetch(
             `/user_api/bind_address`
         );
         data.value = results;
-        if (addressCount > 0) {
-            count.value = addressCount;
-        }
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
@@ -86,10 +128,6 @@ const fetchData = async () => {
 }
 
 const columns = [
-    {
-        title: "ID",
-        key: "id"
-    },
     {
         title: t('name'),
         key: "name"
@@ -138,6 +176,18 @@ const columns = [
                         default: () => `${t('changeMailAddress')}?`
                     }
                 ),
+                h(NButton,
+                    {
+                        tertiary: true,
+                        type: "primary",
+                        onClick: () => {
+                            currentAddressId.value = row.id;
+                            currentAddress.value = row.name;
+                            showTranferAddress.value = true;
+                        }
+                    },
+                    { default: () => t('transferAddress') }
+                ),
                 h(NPopconfirm,
                     {
                         onPositiveClick: () => unbindAddress(row.id)
@@ -164,8 +214,29 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div style="overflow: auto;">
-        <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+    <div>
+        <n-modal v-model:show="showTranferAddress" preset="dialog" :title="t('transferAddress')">
+            <span>
+                <p>{{ t("transferAddressTip") }}</p>
+                <p>{{ t('transferAddress') + ": " + currentAddress }}</p>
+                <n-input v-model:value="targetUserEmail" :placeholder="t('targetUserEmail')" />
+            </span>
+            <template #action>
+                <n-button :loading="loading" @click="transferAddress" size="small" tertiary type="error">
+                    {{ t('transferAddress') }}
+                </n-button>
+            </template>
+        </n-modal>
+        <n-tabs type="segment">
+            <n-tab-pane name="address" :tab="t('address')">
+                <div style="overflow: auto;">
+                    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                </div>
+            </n-tab-pane>
+            <n-tab-pane name="create_or_bind" :tab="t('create_or_bind')">
+                <Login />
+            </n-tab-pane>
+        </n-tabs>
     </div>
 </template>
 

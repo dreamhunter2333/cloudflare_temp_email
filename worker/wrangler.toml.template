@@ -1,11 +1,18 @@
 name = "cfemail"
 main = "src/worker.ts"
-compatibility_date = "2024-09-23"
+compatibility_date = "2025-04-01"
 compatibility_flags = [ "nodejs_compat" ]
+keep_vars = true
 # if you want use custom_domain, you need to add routes
 # routes = [
 # 	{ pattern = "temp-email-api.xxxxx.xyz", custom_domain = true },
 # ]
+
+# if you want deploy worker with frontend assets, you need to add assets
+# [assets]
+# directory = "../frontend/dist/"
+# binding = "ASSETS"
+# run_worker_first = true
 
 # enable cron if you want set auto clean up
 # [triggers]
@@ -16,16 +23,21 @@ compatibility_flags = [ "nodejs_compat" ]
 # ]
 
 [vars]
-TITLE = "RYF's Email" # custom title
+# DEFAULT_LANG = "zh"
+# TITLE = "Custom Title" # custom title
 # ANNOUNCEMENT = "Custom Announcement"
+# always show ANNOUNCEMENT even no changes
+# ALWAYS_SHOW_ANNOUNCEMENT = true
 PREFIX = "tmp"
 # address check REGEX, if not set, will not check
 ADDRESS_CHECK_REGEX = "^(?!.*admin).*"
 # address name replace REGEX, if not set, the default is [^a-z0-9]
 ADDRESS_REGEX = "[^a-z0-9]"
 # (min, max) length of the adderss, if not set, the default is (1, 30)
-MIN_ADDRESS_LEN = 1
-MAX_ADDRESS_LEN = 30
+# MIN_ADDRESS_LEN = 1
+# MAX_ADDRESS_LEN = 30
+# Disable custom email address name, if set true, users cannot input custom email name, will auto generate
+# DISABLE_CUSTOM_ADDRESS_NAME = true
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
 PASSWORDS = ["sex736926334sex.", "456"]
 # For admin panel
@@ -34,6 +46,8 @@ ADMIN_PASSWORDS = ["sex736926334sex.", "456"]
 DISABLE_ADMIN_PASSWORD_CHECK = true
 # ADMIN CONTACT, CAN BE ANY STRING
 # ADMIN_CONTACT = "xx@xx.xxx"
+# Create new address with default domain first, if set true, will use first domain from DEFAULT_DOMAINS when no domain specified
+# CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST = false
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
 DOMAINS = ["luer.eu.org" , "luer.000.pe"] # all domain names
 # For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
@@ -49,18 +63,23 @@ JWT_SECRET = "luer"
 BLACK_LIST = ""
 # Allow users to create email addresses
 ENABLE_USER_CREATE_EMAIL = true
+# Disable anonymous user create email, if set true, users can only create email addresses after logging in
+# DISABLE_ANONYMOUS_USER_CREATE_EMAIL = true
 # Allow users to delete messages
 ENABLE_USER_DELETE_EMAIL = true
 # Allow automatic replies to emails
 ENABLE_AUTO_REPLY = false
 # Allow webhook
-ENABLE_WEBHOOK = true
+# ENABLE_WEBHOOK = true
+# Enable address password feature, if set true, will generate password for new address and support password login and change
+# ENABLE_ADDRESS_PASSWORD = false
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # DISABLE_SHOW_GITHUB = true
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
-NO_LIMIT_SEND_ROLE = "vip" # the role which can send emails without limit
+# the role which can send emails without limit, multiple roles can be separated by ,
+# NO_LIMIT_SEND_ROLE = "vip"
 # Turnstile verification
 # CF_TURNSTILE_SITE_KEY = ""
 # CF_TURNSTILE_SECRET_KEY = ""
@@ -68,15 +87,56 @@ NO_LIMIT_SEND_ROLE = "vip" # the role which can send emails without limit
 # TG_MAX_ADDRESS = 5
 # telegram bot info, predefined bot info can reduce latency of the webhook
 # TG_BOT_INFO = "{}"
+# allow user to switch language via /lang command
+# TG_ALLOW_USER_LANG = true
 # global forward address list, if set, all emails will be forwarded to these addresses
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
+# subdomain forward address list, if set, subdomain emails will be forwarded to these addresses
+# SUBDOMAIN_FORWARD_ADDRESS_LIST = """
+# [
+#     {"domains":[""],"forward":"xxx1@xxx.com"},
+#     {"domains":["subdomain-1.domain.com","subdomain-2.domain.com"],"forward":"xxx2@xxx.com"}
+# ]
+# """
 # Frontend URL
 # FRONTEND_URL = "https://xxxx.xxx"
+# Enable check junk mail
+# ENABLE_CHECK_JUNK_MAIL = false
+# junk mail check list, if status exists and status is not pass, will be marked as junk mail
+# JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
+# junk mail force check pass list, if no status or status is not pass, will be marked as junk mail
+# JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
+# remove attachment if size exceed 2MB, mail maybe mising some information due to parsing
+# REMOVE_EXCEED_SIZE_ATTACHMENT = true
+# remove all attachment, mail maybe mising some information due to parsing
+# REMOVE_ALL_ATTACHMENT = true
+# AI email extraction, automatically extract verification codes, auth links, etc.
+# ENABLE_AI_EMAIL_EXTRACT = true
+# AI model name, choose from https://developers.cloudflare.com/workers-ai/models/#text-generation
+# AI_EXTRACT_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+# Calling other woker to process email
+# ENABLE_ANOTHER_WORKER = false
+# ANOTHER_WORKER_LIST = """
+# [
+#    {
+#        "binding":"AUTH_INBOX",
+#        "method":"rpcEmail",
+#        "keywords":[
+#            "验证码","激活码","激活链接","确认链接","验证邮箱","确认邮件","账号激活","邮件验证","账户确认","安全码","认证码","安全验证","登陆码","确认码","启用账户","激活账户","账号验证","注册确认",
+#            "account","activation","verify","verification","activate","confirmation","email","code","validate","registration","login","code","expire","confirm"
+#        ]
+#    }
+# ]
+# """
 
 [[d1_databases]]
 binding = "DB"
 database_name = "cf-temp-email"
 database_id = "9088dd92-b4ac-46b9-bc3d-3cc1e92cc134"
+
+# Workers AI binding (required for AI email extraction)
+# [ai]
+# binding = "AI"
 
 # kv config for send email verification code
 # [[kv_namespaces]]
@@ -90,3 +150,8 @@ database_id = "9088dd92-b4ac-46b9-bc3d-3cc1e92cc134"
 # namespace_id = "1001"
 # # 10 requests per minute
 # simple = { limit = 10, period = 60 }
+
+# binding another worker service (parse the code or link), e.g. auth-inbox
+# [[services]]
+# binding = "AUTH_INBOX"
+# service = "auth-inbox"

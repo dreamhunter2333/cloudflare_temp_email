@@ -24,6 +24,7 @@ export default defineConfig({
         {
           'naive-ui': [
             'useMessage',
+            'useNotification',
             'NButton',
             'NPopconfirm',
             'NIcon',
@@ -35,13 +36,16 @@ export default defineConfig({
       resolvers: [NaiveUiResolver()]
     }),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: null,
       devOptions: {
-        enabled: true
+        enabled: false
       },
       workbox: {
         disableDevLogs: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: [],
+        runtimeCaching: [],
+        navigateFallback: null,
+        cleanupOutdatedCaches: true,
       },
       manifest: {
         name: 'Temp Email',
@@ -65,5 +69,10 @@ export default defineConfig({
   },
   define: {
     'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version),
+  },
+  esbuild: {
+    supported: {
+      'top-level-await': true
+    },
   }
 })

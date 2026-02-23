@@ -1,13 +1,70 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
+import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting } from './utils';
-import { HonoCustomType, UserRole } from './types';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
+import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
+
+/**
+ * Check if send mail is enabled for a specific domain
+ */
+export const isSendMailEnabled = (
+    c: Context<HonoCustomType>,
+    mailDomain: string
+): boolean => {
+    // Check resend token for domain or global
+    const resendEnabled = c.env.RESEND_TOKEN || c.env[
+        `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
+    ];
+    if (resendEnabled) return true;
+
+    // Check SMTP config for domain
+    const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
+    if (smtpConfigMap && smtpConfigMap[mailDomain]) return true;
+
+    // Check SEND_MAIL binding
+    if (c.env.SEND_MAIL) return true;
+
+    return false;
+}
+
+/**
+ * Check if send mail is enabled for any configured domain
+ */
+export const isAnySendMailEnabled = (c: Context<HonoCustomType>): boolean => {
+    const domains = getDomains(c);
+    return domains.some(domain => isSendMailEnabled(c, domain));
+}
+
+export const generateRandomName = (c: Context<HonoCustomType>): string => {
+    // name min length min 1
+    const minLength = Math.max(
+        getIntValue(c.env.MIN_ADDRESS_LEN, 1),
+        1
+    );
+    // name max length min 1
+    const maxLength = Math.max(
+        getIntValue(c.env.MAX_ADDRESS_LEN, 30),
+        1
+    );
+
+    // Build full name recursively until minimum length is reached
+    const buildName = (currentName: string = ""): string => {
+        return currentName.length >= minLength
+            ? currentName
+            : buildName(currentName + Math.random().toString(36).substring(2, 15));
+    };
+
+    const fullName = buildName();
+
+    // Return truncated to max length
+    return fullName.substring(0, Math.min(fullName.length, maxLength));
+};
 
 const checkNameRegex = (c: Context<HonoCustomType>, name: string) => {
     let error = null;
@@ -41,6 +98,56 @@ const getNameRegex = (c: Context<HonoCustomType>): RegExp => {
     return DEFAULT_NAME_REGEX;
 }
 
+export function updateAddressUpdatedAt(
+    c: Context<HonoCustomType>,
+    address: string | undefined | null
+): void {
+    if (!address) {
+        return;
+    }
+    // update address updated_at asynchronously
+    c.executionCtx.waitUntil((async () => {
+        try {
+            await c.env.DB.prepare(
+                `UPDATE address SET updated_at = datetime('now') where name = ?`
+            ).bind(address).run();
+        } catch (e) {
+            console.warn("[updateAddressUpdatedAt] failed:", address, e);
+        }
+    })());
+}
+
+export const generateRandomPassword = (): string => {
+    const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let password = "";
+    for (let i = 0; i < 8; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
+}
+
+const generatePasswordForAddress = async (
+    c: Context<HonoCustomType>,
+    address: string
+): Promise<string | null> => {
+    if (!getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)) {
+        return null;
+    }
+
+    const plainPassword = generateRandomPassword();
+    const hashedPassword = await hashPassword(plainPassword);
+    const { success } = await c.env.DB.prepare(
+        `UPDATE address SET password = ?, updated_at = datetime('now') WHERE name = ?`
+    ).bind(hashedPassword, address).run();
+
+    if (!success) {
+        console.warn("Failed to set generated password for address:", address);
+        return null;
+    }
+
+    return plainPassword;
+}
+
 export const newAddress = async (
     c: Context<HonoCustomType>,
     {
@@ -51,6 +158,7 @@ export const newAddress = async (
         addressPrefix = null,
         checkAllowDomains = true,
         enableCheckNameRegex = true,
+        sourceMeta = null,
     }: {
         name: string, domain: string | undefined | null,
         enablePrefix: boolean,
@@ -58,10 +166,12 @@ export const newAddress = async (
         addressPrefix?: string | undefined | null,
         checkAllowDomains?: boolean,
         enableCheckNameRegex?: boolean,
+        sourceMeta?: string | undefined | null,
     }
-): Promise<{ address: string, jwt: string }> => {
-    // remove special characters
-    name = name.replace(getNameRegex(c), '')
+): Promise<{ address: string, jwt: string, password?: string | null }> => {
+    const msgs = i18n.getMessagesbyContext(c);
+    // trim whitespace and remove special characters
+    name = name.trim().replace(getNameRegex(c), '')
     // check name
     if (enableCheckNameRegex) {
         await checkNameBlockList(c, name);
@@ -79,46 +189,67 @@ export const newAddress = async (
     );
     // check name length
     if (name.length < minAddressLength) {
-        throw new Error(`Name too short (min ${minAddressLength})`);
+        throw new Error(`${msgs.NameTooShortMsg} (min ${minAddressLength})`);
     }
     if (name.length > maxAddressLength) {
-        throw new Error(`Name too long (max ${maxAddressLength})`);
+        throw new Error(`${msgs.NameTooLongMsg} (max ${maxAddressLength})`);
     }
     // create address with prefix
     if (typeof addressPrefix === "string") {
-        name = addressPrefix + name;
+        name = addressPrefix.trim() + name;
     } else if (enablePrefix) {
-        name = getStringValue(c.env.PREFIX) + name;
+        name = getStringValue(c.env.PREFIX).trim() + name;
     }
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
-    // if domain is not set, use the first domain
+    // if domain is not set, select domain based on environment configuration
     if (!domain && allowDomains.length > 0) {
-        domain = allowDomains[0];
+        const createAddressDefaultDomainFirst = getBooleanValue(c.env.CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST);
+        if (createAddressDefaultDomainFirst) {
+            domain = allowDomains[0];
+        } else {
+            domain = allowDomains[Math.floor(Math.random() * allowDomains.length)];
+        }
     }
     // check domain is valid
     if (!domain || !allowDomains.includes(domain)) {
-        throw new Error("Invalid domain")
+        throw new Error(msgs.InvalidDomainMsg)
     }
     // create address
     name = name + "@" + domain;
     try {
-        const { success } = await c.env.DB.prepare(
-            `INSERT INTO address(name) VALUES(?)`
-        ).bind(name).run();
-        if (!success) {
-            throw new Error("Failed to create address")
+        // Try insert with source_meta field first
+        const result = await c.env.DB.prepare(
+            `INSERT INTO address(name, source_meta) VALUES(?, ?)`
+        ).bind(name, sourceMeta).run();
+        if (!result.success) {
+            throw new Error(msgs.FailedCreateAddressMsg)
         }
+        await updateAddressUpdatedAt(c, name);
     } catch (e) {
         const message = (e as Error).message;
-        if (message && message.includes("UNIQUE")) {
-            throw new Error("Address already exists")
+        // Fallback: source_meta field may not exist, try without it
+        if (message && message.includes("source_meta")) {
+            const result = await c.env.DB.prepare(
+                `INSERT INTO address(name) VALUES(?)`
+            ).bind(name).run();
+            if (!result.success) {
+                throw new Error(msgs.FailedCreateAddressMsg)
+            }
+            await updateAddressUpdatedAt(c, name);
+        } else if (message && message.includes("UNIQUE")) {
+            throw new Error(msgs.AddressAlreadyExistsMsg)
+        } else {
+            throw new Error(msgs.FailedCreateAddressMsg)
         }
-        throw new Error("Failed to create address")
     }
     const address_id = await c.env.DB.prepare(
         `SELECT id FROM address where name = ?`
     ).bind(name).first<number>("id");
+
+    // 如果启用地址密码功能，自动生成密码
+    const generatedPassword = await generatePasswordForAddress(c, name);
+
     // create jwt
     const jwt = await Jwt.sign({
         address: name,
@@ -127,6 +258,7 @@ export const newAddress = async (
     return {
         jwt: jwt,
         address: name,
+        password: generatedPassword,
     }
 }
 
@@ -151,11 +283,30 @@ export const cleanup = async (
     cleanType: string | undefined | null,
     cleanDays: number | undefined | null
 ): Promise<boolean> => {
-    if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 30) {
-        throw new Error("Invalid cleanType or cleanDays")
+    const msgs = i18n.getMessagesbyContext(c);
+    if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
+        throw new Error(msgs.InvalidCleanupConfigMsg)
     }
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
+        case "inactiveAddress":
+            await batchDeleteAddressWithData(
+                c,
+                `updated_at < datetime('now', '-${cleanDays} day')`
+            )
+            break;
+        case "addressCreated":
+            await batchDeleteAddressWithData(
+                c,
+                `created_at < datetime('now', '-${cleanDays} day')`
+            )
+            break;
+        case "unboundAddress":
+            await batchDeleteAddressWithData(
+                c,
+                `id NOT IN (SELECT address_id FROM users_address) AND created_at < datetime('now', '-${cleanDays} day')`
+            )
+            break;
         case "mails":
             await c.env.DB.prepare(`
                 DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
@@ -172,25 +323,62 @@ export const cleanup = async (
                 DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
             ).run();
             break;
+        case "emptyAddress":
+            // Delete addresses that have no emails and were created more than N days ago
+            await batchDeleteAddressWithData(
+                c,
+                `name NOT IN (SELECT DISTINCT address FROM raw_mails WHERE address IS NOT NULL) AND created_at < datetime('now', '-${cleanDays} day')`
+            )
+            break;
         default:
-            throw new Error("Invalid cleanType")
+            throw new Error(msgs.InvalidCleanTypeMsg)
     }
     return true;
 }
 
-/**
- * TODO: need senbox delete?
- */
+const batchDeleteAddressWithData = async (
+    c: Context<HonoCustomType>,
+    addressQueryCondition: string,
+): Promise<boolean> => {
+    await c.env.DB.prepare(
+        `DELETE FROM raw_mails WHERE address IN ( ` +
+        `SELECT name FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE address IN ( ` +
+        `SELECT name FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    await c.env.DB.prepare(
+        `DELETE FROM auto_reply_mails WHERE address IN ( ` +
+        `SELECT name FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    await c.env.DB.prepare(
+        `DELETE FROM address_sender WHERE address IN ( ` +
+        `SELECT name FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    await c.env.DB.prepare(
+        `DELETE FROM users_address WHERE address_id IN ( ` +
+        `SELECT id FROM address WHERE ${addressQueryCondition})`
+    ).run();
+    // delete address
+    await c.env.DB.prepare(`
+        DELETE FROM address WHERE ${addressQueryCondition}`
+    ).run();
+    return true;
+}
+
+
 export const deleteAddressWithData = async (
     c: Context<HonoCustomType>,
     address: string | undefined | null,
     address_id: number | undefined | null
 ): Promise<boolean> => {
+    const msgs = i18n.getMessagesbyContext(c);
     if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
-        throw new Error("Delete email is disabled")
+        throw new Error(msgs.UserDeleteEmailDisabledMsg)
     }
     if (!address && !address_id) {
-        throw new Error("Address or address_id required")
+        throw new Error(msgs.RequiredFieldMsg)
     }
     // get address_id or address
     if (!address_id) {
@@ -204,7 +392,7 @@ export const deleteAddressWithData = async (
     }
     // check address again
     if (!address || !address_id) {
-        throw new Error("Can't find address");
+        throw new Error(msgs.AddressNotFoundMsg);
     }
     // unbind telegram
     await unbindTelegramByAddress(c, address);
@@ -215,14 +403,20 @@ export const deleteAddressWithData = async (
     const { success: sendAccess } = await c.env.DB.prepare(
         `DELETE FROM address_sender WHERE address = ? `
     ).bind(address).run();
+    const { success: sendboxSuccess } = await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE address = ? `
+    ).bind(address).run();
     const { success: addressSuccess } = await c.env.DB.prepare(
         `DELETE FROM users_address WHERE address_id = ? `
     ).bind(address_id).run();
+    const { success: autoReplySuccess } = await c.env.DB.prepare(
+        `DELETE FROM auto_reply_mails WHERE address = ? `
+    ).bind(address).run();
     const { success } = await c.env.DB.prepare(
         `DELETE FROM address WHERE name = ? `
     ).bind(address).run();
-    if (!success || !mailSuccess || !addressSuccess || !sendAccess) {
-        throw new Error("Failed to delete address")
+    if (!success || !mailSuccess || !sendboxSuccess || !addressSuccess || !sendAccess || !autoReplySuccess) {
+        throw new Error(msgs.OperationFailedMsg)
     }
     return true;
 }
@@ -233,6 +427,7 @@ export const handleListQuery = async (
     limit: string | number | undefined | null,
     offset: string | number | undefined | null
 ): Promise<Response> => {
+    const msgs = i18n.getMessagesbyContext(c);
     if (typeof limit === "string") {
         limit = parseInt(limit);
     }
@@ -240,10 +435,10 @@ export const handleListQuery = async (
         offset = parseInt(offset);
     }
     if (!limit || limit < 0 || limit > 100) {
-        return c.text("Invalid limit", 400)
+        return c.text(msgs.InvalidLimitMsg, 400)
     }
     if (offset == null || offset == undefined || offset < 0) {
-        return c.text("Invalid offset", 400)
+        return c.text(msgs.InvalidOffsetMsg, 400)
     }
     const resultsQuery = `${query} order by id desc limit ? offset ?`;
     const { results } = await c.env.DB.prepare(resultsQuery).bind(
@@ -256,38 +451,51 @@ export const handleListQuery = async (
 }
 
 
-export const commonParseMail = async (raw_mail: string | undefined | null): Promise<{
+export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): Promise<{
     sender: string,
     subject: string,
     text: string,
-    html: string
+    html: string,
+    headers?: Record<string, string>[]
 } | undefined> => {
-    if (!raw_mail) {
+    // check parsed email context is valid
+    if (!parsedEmailContext || !parsedEmailContext.rawEmail) {
         return undefined;
     }
+    // return parsed email if already parsed
+    if (parsedEmailContext.parsedEmail) {
+        return parsedEmailContext.parsedEmail;
+    }
+    const raw_mail = parsedEmailContext.rawEmail;
     // TODO: WASM parse email
     // try {
     //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
 
     //     const parsedEmail = parse_message_wrapper(raw_mail);
-    //     return {
+    //     parsedEmailContext.parsedEmail = {
     //         sender: parsedEmail.sender || "",
     //         subject: parsedEmail.subject || "",
     //         text: parsedEmail.text || "",
+    //         headers: parsedEmail.headers?.map(
+    //             (header) => ({ key: header.key, value: header.value })
+    //         ) || [],
     //         html: parsedEmail.body_html || "",
     //     };
+    //     return parsedEmailContext.parsedEmail;
     // } catch (e) {
     //     console.error("Failed use mail-parser-wasm-worker to parse email", e);
     // }
     try {
         const { default: PostalMime } = await import('postal-mime');
         const parsedEmail = await PostalMime.parse(raw_mail);
-        return {
+        parsedEmailContext.parsedEmail = {
             sender: parsedEmail.from ? `${parsedEmail.from.name} <${parsedEmail.from.address}>` : "",
             subject: parsedEmail.subject || "",
             text: parsedEmail.text || "",
             html: parsedEmail.html || "",
+            headers: parsedEmail.headers || [],
         };
+        return parsedEmailContext.parsedEmail;
     }
     catch (e) {
         console.error("Failed use PostalMime to parse email", e);
@@ -308,13 +516,13 @@ export const commonGetUserRole = async (
 export const getAddressPrefix = async (c: Context<HonoCustomType>): Promise<string | undefined> => {
     const user = c.get("userPayload");
     if (!user) {
-        return c.env.PREFIX;
+        return getStringValue(c.env.PREFIX);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
     if (typeof user_role?.prefix === "string") {
         return user_role.prefix;
     }
-    return c.env.PREFIX;
+    return getStringValue(c.env.PREFIX);
 }
 
 export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<string[]> => {
@@ -326,26 +534,26 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
     return user_role?.domains || getDefaultDomains(c);;
 }
 
-export async function sendWebhook(settings: WebhookSettings, formatMap: WebhookMail): Promise<{ success: boolean, message?: string }> {
+export async function sendWebhook(
+    settings: WebhookSettings, formatMap: WebhookMail
+): Promise<{ success: boolean, message?: string }> {
     // send webhook
     let body = settings.body;
     for (const key of Object.keys(formatMap)) {
-        /* eslint-disable no-useless-escape */
         body = body.replace(
             new RegExp(`\\$\\{${key}\\}`, "g"),
             JSON.stringify(
                 formatMap[key as keyof WebhookMail]
-            ).replace(/^"(.*)"$/, '\$1')
+            ).replace(/^"(.*)"$/, '$1')
         );
-        /* eslint-enable no-useless-escape */
     }
-    console.log("send webhook", settings.url, settings.method, settings.headers, body);
     const response = await fetch(settings.url, {
         method: settings.method,
         headers: JSON.parse(settings.headers),
         body: body
     });
     if (!response.ok) {
+        console.log("send webhook error", settings.url, settings.method, settings.headers, body);
         console.log("send webhook error", response.status, response.statusText);
         return { success: false, message: `send webhook error: ${response.status} ${response.statusText}` };
     }
@@ -355,7 +563,7 @@ export async function sendWebhook(settings: WebhookSettings, formatMap: WebhookM
 export async function triggerWebhook(
     c: Context<HonoCustomType>,
     address: string,
-    raw_mail: string,
+    parsedEmailContext: ParsedEmailContext,
     message_id: string | null
 ): Promise<void> {
     if (!c.env.KV || !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
@@ -371,7 +579,7 @@ export async function triggerWebhook(
 
     // user mail webhook
     const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (adminSettings?.allowList.includes(address)) {
+    if (!adminSettings?.enableAllowList || adminSettings?.allowList.includes(address)) {
         const settings = await c.env.KV.get<WebhookSettings>(
             `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`, "json"
         );
@@ -388,14 +596,14 @@ export async function triggerWebhook(
         `SELECT id FROM raw_mails where address = ? and message_id = ?`
     ).bind(address, message_id).first<string>("id");
 
-    const parsedEmail = await commonParseMail(raw_mail);
+    const parsedEmail = await commonParseMail(parsedEmailContext);
     const webhookMail = {
         id: mailId || "",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
         from: parsedEmail?.sender || "",
         to: address,
         subject: parsedEmail?.subject || "",
-        raw: raw_mail,
+        raw: parsedEmailContext.rawEmail || "",
         parsedText: parsedEmail?.text || "",
         parsedHtml: parsedEmail?.html || ""
     }
@@ -403,6 +611,57 @@ export async function triggerWebhook(
         const res = await sendWebhook(settings, webhookMail);
         if (!res.success) {
             console.error(res.message);
+        }
+    }
+}
+
+export async function triggerAnotherWorker(
+    c: Context<HonoCustomType>,
+    rpcEmailMessage: RPCEmailMessage,
+    parsedText: string | undefined | null
+): Promise<void> {
+    if (!parsedText) {
+        return;
+    }
+
+    const anotherWorkerList: AnotherWorker[] = getAnotherWorkerList(c);
+    if (!getBooleanValue(c.env.ENABLE_ANOTHER_WORKER) || anotherWorkerList.length === 0) {
+        return;
+    }
+
+    const parsedTextLowercase: string = parsedText.toLowerCase();
+    for (const worker of anotherWorkerList) {
+
+        const keywords = worker?.keywords ?? [];
+        const bindingName = worker?.binding ?? "";
+        const methodName = worker.method ?? "rpcEmail";
+
+        const serviceBinding = (c.env as any)[bindingName] ?? {};
+        const method = serviceBinding[methodName];
+
+        if (!method || typeof method !== "function") {
+            console.log(`method = ${methodName} not found or not function`);
+            continue;
+        }
+
+        if (!keywords.some(keyword => keyword && parsedTextLowercase.includes(keyword.toLowerCase()))) {
+            console.log(`worker.binding = ${bindingName} not match keywords, parsedText = ${parsedText}`);
+            continue;
+        }
+        try {
+            const bodyObj = { ...rpcEmailMessage } as any;
+            if (bodyObj.headers && typeof bodyObj.headers.forEach === "function") {
+                const headerObj: any = {}
+                bodyObj.headers.forEach((value: string, key: string) => {
+                    headerObj[key] = value;
+                });
+                bodyObj.headers = headerObj
+            }
+            const requestBody = JSON.stringify(bodyObj);
+            console.log(`exec worker , binding = ${bindingName} , requestBody = ${requestBody}`);
+            await method(requestBody);
+        } catch (e1) {
+            console.error(`execute method = ${methodName} error`, e1);
         }
     }
 }

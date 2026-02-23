@@ -1,6 +1,5 @@
 import { createMimeMessage } from "mimetext";
 import { getBooleanValue } from "../utils";
-import { Bindings } from "../types";
 
 export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings): Promise<void> => {
     const message_id = message.headers.get("Message-ID");

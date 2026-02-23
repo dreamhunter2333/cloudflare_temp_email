@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "0.7.6",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,27 +11,31 @@
     "build": "wrangler deploy --dry-run --outdir dist --minify"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240925.0",
-    "@eslint/js": "8.56.0",
-    "@simplewebauthn/types": "^10.0.0",
-    "eslint": "8.56.0",
-    "globals": "^15.9.0",
-    "typescript-eslint": "^7.18.0",
-    "wrangler": "^3.78.11"
+    "@cloudflare/workers-types": "^4.20260214.0",
+    "@eslint/js": "9.39.1",
+    "@simplewebauthn/types": "10.0.0",
+    "@types/node": "^25.2.3",
+    "eslint": "9.39.1",
+    "globals": "^16.5.0",
+    "typescript-eslint": "^8.55.0",
+    "wrangler": "^4.65.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.658.1",
-    "@aws-sdk/s3-request-presigner": "^3.658.1",
-    "@simplewebauthn/server": "^10.0.1",
-    "hono": "^4.6.3",
-    "mimetext": "^3.0.24",
-    "postal-mime": "^2.3.2",
-    "resend": "^3.5.0",
-    "telegraf": "4.16.3"
+    "@aws-sdk/client-s3": "3.888.0",
+    "@aws-sdk/s3-request-presigner": "3.888.0",
+    "@simplewebauthn/server": "10.0.1",
+    "hono": "^4.11.9",
+    "jsonpath-plus": "^10.4.0",
+    "mimetext": "^3.0.28",
+    "postal-mime": "^2.7.3",
+    "resend": "^6.9.2",
+    "telegraf": "4.16.3",
+    "worker-mailer": "^1.2.1"
   },
   "pnpm": {
     "patchedDependencies": {
       "telegraf@4.16.3": "patches/telegraf@4.16.3.patch"
     }
-  }
+  },
+  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }

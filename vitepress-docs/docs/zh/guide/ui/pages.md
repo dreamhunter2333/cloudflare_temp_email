@@ -42,17 +42,20 @@ const generate = async () => {
 }
 </script>
 
-1. 点击 `Workers & Pages` -> `Overview` -> `Create Application`
+1. 点击 `Compute (Workers)` -> `Workers & Pages` -> `Create`
 
     ![create pages](/ui_install/worker_home.png)
 
-2. 选择 `Pages`，选择 `Create using direct upload`
+2. 选择 `Pages`，选择 `Use direct upload`
 
     ![pages](/ui_install/pages.png)
 
 3. 输入部署的 worker 的地址, 地址不要带 `/`，点击生成，成功会出现下载按钮，你会得到一个 zip 包
     - 此处 worker 域名为后端 api 的域名，比如我部署在 `https://temp-email-api.awsl.uk`，则填写 `https://temp-email-api.awsl.uk`
     - 如果你的域名是 `https://temp-email-api.xxx.workers.dev`，则填写 `https://temp-email-api.xxx.workers.dev`
+
+    > [!warning] 注意
+    > `worker.dev` 域名在中国无法访问，请自定义域名
 
     <div :class="$style.container">
         <input :class="$style.input" type="text" v-model="domain" placeholder="请输入地址"></input>

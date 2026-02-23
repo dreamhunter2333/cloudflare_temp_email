@@ -2,30 +2,32 @@ import { Hono } from 'hono'
 import { ServerResponse } from 'node:http'
 import { Writable } from 'node:stream'
 
-import { HonoCustomType } from '../types'
 import { newTelegramBot, initTelegramBotCommands, sendMailToTelegram } from './telegram'
 import settings from './settings'
 import miniapp from './miniapp'
+import i18n from '../i18n'
 
 export const api = new Hono<HonoCustomType>();
 export { sendMailToTelegram }
 
 api.use("/telegram/*", async (c, next) => {
+    const msgs = i18n.getMessagesbyContext(c);
     if (!c.env.TELEGRAM_BOT_TOKEN) {
-        return c.text("TELEGRAM_BOT_TOKEN is required", 400);
+        return c.text(msgs.TgBotTokenRequiredMsg, 400);
     }
     if (!c.env.KV) {
-        return c.text("KV is required", 400);
+        return c.text(msgs.KVNotAvailableMsg, 400);
     }
     return await next();
 });
 
 api.use("/admin/telegram/*", async (c, next) => {
+    const msgs = i18n.getMessagesbyContext(c);
     if (!c.env.TELEGRAM_BOT_TOKEN) {
-        return c.text("TELEGRAM_BOT_TOKEN is required", 400);
+        return c.text(msgs.TgBotTokenRequiredMsg, 400);
     }
     if (!c.env.KV) {
-        return c.text("KV is required", 400);
+        return c.text(msgs.KVNotAvailableMsg, 400);
     }
     return await next();
 });
@@ -52,7 +54,7 @@ api.post("/admin/telegram/init", async (c) => {
     console.log(`setting webhook to ${webhookUrl}`);
     const bot = newTelegramBot(c, token);
     await bot.telegram.setWebhook(webhookUrl)
-    await initTelegramBotCommands(bot);
+    await initTelegramBotCommands(c, bot);
     return c.json({
         message: "webhook set successfully",
     });

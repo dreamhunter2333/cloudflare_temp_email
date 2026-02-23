@@ -1,16 +1,16 @@
 import { Context } from "hono";
-import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 import { AdminWebhookSettings, WebhookSettings } from "../models";
-import { getBooleanValue } from "../utils";
 import { commonParseMail, sendWebhook } from "../common";
+import i18n from "../i18n";
 
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
+    const msgs = i18n.getMessagesbyContext(c);
     const { address } = c.get("jwtPayload")
     const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (!adminSettings?.allowList.includes(address)) {
-        return c.text("Webhook settings is not allowed for this user", 403);
+    if (adminSettings?.enableAllowList && !adminSettings?.allowList.includes(address)) {
+        return c.text(msgs.WebhookNotAllowedForUserMsg, 403);
     }
     const settings = await c.env.KV.get<WebhookSettings>(
         `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`, "json"
@@ -20,10 +20,11 @@ async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response>
 
 
 async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
+    const msgs = i18n.getMessagesbyContext(c);
     const { address } = c.get("jwtPayload")
     const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (!adminSettings?.allowList.includes(address)) {
-        return c.text("Webhook settings is not allowed for this user", 403);
+    if (adminSettings?.enableAllowList && !adminSettings?.allowList.includes(address)) {
+        return c.text(msgs.WebhookNotAllowedForUserMsg, 403);
     }
     const settings = await c.req.json<WebhookSettings>();
     await c.env.KV.put(
@@ -39,8 +40,8 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const { id: mailId, raw } = await c.env.DB.prepare(
         `SELECT id, raw FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
     ).bind(address).first<{ id: string, raw: string }>() || {};
-
-    const parsedEmail = await commonParseMail(raw);
+    const parsedEmailContext: ParsedEmailContext = { rawEmail: raw || "" };
+    const parsedEmail = await commonParseMail(parsedEmailContext);
     const res = await sendWebhook(settings, {
         id: mailId || "0",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",

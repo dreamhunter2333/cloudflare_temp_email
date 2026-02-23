@@ -1,31 +1,9 @@
 import { createApp } from 'vue'
+import { createHead } from '@unhead/vue/client'
+
 import App from './App.vue'
-import { createI18n } from 'vue-i18n'
 import router from './router'
-import { registerSW } from 'virtual:pwa-register'
-import { createHead } from '@unhead/vue'
-
-registerSW({ immediate: true })
-const i18n = createI18n({
-    legacy: false, // you must set `false`, to use Composition API
-    locale: 'zh', // set locale
-    fallbackLocale: 'en', // set fallback locale
-    'en': {
-        messages: {}
-    },
-    'zh': {
-        messages: {}
-    }
-})
-
-router.beforeEach((to, from) => {
-    if (to.params.lang && ['en', 'zh'].includes(to.params.lang)) {
-        i18n.global.locale.value = to.params.lang
-    } else {
-        i18n.global.locale.value = 'zh'
-    }
-});
-
+import i18n from './i18n'
 
 const head = createHead()
 const app = createApp(App)

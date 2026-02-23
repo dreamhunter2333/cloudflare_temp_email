@@ -1,10 +1,10 @@
 import { Context } from "hono";
 import { Jwt } from 'hono/utils/jwt'
-import { HonoCustomType } from "../types";
 import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
 import { checkCfTurnstile } from "../utils";
 import { TelegramSettings } from "./settings";
+import i18n from "../i18n";
 
 const encoder = new TextEncoder();
 const TG_AUTH_TIMEOUT = 300;
@@ -84,16 +84,17 @@ async function getTelegramBindAddress(c: Context<HonoCustomType>): Promise<Respo
 
 async function newTelegramAddress(c: Context<HonoCustomType>): Promise<Response> {
     const { initData, address, cf_token } = await c.req.json();
+    const msgs = i18n.getMessagesbyContext(c);
     // check cf turnstile
     try {
         await checkCfTurnstile(c, cf_token);
     } catch (error) {
-        return c.text("Failed to check cf turnstile", 500)
+        return c.text(msgs.TurnstileCheckFailedMsg, 500)
     }
     try {
         const userId = await checkTelegramAuth(c, initData);
         // get the address list from the KV
-        const res = await tgUserNewAddress(c, userId, address)
+        const res = await tgUserNewAddress(c, userId, address, msgs)
         return c.json(res);
     }
     catch (e) {
@@ -103,9 +104,10 @@ async function newTelegramAddress(c: Context<HonoCustomType>): Promise<Response>
 
 async function bindAddress(c: Context<HonoCustomType>): Promise<Response> {
     const { initData, jwt } = await c.req.json();
+    const msgs = i18n.getMessagesbyContext(c);
     try {
         const userId = await checkTelegramAuth(c, initData);
-        await bindTelegramAddress(c, userId, jwt);
+        await bindTelegramAddress(c, userId, jwt, msgs);
         return c.json({ success: true });
     }
     catch (e) {
@@ -127,10 +129,11 @@ async function unbindAddress(c: Context<HonoCustomType>): Promise<Response> {
 
 async function getMail(c: Context<HonoCustomType>): Promise<Response> {
     const { initData, mailId } = await c.req.json();
+    const msgs = i18n.getMessagesbyContext(c);
     try {
         const userId = await checkTelegramAuth(c, initData);
         const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-        const { addressList, addressIdMap } = await jwtListToAddressData(c, jwtList);
+        const { addressList, addressIdMap } = await jwtListToAddressData(c, jwtList, msgs);
         const result = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where id = ?`
         ).bind(mailId).first();
@@ -138,14 +141,14 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
         const superUser = settings?.enableGlobalMailPush && settings?.globalMailPushList.includes(userId);
         if (!superUser) {
             if (result?.address && !(result.address as string in addressIdMap)) {
-                return c.text("无权查看此邮件", 403);
+                return c.text(msgs.TgNoPermissionViewMailMsg, 403);
             }
             const address_id = addressIdMap[result?.address as string];
             const db_address_id = await c.env.DB.prepare(
                 `SELECT id FROM address where id = ? `
             ).bind(address_id).first("id");
             if (!db_address_id) {
-                return c.text("无权查看此邮件", 403);
+                return c.text(msgs.TgNoPermissionViewMailMsg, 403);
             }
         }
         return c.json(result);

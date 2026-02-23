@@ -1,8 +1,11 @@
 # Cloudflare Pages 前端
 
-::: warning
-下面两种方式选择一种即可
-:::
+> [!warning] 注意
+> 下面几种方式选择一种即可
+
+## 部署带有前端资源的 Worker
+
+参考 [部署 Worker](/zh/guide/cli/worker#部署带有前端页面的-worker-可选)
 
 ## 前后端分离部署
 
@@ -22,7 +25,7 @@ cp .env.example .env.prod
 
 ```bash
 pnpm build --emptyOutDir
-# 根据提示创建 pages
+# 第一次部署会提示创建项目, production 分支请填写 production
 pnpm run deploy
 ```
 
@@ -41,6 +44,7 @@ pnpm run deploy
 ```bash
 cd frontend
 pnpm install
+# 如果你要启用 Cloudflare Zero Trust, 需要使用 pnpm build:pages:nopwa 来禁用缓存
 pnpm build:pages
 cd ../pages
 pnpm run deploy

@@ -3,22 +3,29 @@
 layout: home
 
 hero:
-  name: "Temporary mailbox document"
-  tagline: "Build CloudFlare to send and receive free temporary domain name mailboxes"
+  name: "Temporary Email Docs"
+  tagline: "Build Free CloudFlare Temporary Domain Email with Send & Receive"
   actions:
-  - theme: brand
-    text: Try it now
-    link: https://mail.awsl.uk/en
-  - theme: alt
-    text: command line deployment
-    link: /en/cli
+    - theme: brand
+      text: Try it now
+      link: https://mail.awsl.uk/
+    - theme: alt
+      text: CLI Deployment
+      link: /en/guide/quick-start
+    - theme: alt
+      text: Deploy via UI
+      link: /en/guide/quick-start
+    - theme: alt
+      text: Deploy via Github Actions
+      link: /en/guide/quick-start
+
 features:
-  - title: Free hosting on CloudFlare, no server required
-    details: Cloudflare D1 database, Cloudflare Pages frontend, Cloudflare Workers backend, Cloudflare Email Routing
-  - title: Only domain name required for private deployment
-    details: Support password login email, access authorization can be used as a private site, support attachment function
-  - title: Use rust wasm to parse emails
-    details: Use rust wasm to parse emails, support various RFC standards for emails, support attachments, extremely fast
-  - title: Support sending emails
-    details: Support sending txt or html emails through domain name mailboxes，Support DKIM signature
+  - title: Private deployment with only a domain name, free hosting on CloudFlare, no server required
+    details: Support password login for mailboxes, user registration, access password for private sites, attachment support.
+  - title: Email parsing using Rust WASM
+    details: Parse emails with Rust WASM, support various RFC email standards, support attachments, extremely fast
+  - title: Telegram Bot and Webhook support
+    details: Forward emails to Telegram or webhook, Telegram Bot supports mailbox binding, view emails, Telegram Mini App
+  - title: Send emails (UI/API/SMTP)
+    details: Send txt or html emails via domain mailboxes, DKIM signature support, send via UI/API/SMTP
 ---

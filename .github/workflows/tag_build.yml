@@ -17,7 +17,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - uses: pnpm/action-setup@v3
         name: Install pnpm
@@ -30,7 +30,13 @@ jobs:
         run: cd frontend && pnpm install --no-frozen-lockfile && pnpm build:release
 
       - name: Zip Frontend dist
-        run: cd frontend/dist/ && zip -r frontend.zip *
+        run: cd frontend/dist/ && zip -r frontend.zip * && mv frontend.zip ../
+
+      - name: Build Telegram Frontend
+        run: cd frontend && pnpm install --no-frozen-lockfile && pnpm build:telegram:release
+
+      - name: Zip Telegram Frontend dist
+        run: cd frontend/dist/ && zip -r telegram-frontend.zip * && mv telegram-frontend.zip ../
 
       - name: cp wrangler.toml
         run: cd worker && cp wrangler.toml.template wrangler.toml
@@ -38,9 +44,24 @@ jobs:
       - name: Build Backend
         run: cd worker && pnpm install --no-frozen-lockfile && pnpm build
 
+      - name: Move worker.js
+        run: cd worker/dist && mv worker.js ../
+
+      - name: Build Worker with wasm mail parser
+        run: |
+          cd worker
+          echo "Using mail-parser-wasm-worker"
+          pnpm add mail-parser-wasm-worker
+          git apply ../.github/config/mail-parser-wasm-worker.patch
+          echo "Applied mail-parser-wasm-worker patch"
+          pnpm build
+          zip -r worker-with-wasm-mail-parser.zip dist/worker.js dist/*.wasm
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            frontend/dist/frontend.zip
-            worker/dist/worker.js
+            frontend/frontend.zip
+            frontend/telegram-frontend.zip
+            worker/worker.js
+            worker/worker-with-wasm-mail-parser.zip

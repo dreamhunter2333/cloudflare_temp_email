@@ -5,8 +5,9 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { onMounted, watch } from 'vue';
 import { processItem } from '../../utils/email-parser'
+import { utcToLocalDate } from '../../utils';
 
-const { telegramApp, loading } = useGlobalState()
+const { telegramApp, loading, useUTCDate } = useGlobalState()
 const route = useRoute()
 
 const curMail = ref({});
@@ -45,12 +46,12 @@ onMounted(async () => {
 
 <template>
     <div class="center">
-        <n-card :bordered="false" embedded v-if="curMail.message" style="max-width: 800px; overflow: auto;">
+        <n-card :bordered="false" embedded v-if="curMail.message" style="max-width: 800px; height: 100%;">
             <n-tag type="info">
                 ID: {{ curMail.id }}
             </n-tag>
             <n-tag type="info">
-                Date: {{ curMail.created_at }}
+                Date: {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
             </n-tag>
             <n-tag type="info">
                 FROM: {{ curMail.source }}
@@ -58,7 +59,8 @@ onMounted(async () => {
             <n-tag v-if="showEMailTo" type="info">
                 TO: {{ curMail.address }}
             </n-tag>
-            <div v-html="curMail.message" style="margin-top: 10px;"></div>
+            <iframe :srcdoc="curMail.message" style="margin-top: 10px;width: 100%; height: 100%;">
+            </iframe>
         </n-card>
     </div>
 </template>
@@ -70,5 +72,6 @@ onMounted(async () => {
     text-align: left;
     place-items: center;
     justify-content: center;
+    height: 80vh;
 }
 </style>
