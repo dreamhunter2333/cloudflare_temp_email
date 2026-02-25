@@ -3,7 +3,12 @@ import { defineConfig, type DefaultTheme } from 'vitepress'
 export const zh = defineConfig({
     title: "临时邮箱文档",
     lang: 'zh-Hans',
-    description: 'CloudFlare 免费收发 临时域名邮箱',
+    description: 'CloudFlare 免费收发临时域名邮箱，支持多域名、附件、Telegram Bot、Webhook、SMTP/IMAP',
+
+    head: [
+        ['meta', { property: 'og:locale', content: 'zh_CN' }],
+        ['meta', { property: 'og:description', content: 'CloudFlare 免费收发临时域名邮箱，支持多域名、附件、Telegram Bot、Webhook、SMTP/IMAP' }],
+    ],
 
     themeConfig: {
         nav: nav(),

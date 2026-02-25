@@ -3,7 +3,12 @@ import { defineConfig, type DefaultTheme } from 'vitepress'
 export const en = defineConfig({
     title: "Temp Mail Doc",
     lang: 'en-US',
-    description: 'CloudFlare Free sending and receiving of temporary domain name mailboxes',
+    description: 'Free temporary domain email powered by CloudFlare Workers, with multi-domain, attachments, Telegram Bot, Webhook, SMTP/IMAP support',
+
+    head: [
+        ['meta', { property: 'og:locale', content: 'en_US' }],
+        ['meta', { property: 'og:description', content: 'Free temporary domain email powered by CloudFlare Workers, with multi-domain, attachments, Telegram Bot, Webhook, SMTP/IMAP support' }],
+    ],
 
     themeConfig: {
         nav: nav(),
