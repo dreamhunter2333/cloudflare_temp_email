@@ -6,10 +6,8 @@ on:
       - "*"
 
 jobs:
-  build:
+  build-frontend:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,7 +19,6 @@ jobs:
 
       - uses: pnpm/action-setup@v3
         name: Install pnpm
-        id: pnpm-install
         with:
           version: 8
           run_install: false
@@ -32,11 +29,57 @@ jobs:
       - name: Zip Frontend dist
         run: cd frontend/dist/ && zip -r frontend.zip * && mv frontend.zip ../
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend
+          path: frontend/frontend.zip
+
+  build-telegram-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
       - name: Build Telegram Frontend
         run: cd frontend && pnpm install --no-frozen-lockfile && pnpm build:telegram:release
 
       - name: Zip Telegram Frontend dist
         run: cd frontend/dist/ && zip -r telegram-frontend.zip * && mv telegram-frontend.zip ../
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-frontend
+          path: frontend/telegram-frontend.zip
+
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
 
       - name: cp wrangler.toml
         run: cd worker && cp wrangler.toml.template wrangler.toml
@@ -57,11 +100,34 @@ jobs:
           pnpm build
           zip -r worker-with-wasm-mail-parser.zip dist/worker.js dist/*.wasm
 
+      - name: Upload worker.js
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-js
+          path: worker/worker.js
+
+      - name: Upload wasm worker
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-wasm
+          path: worker/worker-with-wasm-mail-parser.zip
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-frontend, build-telegram-frontend, build-backend]
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            frontend/frontend.zip
-            frontend/telegram-frontend.zip
-            worker/worker.js
-            worker/worker-with-wasm-mail-parser.zip
+            artifacts/frontend/frontend.zip
+            artifacts/telegram-frontend/telegram-frontend.zip
+            artifacts/worker-js/worker.js
+            artifacts/worker-wasm/worker-with-wasm-mail-parser.zip

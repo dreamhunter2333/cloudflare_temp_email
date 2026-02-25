@@ -10,10 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-frontend:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,40 +23,63 @@ jobs:
 
       - uses: pnpm/action-setup@v3
         name: Install pnpm
-        id: pnpm-install
         with:
           version: 8
           run_install: false
 
       - name: Deploy Frontend for ${{ github.ref_name }}
+        if: ${{ env.FRONTEND_NAME != '' }}
         run: |
           cd frontend/
           echo "${{ secrets.FRONTEND_ENV }}" > .env.prod
-          export project_name=${{ secrets.FRONTEND_NAME }}
           pnpm install --no-frozen-lockfile
-          export frontend_branch=${{ secrets.FRONTEND_BRANCH }}
+          export frontend_branch="${{ secrets.FRONTEND_BRANCH }}"
           if [ -n "$frontend_branch" ]; then
             echo "Deploying branch $frontend_branch"
-            pnpm run deploy:actions --project-name=$project_name --branch $frontend_branch
+            pnpm run deploy:actions --project-name=$FRONTEND_NAME --branch $frontend_branch
           else
             echo "Deploying branch production"
-            pnpm run deploy --project-name=$project_name
+            pnpm run deploy --project-name=$FRONTEND_NAME
           fi
-          echo "Deploying production for ${{ github.ref_name }}"
           echo "Deployed for tag ${{ github.ref_name }}"
-
-          export tg_mini_app_project_name=${{ secrets.TG_FRONTEND_NAME }}
-          if [ -n "$tg_mini_app_project_name" ]; then
-            echo "Deploying telegram mini app $tg_mini_app_project_name"
-            if [ -n "$frontend_branch" ]; then
-              echo "Deploying telegram mini app branch $frontend_branch"
-              pnpm run deploy:actions:telegram --project-name=$tg_mini_app_project_name --branch $frontend_branch
-            else
-              echo "Deploying telegram mini app branch production"
-              pnpm run deploy:telegram --project-name=$tg_mini_app_project_name
-            fi
-            echo "Deployed telegram mini app for ${{ github.ref_name }}"
-          fi
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          FRONTEND_NAME: ${{ secrets.FRONTEND_NAME }}
+
+  deploy-telegram-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
+      - name: Deploy Telegram Frontend for ${{ github.ref_name }}
+        if: ${{ env.TG_FRONTEND_NAME != '' }}
+        run: |
+          cd frontend/
+          echo "${{ secrets.FRONTEND_ENV }}" > .env.prod
+          pnpm install --no-frozen-lockfile
+          export frontend_branch="${{ secrets.FRONTEND_BRANCH }}"
+          if [ -n "$frontend_branch" ]; then
+            echo "Deploying telegram mini app branch $frontend_branch"
+            pnpm run deploy:actions:telegram --project-name=$TG_FRONTEND_NAME --branch $frontend_branch
+          else
+            echo "Deploying telegram mini app branch production"
+            pnpm run deploy:telegram --project-name=$TG_FRONTEND_NAME
+          fi
+          echo "Deployed telegram mini app for ${{ github.ref_name }}"
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TG_FRONTEND_NAME: ${{ secrets.TG_FRONTEND_NAME }}
