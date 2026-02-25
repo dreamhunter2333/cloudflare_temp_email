@@ -323,7 +323,21 @@ const columns = [
     },
     {
         title: t('source_meta'),
-        key: "source_meta"
+        key: "source_meta",
+        render(row) {
+            const val = row.source_meta;
+            if (!val) return '';
+            const ipv4Regex = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
+            const ipv6Regex = /^[0-9a-fA-F:]+$/;
+            if (ipv4Regex.test(val) || (val.includes(':') && ipv6Regex.test(val) && !val.startsWith('tg:'))) {
+                return h('a', {
+                    href: `https://ip.im/${val}`,
+                    target: '_blank',
+                    rel: 'noopener noreferrer'
+                }, val);
+            }
+            return val;
+        }
     },
     {
         title: t('mail_count'),
