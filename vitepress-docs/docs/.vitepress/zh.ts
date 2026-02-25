@@ -53,7 +53,7 @@ function nav(): DefaultTheme.NavItem[] {
     return [
         {
             text: '主页',
-            link: '/',
+            link: '/zh/',
         },
         {
             text: '指南',
@@ -62,11 +62,11 @@ function nav(): DefaultTheme.NavItem[] {
         },
         {
             text: '服务状态',
-            link: '/status',
+            link: '/zh/status',
         },
         {
             text: '参考',
-            link: '/reference',
+            link: '/zh/reference',
         },
         {
             text: process.env.TAG_NAME || 'v0.2.2',
@@ -165,6 +165,6 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 { text: 'Admin 用户管理', link: 'feature/admin-user-management' },
             ]
         },
-        { text: '参考', base: "/", link: 'reference' }
+        { text: '参考', base: "/zh/", link: 'reference' }
     ]
 }
