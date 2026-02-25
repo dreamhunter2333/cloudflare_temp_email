@@ -76,9 +76,17 @@ For other steps, refer to `Frontend and Backend Separation Deployment` in [UI De
 cd frontend
 pnpm install
 cp .env.example .env.prod
+# Edit .env.prod and set VITE_IS_TELEGRAM=true
 # --project-name can create a separate pages for mini app, you can also share one pages, but may encounter js loading issues
 pnpm run deploy:telegram --project-name=<your_project_name>
 ```
+
+> [!WARNING]
+> Windows users: The inline `VITE_IS_TELEGRAM=true` environment variable in npm scripts does not work on Windows.
+> Please set `VITE_IS_TELEGRAM=true` in your `.env.prod` file manually, then use the regular build command instead:
+> ```bash
+> pnpm run build
+> ```
 
 - After deployment, please fill in the web URL in the `Settings` -> `Telegram Mini App` page `Telegram Mini App URL` in the admin backend.
 - Please execute `/setmenubutton` in `@BotFather`, then enter your web address to set the `Open App` button in the lower left corner.

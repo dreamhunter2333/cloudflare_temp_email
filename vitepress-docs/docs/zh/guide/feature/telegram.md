@@ -76,9 +76,17 @@ Telegram Bot 支持中英文切换，用户可以通过 `/lang` 命令设置语�
 cd frontend
 pnpm install
 cp .env.example .env.prod
+# 修改 .env.prod 文件，设置 VITE_IS_TELEGRAM=true
 # --project-name 可以单独为 mini app 创建一个 pages, 你也可以公用一个 pages，但是可能遇到 js 加载不了的问题
 pnpm run deploy:telegram --project-name=<你的项目名称>
 ```
+
+> [!WARNING]
+> Windows 用户请注意：`npm scripts` 中的 `VITE_IS_TELEGRAM=true` 内联环境变量写法在 Windows 上不生效。
+> 请在 `.env.prod` 文件中手动设置 `VITE_IS_TELEGRAM=true`，然后使用普通的 build 命令代替：
+> ```bash
+> pnpm run build
+> ```
 
 - 部署完成后，请在 admin 后台的 `设置` -> `电报小程序` 页面 `电报小程序 URL` 中填写网页 URL。
 - 请在 `@BotFather` 处执行 `/setmenubutton`，然后输入你的网页地址，设置左下角的 `Open App` 按钮。
