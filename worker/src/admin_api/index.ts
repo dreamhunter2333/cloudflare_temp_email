@@ -322,8 +322,8 @@ api.post('/admin/account_settings', async (c) => {
     if (fromBlockList?.length > 0 && !c.env.KV) {
         return c.text(msgs.EnableKVMsg, 400)
     }
-    if (fromBlockList) {
-        await c.env.KV.put(CONSTANTS.EMAIL_KV_BLACK_LIST, JSON.stringify(fromBlockList || []))
+    if (fromBlockList?.length > 0 && c.env.KV) {
+        await c.env.KV.put(CONSTANTS.EMAIL_KV_BLACK_LIST, JSON.stringify(fromBlockList))
     }
     await saveSetting(
         c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY,
