@@ -14,6 +14,7 @@
 
 ### Bug Fixes
 
+- fix: |Admin API| Fix `/admin/account_settings` throwing `Cannot read properties of undefined (reading 'put')` when KV is not configured and `fromBlockList` is empty
 - fix: |Docs| Fix User Mail API documentation incorrectly using `x-admin-auth`, changed to correct `x-user-token`
 - docs: |Docs| Add Admin API documentation for delete mail, delete address, clear inbox, and clear sent items
 
