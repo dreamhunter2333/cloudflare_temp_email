@@ -17,6 +17,8 @@ CREATE INDEX IF NOT EXISTS idx_raw_mails_address ON raw_mails(address);
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
 
+CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);
+
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
@@ -177,6 +179,10 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE address ADD COLUMN source_meta TEXT;`);
                 await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_address_source_meta ON address(source_meta);`);
             }
+        }
+        if (version && version <= "v0.0.5") {
+            // migration to v0.0.6: add message_id index on raw_mails
+            await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);`);
         }
         if (version != CONSTANTS.DB_VERSION) {
             // remove all \r and \n characters from the query string
