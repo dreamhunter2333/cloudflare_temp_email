@@ -100,6 +100,7 @@
 | `COPYRIGHT`                | 文本        | 自定义前端界面页脚文本，支持 html                | `Dream Hunter`        |
 | `ADMIN_CONTACT`            | 文本        | admin 联系方式，可配置任意字符串, 不配置则不显示 | `xxx@gmail.com`       |
 | `DISABLE_SHOW_GITHUB`      | 文本/JSON   | 是否显示 GitHub 链接                             | `true`                |
+| `STATUS_URL`               | 文本        | 状态监控页面 URL，配置后显示 Status 菜单按钮     | `https://status.example.com` |
 | `CF_TURNSTILE_SITE_KEY`    | 文本/Secret | Turnstile 人机验证配置                           | `xxx`                 |
 | `CF_TURNSTILE_SECRET_KEY`  | 文本/Secret | Turnstile 人机验证配置                           | `xxx`                 |
 

@@ -100,6 +100,7 @@
 | `COPYRIGHT`                | Text        | Custom frontend footer text, supports html                               | `Dream Hunter`        |
 | `ADMIN_CONTACT`            | Text        | Admin contact information, can be any string, hidden if not configured   | `xxx@gmail.com`       |
 | `DISABLE_SHOW_GITHUB`      | Text/JSON   | Whether to show GitHub link                                              | `true`                |
+| `STATUS_URL`               | Text        | Status monitoring page URL, shows Status menu button when configured     | `https://status.example.com` |
 | `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration                                          | `xxx`                 |
 | `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration                                          | `xxx`                 |
 

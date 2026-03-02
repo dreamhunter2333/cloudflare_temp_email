@@ -6,7 +6,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
-    AdminPanelSettingsFilled
+    AdminPanelSettingsFilled, MonitorHeartFilled
 } from '@vicons/material'
 import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
@@ -59,6 +59,7 @@ const { locale, t } = useI18n({
             home: 'Home',
             menu: 'Menu',
             user: 'User',
+            status: 'Status',
             ok: 'OK',
         },
         zh: {
@@ -70,6 +71,7 @@ const { locale, t } = useI18n({
             home: '主页',
             menu: '菜单',
             user: '用户',
+            status: '状态',
             ok: '确定',
         }
     }
@@ -178,6 +180,25 @@ const menuOptions = computed(() => [
             }
         ),
         key: "lang"
+    },
+    {
+        label: () => h(
+            NButton,
+            {
+                text: true,
+                size: "small",
+                style: "width: 100%",
+                tag: "a",
+                target: "_blank",
+                href: openSettings.value?.statusUrl,
+            },
+            {
+                default: () => t('status'),
+                icon: () => h(NIcon, { component: MonitorHeartFilled })
+            }
+        ),
+        show: !!openSettings.value?.statusUrl,
+        key: "status"
     },
     {
         label: () => h(
