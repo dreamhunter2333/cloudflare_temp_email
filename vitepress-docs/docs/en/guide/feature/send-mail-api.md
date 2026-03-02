@@ -18,7 +18,7 @@ res = requests.post(
     "http://localhost:8787/api/send_mail",
     json=send_body, headers={
         "Authorization": f"Bearer {your_JWT_password}",
-        # "x-custom-auth": "<your_website_password>", # If custom password is enabled
+        # "x-custom-auth": "<your_website_password>", # If private site password is enabled
         "Content-Type": "application/json"
     }
 )
@@ -36,6 +36,7 @@ send_body = {
 res = requests.post(
     "http://localhost:8787/external/api/send_mail",
     json=send_body, headers={
+        # "x-custom-auth": "<your_website_password>", # If private site password is enabled
         "Content-Type": "application/json"
     }
 )

@@ -16,6 +16,7 @@ res = requests.post(
     },
     headers={
         'x-admin-auth': "<你的网站admin密码>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
         "Content-Type": "application/json"
     }
 )
@@ -59,6 +60,7 @@ def fetch_email_data(name):
             },
             headers={
                 'x-admin-auth': "<你的网站admin密码>",
+                # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
                 "Content-Type": "application/json"
             }
         )

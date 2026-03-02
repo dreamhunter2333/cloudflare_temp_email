@@ -11,7 +11,7 @@ res = requests.get(
     f"https://<你的worker地址>/api/mails?limit={limit}&offset={offset}",
     headers={
         "Authorization": f"Bearer {你的JWT密码}",
-        # "x-custom-auth": "<你的网站密码>", # 如果启用了自定义密码
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
         "Content-Type": "application/json"
     }
 )
@@ -33,7 +33,10 @@ querystring = {
     "address":"xxxx@awsl.uk"
 }
 
-headers = {"x-admin-auth": "<你的Admin密码>"}
+headers = {
+        "x-admin-auth": "<你的Admin密码>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
+    }
 
 response = requests.get(url, headers=headers, params=querystring)
 
@@ -52,7 +55,10 @@ import requests
 mail_id = 1
 url = f"https://<你的worker地址>/admin/mails/{mail_id}"
 
-headers = {"x-admin-auth": "<你的Admin密码>"}
+headers = {
+        "x-admin-auth": "<你的Admin密码>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
+    }
 
 response = requests.delete(url, headers=headers)
 
@@ -69,7 +75,10 @@ import requests
 address_id = 1
 url = f"https://<你的worker地址>/admin/delete_address/{address_id}"
 
-headers = {"x-admin-auth": "<你的Admin密码>"}
+headers = {
+        "x-admin-auth": "<你的Admin密码>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
+    }
 
 response = requests.delete(url, headers=headers)
 
@@ -86,7 +95,10 @@ import requests
 address_id = 1
 url = f"https://<你的worker地址>/admin/clear_inbox/{address_id}"
 
-headers = {"x-admin-auth": "<你的Admin密码>"}
+headers = {
+        "x-admin-auth": "<你的Admin密码>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
+    }
 
 response = requests.delete(url, headers=headers)
 
@@ -103,7 +115,10 @@ import requests
 address_id = 1
 url = f"https://<你的worker地址>/admin/clear_sent_items/{address_id}"
 
-headers = {"x-admin-auth": "<你的Admin密码>"}
+headers = {
+        "x-admin-auth": "<你的Admin密码>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
+    }
 
 response = requests.delete(url, headers=headers)
 
@@ -126,7 +141,10 @@ querystring = {
     "address":"xxxx@awsl.uk"
 }
 
-headers = {"x-user-token": "<你的用户JWT Token>"}
+headers = {
+        "x-user-token": "<你的用户JWT Token>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
+    }
 
 response = requests.get(url, headers=headers, params=querystring)
 

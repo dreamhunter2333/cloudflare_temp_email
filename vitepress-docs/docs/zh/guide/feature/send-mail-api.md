@@ -18,7 +18,7 @@ res = requests.post(
     "http://localhost:8787/api/send_mail",
     json=send_body, headers={
         "Authorization": f"Bearer {你的JWT密码}",
-        # "x-custom-auth": "<你的网站密码>", # 如果启用了自定义密码
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
         "Content-Type": "application/json"
     }
 )
@@ -36,6 +36,7 @@ send_body = {
 res = requests.post(
     "http://localhost:8787/external/api/send_mail",
     json=send_body, headers={
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
         "Content-Type": "application/json"
     }
 )

@@ -11,7 +11,7 @@ res = requests.get(
     f"https://<your-worker-address>/api/mails?limit={limit}&offset={offset}",
     headers={
         "Authorization": f"Bearer {your-JWT-password}",
-        # "x-custom-auth": "<your-website-password>", # If custom password is enabled
+        # "x-custom-auth": "<your-website-password>", # If private site password is enabled
         "Content-Type": "application/json"
     }
 )
@@ -33,7 +33,10 @@ querystring = {
     "address":"xxxx@awsl.uk"
 }
 
-headers = {"x-admin-auth": "<your-Admin-password>"}
+headers = {
+        "x-admin-auth": "<your-Admin-password>",
+        # "x-custom-auth": "<your-website-password>", # If private site password is enabled
+    }
 
 response = requests.get(url, headers=headers, params=querystring)
 
@@ -52,7 +55,10 @@ import requests
 mail_id = 1
 url = f"https://<your-worker-address>/admin/mails/{mail_id}"
 
-headers = {"x-admin-auth": "<your-Admin-password>"}
+headers = {
+        "x-admin-auth": "<your-Admin-password>",
+        # "x-custom-auth": "<your-website-password>", # If private site password is enabled
+    }
 
 response = requests.delete(url, headers=headers)
 
@@ -69,7 +75,10 @@ import requests
 address_id = 1
 url = f"https://<your-worker-address>/admin/delete_address/{address_id}"
 
-headers = {"x-admin-auth": "<your-Admin-password>"}
+headers = {
+        "x-admin-auth": "<your-Admin-password>",
+        # "x-custom-auth": "<your-website-password>", # If private site password is enabled
+    }
 
 response = requests.delete(url, headers=headers)
 
@@ -86,7 +95,10 @@ import requests
 address_id = 1
 url = f"https://<your-worker-address>/admin/clear_inbox/{address_id}"
 
-headers = {"x-admin-auth": "<your-Admin-password>"}
+headers = {
+        "x-admin-auth": "<your-Admin-password>",
+        # "x-custom-auth": "<your-website-password>", # If private site password is enabled
+    }
 
 response = requests.delete(url, headers=headers)
 
@@ -103,7 +115,10 @@ import requests
 address_id = 1
 url = f"https://<your-worker-address>/admin/clear_sent_items/{address_id}"
 
-headers = {"x-admin-auth": "<your-Admin-password>"}
+headers = {
+        "x-admin-auth": "<your-Admin-password>",
+        # "x-custom-auth": "<your-website-password>", # If private site password is enabled
+    }
 
 response = requests.delete(url, headers=headers)
 
@@ -126,7 +141,10 @@ querystring = {
     "address":"xxxx@awsl.uk"
 }
 
-headers = {"x-user-token": "<your-user-JWT-token>"}
+headers = {
+        "x-user-token": "<your-user-JWT-token>",
+        # "x-custom-auth": "<your-website-password>", # If private site password is enabled
+    }
 
 response = requests.get(url, headers=headers, params=querystring)
 

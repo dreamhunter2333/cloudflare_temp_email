@@ -16,6 +16,7 @@ res = requests.post(
     },
     headers={
         'x-admin-auth': "<your_website_admin_password>",
+        # "x-custom-auth": "<your_website_password>", # If private site password is enabled
         "Content-Type": "application/json"
     }
 )
@@ -59,6 +60,7 @@ def fetch_email_data(name):
             },
             headers={
                 'x-admin-auth': "<your_website_admin_password>",
+                # "x-custom-auth": "<your_website_password>", # If private site password is enabled
                 "Content-Type": "application/json"
             }
         )
