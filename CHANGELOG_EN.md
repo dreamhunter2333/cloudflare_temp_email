@@ -11,6 +11,7 @@
 ### Features
 
 - feat: |User Registration| Add email regex validation for user registration, admins can configure email format validation rules
+- feat: |Frontend| Add configurable Status menu button via `STATUS_URL` environment variable for status monitoring page link
 
 ### Bug Fixes
 
@@ -22,6 +23,8 @@
 ### Improvements
 
 - style: |Mail List| Improve empty state display for inbox and sent box, show different messages based on mail count, add semantic icons
+- feat: |Admin| Add ip.im lookup link for source IP in address list, click to quickly view IP information
+- docs: |Docs| Fix VitePress i18n language switch path error, use dual-prefix locale configuration
 
 ## v1.3.0
 
