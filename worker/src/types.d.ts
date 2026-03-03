@@ -47,6 +47,7 @@ type Bindings = {
     NO_LIMIT_SEND_ROLE: string | undefined | null
     ADMIN_CONTACT: string | undefined
     COPYRIGHT: string | undefined
+    STATUS_URL: string | undefined
     DISABLE_SHOW_GITHUB: string | boolean | undefined
     FORWARD_ADDRESS_LIST: string | string[] | undefined
 

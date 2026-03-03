@@ -38,6 +38,7 @@ export const useGlobalState = createGlobalState(
             showGithub: true,
             disableAdminPasswordCheck: false,
             enableAddressPassword: false,
+            statusUrl: '',
         })
         const settings = ref({
             fetched: false,
