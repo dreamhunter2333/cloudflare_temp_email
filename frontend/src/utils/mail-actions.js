@@ -1,3 +1,31 @@
+import DOMPurify from 'dompurify';
+
+/**
+ * HTML-escape special characters for plain text content.
+ */
+function escapeHtml(str) {
+  const text = String(str ?? '');
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+/**
+ * Sanitize mail content: HTML-escape plain text, whitelist-sanitize HTML.
+ */
+function sanitizeContent(mail) {
+  if (mail.message) {
+    return DOMPurify.sanitize(mail.message);
+  }
+  if (mail.text) {
+    return escapeHtml(mail.text);
+  }
+  return '';
+}
+
 /**
  * Build the send-mail model for replying to an email.
  * @param {Object} mail - The mail object (curMail)
@@ -6,21 +34,21 @@
  */
 export function buildReplyModel(mail, replyLabel) {
   const emailRegex = /(.+?) <(.+?)>/;
-  let toMail = mail.originalSource;
+  let toMail = mail.originalSource || '';
   let toName = "";
   const match = emailRegex.exec(mail.source);
   if (match) {
     toName = match[1];
     toMail = match[2];
   }
-  const bodyContent = mail.message || mail.text;
+  const safeContent = sanitizeContent(mail);
   return {
     toName,
     toMail,
     subject: `${replyLabel}: ${mail.subject}`,
     contentType: mail.message ? 'html' : 'rich',
-    content: bodyContent
-      ? `<p><br></p><blockquote>${bodyContent}</blockquote><p><br></p>`
+    content: safeContent
+      ? `<p><br></p><blockquote>${safeContent}</blockquote><p><br></p>`
       : '',
   };
 }
@@ -35,6 +63,6 @@ export function buildForwardModel(mail, forwardLabel) {
   return {
     subject: `${forwardLabel}: ${mail.subject}`,
     contentType: mail.message ? 'html' : 'text',
-    content: mail.message || mail.text,
+    content: sanitizeContent(mail),
   };
 }
