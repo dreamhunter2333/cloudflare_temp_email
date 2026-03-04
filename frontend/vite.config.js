@@ -75,7 +75,4 @@ export default defineConfig({
       'top-level-await': true
     },
   },
-  test: {
-    exclude: ['e2e/**', 'node_modules/**'],
-  },
 })
