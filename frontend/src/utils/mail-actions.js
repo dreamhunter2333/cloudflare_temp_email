@@ -18,7 +18,7 @@ export function buildReplyModel(mail, replyLabel) {
     toName,
     toMail,
     subject: `${replyLabel}: ${mail.subject}`,
-    contentType: 'rich',
+    contentType: mail.message ? 'html' : 'rich',
     content: bodyContent
       ? `<p><br></p><blockquote>${bodyContent}</blockquote><p><br></p>`
       : '',

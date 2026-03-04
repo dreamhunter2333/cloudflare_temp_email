@@ -14,7 +14,7 @@ describe('buildReplyModel', () => {
     expect(result.content).toBe(
       '<p><br></p><blockquote><p>HTML body</p></blockquote><p><br></p>'
     )
-    expect(result.contentType).toBe('rich')
+    expect(result.contentType).toBe('html')
   })
 
   it('falls back to plain text when message is empty string', () => {
@@ -107,7 +107,19 @@ describe('buildReplyModel', () => {
     expect(result.subject).toBe('Reply: Original Subject')
   })
 
-  it('always sets contentType to rich', () => {
+  it('uses html contentType for HTML email reply', () => {
+    const mail = {
+      source: 'test@example.com',
+      originalSource: 'test@example.com',
+      subject: 'Test',
+      message: '<p>html</p>',
+      text: 'plain',
+    }
+    const result = buildReplyModel(mail, 'Reply')
+    expect(result.contentType).toBe('html')
+  })
+
+  it('uses rich contentType for plain text email reply', () => {
     const mail = {
       source: 'test@example.com',
       originalSource: 'test@example.com',
