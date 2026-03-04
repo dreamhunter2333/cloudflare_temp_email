@@ -11,6 +11,10 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    isDark: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const shadowHost = ref(null);
@@ -40,7 +44,13 @@ const renderShadowDom = () => {
 
         // Update content if Shadow DOM exists
         if (shadowRoot) {
-            shadowRoot.innerHTML = props.htmlContent;
+            const darkModeStyle = props.isDark
+                ? `<style>
+                    :host { color: #e0e0e0; }
+                    a { color: #A8C7FA; }
+                   </style>`
+                : '';
+            shadowRoot.innerHTML = darkModeStyle + props.htmlContent;
         }
     } catch (error) {
         console.error('Failed to render Shadow DOM, falling back to v-html:', error);
@@ -68,8 +78,8 @@ onBeforeUnmount(() => {
     shadowRoot = null;
 });
 
-// Update Shadow DOM when htmlContent changes
-watch(() => props.htmlContent, () => {
+// Update Shadow DOM when htmlContent or dark mode changes
+watch(() => [props.htmlContent, props.isDark], () => {
     renderShadowDom();
 }, { flush: 'post' });
 </script>

@@ -8,7 +8,7 @@ import { getDownloadEmlUrl } from '../utils/email-parser';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
 
-const { preferShowTextMail, useIframeShowMail, useUTCDate } = useGlobalState();
+const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark } = useGlobalState();
 
 const { t } = useI18n({
   messages: {
@@ -184,22 +184,22 @@ const handleSaveToS3 = async (filename, blob) => {
     <AiExtractInfo :metadata="mail.metadata" />
 
     <!-- 邮件内容 -->
-    <div class="mail-content">
+    <div class="mail-content" :class="{ 'dark-mode': isDark }">
       <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
       <iframe v-else-if="useIframeShowMail" :srcdoc="mail.message" class="mail-iframe">
       </iframe>
-      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mail.message" class="mail-html" />
+      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mail.message" :isDark="isDark" class="mail-html" />
     </div>
   </div>
 
   <n-drawer v-model:show="showFullscreen" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
     style="height: 100vh;">
     <n-drawer-content :title="mail.subject" closable>
-      <div class="fullscreen-mail-content">
+      <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
         <iframe v-else-if="useIframeShowMail" :srcdoc="mail.message" class="mail-iframe">
         </iframe>
-        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mail.message" class="mail-html" />
+        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mail.message" :isDark="isDark" class="mail-html" />
       </div>
     </n-drawer-content>
   </n-drawer>
@@ -259,11 +259,19 @@ const handleSaveToS3 = async (filename, blob) => {
   line-height: inherit;
 }
 
+.dark-mode .mail-text {
+  color: #e0e0e0;
+}
+
 .mail-iframe {
   width: 100%;
   height: 100%;
   border: none;
   min-height: 400px;
+}
+
+.dark-mode .mail-iframe {
+  background-color: #fff;
 }
 
 .mail-html {
