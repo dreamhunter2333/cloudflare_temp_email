@@ -251,4 +251,15 @@ describe('buildForwardModel', () => {
     expect(result.content).not.toContain('onerror')
     expect(result.content).toContain('<b>Bold</b>')
   })
+
+  it('escapes special chars in plain text forward content', () => {
+    const mail = {
+      subject: 'FW Text',
+      message: '',
+      text: 'a < b & c > d',
+    }
+    const result = buildForwardModel(mail, 'Forward')
+    expect(result.contentType).toBe('text')
+    expect(result.content).toBe('a &lt; b &amp; c &gt; d')
+  })
 })

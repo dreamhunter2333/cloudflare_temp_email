@@ -4,7 +4,8 @@ import DOMPurify from 'dompurify';
  * HTML-escape special characters for plain text content.
  */
 function escapeHtml(str) {
-  return str
+  const text = String(str ?? '');
+  return text
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
