@@ -7,6 +7,7 @@ import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled, Inbox
 import { useIsMobile } from '../utils/composables'
 import { processItem } from '../utils/email-parser'
 import { utcToLocalDate } from '../utils';
+import { buildReplyModel, buildForwardModel } from '../utils/mail-actions'
 import MailContentRenderer from "./MailContentRenderer.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
 
@@ -276,30 +277,12 @@ const deleteMail = async () => {
 };
 
 const replyMail = async () => {
-  const emailRegex = /(.+?) <(.+?)>/;
-  let toMail = curMail.value.originalSource;
-  let toName = ""
-  const match = emailRegex.exec(curMail.value.source);
-  if (match) {
-    toName = match[1];
-    toMail = match[2];
-  }
-  Object.assign(sendMailModel.value, {
-    toName: toName,
-    toMail: toMail,
-    subject: `${t('reply')}: ${curMail.value.subject}`,
-    contentType: 'rich',
-    content: (curMail.value.message || curMail.value.text) ? `<p><br></p><blockquote>${curMail.value.message || curMail.value.text}</blockquote><p><br></p>` : '',
-  });
+  Object.assign(sendMailModel.value, buildReplyModel(curMail.value, t('reply')));
   indexTab.value = 'sendmail';
 };
 
 const forwardMail = async () => {
-  Object.assign(sendMailModel.value, {
-    subject: `${t('forwardMail')}: ${curMail.value.subject}`,
-    contentType: curMail.value.message ? 'html' : 'text',
-    content: curMail.value.message || curMail.value.text,
-  });
+  Object.assign(sendMailModel.value, buildForwardModel(curMail.value, t('forwardMail')));
   indexTab.value = 'sendmail';
 };
 

@@ -17,7 +17,9 @@
     "deploy:actions:telegram": "npm run build:telegram && wrangler pages deploy ./dist",
     "deploy:preview": "npm run build && wrangler pages deploy ./dist --branch preview",
     "deploy": "npm run build && wrangler pages deploy ./dist --branch production",
-    "deploy:actions": "npm run build && wrangler pages deploy ./dist"
+    "deploy:actions": "npm run build && wrangler pages deploy ./dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.0.1",
@@ -49,6 +51,7 @@
     "vite-plugin-wasm": "^3.5.0",
     "workbox-build": "^7.4.0",
     "workbox-window": "^7.4.0",
+    "vitest": "^3.1.0",
     "wrangler": "^4.68.1"
   },
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
