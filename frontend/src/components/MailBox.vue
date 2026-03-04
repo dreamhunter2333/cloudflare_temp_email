@@ -289,7 +289,7 @@ const replyMail = async () => {
     toMail: toMail,
     subject: `${t('reply')}: ${curMail.value.subject}`,
     contentType: 'rich',
-    content: curMail.value.text ? `<p><br></p><blockquote>${curMail.value.text}</blockquote><p><br></p>` : '',
+    content: (curMail.value.message || curMail.value.text) ? `<p><br></p><blockquote>${curMail.value.message || curMail.value.text}</blockquote><p><br></p>` : '',
   });
   indexTab.value = 'sendmail';
 };
