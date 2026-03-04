@@ -20,6 +20,7 @@
 - fix: |Docs| Fix User Mail API documentation incorrectly using `x-admin-auth`, changed to correct `x-user-token`
 - fix: |Frontend| Fix email content text being unreadable in dark theme, improve dark mode styles for plain text mail and Shadow DOM rendering
 - docs: |Docs| Add Admin API documentation for delete mail, delete address, clear inbox, and clear sent items
+- fix: |Frontend| Fix reply to HTML email losing original HTML content, prefer HTML message over plain text
 
 ### Improvements
 
