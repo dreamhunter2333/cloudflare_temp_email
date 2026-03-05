@@ -7,7 +7,7 @@
     "test:down": "docker compose down -v"
   },
   "devDependencies": {
-    "@playwright/test": "1.49.0",
+    "@playwright/test": "1.58.2",
     "@types/ws": "^8.5.0",
     "ws": "^8.18.0"
   }
