@@ -44,6 +44,8 @@ test.describe('Address Password Login', () => {
         data: { new_password: 'correct-password' },
       });
       expect(changePwdRes.ok()).toBe(true);
+      const changePwdBody = await changePwdRes.json();
+      expect(changePwdBody.success).toBe(true);
 
       // Login with wrong password
       const loginRes = await request.post(`${WORKER_URL}/api/address_login`, {
