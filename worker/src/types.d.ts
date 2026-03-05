@@ -93,6 +93,9 @@ type Bindings = {
     // AI extraction config
     ENABLE_AI_EMAIL_EXTRACT: string | boolean | undefined
     AI_EXTRACT_MODEL: string | undefined
+
+    // E2E testing
+    E2E_TEST_MODE: string | boolean | undefined
 }
 
 type JwtPayload = {

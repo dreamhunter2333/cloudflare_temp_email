@@ -388,3 +388,26 @@ api.post("/admin/ip_blacklist/settings", ip_blacklist_settings.saveIpBlacklistSe
 // AI extract settings
 api.get("/admin/ai_extract/settings", ai_extract_settings.getAiExtractSettings);
 api.post("/admin/ai_extract/settings", ai_extract_settings.saveAiExtractSettings);
+
+// Test-only endpoint for seeding emails. MUST NOT be enabled in production.
+api.post('/admin/test/seed_mail', async (c) => {
+    if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
+        return c.text("Not available", 404);
+    }
+    const { address, source, raw, message_id } = await c.req.json();
+    if (!address || !raw) {
+        return c.text("address and raw are required", 400);
+    }
+    if (raw.length > 1_000_000) {
+        return c.text("raw content too large", 400);
+    }
+    if (message_id && message_id.length > 255) {
+        return c.text("message_id too long", 400);
+    }
+    const msgId = message_id || `<e2e-${Date.now()}@test>`;
+    const { success } = await c.env.DB.prepare(
+        `INSERT INTO raw_mails (message_id, source, address, raw, created_at)`
+        + ` VALUES (?, ?, ?, ?, datetime('now'))`
+    ).bind(msgId, source || address, address, raw).run();
+    return c.json({ success });
+});
