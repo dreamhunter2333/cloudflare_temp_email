@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { WORKER_URL, TEST_DOMAIN, createTestAddress, seedTestMail, deleteAddress } from '../../fixtures/test-helpers';
+import { WORKER_URL, createTestAddress, seedTestMail, deleteAddress } from '../../fixtures/test-helpers';
 
 test.describe('Mail Deletion', () => {
   test('delete a single mail by ID', async ({ request }) => {
