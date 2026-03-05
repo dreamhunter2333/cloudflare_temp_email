@@ -35,31 +35,31 @@
 
 > This project is for learning and personal use only. Please do not use it for any illegal activities, or you will be responsible for the consequences.
 
-**🎉 A fully-featured temporary email service!**
+**A fully-featured temporary email service!**
 
-- 🆓 **Completely Free** - Built on Cloudflare's free services with zero cost
-- ⚡ **High Performance** - Rust WASM email parsing for extremely fast response
-- 🎨 **Modern UI** - Responsive design with multi-language support and easy operation
-- 🔐 **Address Password** - Support setting individual passwords for email addresses to enhance security (enabled via `ENABLE_ADDRESS_PASSWORD`)
+- **Completely Free** - Built on Cloudflare's free services with zero cost
+- **High Performance** - Rust WASM email parsing for extremely fast response
+- **Modern UI** - Responsive design with multi-language support and easy operation
+- **Address Password** - Support setting individual passwords for email addresses to enhance security (enabled via `ENABLE_ADDRESS_PASSWORD`)
 
-## 📚 Deployment Documentation - Quick Start
+## Deployment Documentation - Quick Start
 
-[📖 Documentation](https://temp-mail-docs.awsl.uk) | [🚀 Github Action Deployment Guide](https://temp-mail-docs.awsl.uk/en/guide/actions/github-action.html)
+[Documentation](https://temp-mail-docs.awsl.uk) | [Github Action Deployment Guide](https://temp-mail-docs.awsl.uk/en/guide/actions/github-action.html)
 
 <a href="https://temp-mail-docs.awsl.uk/en/guide/actions/github-action.html">
   <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" height="32">
 </a>
 
-## 📝 Changelog
+## Changelog
 
 See [CHANGELOG](CHANGELOG.md) for the latest updates.
 
-## 🎯 Live Demo
+## Live Demo
 
 Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 
 <details>
-<summary>📊 Service Status Monitoring (Click to expand/collapse)</summary>
+<summary>Service Status Monitoring (Click to expand/collapse)</summary>
 
 |                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -69,7 +69,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 </details>
 
 <details>
-<summary>⭐ Star History (Click to expand/collapse)</summary>
+<summary>Star History (Click to expand/collapse)</summary>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date&theme=dark" />
@@ -80,32 +80,32 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 </details>
 
 <details open>
-<summary>📖 Table of Contents (Click to expand/collapse)</summary>
+<summary>Table of Contents (Click to expand/collapse)</summary>
 
 - [Cloudflare Temp Email - Free Temporary Email Service](#cloudflare-temp-email---free-temporary-email-service)
-  - [📚 Deployment Documentation - Quick Start](#-deployment-documentation---quick-start)
-  - [📝 Changelog](#-changelog)
-  - [🎯 Live Demo](#-live-demo)
-  - [✨ Core Features](#-core-features)
-    - [📧 Email Processing](#-email-processing)
-    - [👥 User Management](#-user-management)
-    - [🔧 Admin Features](#-admin-features)
-    - [🌐 Multi-language \& Interface](#-multi-language--interface)
-    - [🤖 Integration \& Extensions](#-integration--extensions)
-  - [🏗️ Technical Architecture](#️-technical-architecture)
-    - [🏛️ System Architecture](#️-system-architecture)
-    - [🛠️ Tech Stack](#️-tech-stack)
-    - [📦 Main Components](#-main-components)
-  - [🌟 Join the Community](#-join-the-community)
+  - [Deployment Documentation - Quick Start](#deployment-documentation---quick-start)
+  - [Changelog](#changelog)
+  - [Live Demo](#live-demo)
+  - [Core Features](#core-features)
+    - [Email Processing](#email-processing)
+    - [User Management](#user-management)
+    - [Admin Features](#admin-features)
+    - [Multi-language \& Interface](#multi-language--interface)
+    - [Integration \& Extensions](#integration--extensions)
+  - [Technical Architecture](#technical-architecture)
+    - [System Architecture](#system-architecture)
+    - [Tech Stack](#tech-stack)
+    - [Main Components](#main-components)
+  - [Join the Community](#join-the-community)
 
 </details>
 
-## ✨ Core Features
+## Core Features
 
 <details open>
-<summary>✨ Core Features Details (Click to expand/collapse)</summary>
+<summary>Core Features Details (Click to expand/collapse)</summary>
 
-### 📧 Email Processing
+### Email Processing
 
 - [x] Use `rust wasm` to parse emails, with fast parsing speed. Almost all emails can be parsed. Even emails that Node.js parsing modules fail to parse can be successfully parsed by rust wasm
 - [x] **AI Email Recognition** - Use Cloudflare Workers AI to automatically extract verification codes, authentication links, service links and other important information from emails
@@ -116,7 +116,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - [x] Spam detection and blacklist/whitelist configuration
 - [x] Email forwarding feature with global forwarding address support
 
-### 👥 User Management
+### User Management
 
 - [x] Use `credentials` to log in to previously used mailboxes
 - [x] Add complete user registration and login functionality. Users can bind email addresses and automatically obtain email JWT credentials to switch between different mailboxes after binding
@@ -125,7 +125,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - [x] User role management with support for multi-role domain and prefix configuration
 - [x] User inbox viewing with address and keyword filtering support
 
-### 🔧 Admin Features
+### Admin Features
 
 - [x] Complete admin console
 - [x] Create mailboxes without prefix in `admin` backend
@@ -134,7 +134,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - [x] Get mailboxes with custom names, `admin` can configure blacklist
 - [x] Add access password for use as a private site
 
-### 🌐 Multi-language & Interface
+### Multi-language & Interface
 
 - [x] Both frontend and backend support multi-language
 - [x] Modern UI design with responsive layout
@@ -142,7 +142,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - [x] Use shadow DOM to prevent style pollution
 - [x] Support URL JWT parameter auto-login
 
-### 🤖 Integration & Extensions
+### Integration & Extensions
 
 - [x] Complete `Telegram Bot` support, `Telegram` push notifications, and Telegram Bot mini app
 - [x] Add `SMTP proxy server` supporting `SMTP` for sending emails and `IMAP` for viewing emails
@@ -152,19 +152,19 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 
 </details>
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 <details>
-<summary>🏗️ Technical Architecture Details (Click to expand/collapse)</summary>
+<summary>Technical Architecture Details (Click to expand/collapse)</summary>
 
-### 🏛️ System Architecture
+### System Architecture
 
 - **Database**: Cloudflare D1 as the main database
 - **Frontend Deployment**: Deploy frontend using Cloudflare Pages
 - **Backend Deployment**: Deploy backend using Cloudflare Workers
 - **Email Routing**: Use Cloudflare Email Routing
 
-### 🛠️ Tech Stack
+### Tech Stack
 
 - **Frontend**: Vue 3 + Vite + TypeScript
 - **Backend**: TypeScript + Cloudflare Workers
@@ -173,7 +173,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - **Storage**: Cloudflare KV + R2 (optional S3)
 - **Proxy Service**: Python SMTP/IMAP Proxy Server
 
-### 📦 Main Components
+### Main Components
 
 - **Worker**: Core backend service
 - **Frontend**: Vue 3 user interface
@@ -191,6 +191,6 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 nslookup -qt="mx" a.b.com 1.1.1.1
 ```
 
-## 🌟 Join the Community
+## Join the Community
 
 - [Telegram](https://t.me/cloudflare_temp_email)
