@@ -14,7 +14,7 @@ test.describe('Clear Sent Items', () => {
   });
 
   test('send mail then clear sent items', async ({ request }) => {
-    const { jwt, address } = await createTestAddress(request, 'clear-sent');
+    const { jwt } = await createTestAddress(request, 'clear-sent');
     await requestSendAccess(request, jwt);
 
     try {
