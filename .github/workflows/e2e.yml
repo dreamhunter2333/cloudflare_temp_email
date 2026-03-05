@@ -1,0 +1,34 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run E2E tests
+        run: |
+          cd e2e
+          docker compose up --build --abort-on-container-exit --exit-code-from e2e-runner
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/test-results/
+            e2e/playwright-report/
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: |
+          cd e2e
+          docker compose down -v
