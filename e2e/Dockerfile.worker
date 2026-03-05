@@ -1,0 +1,18 @@
+FROM node:20-slim
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
+
+WORKDIR /app/worker
+
+COPY worker/package.json worker/pnpm-lock.yaml ./
+COPY worker/patches/ patches/
+RUN pnpm install --frozen-lockfile || (echo "WARN: frozen-lockfile failed, falling back to pnpm install" && pnpm install)
+
+COPY worker/src/ src/
+COPY worker/tsconfig.json ./
+COPY e2e/fixtures/wrangler.toml.e2e wrangler.toml
+
+EXPOSE 8787
+
+CMD ["pnpm", "exec", "wrangler", "dev", "--port", "8787", "--ip", "0.0.0.0"]

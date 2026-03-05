@@ -1,0 +1,11 @@
+**/node_modules/
+.git/
+vitepress-docs/
+smtp_proxy_server/
+mail-parser-wasm/
+db/
+**/.wrangler/
+**/dist/
+**/test-results/
+**/playwright-report/
+.DS_Store

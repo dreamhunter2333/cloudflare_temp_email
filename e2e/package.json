@@ -1,0 +1,14 @@
+{
+  "name": "cloudflare-temp-email-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "docker compose up --build --abort-on-container-exit --exit-code-from e2e-runner",
+    "test:down": "docker compose down -v"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.0",
+    "@types/ws": "^8.5.0",
+    "ws": "^8.18.0"
+  }
+}

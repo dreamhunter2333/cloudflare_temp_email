@@ -23,6 +23,12 @@
 - fix: |Frontend| Fix reply to HTML email losing original HTML content, prefer HTML message over plain text
 - fix: |Security| Fix XSS vulnerability in reply/forward mail content, sanitize HTML with DOMPurify whitelist and escape plain text
 
+### Testing
+
+- test: |E2E| Add Dockerized E2E test environment (Playwright + Mailpit), run with `cd e2e && npm test`
+- test: |E2E| Cover API health check, address lifecycle, SMTP send, inbox UI, HTML reply & XSS sanitization
+- test: |Worker| Add `/admin/test/seed_mail` test endpoint, only available when `E2E_TEST_MODE` is enabled
+
 ### Improvements
 
 - style: |Mail List| Improve empty state display for inbox and sent box, show different messages based on mail count, add semantic icons

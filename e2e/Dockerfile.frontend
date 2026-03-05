@@ -1,0 +1,23 @@
+FROM node:20-slim
+
+RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
+
+WORKDIR /app/frontend
+
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile || (echo "WARN: frozen-lockfile failed, falling back to pnpm install" && pnpm install)
+
+COPY frontend/ .
+
+# Allow Docker internal hostnames (e.g. "frontend") to pass Vite's host check.
+# Wrap the original config instead of sed-patching it — survives reformats.
+RUN mv vite.config.js vite.config.original.js && \
+    echo 'import config from "./vite.config.original.js";\
+config.server = { ...config.server, allowedHosts: true };\
+export default config;' > vite.config.js
+
+ENV VITE_API_BASE=http://worker:8787
+
+EXPOSE 5173
+
+CMD ["pnpm", "exec", "vite", "--port", "5173", "--host", "0.0.0.0"]

@@ -1,0 +1,49 @@
+services:
+  mailpit:
+    image: axllent/mailpit:v1.29
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  worker:
+    build:
+      context: ..
+      dockerfile: e2e/Dockerfile.worker
+    ports:
+      - "8787:8787"
+    depends_on:
+      - mailpit
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8787/health_check"]
+      interval: 3s
+      timeout: 5s
+      start_period: 10s
+      retries: 20
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: e2e/Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      worker:
+        condition: service_healthy
+
+  e2e-runner:
+    build:
+      context: ..
+      dockerfile: e2e/Dockerfile.e2e
+    environment:
+      WORKER_URL: http://worker:8787
+      FRONTEND_URL: http://frontend:5173
+      MAILPIT_API: http://mailpit:8025/api
+      CI: "true"
+    depends_on:
+      worker:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    volumes:
+      - ./test-results:/app/e2e/test-results
+      - ./playwright-report:/app/e2e/playwright-report
