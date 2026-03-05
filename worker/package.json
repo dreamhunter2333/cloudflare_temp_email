@@ -11,24 +11,24 @@
     "build": "wrangler deploy --dry-run --outdir dist --minify"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260304.0",
+    "@cloudflare/workers-types": "^4.20260305.1",
     "@eslint/js": "9.39.1",
     "@simplewebauthn/types": "10.0.0",
-    "@types/node": "^25.3.0",
+    "@types/node": "^25.3.3",
     "eslint": "9.39.1",
     "globals": "^16.5.0",
     "typescript-eslint": "^8.56.1",
-    "wrangler": "^4.68.1"
+    "wrangler": "^4.70.0"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.888.0",
     "@aws-sdk/s3-request-presigner": "3.888.0",
     "@simplewebauthn/server": "10.0.1",
-    "hono": "^4.12.2",
+    "hono": "^4.12.5",
     "jsonpath-plus": "^10.4.0",
     "mimetext": "^3.0.28",
     "postal-mime": "^2.7.3",
-    "resend": "^6.9.2",
+    "resend": "^6.9.3",
     "telegraf": "4.16.3",
     "worker-mailer": "^1.2.1"
   },
