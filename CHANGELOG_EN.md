@@ -22,6 +22,7 @@
 - docs: |Docs| Add Admin API documentation for delete mail, delete address, clear inbox, and clear sent items
 - fix: |Frontend| Fix reply to HTML email losing original HTML content, prefer HTML message over plain text
 - fix: |Security| Fix XSS vulnerability in reply/forward mail content, sanitize HTML with DOMPurify whitelist and escape plain text
+- fix: |API| Fix typo in `requset_send_mail_access` API path, renamed to `request_send_mail_access`
 
 ### Testing
 
