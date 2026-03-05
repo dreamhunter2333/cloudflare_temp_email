@@ -22,6 +22,8 @@ test.describe('Send Access', () => {
         headers: { Authorization: `Bearer ${jwt}` },
       });
       expect(dupRes.status()).toBe(400);
+      const dupBody = await dupRes.text();
+      expect(dupBody).toContain('Already');
     } finally {
       await deleteAddress(request, jwt);
     }
