@@ -55,13 +55,17 @@ test.describe('Auto Reply Settings', () => {
         headers: { Authorization: `Bearer ${jwt}` },
         data: {
           auto_reply: {
+            name: 'Bot',
             subject: 'x'.repeat(256),
+            source_prefix: '',
             message: 'Hello',
             enabled: true,
           },
         },
       });
       expect(saveRes.status()).toBe(400);
+      const body = await saveRes.text();
+      expect(body).toContain('too long');
     } finally {
       await deleteAddress(request, jwt);
     }
