@@ -96,7 +96,7 @@ const send = async () => {
 
 const requestAccess = async () => {
     try {
-        await api.fetch(`/api/requset_send_mail_access`,
+        await api.fetch(`/api/request_send_mail_access`,
             {
                 method: 'POST',
                 body: JSON.stringify({})

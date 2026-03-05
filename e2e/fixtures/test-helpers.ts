@@ -155,7 +155,7 @@ export async function requestSendAccess(
   ctx: APIRequestContext,
   jwt: string
 ): Promise<void> {
-  const res = await ctx.post(`${WORKER_URL}/api/requset_send_mail_access`, {
+  const res = await ctx.post(`${WORKER_URL}/api/request_send_mail_access`, {
     headers: { Authorization: `Bearer ${jwt}` },
   });
   if (!res.ok()) {

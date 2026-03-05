@@ -18,7 +18,7 @@ test.describe('Send Access', () => {
       expect(settings.send_balance).toBe(10);
 
       // Duplicate request — should fail with 400
-      const dupRes = await request.post(`${WORKER_URL}/api/requset_send_mail_access`, {
+      const dupRes = await request.post(`${WORKER_URL}/api/request_send_mail_access`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
       expect(dupRes.status()).toBe(400);
