@@ -51,6 +51,8 @@ test.describe('Webhook Settings', () => {
       expect(settings.enabled).toBe(true);
       expect(settings.url).toBe('https://example.com/webhook');
       expect(settings.method).toBe('POST');
+      expect(settings.headers).toBe(JSON.stringify({ 'Content-Type': 'application/json' }));
+      expect(settings.body).toBe(JSON.stringify({ from: '${from}', subject: '${subject}' }));
     } finally {
       await deleteAddress(request, jwt);
     }
