@@ -1,6 +1,5 @@
 import { Context } from 'hono'
-import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer'
-import { getBooleanValue, getJsonObjectValue } from '../utils'
+import { getBooleanValue } from '../utils'
 
 // Direct DB insert — bypasses the email() handler.
 const seedMail = async (c: Context<HonoCustomType>) => {
@@ -25,44 +24,7 @@ const seedMail = async (c: Context<HonoCustomType>) => {
     return c.json({ success });
 };
 
-/**
- * Parse raw MIME to extract From, To, Subject and body for WorkerMailer.
- */
-function parseMimeForReply(rawMime: string) {
-    // Support both \r\n and \n line endings (mimetext uses os.EOL which is \n on Linux)
-    const crlfEnd = rawMime.indexOf('\r\n\r\n');
-    const lfEnd = rawMime.indexOf('\n\n');
-    const headerEnd = crlfEnd > 0 ? crlfEnd : lfEnd;
-    const sepLen = crlfEnd > 0 ? 4 : 2;
-    const headerSection = headerEnd > 0 ? rawMime.substring(0, headerEnd) : rawMime;
-    const body = headerEnd > 0 ? rawMime.substring(headerEnd + sepLen) : '';
-
-    const headers: Record<string, string> = {};
-    // Normalize line endings then unfold continuation lines
-    const normalized = headerSection.replace(/\r\n/g, '\n');
-    for (const line of normalized.replace(/\n(?=[ \t])/g, ' ').split('\n')) {
-        const idx = line.indexOf(':');
-        if (idx > 0) {
-            const key = line.substring(0, idx).trim().toLowerCase();
-            headers[key] = line.substring(idx + 1).trim();
-        }
-    }
-
-    const parseAddr = (s: string) => {
-        const match = s.match(/<([^>]+)>/);
-        return match ? match[1] : s.trim();
-    };
-
-    return {
-        from: parseAddr(headers['from'] || ''),
-        to: parseAddr(headers['to'] || ''),
-        subject: headers['subject'] || '',
-        body: body.trim(),
-    };
-}
-
 // Exercises the real email() handler with a mock ForwardableEmailMessage.
-// The mock reply() sends via SMTP (WorkerMailer) so auto-replies reach Mailpit.
 const receiveMail = async (c: Context<HonoCustomType>) => {
     if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
         return c.text("Not available", 404);
@@ -81,11 +43,6 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
     }
     if (!headers.has('Message-ID')) headers.set('Message-ID', `<e2e-${Date.now()}@test>`);
 
-    // Resolve SMTP config for the sender domain (reply goes back to sender)
-    const senderDomain = from.includes('@') ? from.split('@')[1] : null;
-    const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    const smtpConfig = (smtpConfigMap && senderDomain) ? smtpConfigMap[senderDomain] : null;
-
     const rawBytes = new TextEncoder().encode(raw);
     let rejected: string | undefined;
     const mockMessage: ForwardableEmailMessage = {
@@ -94,21 +51,7 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
         raw: new ReadableStream({ start(ctrl) { ctrl.enqueue(rawBytes); ctrl.close(); } }),
         setReject(reason: string) { rejected = reason; },
         forward: async () => ({ messageId: '' }),
-        reply: async (replyMessage) => {
-            // Send the reply via SMTP so it reaches Mailpit in E2E tests.
-            // In E2E mode, auto_reply.ts creates a plain object with a raw ReadableStream.
-            if (smtpConfig && replyMessage?.raw) {
-                const replyRaw = await new Response(replyMessage.raw).text();
-                const parsed = parseMimeForReply(replyRaw);
-                await WorkerMailer.send(smtpConfig, {
-                    from: { email: parsed.from },
-                    to: { email: parsed.to },
-                    subject: parsed.subject,
-                    text: parsed.body,
-                });
-            }
-            return { messageId: '' };
-        },
+        reply: async () => ({ messageId: '' }),
     };
 
     const { email: emailHandler } = await import('../email');

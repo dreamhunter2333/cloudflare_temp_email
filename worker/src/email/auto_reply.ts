@@ -22,25 +22,12 @@ export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings
                     contentType: 'text/plain',
                     data: results.message || "This is an auto-reply message, please reconact later."
                 });
-                const rawMime = msg.asRaw();
-                let replyMessage: any;
-                if (getBooleanValue(env.E2E_TEST_MODE)) {
-                    // E2E: create a plain object with raw ReadableStream
-                    // (EmailMessage from cloudflare:email is sealed and doesn't expose raw)
-                    replyMessage = {
-                        from: message.to,
-                        to: message.from,
-                        raw: new ReadableStream({
-                            start(ctrl) {
-                                ctrl.enqueue(new TextEncoder().encode(rawMime));
-                                ctrl.close();
-                            }
-                        })
-                    };
-                } else {
-                    const { EmailMessage } = await import('cloudflare:email');
-                    replyMessage = new EmailMessage(message.to, message.from, rawMime);
-                }
+                const { EmailMessage } = await import('cloudflare:email');
+                const replyMessage = new EmailMessage(
+                    message.to,
+                    message.from,
+                    msg.asRaw()
+                );
                 // @ts-ignore
                 await message.reply(replyMessage);
             }

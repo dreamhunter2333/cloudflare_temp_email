@@ -11,7 +11,7 @@ import {
  * Returns the server, a promise that resolves with the first request body,
  * and the URL to use as webhook target.
  */
-async function startWebhookReceiver(port: number): Promise<{
+async function startWebhookReceiver(): Promise<{
   server: http.Server;
   firstRequest: Promise<{ body: string; method: string; headers: http.IncomingHttpHeaders }>;
   url: string;
@@ -33,14 +33,17 @@ async function startWebhookReceiver(port: number): Promise<{
     });
   });
 
-  await new Promise<void>((resolve) => server.listen(port, '0.0.0.0', resolve));
+  // Use port 0 to let the OS assign a free port
+  await new Promise<void>((resolve) => server.listen(0, '0.0.0.0', resolve));
+  const addr = server.address();
+  if (!addr || typeof addr === 'string') throw new Error('Failed to resolve webhook receiver port');
+  const boundPort = addr.port;
   // In Docker network, e2e-runner container hostname is "e2e-runner"
   const hostname = process.env.CI ? 'e2e-runner' : 'localhost';
-  return { server, firstRequest, url: `http://${hostname}:${port}/webhook` };
+  return { server, firstRequest, url: `http://${hostname}:${boundPort}/webhook` };
 }
 
 test.describe('Webhook — triggered on incoming mail', () => {
-  const WEBHOOK_PORT = 19876;
   let jwt: string;
   let address: string;
 
@@ -53,7 +56,7 @@ test.describe('Webhook — triggered on incoming mail', () => {
   });
 
   test('webhook is called with correct payload when mail arrives', async ({ request }) => {
-    const { server, firstRequest, url } = await startWebhookReceiver(WEBHOOK_PORT);
+    const { server, firstRequest, url } = await startWebhookReceiver();
 
     try {
       // Configure user webhook
@@ -107,7 +110,7 @@ test.describe('Webhook — triggered on incoming mail', () => {
   });
 
   test('webhook is NOT called when disabled', async ({ request }) => {
-    const { server, firstRequest, url } = await startWebhookReceiver(WEBHOOK_PORT + 1);
+    const { server, firstRequest, url } = await startWebhookReceiver();
 
     try {
       // Disable webhook
