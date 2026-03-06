@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import email
+import ssl
+
 import httpx
 
 from aiosmtpd.controller import Controller
@@ -132,17 +134,35 @@ class CustomSMTPHandler:
 
 def start_smtp_server():
     handler = CustomSMTPHandler()
+
+    tls_context = None
+    has_cert = bool(settings.smtp_tls_cert)
+    has_key = bool(settings.smtp_tls_key)
+    if has_cert != has_key:
+        raise ValueError(
+            "Both smtp_tls_cert and smtp_tls_key must be set together"
+        )
+    if has_cert and has_key:
+        _logger.info("TLS enabled for SMTP (STARTTLS)")
+        tls_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        tls_context.options |= ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3
+        tls_context.load_cert_chain(settings.smtp_tls_cert, settings.smtp_tls_key)
+
     server = Controller(
         handler,
         hostname="",
         port=settings.port,
-        auth_require_tls=False,
+        auth_require_tls=bool(tls_context),
         decode_data=True,
         authenticator=handler.authenticator,
-        auth_exclude_mechanism=["DONT"]
+        auth_exclude_mechanism=["DONT"],
+        tls_context=tls_context,
     )
 
-    _logger.info("Starting SMTP server on port %s", settings.port)
+    _logger.info(
+        "Starting SMTP server on port %s tls=%s",
+        settings.port, bool(tls_context),
+    )
     server.start()
 
     loop = asyncio.new_event_loop()
@@ -156,7 +176,8 @@ def start_smtp_server():
 
 if __name__ == "__main__":
     _logger.info(
-        "Starting SMTP server proxy_url=%s port=%s",
+        "Starting SMTP server proxy_url=%s port=%s tls=%s",
         settings.proxy_url, settings.port,
+        bool(settings.smtp_tls_cert and settings.smtp_tls_key),
     )
     start_smtp_server()

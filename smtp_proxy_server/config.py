@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     port: int = 8025
     imap_port: int = 11143
     basic_password: str = ""
+    smtp_tls_cert: str = ""
+    smtp_tls_key: str = ""
     imap_tls_cert: str = ""
     imap_tls_key: str = ""
     imap_cache_size: int = 500
