@@ -29,12 +29,18 @@ const seedMail = async (c: Context<HonoCustomType>) => {
  * Parse raw MIME to extract From, To, Subject and body for WorkerMailer.
  */
 function parseMimeForReply(rawMime: string) {
-    const headerEnd = rawMime.indexOf('\r\n\r\n');
+    // Support both \r\n and \n line endings (mimetext uses os.EOL which is \n on Linux)
+    const crlfEnd = rawMime.indexOf('\r\n\r\n');
+    const lfEnd = rawMime.indexOf('\n\n');
+    const headerEnd = crlfEnd > 0 ? crlfEnd : lfEnd;
+    const sepLen = crlfEnd > 0 ? 4 : 2;
     const headerSection = headerEnd > 0 ? rawMime.substring(0, headerEnd) : rawMime;
-    const body = headerEnd > 0 ? rawMime.substring(headerEnd + 4) : '';
+    const body = headerEnd > 0 ? rawMime.substring(headerEnd + sepLen) : '';
 
     const headers: Record<string, string> = {};
-    for (const line of headerSection.replace(/\r\n(?=[ \t])/g, ' ').split('\r\n')) {
+    // Normalize line endings then unfold continuation lines
+    const normalized = headerSection.replace(/\r\n/g, '\n');
+    for (const line of normalized.replace(/\n(?=[ \t])/g, ' ').split('\n')) {
         const idx = line.indexOf(':');
         if (idx > 0) {
             const key = line.substring(0, idx).trim().toLowerCase();
