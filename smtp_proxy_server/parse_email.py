@@ -19,7 +19,15 @@ def get_email_model(msg: Message):
         get_email_model(subpart)
         for subpart in msg.get_payload()
     ] if msg.is_multipart() else []
-    body = "" if msg.is_multipart() else msg._payload
+    if msg.is_multipart():
+        body = ""
+    else:
+        raw_body = msg.get_payload(decode=True) or b""
+        charset = msg.get_content_charset() or "utf-8"
+        try:
+            body = raw_body.decode(charset, errors="replace")
+        except LookupError:
+            body = raw_body.decode("utf-8", errors="replace")
     return EmailModel(
         headers={k: v for k, v in msg.items()},
         body=body,
@@ -44,7 +52,12 @@ def parse_email(raw: str) -> EmailModel:
         )
 
 
-def generate_email_model(item: dict) -> EmailModel:
+def generate_email_model(item: dict) -> tuple[EmailModel, str]:
+    """Build an EmailModel from a sendbox item.
+
+    Returns (EmailModel, raw_mime_string) so callers can pass the
+    synthesised MIME to SimpleMessage for correct BODY[] responses.
+    """
     email_json = json.loads(item["raw"])
     message = MIMEMultipart()
     if email_json.get("version") == "v2":
@@ -66,4 +79,5 @@ def generate_email_model(item: dict) -> EmailModel:
     message["Date"] = datetime.datetime.strptime(
         item["created_at"], "%Y-%m-%d %H:%M:%S"
     ).strftime("%a, %d %b %Y %H:%M:%S +0000")
-    return parse_email(message.as_string())
+    raw_mime = message.as_string()
+    return parse_email(raw_mime), raw_mime
