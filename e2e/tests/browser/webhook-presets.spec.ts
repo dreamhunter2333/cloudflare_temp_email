@@ -7,12 +7,15 @@ test.describe('Webhook Presets', () => {
     test.setTimeout(60_000);
 
     const api = await apiRequest.newContext();
-    const { jwt, address } = await createTestAddress(api, 'webhook-preset');
+    let jwt: string | undefined;
 
     // Block popups (presets open doc URLs in new tabs)
     context.on('page', (p) => p.close());
 
     try {
+      const created = await createTestAddress(api, 'webhook-preset');
+      jwt = created.jwt;
+
       // Login via JWT
       await page.goto(`${FRONTEND_URL}/en/?jwt=${jwt}`);
       await page.waitForTimeout(2000);
@@ -96,7 +99,7 @@ test.describe('Webhook Presets', () => {
         }
       }
     } finally {
-      await deleteAddress(api, jwt);
+      if (jwt) await deleteAddress(api, jwt);
       await api.dispose();
     }
   });

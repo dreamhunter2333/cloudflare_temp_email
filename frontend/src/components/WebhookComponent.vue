@@ -126,6 +126,10 @@ const presetDropdownOptions: DropdownOption[] = presets.map((preset, index) => (
 
 const handlePresetSelect = (key: number) => {
     const preset = presets[key]
+    if (!preset) {
+        message.error('Invalid preset')
+        return
+    }
     Object.assign(webhookSettings.value, preset.settings)
     message.success(t('fillInDemoTip'))
     window.open(preset.doc, '_blank', 'noopener,noreferrer')
