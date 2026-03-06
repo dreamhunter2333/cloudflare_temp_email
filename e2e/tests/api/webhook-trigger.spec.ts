@@ -107,7 +107,7 @@ test.describe('Webhook — triggered on incoming mail', () => {
   });
 
   test('webhook is NOT called when disabled', async ({ request }) => {
-    const { server, firstRequest, url } = startWebhookReceiver(WEBHOOK_PORT + 1);
+    const { server, firstRequest, url } = await startWebhookReceiver(WEBHOOK_PORT + 1);
 
     try {
       // Disable webhook
