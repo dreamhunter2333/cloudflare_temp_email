@@ -60,22 +60,12 @@ services:
       smtp_tls_key: /certs/key.pem
       imap_tls_cert: /certs/cert.pem
       imap_tls_key: /certs/key.pem
+    entrypoint: ["/bin/bash", "/e2e-scripts/smtp-tls-entrypoint.sh"]
     volumes:
-      - e2e-certs:/certs:ro
+      - ./scripts:/e2e-scripts:ro
     depends_on:
-      cert-gen:
-        condition: service_completed_successfully
       worker:
         condition: service_healthy
-
-  cert-gen:
-    image: alpine/openssl:latest
-    command: >
-      req -x509 -newkey rsa:2048 -nodes
-      -keyout /certs/key.pem -out /certs/cert.pem
-      -days 1 -subj "/CN=smtp-proxy-tls"
-    volumes:
-      - e2e-certs:/certs
 
   e2e-runner:
     build:
@@ -104,6 +94,3 @@ services:
     volumes:
       - ./test-results:/app/e2e/test-results
       - ./playwright-report:/app/e2e/playwright-report
-
-volumes:
-  e2e-certs:
