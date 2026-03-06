@@ -16,10 +16,15 @@ ENABLE_AUTO_REPLY = true
 DEFAULT_SEND_BALANCE = 10
 ENABLE_ADDRESS_PASSWORD = true
 DISABLE_ADMIN_PASSWORD_CHECK = true
+ENABLE_WEBHOOK = true
 E2E_TEST_MODE = true
 SMTP_CONFIG = """
 {"test.example.com":{"host":"mailpit","port":1025,"secure":false}}
 """
+
+[[kv_namespaces]]
+binding = "KV"
+id = "e2e-test-kv-00000000-0000-0000-0000-000000000000"
 
 [[d1_databases]]
 binding = "DB"
