@@ -13,7 +13,7 @@ import {
  */
 async function startWebhookReceiver(): Promise<{
   server: http.Server;
-  firstRequest: Promise<{ body: string; method: string; headers: http.IncomingHttpHeaders }>;
+  firstRequest: Promise<{ body: string; method: string; path: string; headers: http.IncomingHttpHeaders }>;
   url: string;
 }> {
   let resolve: (val: any) => void;
@@ -26,6 +26,7 @@ async function startWebhookReceiver(): Promise<{
       resolve({
         body: Buffer.concat(chunks).toString('utf-8'),
         method: req.method || '',
+        path: req.url || '',
         headers: req.headers,
       });
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -99,6 +100,7 @@ test.describe('Webhook — triggered on incoming mail', () => {
       // Wait for webhook to be called
       const received = await firstRequest;
       expect(received.method).toBe('POST');
+      expect(received.path).toBe('/webhook');
 
       const payload = JSON.parse(received.body);
       expect(payload.from).toContain('webhook-sender@test.example.com');
