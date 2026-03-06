@@ -15,5 +15,7 @@ description: Create a GitHub release for cloudflare_temp_email project. Use when
    - Wrap PRs list in `<details><summary>PRs</summary>...</details>`.
    - Always include the cache clearing discussion link.
    - End with `**Full Changelog**` comparison link.
-5. **Create release**: `gh release create vX.Y.Z --title "vX.Y.Z" --notes "..." --target main`
+5. **Create release**:
+   - Write body to a temp file (e.g. `/tmp/release-notes.md`)
+   - Run: `gh release create vX.Y.Z --title "vX.Y.Z" --notes-file /tmp/release-notes.md --target main`
 6. **Verify**: Confirm the release URL and ask the user to review.
