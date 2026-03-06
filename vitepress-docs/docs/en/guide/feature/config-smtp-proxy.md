@@ -58,17 +58,21 @@ services:
 | `proxy_url` | `http://localhost:8787` | Worker backend URL |
 | `port` | `8025` | SMTP port |
 | `imap_port` | `11143` | IMAP port |
-| `imap_tls_cert` | empty | TLS certificate file path (PEM), enables STARTTLS when configured |
-| `imap_tls_key` | empty | TLS private key file path (PEM) |
+| `smtp_tls_cert` | empty | SMTP TLS certificate file path (PEM), enables STARTTLS when configured |
+| `smtp_tls_key` | empty | SMTP TLS private key file path (PEM) |
+| `imap_tls_cert` | empty | IMAP TLS certificate file path (PEM), enables STARTTLS when configured |
+| `imap_tls_key` | empty | IMAP TLS private key file path (PEM) |
 | `imap_cache_size` | `500` | Max cached messages per mailbox |
 | `imap_http_timeout` | `30.0` | Backend HTTP request timeout (seconds) |
 
 ## Enabling STARTTLS
 
-Configure `imap_tls_cert` and `imap_tls_key` environment variables to enable STARTTLS support for the IMAP server.
+Configure the TLS certificate environment variables for SMTP and/or IMAP to enable STARTTLS support. SMTP and IMAP can share the same certificate.
 
 ```bash
 # .env example
+smtp_tls_cert=/path/to/cert.pem
+smtp_tls_key=/path/to/key.pem
 imap_tls_cert=/path/to/cert.pem
 imap_tls_key=/path/to/key.pem
 ```
@@ -77,6 +81,8 @@ In Docker Compose:
 
 ```yaml
 environment:
+  - smtp_tls_cert=/certs/cert.pem
+  - smtp_tls_key=/certs/key.pem
   - imap_tls_cert=/certs/cert.pem
   - imap_tls_key=/certs/key.pem
 volumes:
