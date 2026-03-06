@@ -13,6 +13,7 @@
 - feat: |用户注册| 新增用户注册邮箱正则校验功能，管理员可配置邮箱格式验证规则
 - feat: |前端| 新增可配置的 Status 菜单按钮，通过 `STATUS_URL` 环境变量配置状态监控页面链接
 - feat: |SMTP| SMTP 代理服务支持 STARTTLS，通过 `smtp_tls_cert` 和 `smtp_tls_key` 环境变量配置
+- feat: |Webhook| Webhook 设置页面新增预设模板下拉菜单，支持 Message Pusher、Bark、ntfy 一键填充配置
 
 ### Bug Fixes
 

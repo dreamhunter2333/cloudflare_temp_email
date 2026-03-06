@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, h } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { DropdownOption } from 'naive-ui'
 
 const props = defineProps({
     fetchData: {
@@ -32,8 +33,7 @@ const { t } = useI18n({
             notEnabled: 'Webhook is not enabled for you',
             urlMissing: 'URL is required',
             enable: 'Enable',
-            messagePusherDemo: 'Fill with Message Pusher Demo',
-            messagePusherDoc: 'Message Pusher Doc',
+            presets: 'Presets',
             fillInDemoTip: 'Please modify the URL and other settings to your own',
         },
         zh: {
@@ -43,8 +43,7 @@ const { t } = useI18n({
             notEnabled: 'Webhook 未开启，请联系管理员开启',
             urlMissing: 'URL 不能为空',
             enable: '启用',
-            messagePusherDemo: '填入MessagePusher示例',
-            messagePusherDoc: 'MessagePusher文档',
+            presets: '示例模板',
             fillInDemoTip: '请修改URL和其他设置为您自己的配置',
         }
     }
@@ -58,26 +57,82 @@ class WebhookSettings {
     body: string = JSON.stringify({}, null, 2)
 }
 
-const messagePusherDocLink = "https://github.com/songquanpeng/message-pusher";
+interface WebhookPreset {
+    name: string
+    doc: string
+    settings: WebhookSettings
+}
 
-const messagePusherDemo = {
-    enabled: true,
-    url: 'https://msgpusher.com/push/username',
-    method: 'POST',
-    headers: JSON.stringify({
-        'Content-Type': 'application/json',
-    }, null, 2),
-    body: JSON.stringify({
-        "token": "token",
-        "title": "${subject}",
-        "description": "${subject}",
-        "content": "*${subject}*\n\nFrom: ${from}\nTo: ${to}\n\n${parsedText}\n"
-    }, null, 2),
-} as WebhookSettings;
+const presets: WebhookPreset[] = [
+    {
+        name: 'Message Pusher',
+        doc: 'https://github.com/songquanpeng/message-pusher',
+        settings: {
+            enabled: true,
+            url: 'https://msgpusher.com/push/username',
+            method: 'POST',
+            headers: JSON.stringify({
+                'Content-Type': 'application/json',
+            }, null, 2),
+            body: JSON.stringify({
+                "token": "token",
+                "title": "${subject}",
+                "description": "${subject}",
+                "content": "*${subject}*\n\nFrom: ${from}\nTo: ${to}\n\n${parsedText}\n"
+            }, null, 2),
+        },
+    },
+    {
+        name: 'Bark',
+        doc: 'https://github.com/Finb/Bark',
+        settings: {
+            enabled: true,
+            url: 'https://api.day.app/YOUR_KEY',
+            method: 'POST',
+            headers: JSON.stringify({
+                'Content-Type': 'application/json',
+            }, null, 2),
+            body: JSON.stringify({
+                "title": "${subject}",
+                "body": "From: ${from}\nTo: ${to}\n\n${parsedText}",
+                "group": "email"
+            }, null, 2),
+        },
+    },
+    {
+        name: 'ntfy',
+        doc: 'https://docs.ntfy.sh/publish/',
+        settings: {
+            enabled: true,
+            url: 'https://ntfy.sh/YOUR_TOPIC',
+            method: 'POST',
+            headers: JSON.stringify({
+                'Content-Type': 'application/json',
+            }, null, 2),
+            body: JSON.stringify({
+                "topic": "YOUR_TOPIC",
+                "title": "${subject}",
+                "message": "From: ${from}\nTo: ${to}\n\n${parsedText}",
+                "tags": ["envelope"]
+            }, null, 2),
+        },
+    },
+]
 
-const fillMessagePuhserDemo = () => {
-    Object.assign(webhookSettings.value, messagePusherDemo)
+const presetDropdownOptions: DropdownOption[] = presets.map((preset, index) => ({
+    label: preset.name,
+    key: index,
+}))
+
+const handlePresetSelect = (key: number) => {
+    const preset = presets[key]
+    if (!preset) {
+        message.error('Invalid preset')
+        return
+    }
+    Object.assign(webhookSettings.value, preset.settings)
     message.success(t('fillInDemoTip'))
+    window.open(preset.doc, '_blank', 'noopener,noreferrer')
 }
 
 const webhookSettings = ref<WebhookSettings>(new WebhookSettings())
@@ -128,12 +183,11 @@ onMounted(async () => {
     <div class="center">
         <n-card :bordered="false" embedded v-if="enableWebhook" style="max-width: 800px; overflow: auto;">
             <n-flex justify="end">
-                <n-button tag="a" :href="messagePusherDocLink" target="_blank" secondary>
-                    {{ t('messagePusherDoc') }}
-                </n-button>
-                <n-button @click="fillMessagePuhserDemo" secondary>
-                    {{ t('messagePusherDemo') }}
-                </n-button>
+                <n-dropdown :options="presetDropdownOptions" @select="handlePresetSelect">
+                    <n-button secondary>
+                        {{ t('presets') }}
+                    </n-button>
+                </n-dropdown>
                 <n-button v-if="webhookSettings.enabled" @click="testSettings" secondary>
                     {{ t('test') }}
                 </n-button>

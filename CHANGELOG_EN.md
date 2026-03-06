@@ -13,6 +13,7 @@
 - feat: |User Registration| Add email regex validation for user registration, admins can configure email format validation rules
 - feat: |Frontend| Add configurable Status menu button via `STATUS_URL` environment variable for status monitoring page link
 - feat: |SMTP| Add STARTTLS support for SMTP proxy server via `smtp_tls_cert` and `smtp_tls_key` environment variables
+- feat: |Webhook| Add preset templates dropdown to Webhook settings page, supporting one-click fill for Message Pusher, Bark, and ntfy
 
 ### Bug Fixes
 
