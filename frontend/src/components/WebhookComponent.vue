@@ -128,7 +128,7 @@ const handlePresetSelect = (key: number) => {
     const preset = presets[key]
     Object.assign(webhookSettings.value, preset.settings)
     message.success(t('fillInDemoTip'))
-    window.open(preset.doc, '_blank')
+    window.open(preset.doc, '_blank', 'noopener,noreferrer')
 }
 
 const webhookSettings = ref<WebhookSettings>(new WebhookSettings())
