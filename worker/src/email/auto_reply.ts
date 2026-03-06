@@ -22,12 +22,24 @@ export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings
                     contentType: 'text/plain',
                     data: results.message || "This is an auto-reply message, please reconact later."
                 });
-                const { EmailMessage } = await import('cloudflare:email');
-                const replyMessage = new EmailMessage(
-                    message.to,
-                    message.from,
-                    msg.asRaw()
-                );
+                const rawMime = msg.asRaw();
+                let replyMessage: any;
+                try {
+                    const { EmailMessage } = await import('cloudflare:email');
+                    replyMessage = new EmailMessage(message.to, message.from, rawMime);
+                } catch {
+                    // Fallback for environments without cloudflare:email (e.g. E2E tests)
+                    replyMessage = {
+                        from: message.to,
+                        to: message.from,
+                        raw: new ReadableStream({
+                            start(ctrl) {
+                                ctrl.enqueue(new TextEncoder().encode(rawMime));
+                                ctrl.close();
+                            }
+                        })
+                    };
+                }
                 // @ts-ignore
                 await message.reply(replyMessage);
             }
