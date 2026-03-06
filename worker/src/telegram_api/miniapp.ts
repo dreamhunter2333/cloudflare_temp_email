@@ -135,6 +135,9 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
             const result = await c.env.DB.prepare(
                 `SELECT * FROM raw_mails where id = ?`
             ).bind(mailId).first();
+            if (!result) {
+                return c.text("Mail not found", 404);
+            }
             return c.json(result);
         }
         const userId = await checkTelegramAuth(c, initData);

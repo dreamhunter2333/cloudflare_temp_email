@@ -13,7 +13,7 @@ import { api as telegramApi } from './telegram_api'
 import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
-import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray, checkIsAdmin } from './utils';
+import { getPasswords, getBooleanValue, getStringArray, checkIsAdmin } from './utils';
 import { checkAccessControl } from './ip_blacklist';
 
 const API_PATHS = [
