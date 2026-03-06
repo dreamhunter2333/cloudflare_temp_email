@@ -65,8 +65,13 @@ test.describe('Webhook Presets', () => {
         // Wait for preset values to be applied to form fields
         const allTextboxes = page.getByRole('textbox');
         await expect(async () => {
-          const values = await allTextboxes.allInputValues();
-          expect(values.some(v => v.includes(preset.urlPattern))).toBe(true);
+          const count = await allTextboxes.count();
+          let found = false;
+          for (let i = 0; i < count; i++) {
+            const val = await allTextboxes.nth(i).inputValue();
+            if (val.includes(preset.urlPattern)) { found = true; break; }
+          }
+          expect(found).toBe(true);
         }).toPass({ timeout: 5_000 });
         const count = await allTextboxes.count();
 
