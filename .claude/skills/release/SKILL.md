@@ -19,7 +19,7 @@ description: Create a GitHub release for cloudflare_temp_email project. Use when
 4. **Compose release body**: Follow the template in [references/release-template.md](references/release-template.md). Key rules:
    - Copy changelog sections verbatim (Features, Bug Fixes, Testing, Improvements). Omit empty sections.
    - Wrap PRs list in `<details><summary>PRs</summary>...</details>`.
-   - Always include the cache clearing discussion link.
+   - Always include the cache-clearing discussion link.
    - End with `**Full Changelog**` comparison link.
 5. **Create release**:
    - Write body to a temp file (e.g. `/tmp/release-notes.md`)
