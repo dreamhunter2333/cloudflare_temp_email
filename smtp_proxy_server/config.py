@@ -1,5 +1,6 @@
 import logging
-from pydantic_settings import BaseSettings
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -14,9 +15,26 @@ class Settings(BaseSettings):
     port: int = 8025
     imap_port: int = 11143
     basic_password: str = ""
+    imap_tls_cert: str = ""
+    imap_tls_key: str = ""
+    imap_cache_size: int = 500
+    imap_http_timeout: float = 30.0
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env")
+
+    @field_validator("imap_cache_size")
+    @classmethod
+    def cache_size_positive(cls, v):
+        if v <= 0:
+            raise ValueError("imap_cache_size must be > 0")
+        return v
+
+    @field_validator("imap_http_timeout")
+    @classmethod
+    def timeout_positive(cls, v):
+        if v <= 0:
+            raise ValueError("imap_http_timeout must be > 0")
+        return v
 
 
 settings = Settings()

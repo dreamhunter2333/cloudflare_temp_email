@@ -35,6 +35,9 @@
 - style: |Mail List| Improve empty state display for inbox and sent box, show different messages based on mail count, add semantic icons
 - feat: |Admin| Add ip.im lookup link for source IP in address list, click to quickly view IP information
 - docs: |Docs| Fix VitePress i18n language switch path error, use dual-prefix locale configuration
+- feat: |IMAP Proxy| Refactor IMAP server into separate modules (HTTP client, mailbox, message), use `deferToThread` for async HTTP to avoid blocking Twisted reactor, use backend `id` as stable UID, add STARTTLS support, LRU message cache, session-local flags management, SEARCH command support, JWT credential and address+password dual login methods, and comprehensive test suite
+- fix: |IMAP Proxy| Fix `getHeaders()` filtering and `store()` crash
+- fix: |Email Parser| Fix `parse_email.py` using private `_payload` attribute causing encoding errors, use `get_payload(decode=True)` for proper email body decoding
 
 ## v1.3.0
 
