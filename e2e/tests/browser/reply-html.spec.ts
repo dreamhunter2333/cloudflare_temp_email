@@ -95,8 +95,11 @@ test.describe('Reply HTML & XSS Sanitization', () => {
       // No XSS dialog should have fired in the compose area
       expect(composeDialogAppeared).toBe(false);
     } finally {
-      if (jwt) await deleteAddress(api, jwt);
-      await api.dispose();
+      try {
+        if (jwt) await deleteAddress(api, jwt);
+      } finally {
+        await api.dispose();
+      }
     }
   });
 });

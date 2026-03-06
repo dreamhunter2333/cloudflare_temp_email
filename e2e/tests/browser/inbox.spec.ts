@@ -39,8 +39,11 @@ test.describe('Inbox Browser Flow', () => {
       // (n-card-header wraps n-card-header__main, both match heading role — use .first())
       await expect(page.getByRole('heading', { name: subject }).first()).toBeVisible({ timeout: 5_000 });
     } finally {
-      if (jwt) await deleteAddress(api, jwt);
-      await api.dispose();
+      try {
+        if (jwt) await deleteAddress(api, jwt);
+      } finally {
+        await api.dispose();
+      }
     }
   });
 });

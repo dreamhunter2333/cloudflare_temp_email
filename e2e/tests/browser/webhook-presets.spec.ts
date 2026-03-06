@@ -102,8 +102,11 @@ test.describe('Webhook Presets', () => {
         }
       }
     } finally {
-      if (jwt) await deleteAddress(api, jwt);
-      await api.dispose();
+      try {
+        if (jwt) await deleteAddress(api, jwt);
+      } finally {
+        await api.dispose();
+      }
     }
   });
 });
