@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { Jwt } from 'hono/utils/jwt'
 import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
-import { checkCfTurnstile, isAdmin as checkIsAdmin } from "../utils";
+import { checkCfTurnstile, checkIsAdmin } from "../utils";
 import { TelegramSettings } from "./settings";
 import i18n from "../i18n";
 
