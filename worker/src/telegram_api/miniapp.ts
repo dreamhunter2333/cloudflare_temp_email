@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { Jwt } from 'hono/utils/jwt'
 import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
-import { checkCfTurnstile } from "../utils";
+import { checkCfTurnstile, getAdminPasswords } from "../utils";
 import { TelegramSettings } from "./settings";
 import i18n from "../i18n";
 
@@ -131,6 +131,21 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
     const { initData, mailId } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     try {
+        // check admin auth via x-admin-auth header
+        let isAdmin = false;
+        const adminAuthHeader = c.req.raw.headers.get("x-admin-auth");
+        if (adminAuthHeader) {
+            const adminPasswords = getAdminPasswords(c);
+            if (adminPasswords.length > 0 && adminPasswords.includes(adminAuthHeader)) {
+                isAdmin = true;
+            }
+        }
+        if (isAdmin) {
+            const result = await c.env.DB.prepare(
+                `SELECT * FROM raw_mails where id = ?`
+            ).bind(mailId).first();
+            return c.json(result);
+        }
         const userId = await checkTelegramAuth(c, initData);
         const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
         const { addressList, addressIdMap } = await jwtListToAddressData(c, jwtList, msgs);
