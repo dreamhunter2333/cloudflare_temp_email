@@ -1,4 +1,4 @@
-name: E2E Tests
+name: End-to-End Tests
 
 on:
   pull_request:

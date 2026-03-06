@@ -12,6 +12,15 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
 
+def _safe_decode_payload(payload, charset):
+    if payload is None:
+        return ""
+    try:
+        return payload.decode(charset or "utf-8", errors="replace")
+    except LookupError:
+        return payload.decode("utf-8", errors="replace")
+
+
 class CustomSMTPHandler:
 
     def authenticator(self, server, session, envelope, mechanism, auth_data):
@@ -49,7 +58,7 @@ class CustomSMTPHandler:
                     value = part.get_payload(decode=False)
                 else:
                     payload = part.get_payload(decode=True)
-                    value = payload.decode(charset) if charset else payload
+                    value = _safe_decode_payload(payload, charset)
                 if not value:
                     continue
                 content_list.append({
@@ -63,8 +72,8 @@ class CustomSMTPHandler:
                 value = msg.get_payload(decode=False)
             else:
                 payload = msg.get_payload(decode=True)
-                value = payload.decode(charset) if charset else payload
-            _logger.info(f"Payload {msg._payload} charset {charset}")
+                value = _safe_decode_payload(payload, charset)
+            _logger.debug("Parsed content charset=%s", charset)
             content_list.append({
                 "type": msg.get_content_type(),
                 "value": value
@@ -121,27 +130,23 @@ class CustomSMTPHandler:
         return '250 OK'
 
 
-handler = CustomSMTPHandler()
-server = Controller(
-    handler,
-    hostname="",
-    port=settings.port,
-    auth_require_tls=False,
-    decode_data=True,
-    authenticator=handler.authenticator,
-    auth_exclude_mechanism=["DONT"]
-)
+def start_smtp_server():
+    handler = CustomSMTPHandler()
+    server = Controller(
+        handler,
+        hostname="",
+        port=settings.port,
+        auth_require_tls=False,
+        decode_data=True,
+        authenticator=handler.authenticator,
+        auth_exclude_mechanism=["DONT"]
+    )
 
-
-async def start():
-    _logger.info(f"Starting server on port {settings.port}")
+    _logger.info("Starting SMTP server on port %s", settings.port)
     server.start()
 
-
-def start_smtp_server():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    task = loop.create_task(start())
     try:
         loop.run_forever()
     except KeyboardInterrupt:
@@ -150,5 +155,8 @@ def start_smtp_server():
 
 
 if __name__ == "__main__":
-    _logger.info(f"Starting server settings[{settings}]")
+    _logger.info(
+        "Starting SMTP server proxy_url=%s port=%s",
+        settings.proxy_url, settings.port,
+    )
     start_smtp_server()

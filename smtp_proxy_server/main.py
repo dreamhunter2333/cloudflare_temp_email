@@ -9,7 +9,10 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
 
 if __name__ == '__main__':
-    _logger.info(f"Starting server settings[{settings}]")
+    _logger.info(
+        "Starting server proxy_url=%s smtp_port=%s imap_port=%s",
+        settings.proxy_url, settings.port, settings.imap_port,
+    )
     process_list = [
         multiprocessing.Process(target=start_smtp_server, args=()),
         multiprocessing.Process(target=start_imap_server, args=()),

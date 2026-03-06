@@ -76,6 +76,30 @@ export async function seedTestMail(
 }
 
 /**
+ * Send a mail via admin/send_mail, which saves to sendbox.
+ */
+export async function sendTestMail(
+  ctx: APIRequestContext,
+  fromAddress: string,
+  opts: { to_mail: string; subject?: string; content?: string; is_html?: boolean }
+): Promise<void> {
+  const res = await ctx.post(`${WORKER_URL}/admin/send_mail`, {
+    data: {
+      from_name: '',
+      from_mail: fromAddress,
+      to_name: '',
+      to_mail: opts.to_mail,
+      subject: opts.subject || 'Test Sent Mail',
+      content: opts.content || 'Sent mail body from E2E',
+      is_html: opts.is_html ?? false,
+    },
+  });
+  if (!res.ok()) {
+    throw new Error(`Failed to send mail: ${res.status()} ${await res.text()}`);
+  }
+}
+
+/**
  * Delete all messages in Mailpit.
  */
 export async function deleteAllMailpitMessages(ctx: APIRequestContext) {
