@@ -45,6 +45,38 @@ services:
       worker:
         condition: service_healthy
 
+  smtp-proxy-tls:
+    build:
+      context: ../smtp_proxy_server
+      dockerfile: dockerfile
+    ports:
+      - "11026:8026"
+      - "11144:11144"
+    environment:
+      PROXY_URL: http://worker:8787
+      PORT: "8026"
+      IMAP_PORT: "11144"
+      smtp_tls_cert: /certs/cert.pem
+      smtp_tls_key: /certs/key.pem
+      imap_tls_cert: /certs/cert.pem
+      imap_tls_key: /certs/key.pem
+    volumes:
+      - e2e-certs:/certs:ro
+    depends_on:
+      cert-gen:
+        condition: service_completed_successfully
+      worker:
+        condition: service_healthy
+
+  cert-gen:
+    image: alpine/openssl:latest
+    command: >
+      req -x509 -newkey rsa:2048 -nodes
+      -keyout /certs/key.pem -out /certs/cert.pem
+      -days 1 -subj "/CN=smtp-proxy-tls"
+    volumes:
+      - e2e-certs:/certs
+
   e2e-runner:
     build:
       context: ..
@@ -54,7 +86,11 @@ services:
       FRONTEND_URL: http://frontend:5173
       MAILPIT_API: http://mailpit:8025/api
       SMTP_PROXY_HOST: smtp-proxy
+      SMTP_PROXY_SMTP_PORT: "8025"
       SMTP_PROXY_IMAP_PORT: "11143"
+      SMTP_PROXY_TLS_HOST: smtp-proxy-tls
+      SMTP_PROXY_TLS_SMTP_PORT: "8026"
+      SMTP_PROXY_TLS_IMAP_PORT: "11144"
       CI: "true"
     depends_on:
       worker:
@@ -63,6 +99,11 @@ services:
         condition: service_started
       smtp-proxy:
         condition: service_started
+      smtp-proxy-tls:
+        condition: service_started
     volumes:
       - ./test-results:/app/e2e/test-results
       - ./playwright-report:/app/e2e/playwright-report
+
+volumes:
+  e2e-certs:

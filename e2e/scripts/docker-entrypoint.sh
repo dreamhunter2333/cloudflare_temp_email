@@ -27,6 +27,18 @@ for i in $(seq 1 60); do
   sleep 1
 done
 
+echo "==> Waiting for smtp-proxy-tls SMTP on $SMTP_PROXY_TLS_HOST:$SMTP_PROXY_TLS_SMTP_PORT ..."
+for i in $(seq 1 30); do
+  if nc -z "$SMTP_PROXY_TLS_HOST" "$SMTP_PROXY_TLS_SMTP_PORT" 2>/dev/null; then
+    echo "    smtp-proxy-tls SMTP ready after ${i}s"
+    break
+  fi
+  if [ "$i" -eq 30 ]; then
+    echo "WARNING: smtp-proxy-tls SMTP not ready after 30s, continuing anyway"
+  fi
+  sleep 1
+done
+
 echo "==> Initializing database"
 curl -sf -X POST "$WORKER_URL/admin/db_initialize" > /dev/null
 curl -sf -X POST "$WORKER_URL/admin/db_migration" > /dev/null

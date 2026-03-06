@@ -17,6 +17,13 @@ export default defineConfig({
       },
     },
     {
+      name: 'smtp-proxy',
+      testDir: './tests/smtp-proxy',
+      use: {
+        baseURL: WORKER_BASE,
+      },
+    },
+    {
       name: 'browser',
       testDir: './tests/browser',
       use: {
