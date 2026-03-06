@@ -9,7 +9,13 @@ description: Create a GitHub release for cloudflare_temp_email project. Use when
 
 1. **Read version**: Get current version from `worker/package.json` (`"version"` field) and the latest release tag via `gh release list --limit 1`.
 2. **Read CHANGELOG**: Read `CHANGELOG.md` for the current version section (e.g. `## v1.4.0(main)`). Verify content matches `CHANGELOG_EN.md`. If entries are missing from either file, notify the user.
-3. **Collect PRs**: Run `gh pr list --state merged --base main` filtered to PRs since the last release tag. Sort by PR number ascending.
+3. **Collect PRs**: Get the last release tag timestamp, then filter merged PRs by time:
+   ```bash
+   TAG="$(gh release list --limit 1 --json tagName --jq '.[0].tagName')"
+   SINCE="$(git show -s --format=%cI "$TAG")"
+   gh pr list --state merged --search "is:pr is:merged merged:>$SINCE base:main" --json number,title,author --limit 200
+   ```
+   Sort by PR number ascending.
 4. **Compose release body**: Follow the template in [references/release-template.md](references/release-template.md). Key rules:
    - Copy changelog sections verbatim (Features, Bug Fixes, Testing, Improvements). Omit empty sections.
    - Wrap PRs list in `<details><summary>PRs</summary>...</details>`.
