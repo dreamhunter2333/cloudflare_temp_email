@@ -82,9 +82,9 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
     if (!headers.has('Message-ID')) headers.set('Message-ID', `<e2e-${Date.now()}@test>`);
 
     // Resolve SMTP config for the sender domain (reply goes back to sender)
-    const senderDomain = from.split('@')[1];
+    const senderDomain = from.includes('@') ? from.split('@')[1] : null;
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    const smtpConfig = smtpConfigMap ? smtpConfigMap[senderDomain] : null;
+    const smtpConfig = (smtpConfigMap && senderDomain) ? smtpConfigMap[senderDomain] : null;
 
     const rawBytes = new TextEncoder().encode(raw);
     let rejected: string | undefined;
@@ -96,17 +96,10 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
         forward: async () => ({ messageId: '' }),
         reply: async (replyMessage) => {
             // Send the reply via SMTP so it reaches Mailpit in E2E tests.
-            // Try reading raw MIME from: (1) .rawMime string, (2) .raw ReadableStream
-            let rawMimeStr: string | undefined;
-            if (typeof (replyMessage as any)?.rawMime === 'string') {
-                rawMimeStr = (replyMessage as any).rawMime;
-            } else if ((replyMessage as any)?.raw) {
-                rawMimeStr = await new Response((replyMessage as any).raw).text();
-            }
-            console.log('[E2E] mock reply() called, hasRaw:', !!rawMimeStr, 'hasSmtp:', !!smtpConfig);
-            if (smtpConfig && rawMimeStr) {
-                const parsed = parseMimeForReply(rawMimeStr);
-                console.log('[E2E] sending auto-reply via SMTP:', parsed.from, '->', parsed.to, 'subj:', parsed.subject);
+            // In E2E mode, auto_reply.ts creates a plain object with a raw ReadableStream.
+            if (smtpConfig && replyMessage?.raw) {
+                const replyRaw = await new Response(replyMessage.raw).text();
+                const parsed = parseMimeForReply(replyRaw);
                 await WorkerMailer.send(smtpConfig, {
                     from: { email: parsed.from },
                     to: { email: parsed.to },

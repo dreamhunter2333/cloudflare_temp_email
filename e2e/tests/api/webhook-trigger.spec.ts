@@ -11,11 +11,11 @@ import {
  * Returns the server, a promise that resolves with the first request body,
  * and the URL to use as webhook target.
  */
-function startWebhookReceiver(port: number): {
+async function startWebhookReceiver(port: number): Promise<{
   server: http.Server;
   firstRequest: Promise<{ body: string; method: string; headers: http.IncomingHttpHeaders }>;
   url: string;
-} {
+}> {
   let resolve: (val: any) => void;
   const firstRequest = new Promise<any>((r) => { resolve = r; });
 
@@ -33,7 +33,7 @@ function startWebhookReceiver(port: number): {
     });
   });
 
-  server.listen(port, '0.0.0.0');
+  await new Promise<void>((resolve) => server.listen(port, '0.0.0.0', resolve));
   // In Docker network, e2e-runner container hostname is "e2e-runner"
   const hostname = process.env.CI ? 'e2e-runner' : 'localhost';
   return { server, firstRequest, url: `http://${hostname}:${port}/webhook` };
@@ -53,7 +53,7 @@ test.describe('Webhook — triggered on incoming mail', () => {
   });
 
   test('webhook is called with correct payload when mail arrives', async ({ request }) => {
-    const { server, firstRequest, url } = startWebhookReceiver(WEBHOOK_PORT);
+    const { server, firstRequest, url } = await startWebhookReceiver(WEBHOOK_PORT);
 
     try {
       // Configure user webhook
