@@ -18,11 +18,11 @@ test.describe('Webhook Presets', () => {
 
       // Login via JWT
       await page.goto(`${FRONTEND_URL}/en/?jwt=${jwt}`);
-      await page.waitForTimeout(2000);
 
       // Click "Webhook Settings" in the sidebar menu
-      await page.getByText('Webhook Settings').click();
-      await page.waitForTimeout(2000);
+      const webhookMenu = page.getByText('Webhook Settings');
+      await expect(webhookMenu).toBeVisible({ timeout: 10_000 });
+      await webhookMenu.click();
 
       // Verify presets button is visible
       const presetsBtn = page.getByRole('button', { name: 'Presets' });
@@ -58,13 +58,16 @@ test.describe('Webhook Presets', () => {
       for (const preset of expectedPresets) {
         // Open dropdown and select preset
         await presetsBtn.click();
-        await page.waitForTimeout(500);
-        await page.locator('.n-dropdown-option', { hasText: preset.name }).click();
-        await page.waitForTimeout(1000);
+        const option = page.locator('.n-dropdown-option', { hasText: preset.name });
+        await expect(option).toBeVisible({ timeout: 5_000 });
+        await option.click();
 
-        // Get all textbox values on the page — URL is the first input-type textbox
-        // From the DOM snapshot: URL textbox, HEADERS textbox, BODY textbox
+        // Wait for preset values to be applied to form fields
         const allTextboxes = page.getByRole('textbox');
+        await expect(async () => {
+          const values = await allTextboxes.allInputValues();
+          expect(values.some(v => v.includes(preset.urlPattern))).toBe(true);
+        }).toPass({ timeout: 5_000 });
         const count = await allTextboxes.count();
 
         // Find URL, HEADERS, BODY values by reading all textboxes
