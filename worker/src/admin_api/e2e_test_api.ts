@@ -95,10 +95,18 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
         setReject(reason: string) { rejected = reason; },
         forward: async () => ({ messageId: '' }),
         reply: async (replyMessage) => {
-            // Send the reply via SMTP so it reaches Mailpit in E2E tests
-            if (smtpConfig && replyMessage?.raw) {
-                const replyRaw = await new Response(replyMessage.raw).text();
-                const parsed = parseMimeForReply(replyRaw);
+            // Send the reply via SMTP so it reaches Mailpit in E2E tests.
+            // Try reading raw MIME from: (1) .rawMime string, (2) .raw ReadableStream
+            let rawMimeStr: string | undefined;
+            if (typeof (replyMessage as any)?.rawMime === 'string') {
+                rawMimeStr = (replyMessage as any).rawMime;
+            } else if ((replyMessage as any)?.raw) {
+                rawMimeStr = await new Response((replyMessage as any).raw).text();
+            }
+            console.log('[E2E] mock reply() called, hasRaw:', !!rawMimeStr, 'hasSmtp:', !!smtpConfig);
+            if (smtpConfig && rawMimeStr) {
+                const parsed = parseMimeForReply(rawMimeStr);
+                console.log('[E2E] sending auto-reply via SMTP:', parsed.from, '->', parsed.to, 'subj:', parsed.subject);
                 await WorkerMailer.send(smtpConfig, {
                     from: { email: parsed.from },
                     to: { email: parsed.to },
