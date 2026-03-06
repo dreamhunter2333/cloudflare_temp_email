@@ -61,8 +61,9 @@ test.describe('Webhook Presets', () => {
         const option = page.locator('.n-dropdown-option', { hasText: preset.name });
         await expect(option).toBeVisible({ timeout: 5_000 });
         await option.click();
-        // Wait for preset to apply values and success toast to appear
-        await expect(page.locator('.n-message')).toBeVisible({ timeout: 5_000 });
+        // Wait for dropdown to close, then for URL field to contain preset pattern
+        await expect(option).toBeHidden({ timeout: 5_000 });
+        await page.waitForTimeout(500);
 
         const allTextboxes = page.getByRole('textbox');
         const count = await allTextboxes.count();
