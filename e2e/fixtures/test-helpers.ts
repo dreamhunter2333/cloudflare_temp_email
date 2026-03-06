@@ -29,7 +29,8 @@ export async function createTestAddress(
 }
 
 /**
- * Seed a test email into the worker DB via the admin test endpoint.
+ * Seed a test email by exercising the real worker email() handler
+ * via the admin test endpoint.
  */
 export async function seedTestMail(
   ctx: APIRequestContext,
@@ -41,11 +42,13 @@ export async function seedTestMail(
   const boundary = `----E2E${Date.now()}`;
   const htmlPart = opts.html || `<p>${opts.text || 'Hello from E2E'}</p>`;
   const textPart = opts.text || 'Hello from E2E';
+  const messageId = `<e2e-${Date.now()}-${Math.random().toString(36).slice(2, 10)}@test>`;
 
   const raw = [
     `From: ${from}`,
     `To: ${address}`,
     `Subject: ${subject}`,
+    `Message-ID: ${messageId}`,
     `MIME-Version: 1.0`,
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
     ``,
@@ -60,11 +63,15 @@ export async function seedTestMail(
     `--${boundary}--`,
   ].join('\r\n');
 
-  const res = await ctx.post(`${WORKER_URL}/admin/test/seed_mail`, {
-    data: { address, source: from, raw },
+  const res = await ctx.post(`${WORKER_URL}/admin/test/receive_mail`, {
+    data: { from, to: address, raw },
   });
   if (!res.ok()) {
     throw new Error(`Failed to seed mail: ${res.status()} ${await res.text()}`);
+  }
+  const body = await res.json();
+  if (!body.success) {
+    throw new Error(`Mail was rejected: ${body.rejected || 'unknown reason'}`);
   }
 }
 
