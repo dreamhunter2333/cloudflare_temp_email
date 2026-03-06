@@ -13,7 +13,7 @@ import { api as telegramApi } from './telegram_api'
 import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
-import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray } from './utils';
+import { getAdminPasswords, getPasswords, getBooleanValue, getStringArray, isAdmin } from './utils';
 import { checkAccessControl } from './ip_blacklist';
 
 const API_PATHS = [
@@ -215,13 +215,9 @@ app.use('/user_api/*', async (c, next) => {
 app.use('/admin/*', async (c, next) => {
 
 	// check header x-admin-auth
-	const adminPasswords = getAdminPasswords(c);
-	if (adminPasswords && adminPasswords.length > 0) {
-		const adminAuth = c.req.raw.headers.get("x-admin-auth");
-		if (adminAuth && adminPasswords.includes(adminAuth)) {
-			await next();
-			return;
-		}
+	if (isAdmin(c)) {
+		await next();
+		return;
 	}
 	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
 	const msgs = i18n.getMessages(lang);
