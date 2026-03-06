@@ -13,7 +13,7 @@ import { handleListQuery } from '../common'
 
 export const api = new Hono<HonoCustomType>()
 
-api.post('/api/requset_send_mail_access', async (c) => {
+api.post('/api/request_send_mail_access', async (c) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { address } = c.get("jwtPayload")
     if (!address) {
