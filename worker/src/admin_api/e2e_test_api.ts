@@ -44,21 +44,19 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
     if (!headers.has('Message-ID')) headers.set('Message-ID', `<e2e-${Date.now()}@test>`);
 
     const rawBytes = new TextEncoder().encode(raw);
-    let rejected: string | undefined;
+    const state = { rejected: undefined as string | undefined, replyCalled: false };
     const mockMessage: ForwardableEmailMessage = {
         from, to, headers,
         rawSize: rawBytes.byteLength,
         raw: new ReadableStream({ start(ctrl) { ctrl.enqueue(rawBytes); ctrl.close(); } }),
-        setReject(reason: string) { rejected = reason; },
+        setReject(reason: string) { state.rejected = reason; },
         forward: async () => ({ messageId: '' }),
-        reply: async () => { replyCalled = true; return { messageId: '' }; },
+        reply: async () => { state.replyCalled = true; return { messageId: '' }; },
     };
-
-    let replyCalled = false;
     const { email: emailHandler } = await import('../email');
     await emailHandler(mockMessage, c.env, { waitUntil: () => {}, passThroughOnException: () => {} });
 
-    return c.json({ success: !rejected, replyCalled, ...(rejected ? { rejected } : {}) });
+    return c.json({ success: !state.rejected, replyCalled: state.replyCalled, ...(state.rejected ? { rejected: state.rejected } : {}) });
 };
 
 export default { seedMail, receiveMail };

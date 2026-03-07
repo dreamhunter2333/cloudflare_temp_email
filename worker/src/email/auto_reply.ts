@@ -30,6 +30,9 @@ export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
             ).bind(message.to).first<Record<string, string>>();
             if (results && matchSender(message.from, results.source_prefix)) {
+                if (!results.subject || !results.message) {
+                    console.log("auto-reply using defaults:", !results.subject ? "subject" : "", !results.message ? "message" : "");
+                }
                 const msg = createMimeMessage();
                 msg.setHeader("In-Reply-To", message_id);
                 msg.setSender({
