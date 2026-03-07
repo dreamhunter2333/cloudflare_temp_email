@@ -14,6 +14,7 @@
 - feat: |Frontend| Add configurable Status menu button via `STATUS_URL` environment variable for status monitoring page link
 - feat: |SMTP| Add STARTTLS support for SMTP proxy server via `smtp_tls_cert` and `smtp_tls_key` environment variables
 - feat: |Webhook| Add preset templates dropdown to Webhook settings page, supporting one-click fill for Message Pusher, Bark, and ntfy
+- feat: |Auto Reply| Add regex matching support for sender filter using `/pattern/` syntax (e.g. `/@example\.com$/`), backward compatible with prefix matching
 
 ### Bug Fixes
 
@@ -26,12 +27,14 @@
 - fix: |Frontend| Fix reply to HTML email losing original HTML content, prefer HTML message over plain text
 - fix: |Security| Fix XSS vulnerability in reply/forward mail content, sanitize HTML with DOMPurify whitelist and escape plain text
 - fix: |API| Fix typo in `requset_send_mail_access` API path, renamed to `request_send_mail_access`
+- fix: |Auto Reply| Fix auto-reply not triggering when `source_prefix` is empty string (#459), empty value now correctly matches all senders
 
 ### Testing
 
 - test: |E2E| Add Dockerized E2E test environment (Playwright + Mailpit), run with `cd e2e && npm test`
 - test: |E2E| Cover API health check, address lifecycle, SMTP send, inbox UI, HTML reply & XSS sanitization
 - test: |Worker| Add `/admin/test/seed_mail` test endpoint, only available when `E2E_TEST_MODE` is enabled
+- test: |E2E| Add auto-reply trigger E2E tests covering empty prefix, prefix matching, regex matching, and disabled state
 
 ### Improvements
 
