@@ -33,7 +33,7 @@
 | `DEFAULT_DOMAINS`                     | JSON      | 默认用户可用的域名(未登录或未分配角色的用户)                                                                                      | `["awsl.uk", "dreamhunter2333.xyz"]`      |
 | `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` | 文本/JSON | 创建新地址时是否优先使用默认域名，如果设置为 true，当未指定域名时将使用第一个域名, 主要用于 telegram bot 场景                     | `false`                                   |
 | `DOMAIN_LABELS`                       | JSON      | 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称                                                                       | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
-| `ENABLE_AUTO_REPLY`                   | 文本/JSON | 允许自动回复邮件                                                                                                                  | `true`                                    |
+| `ENABLE_AUTO_REPLY`                   | 文本/JSON | 允许自动回复邮件。发件人过滤（`source_prefix`）支持三种模式：留空匹配所有发件人、填写前缀进行 `startsWith` 匹配、使用 `/regex/` 语法进行正则匹配（如 `/@example\.com$/`） | `true`                                    |
 | `DEFAULT_SEND_BALANCE`                | 文本/JSON | 默认发送邮件余额，如果不设置，将为 0                                                                                              | `1`                                       |
 | `ENABLE_ADDRESS_PASSWORD`             | 文本/JSON | 启用邮箱地址密码功能，启用后创建新地址时会自动生成密码，并支持密码登录和修改                                                      | `true`                                    |
 
