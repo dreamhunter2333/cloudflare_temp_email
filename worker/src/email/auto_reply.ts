@@ -13,7 +13,8 @@ function matchSender(from: string, sourcePrefix: string | undefined): boolean {
         try {
             const regex = new RegExp(sourcePrefix.slice(1, -1));
             return regex.test(from);
-        } catch {
+        } catch (error) {
+            console.error("Invalid regex in source_prefix:", sourcePrefix, error);
             return false;
         }
     }
