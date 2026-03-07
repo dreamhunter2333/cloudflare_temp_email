@@ -21,7 +21,8 @@ const { t } = useI18n({
         en: {
             success: 'Success',
             settings: 'Settings',
-            sourcePrefix: 'Source Mail Prefix',
+            sourcePrefix: 'Sender Filter',
+            sourcePrefixPlaceholder: 'Empty=all, prefix match, or /regex/',
             name: 'Name',
             enableAutoReply: 'Enable Auto Reply',
             subject: 'Subject',
@@ -31,7 +32,8 @@ const { t } = useI18n({
         zh: {
             success: '成功',
             settings: '设置',
-            sourcePrefix: '来源邮件前缀',
+            sourcePrefix: '发件人过滤',
+            sourcePrefixPlaceholder: '留空=全部匹配，前缀匹配，或 /正则/',
             name: '名称',
             enableAutoReply: '启用自动回复',
             subject: '主题',
@@ -93,7 +95,8 @@ onMounted(async () => {
                     <n-input :disabled="!enableAutoReply" v-model:value="name" />
                 </n-form-item>
                 <n-form-item :label="t('sourcePrefix')" label-placement="left">
-                    <n-input :disabled="!enableAutoReply" v-model:value="sourcePrefix" />
+                    <n-input :disabled="!enableAutoReply" v-model:value="sourcePrefix"
+                        :placeholder="t('sourcePrefixPlaceholder')" />
                 </n-form-item>
                 <n-form-item :label="t('subject')" label-placement="left">
                     <n-input :disabled="!enableAutoReply" v-model:value="subject" />
