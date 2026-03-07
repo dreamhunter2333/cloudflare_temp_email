@@ -51,13 +51,14 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
         raw: new ReadableStream({ start(ctrl) { ctrl.enqueue(rawBytes); ctrl.close(); } }),
         setReject(reason: string) { rejected = reason; },
         forward: async () => ({ messageId: '' }),
-        reply: async () => ({ messageId: '' }),
+        reply: async () => { replyCalled = true; return { messageId: '' }; },
     };
 
+    let replyCalled = false;
     const { email: emailHandler } = await import('../email');
     await emailHandler(mockMessage, c.env, { waitUntil: () => {}, passThroughOnException: () => {} });
 
-    return c.json({ success: !rejected, ...(rejected ? { rejected } : {}) });
+    return c.json({ success: !rejected, replyCalled, ...(rejected ? { rejected } : {}) });
 };
 
 export default { seedMail, receiveMail };
