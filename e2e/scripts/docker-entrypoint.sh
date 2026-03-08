@@ -16,7 +16,7 @@ done
 
 echo "==> Waiting for frontend at $FRONTEND_URL ..."
 for i in $(seq 1 60); do
-  if curl -sf "$FRONTEND_URL" > /dev/null 2>&1; then
+  if curl -skf "$FRONTEND_URL" > /dev/null 2>&1; then
     echo "    Frontend ready after ${i}s"
     break
   fi

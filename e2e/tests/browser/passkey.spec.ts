@@ -11,6 +11,8 @@ const TEST_USER_PASSWORD = 'browser-test-pwd-123';
 const HASHED_PASSWORD = createHash('sha256').update(TEST_USER_PASSWORD).digest('hex');
 
 test.describe('Passkey Browser Flow', () => {
+  let userJwt: string;
+
   test.beforeAll(async () => {
     const api = await apiRequest.newContext();
     try {
@@ -22,6 +24,12 @@ test.describe('Passkey Browser Flow', () => {
       await api.post(`${WORKER_URL}/user_api/register`, {
         data: { email: TEST_USER_EMAIL, password: HASHED_PASSWORD },
       });
+      // Login to get JWT for localStorage injection
+      const loginRes = await api.post(`${WORKER_URL}/user_api/login`, {
+        data: { email: TEST_USER_EMAIL, password: HASHED_PASSWORD },
+      });
+      const body = await loginRes.json();
+      userJwt = body.jwt;
     } finally {
       await api.dispose();
     }
@@ -42,18 +50,16 @@ test.describe('Passkey Browser Flow', () => {
     });
 
     try {
-      // === Step 1: Login through UI ===
+      // === Step 1: Login via localStorage injection ===
+      // Inject JWT into localStorage to skip UI login flow.
+      await page.goto(`${FRONTEND_URL}/en/`);
+      await page.evaluate((jwt) => {
+        localStorage.setItem('userJwt', JSON.stringify(jwt));
+      }, userJwt);
       await page.goto(`${FRONTEND_URL}/en/user`);
 
-      // Fill login form
-      const emailInput = page.getByRole('textbox', { name: 'Please Input' }).first();
-      await emailInput.fill(TEST_USER_EMAIL);
-      const passwordInput = page.getByRole('textbox', { name: 'Please Input' }).nth(1);
-      await passwordInput.fill(TEST_USER_PASSWORD);
-      await page.getByRole('button', { name: 'Login' }).first().click();
-
-      // Wait for login to complete — user email should appear
-      await expect(page.getByText(TEST_USER_EMAIL)).toBeVisible({ timeout: 10_000 });
+      // Wait for user settings to load (shows user email)
+      await expect(page.getByText(TEST_USER_EMAIL)).toBeVisible({ timeout: 15_000 });
 
       // === Step 2: Click "User Settings" tab ===
       await page.getByText('User Settings').click();

@@ -29,12 +29,8 @@ export default defineConfig({
       use: {
         baseURL: FRONTEND_BASE,
         ...devices['Desktop Chrome'],
-        launchOptions: {
-          args: [
-            // Allow crypto.subtle in non-HTTPS Docker origins
-            `--unsafely-treat-insecure-origin-as-secure=${FRONTEND_BASE}`,
-          ],
-        },
+        // Accept self-signed cert from Docker frontend (HTTPS for WebAuthn)
+        ignoreHTTPSErrors: true,
       },
     },
   ],

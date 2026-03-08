@@ -1,5 +1,6 @@
 FROM node:20-slim
 
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
 
 WORKDIR /app/frontend
@@ -9,11 +10,23 @@ RUN pnpm install --frozen-lockfile || (echo "WARN: frozen-lockfile failed, falli
 
 COPY frontend/ .
 
+# Generate self-signed cert for HTTPS (required for WebAuthn/crypto.subtle)
+RUN openssl req -x509 -newkey rsa:2048 -keyout /tmp/key.pem -out /tmp/cert.pem \
+    -days 365 -nodes -subj '/CN=frontend'
+
 # Allow Docker internal hostnames (e.g. "frontend") to pass Vite's host check.
-# Wrap the original config instead of sed-patching it — survives reformats.
+# Configure HTTPS with self-signed cert for secure context.
 RUN mv vite.config.js vite.config.original.js && \
     echo 'import config from "./vite.config.original.js";\
-config.server = { ...config.server, allowedHosts: true };\
+import fs from "fs";\
+config.server = {\
+  ...config.server,\
+  allowedHosts: true,\
+  https: {\
+    key: fs.readFileSync("/tmp/key.pem"),\
+    cert: fs.readFileSync("/tmp/cert.pem"),\
+  },\
+};\
 export default config;' > vite.config.js
 
 ENV VITE_API_BASE=http://worker:8787
