@@ -88,7 +88,7 @@ export default {
                 return true;
             },
             expectedOrigin: origin,
-            requireUserVerification: true,
+            requireUserVerification: false,
         });
         const { verified, registrationInfo } = verification;
 
@@ -162,6 +162,7 @@ export default {
             },
             expectedOrigin: origin,
             expectedRPID: domain,
+            requireUserVerification: false,
             credential: {
                 id: passkeyData.id,
                 publicKey: isoBase64URL.toBuffer(passkeyData.publicKey),
