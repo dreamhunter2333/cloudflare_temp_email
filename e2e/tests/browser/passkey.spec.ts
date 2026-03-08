@@ -1,9 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { request as apiRequest } from '@playwright/test';
+import { createHash } from 'crypto';
 import { WORKER_URL, FRONTEND_URL } from '../../fixtures/test-helpers';
 
 const TEST_USER_EMAIL = `passkey-browser-${Date.now()}@test.example.com`;
 const TEST_USER_PASSWORD = 'browser-test-pwd-123';
+
+// Frontend hashes passwords with SHA-256 before sending to the API.
+// Register with the hashed password so UI login matches.
+const HASHED_PASSWORD = createHash('sha256').update(TEST_USER_PASSWORD).digest('hex');
 
 test.describe('Passkey Browser Flow', () => {
   test.beforeAll(async () => {
@@ -13,9 +18,9 @@ test.describe('Passkey Browser Flow', () => {
       await api.post(`${WORKER_URL}/admin/user_settings`, {
         data: { enable: true, enableMailVerify: false },
       });
-      // Register user
+      // Register user with hashed password (matching frontend behavior)
       await api.post(`${WORKER_URL}/user_api/register`, {
-        data: { email: TEST_USER_EMAIL, password: TEST_USER_PASSWORD },
+        data: { email: TEST_USER_EMAIL, password: HASHED_PASSWORD },
       });
     } finally {
       await api.dispose();
