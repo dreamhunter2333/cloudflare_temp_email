@@ -53,8 +53,9 @@ test.describe('Passkey Browser Flow', () => {
       // === Step 1: Login via localStorage injection ===
       // Inject JWT into localStorage to skip UI login flow.
       await page.goto(`${FRONTEND_URL}/en/`);
+      // VueUse's useStorage with string default stores raw strings (no JSON)
       await page.evaluate((jwt) => {
-        localStorage.setItem('userJwt', JSON.stringify(jwt));
+        localStorage.setItem('userJwt', jwt);
       }, userJwt);
       await page.goto(`${FRONTEND_URL}/en/user`);
 
