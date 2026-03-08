@@ -6,8 +6,6 @@ const TEST_USER_EMAIL = `passkey-browser-${Date.now()}@test.example.com`;
 const TEST_USER_PASSWORD = 'browser-test-pwd-123';
 
 test.describe('Passkey Browser Flow', () => {
-  let userJwt: string;
-
   test.beforeAll(async () => {
     const api = await apiRequest.newContext();
     try {
@@ -19,12 +17,6 @@ test.describe('Passkey Browser Flow', () => {
       await api.post(`${WORKER_URL}/user_api/register`, {
         data: { email: TEST_USER_EMAIL, password: TEST_USER_PASSWORD },
       });
-      // Login to get JWT
-      const loginRes = await api.post(`${WORKER_URL}/user_api/login`, {
-        data: { email: TEST_USER_EMAIL, password: TEST_USER_PASSWORD },
-      });
-      const body = await loginRes.json();
-      userJwt = body.jwt;
     } finally {
       await api.dispose();
     }
@@ -45,15 +37,17 @@ test.describe('Passkey Browser Flow', () => {
     });
 
     try {
-      // === Step 1: Set userJwt in localStorage and navigate to user page ===
-      await page.goto(`${FRONTEND_URL}/en/`);
-      await page.evaluate((jwt) => {
-        localStorage.setItem('userJwt', JSON.stringify(jwt));
-      }, userJwt);
-
+      // === Step 1: Login through UI ===
       await page.goto(`${FRONTEND_URL}/en/user`);
 
-      // Wait for user settings to load (shows user email)
+      // Fill login form
+      const emailInput = page.getByRole('textbox', { name: 'Please Input' }).first();
+      await emailInput.fill(TEST_USER_EMAIL);
+      const passwordInput = page.getByRole('textbox', { name: 'Please Input' }).nth(1);
+      await passwordInput.fill(TEST_USER_PASSWORD);
+      await page.getByRole('button', { name: 'Login' }).first().click();
+
+      // Wait for login to complete — user email should appear
       await expect(page.getByText(TEST_USER_EMAIL)).toBeVisible({ timeout: 10_000 });
 
       // === Step 2: Click "User Settings" tab ===
@@ -88,11 +82,8 @@ test.describe('Passkey Browser Flow', () => {
       await expect(logoutModal).toBeVisible({ timeout: 5_000 });
       await logoutModal.getByRole('button', { name: 'Logout' }).click();
 
-      // Wait for reload, clear state, go to user page
+      // Wait for logout to complete and navigate to user page
       await page.waitForTimeout(2000);
-      await page.evaluate(() => {
-        localStorage.removeItem('userJwt');
-      });
       await page.goto(`${FRONTEND_URL}/en/user`);
 
       // === Step 6: Login with passkey ===
