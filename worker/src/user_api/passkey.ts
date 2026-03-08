@@ -97,7 +97,7 @@ export default {
         }
 
         const {
-            id, publicKey,
+            id: credentialID, publicKey,
             counter, deviceType, backedUp,
             transports,
         } = registrationInfo.credential;
@@ -106,7 +106,7 @@ export default {
         const base64PublicKey = isoBase64URL.fromBuffer(publicKey);
 
         const newPasskey: Passkey = {
-            id,
+            id: credentialID,
             publicKey: base64PublicKey,
             counter,
             deviceType,
@@ -117,7 +117,7 @@ export default {
         // Store the credential ID in the database
         const { success } = await c.env.DB.prepare(
             `INSERT INTO user_passkeys (user_id, passkey_name, passkey_id, passkey, counter) VALUES (?, ?, ?, ?, ?)`
-        ).bind(user.user_id, passkey_name, id, JSON.stringify(newPasskey), counter).run();
+        ).bind(user.user_id, passkey_name, credentialID, JSON.stringify(newPasskey), counter).run();
 
         return c.json({ success });
     },
