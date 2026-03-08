@@ -71,7 +71,7 @@ const createPasskey = async () => {
                 domain: location.hostname,
             })
         })
-        const credential = await startRegistration(options)
+        const credential = await startRegistration({ optionsJSON: options })
 
         // Send the result to the server and return the promise.
         await api.fetch(`/user_api/passkey/register_response`, {

@@ -13,7 +13,6 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260307.1",
     "@eslint/js": "9.39.1",
-    "@simplewebauthn/types": "10.0.0",
     "@types/node": "^25.3.5",
     "eslint": "9.39.1",
     "globals": "^16.5.0",
@@ -23,7 +22,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.888.0",
     "@aws-sdk/s3-request-presigner": "3.888.0",
-    "@simplewebauthn/server": "10.0.1",
+    "@simplewebauthn/server": "13.2.3",
     "hono": "^4.12.5",
     "jsonpath-plus": "^10.4.0",
     "mimetext": "^3.0.28",

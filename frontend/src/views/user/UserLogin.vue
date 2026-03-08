@@ -171,7 +171,7 @@ const passkeyLogin = async () => {
                 domain: location.hostname,
             })
         })
-        const credential = await startAuthentication(options)
+        const credential = await startAuthentication({ optionsJSON: options })
 
         // Send the result to the server and return the promise.
         const res = await api.fetch(`/user_api/passkey/authenticate_response`, {
