@@ -94,28 +94,14 @@ test.describe('Passkey API', () => {
     expect(passkeys.length).toBe(0);
   });
 
-  test('passkey CRUD via direct DB insert', async ({ request }) => {
-    // Insert a fake passkey directly for CRUD testing
-    const fakePasskeyId = `fake-passkey-${Date.now()}`;
-    const fakePasskey = JSON.stringify({
-      id: fakePasskeyId,
-      publicKey: 'AQIDBA',
-      counter: 0,
-      deviceType: 'singleDevice',
-      backedUp: false,
-    });
-
-    // Get user_id from JWT by listing passkeys (the endpoint requires auth)
-    // We need to insert via admin SQL since there's no direct insert API
-    // Instead, test rename and delete with a passkey we register via the flow
-
-    // Verify list is still empty
+  test('passkey list remains empty without registration', async ({ request }) => {
     const listRes = await request.get(`${WORKER_URL}/user_api/passkey`, {
       headers: { 'x-user-token': userJwt },
     });
     expect(listRes.ok()).toBe(true);
     const passkeys = await listRes.json();
     expect(passkeys).toBeInstanceOf(Array);
+    expect(passkeys.length).toBe(0);
   });
 
   test('register_response with invalid credential returns 400', async ({ request }) => {
