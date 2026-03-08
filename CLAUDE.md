@@ -11,6 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **SMTP/IMAP proxy**: `smtp_proxy_server/` — Python proxy server.
 - **DB schema/migrations**: `db/` — SQLite via Cloudflare D1, dated migration patches.
 - **Docs**: `vitepress-docs/` — VitePress documentation site (zh + en).
+- **E2E tests**: `e2e/` — Playwright tests in Docker Compose (API, browser, SMTP proxy).
 - **Changelogs**: `CHANGELOG.md` (中文) + `CHANGELOG_EN.md` (English).
 
 ## Build & Dev Commands
@@ -26,18 +27,57 @@ Run inside each subfolder with `pnpm`:
 
 SMTP proxy: `pip install -r smtp_proxy_server/requirements.txt` then `python smtp_proxy_server/main.py`.
 
+## E2E Tests
+
+Tests run in Docker Compose with Playwright. From `e2e/`:
+
+```bash
+npm test              # Build, run all tests, exit
+npm run test:down     # Clean up containers
+```
+
+Test categories: `tests/api/` (API tests), `tests/browser/` (UI tests with Chromium), `tests/smtp-proxy/` (SMTP/IMAP proxy tests).
+
+The Docker frontend serves over **HTTPS** (self-signed cert) with Vite proxy to worker — required for WebAuthn (`navigator.credentials`) and `crypto.subtle` which need a secure context. Browser tests use `ignoreHTTPSErrors: true`.
+
+Key patterns for browser tests:
+- Frontend hashes passwords with SHA-256 (`crypto.subtle`) before sending — API test registration must use pre-hashed passwords if UI login is needed.
+- VueUse `useStorage('key', '')` with string default uses **raw string** serialization — set localStorage with raw value, not `JSON.stringify()`.
+- WebAuthn browser tests use CDP virtual authenticator (`WebAuthn.enable` + `WebAuthn.addVirtualAuthenticator`).
+
+## Architecture
+
+### Worker Auth Flow (`worker/src/worker.ts`)
+
+Three auth layers applied via Hono middleware, each using different headers:
+
+| Path prefix | Header | Purpose |
+|-------------|--------|---------|
+| `/api/*` | `Authorization: Bearer <jwt>` | Address (mailbox) credential |
+| `/user_api/*` | `x-user-token` | User account JWT |
+| `/admin/*` | `x-admin-auth` | Admin password |
+| (any) | `x-user-access-token` | User role-based access token |
+| (any) | `x-custom-auth` | Optional global access password |
+| (any) | `x-lang` | Language preference (`en`/`zh`) |
+
+Public endpoints (no auth): `/open_api/*`, `/user_api/login`, `/user_api/register`, `/user_api/passkey/authenticate_*`, `/user_api/oauth2/*`.
+
+### Worker Email Flow (`worker/src/email/`)
+
+Cloudflare Email Worker entry: `email()` in `worker/src/email/index.ts`. Processing pipeline:
+1. Parse raw email → check junk → check address exists
+2. Auto-reply if configured → forward if configured → webhook if enabled
+3. Store in D1 database
+
+### Frontend State (`frontend/src/store/index.js`, `frontend/src/api/index.js`)
+
+Global state via VueUse `useStorage` for persistence. The `api` module wraps axios with auto-attached auth headers and fingerprinting. API base URL comes from `VITE_API_BASE` env var (empty = same origin).
+
 ## Coding Style
 
 - `worker/` uses TypeScript + ESLint; `frontend/` uses Vue SFCs.
 - Keep existing naming patterns: `*_api/` folders, `utils/`, `models/`.
 - ESM imports only (`type: module`).
-
-## Auth Headers
-
-- Address JWT: `x-user-token`
-- User JWT: `x-user-access-token`
-- Admin: `x-admin-auth`
-- Language: `x-lang`
 
 ## Commits & PRs
 
@@ -56,10 +96,6 @@ After completing any feature, bug fix, or improvement, **always check**:
    - `guide/feature/` — Feature-specific docs
    - `api/` — API reference docs
 3. **Both languages** — docs and changelogs exist in Chinese and English; always update both.
-
-## Testing
-
-No formal test runner. Validate with local dev servers and key flows (login, inbox, send/receive).
 
 ## Config
 
