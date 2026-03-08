@@ -73,7 +73,7 @@ services:
       dockerfile: e2e/Dockerfile.e2e
     environment:
       WORKER_URL: http://worker:8787
-      FRONTEND_URL: http://frontend:5173
+      FRONTEND_URL: https://frontend:5173
       MAILPIT_API: http://mailpit:8025/api
       SMTP_PROXY_HOST: smtp-proxy
       SMTP_PROXY_SMTP_PORT: "8025"

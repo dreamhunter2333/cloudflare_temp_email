@@ -12,8 +12,8 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
       '@simplewebauthn/browser':
-        specifier: 10.0.0
-        version: 10.0.0
+        specifier: 13.2.2
+        version: 13.2.2
       '@unhead/vue':
         specifier: ^2.1.10
         version: 2.1.10(vue@3.5.29(typescript@5.4.5))
@@ -39,8 +39,8 @@ importers:
         specifier: ^0.2.1
         version: 0.2.1
       naive-ui:
-        specifier: ^2.43.2
-        version: 2.43.2(vue@3.5.29(typescript@5.4.5))
+        specifier: ^2.44.0
+        version: 2.44.0(vue@3.5.29(typescript@5.4.5))
       postal-mime:
         specifier: ^2.7.3
         version: 2.7.3
@@ -54,8 +54,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       vue-i18n:
-        specifier: ^11.2.8
-        version: 11.2.8(vue@3.5.29(typescript@5.4.5))
+        specifier: ^11.3.0
+        version: 11.3.0(vue@3.5.29(typescript@5.4.5))
       vue-router:
         specifier: ^4.6.4
         version: 4.6.4(vue@3.5.29(typescript@5.4.5))
@@ -100,8 +100,8 @@ importers:
         specifier: ^7.4.0
         version: 7.4.0
       wrangler:
-        specifier: ^4.70.0
-        version: 4.70.0
+        specifier: ^4.71.0
+        version: 4.71.0
 
 packages:
 
@@ -160,8 +160,8 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0
 
-  '@babel/helper-define-polyfill-provider@0.6.6':
-    resolution: {integrity: sha512-mOAsxeeKkUKayvZR3HeTYD/fICpCPLJrU5ZjelT/PA6WHtNDBOE436YiaEUvHN454bRM3CebhDsIpieCc4texA==}
+  '@babel/helper-define-polyfill-provider@0.6.7':
+    resolution: {integrity: sha512-6Fqi8MtQ/PweQ9xvux65emkLQ83uB+qAVtfHkC9UodyHMIZdxNI01HjLCLUtybElp2KY2XNE0nOgyP1E1vXw9w==}
     peerDependencies:
       '@babel/core': ^7.4.0 || ^8.0.0-0 <8.0.0
 
@@ -627,11 +627,11 @@ packages:
     resolution: {integrity: sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ==}
     engines: {node: '>=18.0.0'}
 
-  '@cloudflare/unenv-preset@2.14.0':
-    resolution: {integrity: sha512-XKAkWhi1nBdNsSEoNG9nkcbyvfUrSjSf+VYVPfOto3gLTZVc3F4g6RASCMh6IixBKCG2yDgZKQIHGKtjcnLnKg==}
+  '@cloudflare/unenv-preset@2.15.0':
+    resolution: {integrity: sha512-EGYmJaGZKWl+X8tXxcnx4v2bOZSjQeNI5dWFeXivgX9+YCT69AkzHHwlNbVpqtEUTbew8eQurpyOpeN8fg00nw==}
     peerDependencies:
       unenv: 2.0.0-rc.24
-      workerd: ^1.20260218.0
+      workerd: 1.20260301.1 || ~1.20260302.1 || ~1.20260303.1 || ~1.20260304.1 || >1.20260305.0 <2.0.0-0
     peerDependenciesMeta:
       workerd:
         optional: true
@@ -704,8 +704,8 @@ packages:
     peerDependencies:
       '@csstools/css-tokenizer': ^4.0.0
 
-  '@csstools/css-syntax-patches-for-csstree@1.0.29':
-    resolution: {integrity: sha512-jx9GjkkP5YHuTmko2eWAvpPnb0mB4mGRr2U7XwVNwevm8nlpobZEVk+GNmiYMk2VuA75v+plfXWyroWKmICZXg==}
+  '@csstools/css-syntax-patches-for-csstree@1.1.0':
+    resolution: {integrity: sha512-H4tuz2nhWgNKLt1inYpoVCfbJbMwX/lQKp3g69rrrIMIYlFD9+zTykOKhNR8uGrAmbS/kT9n6hTFkmDkxLgeTA==}
 
   '@csstools/css-tokenizer@4.0.0':
     resolution: {integrity: sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==}
@@ -1022,16 +1022,20 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@intlify/core-base@11.2.8':
-    resolution: {integrity: sha512-nBq6Y1tVkjIUsLsdOjDSJj4AsjvD0UG3zsg9Fyc+OivwlA/oMHSKooUy9tpKj0HqZ+NWFifweHavdljlBLTwdA==}
+  '@intlify/core-base@11.3.0':
+    resolution: {integrity: sha512-NNX5jIwF4TJBe7RtSKDMOA6JD9mp2mRcBHAwt2X+Q8PvnZub0yj5YYXlFu2AcESdgQpEv/5Yx2uOCV/yh7YkZg==}
     engines: {node: '>= 16'}
 
-  '@intlify/message-compiler@11.2.8':
-    resolution: {integrity: sha512-A5n33doOjmHsBtCN421386cG1tWp5rpOjOYPNsnpjIJbQ4POF0QY2ezhZR9kr0boKwaHjbOifvyQvHj2UTrDFQ==}
+  '@intlify/devtools-types@11.3.0':
+    resolution: {integrity: sha512-G9CNL4WpANWVdUjubOIIS7/D2j/0j+1KJmhBJxHilWNKr9mmt3IjFV3Hq4JoBP23uOoC5ynxz/FHZ42M+YxfGw==}
     engines: {node: '>= 16'}
 
-  '@intlify/shared@11.2.8':
-    resolution: {integrity: sha512-l6e4NZyUgv8VyXXH4DbuucFOBmxLF56C/mqh2tvApbzl2Hrhi1aTDcuv5TKdxzfHYmpO3UB0Cz04fgDT9vszfw==}
+  '@intlify/message-compiler@11.3.0':
+    resolution: {integrity: sha512-RAJp3TMsqohg/Wa7bVF3cChRhecSYBLrTCQSj7j0UtWVFLP+6iEJoE2zb7GU5fp+fmG5kCbUdzhmlAUCWXiUJw==}
+    engines: {node: '>= 16'}
+
+  '@intlify/shared@11.3.0':
+    resolution: {integrity: sha512-LC6P/uay7rXL5zZ5+5iRJfLs/iUN8apu9tm8YqQVmW3Uq3X4A0dOFUIDuAmB7gAC29wTHOS3EiN/IosNSz0eNQ==}
     engines: {node: '>= 16'}
 
   '@isaacs/cliui@9.0.0':
@@ -1258,12 +1262,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@simplewebauthn/browser@10.0.0':
-    resolution: {integrity: sha512-hG0JMZD+LiLUbpQcAjS4d+t4gbprE/dLYop/CkE01ugU/9sKXflxV5s0DRjdz3uNMFecatRfb4ZLG3XvF8m5zg==}
-
-  '@simplewebauthn/types@10.0.0':
-    resolution: {integrity: sha512-SFXke7xkgPRowY2E+8djKbdEznTVnD5R6GO7GPTthpHrokLvNKw8C3lFZypTxLI7KkCfGPfhtqB3d7OVGGa9jQ==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+  '@simplewebauthn/browser@13.2.2':
+    resolution: {integrity: sha512-FNW1oLQpTJyqG5kkDg5ZsotvWgmBaC6jCHR7Ej0qUNep36Wl9tj2eZu7J5rP+uhXgHaLk+QQ3lqcw2vS5MX1IA==}
 
   '@sindresorhus/is@7.2.0':
     resolution: {integrity: sha512-P1Cz1dWaFfR4IR+U13mqqiGsLFf1KbayybWwdd2vfctdV6hDpUkgCY0nKOLLTMSoRd/jJNjtbqzf13K8DCCXQw==}
@@ -1370,9 +1370,6 @@ packages:
 
   '@types/event-emitter@0.3.5':
     resolution: {integrity: sha512-zx2/Gg0Eg7gwEiOIIh5w9TrhKKTeQh7CPCOPNc0el4pLSwzebA8SmnHwZs2dWlLONvyulykSwGSQxQHLhjGLvQ==}
-
-  '@types/katex@0.16.8':
-    resolution: {integrity: sha512-trgaNyfU+Xh2Tc+ABIb44a5AYUpicB3uwirOioeOkNPPbmgRNtcWyDeeFRzjPZENO9Vq8gvVqfhaaXWLlevVwg==}
 
   '@types/lodash-es@4.17.12':
     resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
@@ -1633,18 +1630,18 @@ packages:
   axios@1.13.6:
     resolution: {integrity: sha512-ChTCHMouEe2kn713WHbQGcuYrr6fXTBiu460OTwWrWob16g1bXn4vtz07Ope7ewMozJAnEquLk5lWQWtBig9DQ==}
 
-  babel-plugin-polyfill-corejs2@0.4.15:
-    resolution: {integrity: sha512-hR3GwrRwHUfYwGfrisXPIDP3JcYfBrW7wKE7+Au6wDYl7fm/ka1NEII6kORzxNU556JjfidZeBsO10kYvtV1aw==}
+  babel-plugin-polyfill-corejs2@0.4.16:
+    resolution: {integrity: sha512-xaVwwSfebXf0ooE11BJovZYKhFjIvQo7TsyVpETuIeH2JHv0k/T6Y5j22pPTvqYqmpkxdlPAJlyJ0tfOJAoMxw==}
     peerDependencies:
       '@babel/core': ^7.4.0 || ^8.0.0-0 <8.0.0
 
-  babel-plugin-polyfill-corejs3@0.14.0:
-    resolution: {integrity: sha512-AvDcMxJ34W4Wgy4KBIIePQTAOP1Ie2WFwkQp3dB7FQ/f0lI5+nM96zUnYEOE1P9sEg0es5VCP0HxiWu5fUHZAQ==}
+  babel-plugin-polyfill-corejs3@0.14.1:
+    resolution: {integrity: sha512-ENp89vM9Pw4kv/koBb5N2f9bDZsR0hpf3BdPMOg/pkS3pwO4dzNnQZVXtBbeyAadgm865DmQG2jMMLqmZXvuCw==}
     peerDependencies:
       '@babel/core': ^7.4.0 || ^8.0.0-0 <8.0.0
 
-  babel-plugin-polyfill-regenerator@0.6.6:
-    resolution: {integrity: sha512-hYm+XLYRMvupxiQzrvXUj7YyvFFVfv5gI0R71AJzudg1g2AI2vyCPPIFEBjk162/wFzti3inBHo7isWFuEVS/A==}
+  babel-plugin-polyfill-regenerator@0.6.7:
+    resolution: {integrity: sha512-OTYbUlSwXhNgr4g6efMZgsO8//jA61P7ZbRX3iTT53VON8l+WQS8IAUEVo4a4cWknrg2W8Cj4gQhRYNCJ8GkAA==}
     peerDependencies:
       '@babel/core': ^7.4.0 || ^8.0.0-0 <8.0.0
 
@@ -1697,8 +1694,8 @@ packages:
     resolution: {integrity: sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==}
     engines: {node: '>= 0.4'}
 
-  caniuse-lite@1.0.30001776:
-    resolution: {integrity: sha512-sg01JDPzZ9jGshqKSckOQthXnYwOEP50jeVFhaSFbZcOy05TiuuaffDOfcwtCisJ9kNQuLBFibYywv2Bgm9osw==}
+  caniuse-lite@1.0.30001777:
+    resolution: {integrity: sha512-tmN+fJxroPndC74efCdp12j+0rk0RHwV5Jwa1zWaFVyw2ZxAuPeG8ZgWC3Wz7uSjT3qMRQ5XHZ4COgQmsCMJAQ==}
 
   chai@5.3.3:
     resolution: {integrity: sha512-4zNhdJD/iOjSH0A05ea+Ke6MU5mmpQcbQsSOkgdaUMJ9zTlDTD/GYlwohmIE2u0gaxHYiVHEn1Fw9mZ/ktJWgw==}
@@ -1759,8 +1756,8 @@ packages:
   css-render@0.15.14:
     resolution: {integrity: sha512-9nF4PdUle+5ta4W5SyZdLCCmFd37uVimSjg1evcTqKJCyvCEEj12WKzOSBNak6r4im4J4iYXKH1OWpUV5LBYFg==}
 
-  css-tree@3.2.0:
-    resolution: {integrity: sha512-t99A4LolkP0ZX9WUoaHz4YrPT1FKNlV8IDCeCPPpGaWyxegh64tt/BSUqN3u5necrYRon+ddZ6mPMjxIlfpobg==}
+  css-tree@3.2.1:
+    resolution: {integrity: sha512-X7sjQzceUhu1u7Y/ylrRZFU2FS6LRiFVp6rKLPg23y3x3c3DOKAwuXGDp+PAGjh6CSnCjYeAul8pcT8bAl+lSA==}
     engines: {node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0}
 
   cssstyle@6.2.0:
@@ -2403,8 +2400,9 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  naive-ui@2.43.2:
-    resolution: {integrity: sha512-YlLMnGrwGTOc+zMj90sG3ubaH5/7czsgLgGcjTLA981IUaz8r6t4WIujNt8r9PNr+dqv6XNEr0vxkARgPPjfBQ==}
+  naive-ui@2.44.0:
+    resolution: {integrity: sha512-+2eNNldKOluVu038BhcyJMlj661XxKKt4wBo1BDrCayzNLOkFXX8JHv1XFGSEEdewEic+zPJoFLxkTgTxOxovQ==}
+    engines: {node: '>=20'}
     peerDependencies:
       vue: ^3.0.0
 
@@ -2806,11 +2804,11 @@ packages:
     resolution: {integrity: sha512-azl+t0z7pw/z958Gy9svOTuzqIk6xq+NSheJzn5MMWtWTFywIacg2wUlzKFGtt3cthx0r2SxMK0yzJOR0IES7Q==}
     engines: {node: '>=14.0.0'}
 
-  tldts-core@7.0.24:
-    resolution: {integrity: sha512-pj7yygNMoMRqG7ML2SDQ0xNIOfN3IBDUcPVM2Sg6hP96oFNN2nqnzHreT3z9xLq85IWJyNTvD38O002DdOrPMw==}
+  tldts-core@7.0.25:
+    resolution: {integrity: sha512-ZjCZK0rppSBu7rjHYDYsEaMOIbbT+nWF57hKkv4IUmZWBNrBWBOjIElc0mKRgLM8bm7x/BBlof6t2gi/Oq/Asw==}
 
-  tldts@7.0.24:
-    resolution: {integrity: sha512-1r6vQTTt1rUiJkI5vX7KG8PR342Ru/5Oh13kEQP2SMbRSZpOey9SrBe27IDxkoWulx8ShWu4K6C0BkctP8Z1bQ==}
+  tldts@7.0.25:
+    resolution: {integrity: sha512-keinCnPbwXEUG3ilrWQZU+CqcTTzHq9m2HhoUP2l7Xmi8l1LuijAXLpAJ5zRW+ifKTNscs4NdCkfkDCBYm352w==}
     hasBin: true
 
   tough-cookie@6.0.0:
@@ -3065,8 +3063,8 @@ packages:
   vue-clipboard3@2.0.0:
     resolution: {integrity: sha512-Q9S7dzWGax7LN5iiSPcu/K1GGm2gcBBlYwmMsUc5/16N6w90cbKow3FnPmPs95sungns4yvd9/+JhbAznECS2A==}
 
-  vue-i18n@11.2.8:
-    resolution: {integrity: sha512-vJ123v/PXCZntd6Qj5Jumy7UBmIuE92VrtdX+AXr+1WzdBHojiBxnAxdfctUFL+/JIN+VQH4BhsfTtiGsvVObg==}
+  vue-i18n@11.3.0:
+    resolution: {integrity: sha512-1J+xDfDJTLhDxElkd3+XUhT7FYSZd2b8pa7IRKGxhWH/8yt6PTvi3xmWhGwhYT5EaXdatui11pF2R6tL73/zPA==}
     engines: {node: '>= 16'}
     peerDependencies:
       vue: ^3.0.0
@@ -3197,8 +3195,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@4.70.0:
-    resolution: {integrity: sha512-PNDZ9o4e+B5x+1bUbz62Hmwz6G9lw+I9pnYe/AguLddJFjfIyt2cmFOUOb3eOZSoXsrhcEPUg2YidYIbVwUkfw==}
+  wrangler@4.71.0:
+    resolution: {integrity: sha512-j6pSGAncOLNQDRzqtp0EqzYj52CldDP7uz/C9cxVrIgqa5p+cc0b4pIwnapZZAGv9E1Loa3tmPD0aXonH7KTkw==}
     engines: {node: '>=20.0.0'}
     hasBin: true
     peerDependencies:
@@ -3258,7 +3256,7 @@ snapshots:
     dependencies:
       '@asamuzakjp/nwsapi': 2.3.9
       bidi-js: 1.0.3
-      css-tree: 3.2.0
+      css-tree: 3.2.1
       is-potential-custom-element-name: 1.0.1
       lru-cache: 11.2.6
 
@@ -3332,7 +3330,7 @@ snapshots:
       regexpu-core: 6.4.0
       semver: 6.3.1
 
-  '@babel/helper-define-polyfill-provider@0.6.6(@babel/core@7.29.0)':
+  '@babel/helper-define-polyfill-provider@0.6.7(@babel/core@7.29.0)':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/helper-compilation-targets': 7.28.6
@@ -3878,9 +3876,9 @@ snapshots:
       '@babel/plugin-transform-unicode-regex': 7.27.1(@babel/core@7.29.0)
       '@babel/plugin-transform-unicode-sets-regex': 7.28.6(@babel/core@7.29.0)
       '@babel/preset-modules': 0.1.6-no-external-plugins(@babel/core@7.29.0)
-      babel-plugin-polyfill-corejs2: 0.4.15(@babel/core@7.29.0)
-      babel-plugin-polyfill-corejs3: 0.14.0(@babel/core@7.29.0)
-      babel-plugin-polyfill-regenerator: 0.6.6(@babel/core@7.29.0)
+      babel-plugin-polyfill-corejs2: 0.4.16(@babel/core@7.29.0)
+      babel-plugin-polyfill-corejs3: 0.14.1(@babel/core@7.29.0)
+      babel-plugin-polyfill-regenerator: 0.6.7(@babel/core@7.29.0)
       core-js-compat: 3.48.0
       semver: 6.3.1
     transitivePeerDependencies:
@@ -3920,11 +3918,11 @@ snapshots:
 
   '@bramus/specificity@2.4.2':
     dependencies:
-      css-tree: 3.2.0
+      css-tree: 3.2.1
 
   '@cloudflare/kv-asset-handler@0.4.2': {}
 
-  '@cloudflare/unenv-preset@2.14.0(unenv@2.0.0-rc.24)(workerd@1.20260301.1)':
+  '@cloudflare/unenv-preset@2.15.0(unenv@2.0.0-rc.24)(workerd@1.20260301.1)':
     dependencies:
       unenv: 2.0.0-rc.24
     optionalDependencies:
@@ -3975,7 +3973,7 @@ snapshots:
     dependencies:
       '@csstools/css-tokenizer': 4.0.0
 
-  '@csstools/css-syntax-patches-for-csstree@1.0.29': {}
+  '@csstools/css-syntax-patches-for-csstree@1.1.0': {}
 
   '@csstools/css-tokenizer@4.0.0': {}
 
@@ -4164,17 +4162,23 @@ snapshots:
   '@img/sharp-win32-x64@0.34.5':
     optional: true
 
-  '@intlify/core-base@11.2.8':
+  '@intlify/core-base@11.3.0':
     dependencies:
-      '@intlify/message-compiler': 11.2.8
-      '@intlify/shared': 11.2.8
+      '@intlify/devtools-types': 11.3.0
+      '@intlify/message-compiler': 11.3.0
+      '@intlify/shared': 11.3.0
 
-  '@intlify/message-compiler@11.2.8':
+  '@intlify/devtools-types@11.3.0':
     dependencies:
-      '@intlify/shared': 11.2.8
+      '@intlify/core-base': 11.3.0
+      '@intlify/shared': 11.3.0
+
+  '@intlify/message-compiler@11.3.0':
+    dependencies:
+      '@intlify/shared': 11.3.0
       source-map-js: 1.2.1
 
-  '@intlify/shared@11.2.8': {}
+  '@intlify/shared@11.3.0': {}
 
   '@isaacs/cliui@9.0.0': {}
 
@@ -4350,11 +4354,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.59.0':
     optional: true
 
-  '@simplewebauthn/browser@10.0.0':
-    dependencies:
-      '@simplewebauthn/types': 10.0.0
-
-  '@simplewebauthn/types@10.0.0': {}
+  '@simplewebauthn/browser@13.2.2': {}
 
   '@sindresorhus/is@7.2.0': {}
 
@@ -4435,8 +4435,6 @@ snapshots:
   '@types/estree@1.0.8': {}
 
   '@types/event-emitter@0.3.5': {}
-
-  '@types/katex@0.16.8': {}
 
   '@types/lodash-es@4.17.12':
     dependencies:
@@ -4764,27 +4762,27 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  babel-plugin-polyfill-corejs2@0.4.15(@babel/core@7.29.0):
+  babel-plugin-polyfill-corejs2@0.4.16(@babel/core@7.29.0):
     dependencies:
       '@babel/compat-data': 7.29.0
       '@babel/core': 7.29.0
-      '@babel/helper-define-polyfill-provider': 0.6.6(@babel/core@7.29.0)
+      '@babel/helper-define-polyfill-provider': 0.6.7(@babel/core@7.29.0)
       semver: 6.3.1
     transitivePeerDependencies:
       - supports-color
 
-  babel-plugin-polyfill-corejs3@0.14.0(@babel/core@7.29.0):
+  babel-plugin-polyfill-corejs3@0.14.1(@babel/core@7.29.0):
     dependencies:
       '@babel/core': 7.29.0
-      '@babel/helper-define-polyfill-provider': 0.6.6(@babel/core@7.29.0)
+      '@babel/helper-define-polyfill-provider': 0.6.7(@babel/core@7.29.0)
       core-js-compat: 3.48.0
     transitivePeerDependencies:
       - supports-color
 
-  babel-plugin-polyfill-regenerator@0.6.6(@babel/core@7.29.0):
+  babel-plugin-polyfill-regenerator@0.6.7(@babel/core@7.29.0):
     dependencies:
       '@babel/core': 7.29.0
-      '@babel/helper-define-polyfill-provider': 0.6.6(@babel/core@7.29.0)
+      '@babel/helper-define-polyfill-provider': 0.6.7(@babel/core@7.29.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -4811,7 +4809,7 @@ snapshots:
   browserslist@4.28.1:
     dependencies:
       baseline-browser-mapping: 2.10.0
-      caniuse-lite: 1.0.30001776
+      caniuse-lite: 1.0.30001777
       electron-to-chromium: 1.5.307
       node-releases: 2.0.36
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
@@ -4837,7 +4835,7 @@ snapshots:
       call-bind-apply-helpers: 1.0.2
       get-intrinsic: 1.3.0
 
-  caniuse-lite@1.0.30001776: {}
+  caniuse-lite@1.0.30001777: {}
 
   chai@5.3.3:
     dependencies:
@@ -4896,7 +4894,7 @@ snapshots:
       '@emotion/hash': 0.8.0
       csstype: 3.0.11
 
-  css-tree@3.2.0:
+  css-tree@3.2.1:
     dependencies:
       mdn-data: 2.27.1
       source-map-js: 1.2.1
@@ -4904,8 +4902,8 @@ snapshots:
   cssstyle@6.2.0:
     dependencies:
       '@asamuzakjp/css-color': 5.0.1
-      '@csstools/css-syntax-patches-for-csstree': 1.0.29
-      css-tree: 3.2.0
+      '@csstools/css-syntax-patches-for-csstree': 1.1.0
+      css-tree: 3.2.1
       lru-cache: 11.2.6
 
   csstype@3.0.11: {}
@@ -5620,11 +5618,10 @@ snapshots:
 
   ms@2.1.3: {}
 
-  naive-ui@2.43.2(vue@3.5.29(typescript@5.4.5)):
+  naive-ui@2.44.0(vue@3.5.29(typescript@5.4.5)):
     dependencies:
       '@css-render/plugin-bem': 0.15.14(css-render@0.15.14)
       '@css-render/vue3-ssr': 0.15.14(vue@3.5.29(typescript@5.4.5))
-      '@types/katex': 0.16.8
       '@types/lodash': 4.17.24
       '@types/lodash-es': 4.17.12
       async-validator: 4.2.5
@@ -6112,15 +6109,15 @@ snapshots:
 
   tinyspy@4.0.4: {}
 
-  tldts-core@7.0.24: {}
+  tldts-core@7.0.25: {}
 
-  tldts@7.0.24:
+  tldts@7.0.25:
     dependencies:
-      tldts-core: 7.0.24
+      tldts-core: 7.0.25
 
   tough-cookie@6.0.0:
     dependencies:
-      tldts: 7.0.24
+      tldts: 7.0.25
 
   tr46@1.0.1:
     dependencies:
@@ -6395,10 +6392,11 @@ snapshots:
     dependencies:
       clipboard: 2.0.11
 
-  vue-i18n@11.2.8(vue@3.5.29(typescript@5.4.5)):
+  vue-i18n@11.3.0(vue@3.5.29(typescript@5.4.5)):
     dependencies:
-      '@intlify/core-base': 11.2.8
-      '@intlify/shared': 11.2.8
+      '@intlify/core-base': 11.3.0
+      '@intlify/devtools-types': 11.3.0
+      '@intlify/shared': 11.3.0
       '@vue/devtools-api': 6.6.4
       vue: 3.5.29(typescript@5.4.5)
 
@@ -6627,10 +6625,10 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20260301.1
       '@cloudflare/workerd-windows-64': 1.20260301.1
 
-  wrangler@4.70.0:
+  wrangler@4.71.0:
     dependencies:
       '@cloudflare/kv-asset-handler': 0.4.2
-      '@cloudflare/unenv-preset': 2.14.0(unenv@2.0.0-rc.24)(workerd@1.20260301.1)
+      '@cloudflare/unenv-preset': 2.15.0(unenv@2.0.0-rc.24)(workerd@1.20260301.1)
       blake3-wasm: 2.1.5
       esbuild: 0.27.3
       miniflare: 4.20260301.1

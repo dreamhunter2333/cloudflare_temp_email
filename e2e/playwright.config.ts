@@ -29,6 +29,8 @@ export default defineConfig({
       use: {
         baseURL: FRONTEND_BASE,
         ...devices['Desktop Chrome'],
+        // Accept self-signed cert from Docker frontend (HTTPS for WebAuthn)
+        ignoreHTTPSErrors: true,
       },
     },
   ],

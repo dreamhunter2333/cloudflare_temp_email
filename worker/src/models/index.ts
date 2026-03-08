@@ -2,7 +2,7 @@ import type {
     AuthenticatorTransportFuture,
     CredentialDeviceType,
     Base64URLString,
-} from '@simplewebauthn/types';
+} from '@simplewebauthn/server';
 
 export type Passkey = {
     id: Base64URLString;

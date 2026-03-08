@@ -8,7 +8,7 @@ import {
 } from '@simplewebauthn/server';
 
 import { Passkey } from '../models';
-import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types';
+import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import i18n from '../i18n';
 
@@ -97,20 +97,21 @@ export default {
         }
 
         const {
-            credentialID, credentialPublicKey,
-            counter, credentialDeviceType, credentialBackedUp,
-        } = registrationInfo;
+            id: credentialID, publicKey,
+            counter, deviceType, backedUp,
+            transports,
+        } = registrationInfo.credential;
 
         // Base64URL encode ArrayBuffers.
-        const base64PublicKey = isoBase64URL.fromBuffer(credentialPublicKey);
+        const base64PublicKey = isoBase64URL.fromBuffer(publicKey);
 
         const newPasskey: Passkey = {
             id: credentialID,
             publicKey: base64PublicKey,
             counter,
-            deviceType: credentialDeviceType,
-            backedUp: credentialBackedUp,
-            transports: credential?.response?.transports,
+            deviceType,
+            backedUp,
+            transports,
         };
 
         // Store the credential ID in the database
@@ -161,9 +162,9 @@ export default {
             },
             expectedOrigin: origin,
             expectedRPID: domain,
-            authenticator: {
-                credentialID: passkeyData.id,
-                credentialPublicKey: isoBase64URL.toBuffer(passkeyData.publicKey),
+            credential: {
+                id: passkeyData.id,
+                publicKey: isoBase64URL.toBuffer(passkeyData.publicKey),
                 counter: counter || passkeyData.counter,
                 transports: passkeyData.transports,
             },
