@@ -6,7 +6,23 @@
   <a href="CHANGELOG_EN.md">🇺🇸 English</a>
 </p>
 
-## v1.4.0(main)
+## v1.5.0(main)
+
+### Features
+
+- feat: |Auto Reply| Add regex matching support for sender filter using `/pattern/` syntax (e.g. `/@example\.com$/`), backward compatible with prefix matching
+
+### Bug Fixes
+
+- fix: |Auto Reply| Fix auto-reply not triggering when `source_prefix` is empty string (#459), empty value now correctly matches all senders
+
+### Testing
+
+- test: |E2E| Add auto-reply trigger E2E tests covering empty prefix, prefix matching, regex matching, and disabled state
+
+### Improvements
+
+## v1.4.0
 
 ### Features
 
