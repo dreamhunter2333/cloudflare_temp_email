@@ -181,6 +181,8 @@ const currentLoginMethod = computed(() => {
 })
 
 onMounted(async () => {
+  // make sure openSettings is fetched for turnstile check
+  if (!openSettings.value.fetched) await api.getOpenSettings(message);
   // make sure user_id is fetched
   if (!userSettings.value.user_id) await api.getUserSettings(message);
 })
