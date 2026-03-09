@@ -70,6 +70,7 @@ const user = ref({
     code: ""
 });
 const cfToken = ref("")
+const loginCfToken = ref("")
 
 const emailLogin = async () => {
     if (!user.value.email || !user.value.password) {
@@ -83,7 +84,7 @@ const emailLogin = async () => {
                 email: user.value.email,
                 // hash password
                 password: await hashPassword(user.value.password),
-                cf_token: cfToken.value
+                cf_token: loginCfToken.value
             })
         });
         userJwt.value = res.jwt;
@@ -220,7 +221,7 @@ onMounted(async () => {
                     <n-form-item-row :label="t('password')" required>
                         <n-input v-model:value="user.password" type="password" show-password-on="click" />
                     </n-form-item-row>
-                    <Turnstile v-if="openSettings.enableLoginTurnstileCheck" v-model:value="cfToken" />
+                    <Turnstile v-if="openSettings.enableLoginTurnstileCheck" v-model:value="loginCfToken" />
                     <n-button @click="emailLogin" type="primary" block secondary strong>
                         {{ t('login') }}
                     </n-button>
@@ -251,7 +252,7 @@ onMounted(async () => {
                     <n-form-item-row :label="t('password')" required>
                         <n-input v-model:value="user.password" type="password" show-password-on="click" />
                     </n-form-item-row>
-                    <Turnstile v-model:value="cfToken" />
+                    <Turnstile v-if="userOpenSettings.enableMailVerify" v-model:value="cfToken" />
                     <n-form-item-row v-if="userOpenSettings.enableMailVerify" :label="t('verifyCode')" required>
                         <n-input-group>
                             <n-input v-model:value="user.code" />
@@ -262,6 +263,7 @@ onMounted(async () => {
                             </n-button>
                         </n-input-group>
                     </n-form-item-row>
+                    <Turnstile v-if="!userOpenSettings.enableMailVerify" v-model:value="cfToken" />
                 </n-form>
                 <n-button @click="emailSignup" type="primary" block secondary strong>
                     {{ t('register') }}

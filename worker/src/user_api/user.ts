@@ -78,16 +78,19 @@ export default {
         }
         // check request
         const { email, password, code, cf_token } = await c.req.json();
-        // check cf turnstile
-        try {
-            await checkCfTurnstile(c, cf_token);
-        } catch (error) {
-            return c.text(msgs.TurnstileCheckFailedMsg, 400)
-        }
         if (!email || !password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
         checkUserPassword(password);
+        // check cf turnstile only when mail verify is disabled
+        // (when enabled, verify_code endpoint already checks turnstile)
+        if (!settings.enableMailVerify) {
+            try {
+                await checkCfTurnstile(c, cf_token);
+            } catch (error) {
+                return c.text(msgs.TurnstileCheckFailedMsg, 400)
+            }
+        }
         if (settings.enableMailVerify && !code) {
             return c.text(msgs.InvalidVerifyCodeMsg, 400)
         }
