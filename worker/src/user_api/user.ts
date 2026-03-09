@@ -181,7 +181,7 @@ export default {
             try {
                 await checkCfTurnstile(c, cf_token);
             } catch (error) {
-                return c.text(msgs.TurnstileCheckFailedMsg, 500)
+                return c.text(msgs.TurnstileCheckFailedMsg, 400)
             }
         }
         const { id: user_id, password: dbPassword } = await c.env.DB.prepare(

@@ -12,7 +12,7 @@ api.post('/open_api/site_login', async (c) => {
         try {
             await checkCfTurnstile(c, cf_token);
         } catch (error) {
-            return c.text(msgs.TurnstileCheckFailedMsg, 500)
+            return c.text(msgs.TurnstileCheckFailedMsg, 400)
         }
     }
     const passwords = getPasswords(c);
@@ -30,7 +30,7 @@ api.post('/open_api/admin_login', async (c) => {
         try {
             await checkCfTurnstile(c, cf_token);
         } catch (error) {
-            return c.text(msgs.TurnstileCheckFailedMsg, 500)
+            return c.text(msgs.TurnstileCheckFailedMsg, 400)
         }
     }
     const adminPasswords = getAdminPasswords(c);
