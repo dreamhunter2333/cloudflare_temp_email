@@ -20,6 +20,12 @@
 
 - test: |E2E| Add auto-reply trigger E2E tests covering empty prefix, prefix matching, regex matching, and disabled state
 
+### Docs
+
+- docs: |Telegram| Add per-user mail push and global push documentation (#769)
+- docs: |Webhook| Add webhook template examples for Telegram Bot, WeChat Work, Discord and other common push platforms
+- feat: |Webhook| Add Telegram Bot, WeChat Work, Discord preset templates to frontend webhook settings
+
 ### Improvements
 
 ## v1.4.0

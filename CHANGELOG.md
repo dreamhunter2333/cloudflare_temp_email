@@ -20,6 +20,12 @@
 
 - test: |E2E| 新增自动回复触发 E2E 测试，覆盖空前缀、前缀匹配、正则匹配和禁用状态场景
 
+### Docs
+
+- docs: |Telegram| 新增每用户邮件推送和全局推送功能说明文档（#769）
+- docs: |Webhook| 新增 Telegram Bot、企业微信、Discord 等常用推送平台的 Webhook 模板示例
+- feat: |Webhook| 前端预设模板新增 Telegram Bot、企业微信、Discord 三个模板
+
 ### Improvements
 
 ## v1.4.0
