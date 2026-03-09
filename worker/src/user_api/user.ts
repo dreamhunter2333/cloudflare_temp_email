@@ -15,7 +15,7 @@ export default {
         try {
             await checkCfTurnstile(c, cf_token);
         } catch (error) {
-            return c.text(msgs.TurnstileCheckFailedMsg, 500)
+            return c.text(msgs.TurnstileCheckFailedMsg, 400)
         }
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value)
@@ -77,7 +77,13 @@ export default {
             return c.text(msgs.UserRegistrationDisabledMsg, 403);
         }
         // check request
-        const { email, password, code } = await c.req.json();
+        const { email, password, code, cf_token } = await c.req.json();
+        // check cf turnstile
+        try {
+            await checkCfTurnstile(c, cf_token);
+        } catch (error) {
+            return c.text(msgs.TurnstileCheckFailedMsg, 400)
+        }
         if (!email || !password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }

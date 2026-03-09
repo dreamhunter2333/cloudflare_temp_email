@@ -17,7 +17,7 @@ api.post('/open_api/site_login', async (c) => {
     }
     const passwords = getPasswords(c);
     if (!passwords.length || !password || !passwords.includes(password)) {
-        return c.text(msgs.NeedAdminPasswordMsg, 401)
+        return c.text(msgs.CustomAuthPasswordMsg, 401)
     }
     return c.json({ success: true })
 })

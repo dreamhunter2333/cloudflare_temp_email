@@ -150,7 +150,8 @@ const emailSignup = async () => {
                 email: user.value.email,
                 // hash password
                 password: await hashPassword(user.value.password),
-                code: user.value.code
+                code: user.value.code,
+                cf_token: cfToken.value
             }),
             message: message
         });
@@ -250,7 +251,7 @@ onMounted(async () => {
                     <n-form-item-row :label="t('password')" required>
                         <n-input v-model:value="user.password" type="password" show-password-on="click" />
                     </n-form-item-row>
-                    <Turnstile v-if="userOpenSettings.enableMailVerify" v-model:value="cfToken" />
+                    <Turnstile v-model:value="cfToken" />
                     <n-form-item-row v-if="userOpenSettings.enableMailVerify" :label="t('verifyCode')" required>
                         <n-input-group>
                             <n-input v-model:value="user.code" />

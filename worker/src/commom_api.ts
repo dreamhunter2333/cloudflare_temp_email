@@ -4,6 +4,7 @@ import utils from './utils';
 import { CONSTANTS } from './constants';
 import { isS3Enabled } from './mails_api/s3_attachment';
 import { isAnySendMailEnabled } from './common';
+
 const api = new Hono<HonoCustomType>
 
 api.get('/open_api/settings', async (c) => {

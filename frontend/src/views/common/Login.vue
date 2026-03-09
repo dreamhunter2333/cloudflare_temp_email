@@ -47,6 +47,7 @@ const credential = ref('')
 const emailName = ref("")
 const emailDomain = ref("")
 const cfToken = ref("")
+const loginCfToken = ref("")
 const loginMethod = ref('credential') // 'credential' or 'password'
 const loginAddress = ref('')
 const loginPassword = ref('')
@@ -73,7 +74,7 @@ const login = async () => {
                 body: JSON.stringify({
                     email: loginAddress.value,
                     password: await hashPassword(loginPassword.value),
-                    cf_token: cfToken.value
+                    cf_token: loginCfToken.value
                 })
             });
             jwt.value = res.jwt;
@@ -291,7 +292,7 @@ onMounted(async () => {
                     </div>
 
                     <Turnstile v-if="openSettings.enableLoginTurnstileCheck && loginMethod === 'password'"
-                        v-model:value="cfToken" />
+                        v-model:value="loginCfToken" />
 
                     <div class="switch-login-button">
                         <n-button v-if="openSettings?.enableAddressPassword"
