@@ -56,7 +56,10 @@ api.post('/open_api/credential_login', async (c) => {
         return c.text(msgs.InvalidAddressCredentialMsg, 401)
     }
     try {
-        await Jwt.verify(credential, c.env.JWT_SECRET, "HS256");
+        const payload = await Jwt.verify(credential, c.env.JWT_SECRET, "HS256");
+        if (!payload.address) {
+            return c.text(msgs.InvalidAddressCredentialMsg, 401)
+        }
     } catch (error) {
         return c.text(msgs.InvalidAddressCredentialMsg, 401)
     }
