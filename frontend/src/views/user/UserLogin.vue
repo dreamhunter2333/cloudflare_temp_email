@@ -69,9 +69,11 @@ const user = ref({
     password: "",
     code: ""
 });
-const cfToken = ref("")
+const signupCfToken = ref("")
+const resetCfToken = ref("")
 const loginCfToken = ref("")
 const signupTurnstileRef = ref(null)
+const resetTurnstileRef = ref(null)
 const loginTurnstileRef = ref(null)
 
 const emailLogin = async () => {
@@ -110,7 +112,8 @@ const sendVerificationCode = async () => {
         message.error(t('pleaseInputEmail'));
         return;
     }
-    if (openSettings.value.cfTurnstileSiteKey && !cfToken.value && userOpenSettings.value.enableMailVerify) {
+    const currentCfToken = showModal.value ? resetCfToken.value : signupCfToken.value;
+    if (openSettings.value.cfTurnstileSiteKey && !currentCfToken && userOpenSettings.value.enableMailVerify) {
         message.error(t('pleaseCompleteTurnstile'));
         return;
     }
@@ -119,7 +122,7 @@ const sendVerificationCode = async () => {
             method: "POST",
             body: JSON.stringify({
                 email: user.value.email,
-                cf_token: cfToken.value
+                cf_token: currentCfToken
             })
         });
         if (res && res.expirationTtl) {
@@ -136,7 +139,11 @@ const sendVerificationCode = async () => {
     } catch (error) {
         message.error(error.message || "send verification code failed");
     }
-    signupTurnstileRef.value?.refresh?.();
+    if (showModal.value) {
+        resetTurnstileRef.value?.refresh?.();
+    } else {
+        signupTurnstileRef.value?.refresh?.();
+    }
 };
 
 const emailSignup = async () => {
@@ -156,7 +163,7 @@ const emailSignup = async () => {
                 // hash password
                 password: await hashPassword(user.value.password),
                 code: user.value.code,
-                cf_token: cfToken.value
+                cf_token: showModal.value ? resetCfToken.value : signupCfToken.value
             }),
             message: message
         });
@@ -256,7 +263,7 @@ onMounted(async () => {
                     <n-form-item-row :label="t('password')" required>
                         <n-input v-model:value="user.password" type="password" show-password-on="click" />
                     </n-form-item-row>
-                    <Turnstile ref="signupTurnstileRef" v-if="userOpenSettings.enableMailVerify" v-model:value="cfToken" />
+                    <Turnstile ref="signupTurnstileRef" v-if="userOpenSettings.enableMailVerify" v-model:value="signupCfToken" />
                     <n-form-item-row v-if="userOpenSettings.enableMailVerify" :label="t('verifyCode')" required>
                         <n-input-group>
                             <n-input v-model:value="user.code" />
@@ -267,7 +274,7 @@ onMounted(async () => {
                             </n-button>
                         </n-input-group>
                     </n-form-item-row>
-                    <Turnstile ref="signupTurnstileRef" v-if="!userOpenSettings.enableMailVerify" v-model:value="cfToken" />
+                    <Turnstile ref="signupTurnstileRef" v-if="!userOpenSettings.enableMailVerify" v-model:value="signupCfToken" />
                 </n-form>
                 <n-button @click="emailSignup" type="primary" block secondary strong>
                     {{ t('register') }}
@@ -282,7 +289,7 @@ onMounted(async () => {
                 <n-form-item-row :label="t('password')" required>
                     <n-input v-model:value="user.password" type="password" show-password-on="click" />
                 </n-form-item-row>
-                <Turnstile v-model:value="cfToken" />
+                <Turnstile ref="resetTurnstileRef" v-model:value="resetCfToken" />
                 <n-form-item-row :label="t('verifyCode')" required>
                     <n-input-group>
                         <n-input v-model:value="user.code" />
