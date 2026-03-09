@@ -11,7 +11,7 @@
 ### Features
 
 - feat: |Auto Reply| Add regex matching support for sender filter using `/pattern/` syntax (e.g. `/@example\.com$/`), backward compatible with prefix matching
-- feat: |Turnstile| Add Turnstile CAPTCHA for login forms via `ENABLE_LOGIN_TURNSTILE_CHECK` env var, covering admin login, user login, and address password login (#767)
+- feat: |Turnstile| Add Turnstile CAPTCHA for login and registration forms via `ENABLE_LOGIN_TURNSTILE_CHECK` env var (#767)
 
 ### Bug Fixes
 
