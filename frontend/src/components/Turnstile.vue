@@ -21,6 +21,9 @@ const containerId = `cf-turnstile-${Math.random().toString(36).slice(2, 9)}`
 const cfTurnstileId = ref("")
 const turnstileLoading = ref(false)
 
+const refresh = () => checkCfTurnstile(true)
+defineExpose({ refresh })
+
 const checkCfTurnstile = async (remove) => {
     if (!openSettings.value.cfTurnstileSiteKey) return;
     turnstileLoading.value = true;

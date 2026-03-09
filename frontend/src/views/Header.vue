@@ -12,7 +12,7 @@ import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-import { getRouterPathWithLang } from '../utils'
+import { getRouterPathWithLang, hashPassword } from '../utils'
 import Turnstile from '../components/Turnstile.vue'
 
 const message = useMessage()
@@ -37,15 +37,13 @@ const cfToken = ref('')
 
 const authFunc = async () => {
     try {
-        if (openSettings.value.enableLoginTurnstileCheck) {
-            await api.fetch('/open_api/site_login', {
-                method: 'POST',
-                body: JSON.stringify({
-                    password: auth.value,
-                    cf_token: cfToken.value
-                })
-            });
-        }
+        await api.fetch('/open_api/site_login', {
+            method: 'POST',
+            body: JSON.stringify({
+                password: await hashPassword(auth.value),
+                cf_token: cfToken.value
+            })
+        });
         location.reload()
     } catch (error) {
         message.error(error.message || "error");

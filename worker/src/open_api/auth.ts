@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
-import utils, { checkCfTurnstile, getAdminPasswords, getPasswords } from '../utils';
+import utils, { checkCfTurnstile, getPasswords, getAdminPasswords, hashPassword } from '../utils';
 import i18n from '../i18n';
 
 const api = new Hono<HonoCustomType>()
@@ -17,7 +17,8 @@ api.post('/open_api/site_login', async (c) => {
         }
     }
     const passwords = getPasswords(c);
-    if (!passwords.length || !password || !passwords.includes(password)) {
+    const hashedPasswords = await Promise.all(passwords.map(p => hashPassword(p)));
+    if (!hashedPasswords.length || !password || !hashedPasswords.includes(password)) {
         return c.text(msgs.CustomAuthPasswordMsg, 401)
     }
     return c.json({ success: true })
@@ -26,7 +27,6 @@ api.post('/open_api/site_login', async (c) => {
 api.post('/open_api/admin_login', async (c) => {
     const { password, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
-    // check cf turnstile if login turnstile is enabled
     if (utils.getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)) {
         try {
             await checkCfTurnstile(c, cf_token);
@@ -35,7 +35,8 @@ api.post('/open_api/admin_login', async (c) => {
         }
     }
     const adminPasswords = getAdminPasswords(c);
-    if (!adminPasswords.length || !password || !adminPasswords.includes(password)) {
+    const hashedPasswords = await Promise.all(adminPasswords.map(p => hashPassword(p)));
+    if (!hashedPasswords.length || !password || !hashedPasswords.includes(password)) {
         return c.text(msgs.NeedAdminPasswordMsg, 401)
     }
     return c.json({ success: true })

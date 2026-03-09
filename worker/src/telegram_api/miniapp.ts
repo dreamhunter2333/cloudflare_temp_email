@@ -89,7 +89,7 @@ async function newTelegramAddress(c: Context<HonoCustomType>): Promise<Response>
     try {
         await checkCfTurnstile(c, cf_token);
     } catch (error) {
-        return c.text(msgs.TurnstileCheckFailedMsg, 500)
+        return c.text(msgs.TurnstileCheckFailedMsg, 400)
     }
     try {
         const userId = await checkTelegramAuth(c, initData);

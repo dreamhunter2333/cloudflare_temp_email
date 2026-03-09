@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-import { getRouterPathWithLang } from '../utils'
+import { getRouterPathWithLang, hashPassword } from '../utils'
 import Turnstile from '../components/Turnstile.vue'
 
 import SenderAccess from './admin/SenderAccess.vue'
@@ -49,15 +49,13 @@ const cfToken = ref('')
 
 const authFunc = async () => {
   try {
-    if (openSettings.value.enableLoginTurnstileCheck) {
-      await api.fetch('/open_api/admin_login', {
-        method: 'POST',
-        body: JSON.stringify({
-          password: tmpAdminAuth.value,
-          cf_token: cfToken.value
-        })
-      });
-    }
+    await api.fetch('/open_api/admin_login', {
+      method: 'POST',
+      body: JSON.stringify({
+        password: await hashPassword(tmpAdminAuth.value),
+        cf_token: cfToken.value
+      })
+    });
     adminAuth.value = tmpAdminAuth.value;
     location.reload()
   } catch (error) {
