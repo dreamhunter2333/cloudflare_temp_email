@@ -49,7 +49,7 @@ export default {
             return c.text(msgs.EmailPasswordRequiredMsg, 400);
         }
 
-        // check cf turnstile if login turnstile is enabled
+        // check cf turnstile if global turnstile is enabled
         if (utils.isGlobalTurnstileEnabled(c)) {
             try {
                 await checkCfTurnstile(c, cf_token);

@@ -185,7 +185,7 @@ export default {
         const { email, password, cf_token } = await c.req.json();
         const msgs = i18n.getMessagesbyContext(c);
         if (!email || !password) return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
-        // check cf turnstile if login turnstile is enabled
+        // check cf turnstile if global turnstile is enabled
         if (utils.isGlobalTurnstileEnabled(c)) {
             try {
                 await checkCfTurnstile(c, cf_token);
