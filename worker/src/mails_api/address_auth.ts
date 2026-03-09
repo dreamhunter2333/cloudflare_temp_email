@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import i18n from '../i18n';
-import { getBooleanValue, hashPassword, checkCfTurnstile } from '../utils';
+import { getBooleanValue, hashPassword, checkCfTurnstile, isGlobalTurnstileEnabled } from '../utils';
 import { Jwt } from 'hono/utils/jwt';
 
 export default {
@@ -50,7 +50,7 @@ export default {
         }
 
         // check cf turnstile if login turnstile is enabled
-        if (getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)) {
+        if (isGlobalTurnstileEnabled(c)) {
             try {
                 await checkCfTurnstile(c, cf_token);
             } catch (error) {

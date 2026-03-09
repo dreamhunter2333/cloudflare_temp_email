@@ -192,7 +192,7 @@ onMounted(async () => {
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
       <n-input v-model:value="tmpAdminAuth" type="password" show-password-on="click" />
-      <Turnstile v-if="openSettings.enableLoginTurnstileCheck" v-model:value="cfToken" />
+      <Turnstile v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="cfToken" />
       <template #action>
         <n-button @click="authFunc" type="primary" :loading="loading">
           {{ t('ok') }}

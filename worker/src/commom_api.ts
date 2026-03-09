@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 
-import utils from './utils';
+import utils, { isGlobalTurnstileEnabled } from './utils';
 import { CONSTANTS } from './constants';
 import { isS3Enabled } from './mails_api/s3_attachment';
 import { isAnySendMailEnabled } from './common';
@@ -45,7 +45,7 @@ api.get('/open_api/settings', async (c) => {
         "disableAdminPasswordCheck": utils.getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK),
         "enableAddressPassword": utils.getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD),
         "statusUrl": utils.getStringValue(c.env.STATUS_URL),
-        "enableLoginTurnstileCheck": utils.getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)
+        "enableGlobalTurnstileCheck": isGlobalTurnstileEnabled(c)
     });
 })
 

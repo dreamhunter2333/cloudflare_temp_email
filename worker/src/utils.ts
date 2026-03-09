@@ -272,6 +272,12 @@ export const sendAdminInternalMail = async (
     }
 };
 
+export const isGlobalTurnstileEnabled = (c: Context<HonoCustomType>): boolean => {
+    return getBooleanValue(c.env.ENABLE_GLOBAL_TURNSTILE_CHECK)
+        && !!c.env.CF_TURNSTILE_SITE_KEY
+        && !!c.env.CF_TURNSTILE_SECRET_KEY;
+}
+
 export const checkCfTurnstile = async (
     c: Context<HonoCustomType>, token: string | undefined | null
 ): Promise<void> => {
@@ -369,6 +375,7 @@ export default {
     checkIsAdmin,
     getEnvStringList,
     sendAdminInternalMail,
+    isGlobalTurnstileEnabled,
     checkCfTurnstile,
     checkUserPassword,
     getJsonSetting,

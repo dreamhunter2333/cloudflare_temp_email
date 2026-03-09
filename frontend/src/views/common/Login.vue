@@ -298,7 +298,7 @@ onMounted(async () => {
                         </n-form-item-row>
                     </div>
 
-                    <Turnstile v-if="openSettings.enableLoginTurnstileCheck"
+                    <Turnstile v-if="openSettings.enableGlobalTurnstileCheck"
                         v-model:value="loginCfToken" />
 
                     <div class="switch-login-button">

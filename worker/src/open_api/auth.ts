@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
-import utils, { checkCfTurnstile, getPasswords, getAdminPasswords, hashPassword } from '../utils';
+import { isGlobalTurnstileEnabled, checkCfTurnstile, getPasswords, getAdminPasswords, hashPassword } from '../utils';
 import i18n from '../i18n';
 
 const api = new Hono<HonoCustomType>()
@@ -9,7 +9,7 @@ const api = new Hono<HonoCustomType>()
 api.post('/open_api/site_login', async (c) => {
     const { password, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
-    if (utils.getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)) {
+    if (isGlobalTurnstileEnabled(c)) {
         try {
             await checkCfTurnstile(c, cf_token);
         } catch (error) {
@@ -27,7 +27,7 @@ api.post('/open_api/site_login', async (c) => {
 api.post('/open_api/admin_login', async (c) => {
     const { password, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
-    if (utils.getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)) {
+    if (isGlobalTurnstileEnabled(c)) {
         try {
             await checkCfTurnstile(c, cf_token);
         } catch (error) {
@@ -45,7 +45,7 @@ api.post('/open_api/admin_login', async (c) => {
 api.post('/open_api/credential_login', async (c) => {
     const { credential, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
-    if (utils.getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)) {
+    if (isGlobalTurnstileEnabled(c)) {
         try {
             await checkCfTurnstile(c, cf_token);
         } catch (error) {

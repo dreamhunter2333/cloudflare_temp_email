@@ -39,7 +39,7 @@ export const useGlobalState = createGlobalState(
             disableAdminPasswordCheck: false,
             enableAddressPassword: false,
             statusUrl: '',
-            enableLoginTurnstileCheck: false,
+            enableGlobalTurnstileCheck: false,
         })
         const settings = ref({
             fetched: false,

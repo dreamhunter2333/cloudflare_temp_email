@@ -103,7 +103,7 @@
 | `STATUS_URL`               | 文本        | 状态监控页面 URL，配置后显示 Status 菜单按钮     | `https://status.example.com` |
 | `CF_TURNSTILE_SITE_KEY`    | 文本/Secret | Turnstile 人机验证配置（用于新建邮箱、注册验证码等） | `xxx`                 |
 | `CF_TURNSTILE_SECRET_KEY`  | 文本/Secret | Turnstile 人机验证配置（用于新建邮箱、注册验证码等） | `xxx`                 |
-| `ENABLE_LOGIN_TURNSTILE_CHECK` | 文本/JSON | 启用登录表单的 Turnstile 人机验证（管理员登录、用户登录、邮箱密码登录），需先配置上述 Turnstile 密钥 | `true` |
+| `ENABLE_GLOBAL_TURNSTILE_CHECK` | 文本/JSON | 启用全局登录表单的 Turnstile 人机验证（管理员登录、用户登录、邮箱密码登录），需同时配置上述 Turnstile 密钥 | `true` |
 
 ## Telegram Bot 相关变量
 

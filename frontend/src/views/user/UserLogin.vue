@@ -221,7 +221,7 @@ onMounted(async () => {
                     <n-form-item-row :label="t('password')" required>
                         <n-input v-model:value="user.password" type="password" show-password-on="click" />
                     </n-form-item-row>
-                    <Turnstile v-if="openSettings.enableLoginTurnstileCheck" v-model:value="loginCfToken" />
+                    <Turnstile v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="loginCfToken" />
                     <n-button @click="emailLogin" type="primary" block secondary strong>
                         {{ t('login') }}
                     </n-button>

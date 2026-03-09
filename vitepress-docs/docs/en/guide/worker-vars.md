@@ -103,7 +103,7 @@
 | `STATUS_URL`               | Text        | Status monitoring page URL, shows Status menu button when configured     | `https://status.example.com` |
 | `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
 | `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
-| `ENABLE_LOGIN_TURNSTILE_CHECK` | Text/JSON | Enable Turnstile CAPTCHA for login forms (admin login, user login, address password login), requires Turnstile keys above | `true` |
+| `ENABLE_GLOBAL_TURNSTILE_CHECK` | Text/JSON | Enable global Turnstile CAPTCHA for all login forms (admin login, user login, address password login), requires Turnstile keys above | `true` |
 
 ## Telegram Bot Related Variables
 
