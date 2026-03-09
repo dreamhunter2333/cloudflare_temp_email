@@ -82,7 +82,8 @@ const emailLogin = async () => {
             body: JSON.stringify({
                 email: user.value.email,
                 // hash password
-                password: await hashPassword(user.value.password)
+                password: await hashPassword(user.value.password),
+                cf_token: cfToken.value
             })
         });
         userJwt.value = res.jwt;
@@ -218,6 +219,7 @@ onMounted(async () => {
                     <n-form-item-row :label="t('password')" required>
                         <n-input v-model:value="user.password" type="password" show-password-on="click" />
                     </n-form-item-row>
+                    <Turnstile v-if="openSettings.enableLoginTurnstileCheck" v-model:value="cfToken" />
                     <n-button @click="emailLogin" type="primary" block secondary strong>
                         {{ t('login') }}
                     </n-button>

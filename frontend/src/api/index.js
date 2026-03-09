@@ -93,6 +93,7 @@ const getOpenSettings = async (message, notification) => {
             isS3Enabled: res["isS3Enabled"] || false,
             enableAddressPassword: res["enableAddressPassword"] || false,
             statusUrl: res["statusUrl"] || "",
+            enableLoginTurnstileCheck: res["enableLoginTurnstileCheck"] || false,
         });
         if (openSettings.value.needAuth) {
             showAuth.value = true;

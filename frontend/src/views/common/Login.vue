@@ -72,7 +72,8 @@ const login = async () => {
                 method: 'POST',
                 body: JSON.stringify({
                     email: loginAddress.value,
-                    password: await hashPassword(loginPassword.value)
+                    password: await hashPassword(loginPassword.value),
+                    cf_token: cfToken.value
                 })
             });
             jwt.value = res.jwt;
@@ -288,6 +289,9 @@ onMounted(async () => {
                             <n-input v-model:value="credential" type="textarea" :autosize="{ minRows: 3 }" />
                         </n-form-item-row>
                     </div>
+
+                    <Turnstile v-if="openSettings.enableLoginTurnstileCheck && loginMethod === 'password'"
+                        v-model:value="cfToken" />
 
                     <div class="switch-login-button">
                         <n-button v-if="openSettings?.enableAddressPassword"

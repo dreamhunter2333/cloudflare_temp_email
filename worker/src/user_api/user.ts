@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue } from "../utils"
+import { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue, getBooleanValue } from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
 import { sendMail } from "../mails_api/send_mail_api";
@@ -173,9 +173,17 @@ export default {
         return c.json({ success: true })
     },
     login: async (c: Context<HonoCustomType>) => {
-        const { email, password } = await c.req.json();
+        const { email, password, cf_token } = await c.req.json();
         const msgs = i18n.getMessagesbyContext(c);
         if (!email || !password) return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
+        // check cf turnstile if login turnstile is enabled
+        if (getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)) {
+            try {
+                await checkCfTurnstile(c, cf_token);
+            } catch (error) {
+                return c.text(msgs.TurnstileCheckFailedMsg, 500)
+            }
+        }
         const { id: user_id, password: dbPassword } = await c.env.DB.prepare(
             `SELECT id, password FROM users where user_email = ?`
         ).bind(email).first() || {};
