@@ -26,6 +26,77 @@
 
 ![telegram](/feature/address-webhook.png)
 
+## Webhook 模板示例
+
+### Telegram Bot 推送
+
+通过 Webhook 直接调用 Telegram Bot API 推送邮件通知，适合不想部署完整 Telegram Bot 集成或需要自定义推送格式的场景。
+
+- **URL**: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage`
+- **Method**: `POST`
+- **Headers**:
+
+```json
+{
+    "Content-Type": "application/json"
+}
+```
+
+- **Body**:
+
+```json
+{
+    "chat_id": "YOUR_CHAT_ID",
+    "text": "New Email\nFrom: ${from}\nTo: ${to}\nSubject: ${subject}\nURL: ${url}"
+}
+```
+
+> [!TIP]
+> 获取 `chat_id`：向 Bot 发送一条消息，然后访问 `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates` 查看返回结果中的 `chat.id` 字段
+
+### 企业微信机器人推送
+
+- **URL**: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY`
+- **Method**: `POST`
+- **Headers**:
+
+```json
+{
+    "Content-Type": "application/json"
+}
+```
+
+- **Body**:
+
+```json
+{
+    "msgtype": "text",
+    "text": {
+        "content": "New Email\nFrom: ${from}\nTo: ${to}\nSubject: ${subject}\nURL: ${url}"
+    }
+}
+```
+
+### Discord Webhook 推送
+
+- **URL**: `https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN`
+- **Method**: `POST`
+- **Headers**:
+
+```json
+{
+    "Content-Type": "application/json"
+}
+```
+
+- **Body**:
+
+```json
+{
+    "content": "**New Email**\nFrom: ${from}\nTo: ${to}\nSubject: ${subject}\nURL: ${url}"
+}
+```
+
 ## webhook 数据格式
 
 要获取 url 需要配置 worker 的 `FRONTEND_URL` 为你的前端地址，或者你可以通过 `id` 自己拼接 url = `${FRONTEND_URL}?mail_id=${id}`

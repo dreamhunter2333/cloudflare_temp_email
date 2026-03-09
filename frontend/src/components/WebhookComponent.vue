@@ -117,6 +117,55 @@ const presets: WebhookPreset[] = [
             }, null, 2),
         },
     },
+    {
+        name: 'Telegram Bot',
+        doc: 'https://core.telegram.org/bots/api#sendmessage',
+        settings: {
+            enabled: true,
+            url: 'https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage',
+            method: 'POST',
+            headers: JSON.stringify({
+                'Content-Type': 'application/json',
+            }, null, 2),
+            body: JSON.stringify({
+                "chat_id": "YOUR_CHAT_ID",
+                "text": "New Email\nFrom: ${from}\nTo: ${to}\nSubject: ${subject}\nURL: ${url}"
+            }, null, 2),
+        },
+    },
+    {
+        name: 'WeChat Work',
+        doc: 'https://developer.work.weixin.qq.com/document/path/91770',
+        settings: {
+            enabled: true,
+            url: 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_KEY',
+            method: 'POST',
+            headers: JSON.stringify({
+                'Content-Type': 'application/json',
+            }, null, 2),
+            body: JSON.stringify({
+                "msgtype": "text",
+                "text": {
+                    "content": "New Email\nFrom: ${from}\nTo: ${to}\nSubject: ${subject}\nURL: ${url}"
+                }
+            }, null, 2),
+        },
+    },
+    {
+        name: 'Discord',
+        doc: 'https://discord.com/developers/docs/resources/webhook',
+        settings: {
+            enabled: true,
+            url: 'https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN',
+            method: 'POST',
+            headers: JSON.stringify({
+                'Content-Type': 'application/json',
+            }, null, 2),
+            body: JSON.stringify({
+                "content": "**New Email**\nFrom: ${from}\nTo: ${to}\nSubject: ${subject}\nURL: ${url}"
+            }, null, 2),
+        },
+    },
 ]
 
 const presetDropdownOptions: DropdownOption[] = presets.map((preset, index) => ({

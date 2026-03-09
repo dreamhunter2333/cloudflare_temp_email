@@ -55,6 +55,31 @@ You need to configure `TG_ALLOW_USER_LANG = true` in worker variables to enable 
 
 Language preferences are saved to KV, and each user can set their preference independently.
 
+## Per-User Mail Push
+
+Telegram Bot supports **per-user push notifications**. After a user binds an address, emails received at that address are automatically pushed to the corresponding user.
+
+### User Workflow
+
+1. Find your deployed Bot in Telegram
+2. Use `/new [name@domain]` to create a new address, or `/bind <credential>` to bind an existing address
+3. Once bound, you will **automatically receive push notifications** when the address receives mail
+4. Use `/address` to view your bound addresses
+5. Use `/unbind <address>` to unbind an address
+
+> [!TIP]
+> Each user can bind up to `TG_MAX_ADDRESS` (default 5) addresses
+
+### Global Push
+
+Admins can enable **global mail push** in the admin panel under `Settings` -> `Telegram`, pushing all emails to a specified list of Telegram user IDs.
+
+- `enableGlobalMailPush`: Enable global push
+- `globalMailPushList`: List of Telegram user IDs to receive global push
+
+> [!NOTE]
+> Global push and per-user push can work simultaneously. If an address is bound to a user who is also in the global push list, they will receive two notifications.
+
 ## Mini App
 
 Can be deployed via command line or UI interface
