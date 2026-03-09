@@ -34,6 +34,7 @@ const menuValue = computed(() => {
 });
 
 const cfToken = ref('')
+const turnstileRef = ref(null)
 
 const authFunc = async () => {
     try {
@@ -47,6 +48,7 @@ const authFunc = async () => {
         location.reload()
     } catch (error) {
         message.error(error.message || "error");
+        turnstileRef.value?.refresh?.();
     }
 }
 
@@ -297,7 +299,7 @@ onMounted(async () => {
             :title="t('accessHeader')">
             <p>{{ t('accessTip') }}</p>
             <n-input v-model:value="auth" type="password" show-password-on="click" />
-            <Turnstile v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="cfToken" />
+            <Turnstile ref="turnstileRef" v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="cfToken" />
             <template #action>
                 <n-button :loading="loading" @click="authFunc" type="primary">
                     {{ t('ok') }}

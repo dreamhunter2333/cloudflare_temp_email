@@ -48,6 +48,7 @@ const emailName = ref("")
 const emailDomain = ref("")
 const cfToken = ref("")
 const loginCfToken = ref("")
+const loginTurnstileRef = ref(null)
 const loginMethod = ref('credential') // 'credential' or 'password'
 const loginAddress = ref('')
 const loginPassword = ref('')
@@ -87,6 +88,7 @@ const login = async () => {
             await router.push(getRouterPathWithLang("/", locale.value));
         } catch (error) {
             message.error(error.message || "error");
+            loginTurnstileRef.value?.refresh?.();
         }
         return;
     }
@@ -112,6 +114,7 @@ const login = async () => {
         await router.push(getRouterPathWithLang("/", locale.value));
     } catch (error) {
         message.error(error.message || "error");
+        loginTurnstileRef.value?.refresh?.();
     }
 }
 
@@ -298,7 +301,7 @@ onMounted(async () => {
                         </n-form-item-row>
                     </div>
 
-                    <Turnstile v-if="openSettings.enableGlobalTurnstileCheck"
+                    <Turnstile ref="loginTurnstileRef" v-if="openSettings.enableGlobalTurnstileCheck"
                         v-model:value="loginCfToken" />
 
                     <div class="switch-login-button">
