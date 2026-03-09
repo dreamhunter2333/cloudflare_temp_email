@@ -95,6 +95,13 @@ const login = async () => {
         return;
     }
     try {
+        await api.fetch('/open_api/credential_login', {
+            method: 'POST',
+            body: JSON.stringify({
+                credential: credential.value,
+                cf_token: loginCfToken.value
+            })
+        });
         jwt.value = credential.value;
         await api.getSettings();
         try {
@@ -291,7 +298,7 @@ onMounted(async () => {
                         </n-form-item-row>
                     </div>
 
-                    <Turnstile v-if="openSettings.enableLoginTurnstileCheck && loginMethod === 'password'"
+                    <Turnstile v-if="openSettings.enableLoginTurnstileCheck"
                         v-model:value="loginCfToken" />
 
                     <div class="switch-login-button">
