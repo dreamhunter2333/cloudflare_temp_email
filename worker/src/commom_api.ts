@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 
-import utils, { checkCfTurnstile, getAdminPasswords } from './utils';
+import utils, { checkCfTurnstile, getAdminPasswords, getPasswords } from './utils';
 import { CONSTANTS } from './constants';
 import { isS3Enabled } from './mails_api/s3_attachment';
 import { isAnySendMailEnabled } from './common';
@@ -46,8 +46,25 @@ api.get('/open_api/settings', async (c) => {
         "disableAdminPasswordCheck": utils.getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK),
         "enableAddressPassword": utils.getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD),
         "statusUrl": utils.getStringValue(c.env.STATUS_URL),
-        "enableTurnstileLogin": utils.getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)
+        "enableLoginTurnstileCheck": utils.getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)
     });
+})
+
+api.post('/open_api/site_login', async (c) => {
+    const { password, cf_token } = await c.req.json();
+    const msgs = i18n.getMessagesbyContext(c);
+    if (utils.getBooleanValue(c.env.ENABLE_LOGIN_TURNSTILE_CHECK)) {
+        try {
+            await checkCfTurnstile(c, cf_token);
+        } catch (error) {
+            return c.text(msgs.TurnstileCheckFailedMsg, 500)
+        }
+    }
+    const passwords = getPasswords(c);
+    if (!passwords.length || !password || !passwords.includes(password)) {
+        return c.text(msgs.NeedAdminPasswordMsg, 401)
+    }
+    return c.json({ success: true })
 })
 
 api.post('/open_api/admin_login', async (c) => {
