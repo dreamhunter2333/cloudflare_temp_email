@@ -47,6 +47,8 @@ const credential = ref('')
 const emailName = ref("")
 const emailDomain = ref("")
 const cfToken = ref("")
+const loginCfToken = ref("")
+const loginTurnstileRef = ref(null)
 const loginMethod = ref('credential') // 'credential' or 'password'
 const loginAddress = ref('')
 const loginPassword = ref('')
@@ -72,7 +74,8 @@ const login = async () => {
                 method: 'POST',
                 body: JSON.stringify({
                     email: loginAddress.value,
-                    password: await hashPassword(loginPassword.value)
+                    password: await hashPassword(loginPassword.value),
+                    cf_token: loginCfToken.value
                 })
             });
             jwt.value = res.jwt;
@@ -85,6 +88,7 @@ const login = async () => {
             await router.push(getRouterPathWithLang("/", locale.value));
         } catch (error) {
             message.error(error.message || "error");
+            loginTurnstileRef.value?.refresh?.();
         }
         return;
     }
@@ -93,6 +97,13 @@ const login = async () => {
         return;
     }
     try {
+        await api.fetch('/open_api/credential_login', {
+            method: 'POST',
+            body: JSON.stringify({
+                credential: credential.value,
+                cf_token: loginCfToken.value
+            })
+        });
         jwt.value = credential.value;
         await api.getSettings();
         try {
@@ -103,6 +114,7 @@ const login = async () => {
         await router.push(getRouterPathWithLang("/", locale.value));
     } catch (error) {
         message.error(error.message || "error");
+        loginTurnstileRef.value?.refresh?.();
     }
 }
 
@@ -288,6 +300,9 @@ onMounted(async () => {
                             <n-input v-model:value="credential" type="textarea" :autosize="{ minRows: 3 }" />
                         </n-form-item-row>
                     </div>
+
+                    <Turnstile ref="loginTurnstileRef" v-if="openSettings.enableGlobalTurnstileCheck"
+                        v-model:value="loginCfToken" />
 
                     <div class="switch-login-button">
                         <n-button v-if="openSettings?.enableAddressPassword"

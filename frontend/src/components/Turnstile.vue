@@ -17,17 +17,21 @@ const { locale, t } = useI18n({
     }
 });
 
+const containerId = `cf-turnstile-${Math.random().toString(36).slice(2, 9)}`
 const cfTurnstileId = ref("")
 const turnstileLoading = ref(false)
+
+const refresh = () => checkCfTurnstile(true)
+defineExpose({ refresh })
 
 const checkCfTurnstile = async (remove) => {
     if (!openSettings.value.cfTurnstileSiteKey) return;
     turnstileLoading.value = true;
     try {
-        let container = document.getElementById("cf-turnstile");
+        let container = document.getElementById(containerId);
         let count = 100;
         while (!container && count-- > 0) {
-            container = document.getElementById("cf-turnstile");
+            container = document.getElementById(containerId);
             await new Promise(r => setTimeout(r, 10));
         }
         count = 100;
@@ -38,7 +42,7 @@ const checkCfTurnstile = async (remove) => {
             window.turnstile.remove(cfTurnstileId.value);
         }
         cfTurnstileId.value = window.turnstile.render(
-            "#cf-turnstile",
+            `#${containerId}`,
             {
                 sitekey: openSettings.value.cfTurnstileSiteKey,
                 language: locale.value == 'zh' ? 'zh-CN' : 'en-US',
@@ -68,7 +72,7 @@ onMounted(() => {
         <n-spin description="loading..." :show="turnstileLoading">
             <n-form-item-row>
                 <n-flex vertical>
-                    <div id="cf-turnstile"></div>
+                    <div :id="containerId"></div>
                     <n-button text @click="checkCfTurnstile(true)">
                         {{ t('refresh') }}
                     </n-button>

@@ -101,8 +101,9 @@
 | `ADMIN_CONTACT`            | Text        | Admin contact information, can be any string, hidden if not configured   | `xxx@gmail.com`       |
 | `DISABLE_SHOW_GITHUB`      | Text/JSON   | Whether to show GitHub link                                              | `true`                |
 | `STATUS_URL`               | Text        | Status monitoring page URL, shows Status menu button when configured     | `https://status.example.com` |
-| `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration                                          | `xxx`                 |
-| `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration                                          | `xxx`                 |
+| `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
+| `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
+| `ENABLE_GLOBAL_TURNSTILE_CHECK` | Text/JSON | Enable global Turnstile CAPTCHA for all login forms (admin login, user login, address password login), requires Turnstile keys above | `true` |
 
 ## Telegram Bot Related Variables
 

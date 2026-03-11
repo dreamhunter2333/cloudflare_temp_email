@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import i18n from '../i18n';
-import { getBooleanValue, hashPassword } from '../utils';
+import utils, { getBooleanValue, hashPassword, checkCfTurnstile } from '../utils';
 import { Jwt } from 'hono/utils/jwt';
 
 export default {
@@ -47,6 +47,15 @@ export default {
 
         if (!email || !password) {
             return c.text(msgs.EmailPasswordRequiredMsg, 400);
+        }
+
+        // check cf turnstile if global turnstile is enabled
+        if (utils.isGlobalTurnstileEnabled(c)) {
+            try {
+                await checkCfTurnstile(c, cf_token);
+            } catch (error) {
+                return c.text(msgs.TurnstileCheckFailedMsg, 400)
+            }
         }
 
         // 查找地址

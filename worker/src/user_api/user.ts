@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue } from "../utils"
+import utils, { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue } from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
 import { sendMail } from "../mails_api/send_mail_api";
@@ -15,7 +15,7 @@ export default {
         try {
             await checkCfTurnstile(c, cf_token);
         } catch (error) {
-            return c.text(msgs.TurnstileCheckFailedMsg, 500)
+            return c.text(msgs.TurnstileCheckFailedMsg, 400)
         }
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value)
@@ -77,11 +77,20 @@ export default {
             return c.text(msgs.UserRegistrationDisabledMsg, 403);
         }
         // check request
-        const { email, password, code } = await c.req.json();
+        const { email, password, code, cf_token } = await c.req.json();
         if (!email || !password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
         checkUserPassword(password);
+        // check cf turnstile only when mail verify is disabled
+        // (when enabled, verify_code endpoint already checks turnstile)
+        if (!settings.enableMailVerify) {
+            try {
+                await checkCfTurnstile(c, cf_token);
+            } catch (error) {
+                return c.text(msgs.TurnstileCheckFailedMsg, 400)
+            }
+        }
         if (settings.enableMailVerify && !code) {
             return c.text(msgs.InvalidVerifyCodeMsg, 400)
         }
@@ -173,9 +182,17 @@ export default {
         return c.json({ success: true })
     },
     login: async (c: Context<HonoCustomType>) => {
-        const { email, password } = await c.req.json();
+        const { email, password, cf_token } = await c.req.json();
         const msgs = i18n.getMessagesbyContext(c);
         if (!email || !password) return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
+        // check cf turnstile if global turnstile is enabled
+        if (utils.isGlobalTurnstileEnabled(c)) {
+            try {
+                await checkCfTurnstile(c, cf_token);
+            } catch (error) {
+                return c.text(msgs.TurnstileCheckFailedMsg, 400)
+            }
+        }
         const { id: user_id, password: dbPassword } = await c.env.DB.prepare(
             `SELECT id, password FROM users where user_email = ?`
         ).bind(email).first() || {};

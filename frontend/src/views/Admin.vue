@@ -5,7 +5,8 @@ import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-import { getRouterPathWithLang } from '../utils'
+import { getRouterPathWithLang, hashPassword } from '../utils'
+import Turnstile from '../components/Turnstile.vue'
 
 import SenderAccess from './admin/SenderAccess.vue'
 import Statistics from "./admin/Statistics.vue"
@@ -44,12 +45,23 @@ const SendMail = defineAsyncComponent(() => {
     .finally(() => loading.value = false);
 });
 
+const cfToken = ref('')
+const turnstileRef = ref(null)
+
 const authFunc = async () => {
   try {
+    await api.fetch('/open_api/admin_login', {
+      method: 'POST',
+      body: JSON.stringify({
+        password: await hashPassword(tmpAdminAuth.value),
+        cf_token: cfToken.value
+      })
+    });
     adminAuth.value = tmpAdminAuth.value;
     location.reload()
   } catch (error) {
     message.error(error.message || "error");
+    turnstileRef.value?.refresh?.();
   }
 }
 
@@ -169,6 +181,8 @@ const currentLoginMethod = computed(() => {
 })
 
 onMounted(async () => {
+  // make sure openSettings is fetched for turnstile check
+  if (!openSettings.value.fetched) await api.getOpenSettings(message);
   // make sure user_id is fetched
   if (!userSettings.value.user_id) await api.getUserSettings(message);
 })
@@ -180,6 +194,7 @@ onMounted(async () => {
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
       <n-input v-model:value="tmpAdminAuth" type="password" show-password-on="click" />
+      <Turnstile ref="turnstileRef" v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="cfToken" />
       <template #action>
         <n-button @click="authFunc" type="primary" :loading="loading">
           {{ t('ok') }}

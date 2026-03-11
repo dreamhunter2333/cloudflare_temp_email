@@ -130,7 +130,7 @@ api.post('/api/new_address', async (c) => {
     try {
         await checkCfTurnstile(c, cf_token);
     } catch (error) {
-        return c.text(msgs.TurnstileCheckFailedMsg, 500)
+        return c.text(msgs.TurnstileCheckFailedMsg, 400)
     }
     // Check if custom email names are disabled from environment variable
     const disableCustomAddressName = getBooleanValue(c.env.DISABLE_CUSTOM_ADDRESS_NAME);
