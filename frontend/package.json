@@ -24,18 +24,18 @@
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.1.0",
     "@simplewebauthn/browser": "13.2.2",
-    "@unhead/vue": "^2.1.10",
+    "@unhead/vue": "^2.1.12",
     "@vueuse/core": "^14.2.1",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.13.6",
-    "dompurify": "^3.3.2",
+    "dompurify": "^3.3.3",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.1",
-    "naive-ui": "^2.44.0",
+    "naive-ui": "^2.44.1",
     "postal-mime": "^2.7.3",
     "vooks": "^0.2.12",
-    "vue": "^3.5.29",
+    "vue": "^3.5.30",
     "vue-clipboard3": "^2.0.0",
     "vue-i18n": "^11.3.0",
     "vue-router": "^4.6.4"
@@ -54,7 +54,7 @@
     "vitest": "^3.2.4",
     "workbox-build": "^7.4.0",
     "workbox-window": "^7.4.0",
-    "wrangler": "^4.71.0"
+    "wrangler": "^4.72.0"
   },
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }
