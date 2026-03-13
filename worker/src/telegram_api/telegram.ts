@@ -446,12 +446,13 @@ export async function sendMailToTelegram(
             }
             return true;
         });
+        const caption = `From: ${parsedEmailContext.parsedEmail?.sender || ""}\nSubject: ${parsedEmailContext.parsedEmail?.subject || ""}`;
         if (validAttachments.length === 1) {
             try {
                 await bot.telegram.sendDocument(targetUserId, {
                     source: Buffer.from(validAttachments[0].content),
                     filename: validAttachments[0].filename,
-                });
+                }, { caption });
             } catch (e) {
                 console.error(`Failed to send attachment ${validAttachments[0].filename}:`, e);
             }
@@ -460,9 +461,10 @@ export async function sendMailToTelegram(
             for (let i = 0; i < validAttachments.length; i += batchSize) {
                 const batch = validAttachments.slice(i, i + batchSize);
                 try {
-                    const mediaGroup: InputMediaDocument[] = batch.map(att => ({
+                    const mediaGroup: InputMediaDocument[] = batch.map((att, idx) => ({
                         type: 'document',
                         media: { source: Buffer.from(att.content), filename: att.filename },
+                        ...(i === 0 && idx === 0 ? { caption } : {}),
                     }));
                     await bot.telegram.sendMediaGroup(targetUserId, mediaGroup);
                 } catch (e) {
