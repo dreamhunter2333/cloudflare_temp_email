@@ -6,19 +6,19 @@ export async function sendTelegramAttachments(
     attachments: ParsedEmailAttachment[],
     caption: string
 ) {
-    const validAttachments = attachments.filter(att => {
-        if (att.content.byteLength > TG_MAX_FILE_SIZE) {
-            console.log(`Skipping attachment ${att.filename}: ${(att.content.byteLength / 1024 / 1024).toFixed(1)}MB exceeds 50MB limit`);
-            return false;
-        }
-        return true;
-    });
-    if (validAttachments.length === 0) return;
+    try {
+        const validAttachments = attachments.filter(att => {
+            if (att.content.byteLength > TG_MAX_FILE_SIZE) {
+                console.log(`Skipping attachment ${att.filename}: ${(att.content.byteLength / 1024 / 1024).toFixed(1)}MB exceeds 50MB limit`);
+                return false;
+            }
+            return true;
+        });
+        if (validAttachments.length === 0) return;
 
-    const batchSize = 6;
-    for (let i = 0; i < validAttachments.length; i += batchSize) {
-        const batch = validAttachments.slice(i, i + batchSize);
-        try {
+        const batchSize = 6;
+        for (let i = 0; i < validAttachments.length; i += batchSize) {
+            const batch = validAttachments.slice(i, i + batchSize);
             const formData = new FormData();
             const media: { type: string; media: string; caption?: string }[] = [];
             for (let j = 0; j < batch.length; j++) {
@@ -42,8 +42,8 @@ export async function sendTelegramAttachments(
                 const text = await res.text();
                 console.error(`Failed to send attachment batch ${i / batchSize + 1}: ${res.status} ${text.substring(0, 200)}`);
             }
-        } catch (e) {
-            console.error(`Failed to send attachment batch ${i / batchSize + 1}:`, e);
         }
+    } catch (e) {
+        console.error("Failed to send telegram attachments:", e);
     }
 }
