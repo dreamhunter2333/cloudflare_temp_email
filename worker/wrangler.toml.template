@@ -93,6 +93,8 @@ ENABLE_AUTO_REPLY = false
 # TG_BOT_INFO = "{}"
 # allow user to switch language via /lang command
 # TG_ALLOW_USER_LANG = true
+# enable sending email attachments via Telegram push (50MB per file limit)
+# ENABLE_TG_PUSH_ATTACHMENT = true
 # global forward address list, if set, all emails will be forwarded to these addresses
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 # subdomain forward address list, if set, subdomain emails will be forwarded to these addresses

@@ -80,6 +80,17 @@ Admins can enable **global mail push** in the admin panel under `Settings` -> `T
 > [!NOTE]
 > Global push and per-user push can work simultaneously. If an address is bound to a user who is also in the global push list, they will receive two notifications.
 
+### Attachment Push
+
+> [!NOTE]
+> This feature is available since v1.5.0
+
+Set `ENABLE_TG_PUSH_ATTACHMENT = true` to enable sending email attachments via Telegram push.
+
+- Single file size limit is 50MB (Telegram Bot API limit), oversized attachments are skipped
+- Multiple attachments are sent in batches via `sendMediaGroup`, up to 6 per batch
+- The first attachment includes the sender and subject as caption
+
 ## Mini App
 
 Can be deployed via command line or UI interface

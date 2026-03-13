@@ -439,6 +439,7 @@ export async function sendMailToTelegram(
             ...Markup.inlineKeyboard([...buttons])
         });
         // send attachments
+        if (!getBooleanValue(c.env.ENABLE_TG_PUSH_ATTACHMENT)) return;
         const validAttachments = attachments.filter(att => {
             if (att.content.byteLength > TG_MAX_FILE_SIZE) {
                 console.log(`Skipping attachment ${att.filename}: ${(att.content.byteLength / 1024 / 1024).toFixed(1)}MB exceeds 50MB limit`);

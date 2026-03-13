@@ -86,6 +86,7 @@ type Bindings = {
     TG_MAX_ADDRESS: number | undefined
     TG_BOT_INFO: string | object | undefined
     TG_ALLOW_USER_LANG: string | boolean | undefined
+    ENABLE_TG_PUSH_ATTACHMENT: string | boolean | undefined
 
     // webhook config
     FRONTEND_URL: string | undefined
