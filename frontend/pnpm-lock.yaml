@@ -36,8 +36,8 @@ importers:
         specifier: ^3.10.1
         version: 3.10.1
       mail-parser-wasm:
-        specifier: ^0.2.1
-        version: 0.2.1
+        specifier: ^0.2.2
+        version: 0.2.2
       naive-ui:
         specifier: ^2.44.1
         version: 2.44.1(vue@3.5.30(typescript@5.4.5))
@@ -2355,8 +2355,8 @@ packages:
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
-  mail-parser-wasm@0.2.1:
-    resolution: {integrity: sha512-ba1s8Ah9UI0AhEGCzf61h0wYOE4Wg/iceRZ7GCFrEldJjf3AAIDFdZVK853nwxIVE/bLnr0dJzrR7RxB9aGSlA==}
+  mail-parser-wasm@0.2.2:
+    resolution: {integrity: sha512-Am8xdpbDFkMBMOLW5ncTgIMT4ikCG7v42S02oXkUHwSvF00xn/LvWsWCnp2BY9Jlmy30Dq7cT3V3R8gTbr005w==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -5570,7 +5570,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  mail-parser-wasm@0.2.1: {}
+  mail-parser-wasm@0.2.2: {}
 
   math-intrinsics@1.1.0: {}
 
