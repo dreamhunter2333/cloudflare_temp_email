@@ -424,12 +424,10 @@ export async function sendMailToTelegram(
     ).bind(address, message_id).first<string>("id");
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
 
-    const parsedEmail = await commonParseMail(parsedEmailContext);
-    const attachments = parsedEmail?.attachments || [];
-
     const buildAndSend = async (targetUserId: string, msgs: LocaleMessages) => {
         const { mail } = await parseMail(msgs, parsedEmailContext, address, new Date().toUTCString());
         if (!mail) return;
+        const attachments = parsedEmailContext.parsedEmail?.attachments || [];
         const buttons = [];
         if (settings?.miniAppUrl && mailId) {
             const url = new URL(settings.miniAppUrl);
