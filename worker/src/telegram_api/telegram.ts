@@ -2,18 +2,17 @@
 import { Context } from "hono";
 import { Telegraf, Context as TgContext, Markup } from "telegraf";
 import { callbackQuery } from "telegraf/filters";
-import { InputMediaDocument } from "telegraf/types";
 
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getDomains, getJsonObjectValue, getStringValue } from '../utils';
 import { TelegramSettings } from "./settings";
+import { sendTelegramAttachments } from "./tg_file_upload";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 import { commonParseMail } from "../common";
 import { UserFromGetMe } from "telegraf/types";
 import i18n from "../i18n";
 import { LocaleMessages } from "../i18n/type";
 
-const TG_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB Telegram Bot API limit
 
 // Helper to get messages by userId
 const getTgMessages = async (
@@ -438,32 +437,10 @@ export async function sendMailToTelegram(
         await bot.telegram.sendMessage(targetUserId, mail, {
             ...Markup.inlineKeyboard([...buttons])
         });
-        // send attachments
-        if (getBooleanValue(c.env.ENABLE_TG_PUSH_ATTACHMENT)) {
-            const validAttachments = attachments.filter(att => {
-                if (att.content.byteLength > TG_MAX_FILE_SIZE) {
-                    console.log(`Skipping attachment ${att.filename}: ${(att.content.byteLength / 1024 / 1024).toFixed(1)}MB exceeds 50MB limit`);
-                    return false;
-                }
-                return true;
-            });
-            if (validAttachments.length > 0) {
-                const caption = `From: ${parsedEmailContext.parsedEmail?.sender || ""}\nSubject: ${parsedEmailContext.parsedEmail?.subject || ""}`;
-                const batchSize = 6;
-                for (let i = 0; i < validAttachments.length; i += batchSize) {
-                    const batch = validAttachments.slice(i, i + batchSize);
-                    try {
-                        const mediaGroup: InputMediaDocument[] = batch.map((att, idx) => ({
-                            type: 'document',
-                            media: { source: Buffer.from(att.content), filename: att.filename },
-                            ...(i === 0 && idx === 0 ? { caption } : {}),
-                        }));
-                        await bot.telegram.sendMediaGroup(targetUserId, mediaGroup);
-                    } catch (e) {
-                        console.error(`Failed to send attachment batch ${i / batchSize + 1}:`, e);
-                    }
-                }
-            }
+        // send attachments via native fetch (telegraf multipart upload is incompatible with CF Workers)
+        if (getBooleanValue(c.env.ENABLE_TG_PUSH_ATTACHMENT) && attachments.length > 0) {
+            const caption = `From: ${parsedEmailContext.parsedEmail?.sender || ""}\nSubject: ${parsedEmailContext.parsedEmail?.subject || ""}`;
+            await sendTelegramAttachments(c.env.TELEGRAM_BOT_TOKEN, targetUserId, attachments, caption);
         }
     };
 
