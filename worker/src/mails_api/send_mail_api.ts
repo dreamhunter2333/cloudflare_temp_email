@@ -8,7 +8,7 @@ import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
 import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue } from '../utils';
 import { GeoData } from '../models'
-import { handleListQuery } from '../common'
+import { handleListQuery, updateAddressUpdatedAt } from '../common'
 
 
 export const api = new Hono<HonoCustomType>()
@@ -222,6 +222,8 @@ export const sendMail = async (
             console.warn(`Failed to update balance for ${address}`);
         }
     }
+    // update address updated_at
+    updateAddressUpdatedAt(c, address);
     // save to sendbox
     try {
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
