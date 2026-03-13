@@ -5,18 +5,10 @@ import { WorkerMailerOptions } from 'worker-mailer';
 import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
-import { AdminWebhookSettings, WebhookMail, WebhookMailAttachment, WebhookSettings } from './models';
+import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
-
-function uint8ArrayToBase64(bytes: Uint8Array): string {
-    let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-}
 
 /**
  * Check if send mail is enabled for a specific domain
@@ -612,12 +604,6 @@ export async function triggerWebhook(
     ).bind(address, message_id).first<string>("id");
 
     const parsedEmail = await commonParseMail(parsedEmailContext);
-    const webhookAttachments: WebhookMailAttachment[] = (parsedEmail?.attachments || []).map(att => ({
-        filename: att.filename,
-        mimeType: att.mimeType,
-        content: uint8ArrayToBase64(att.content),
-        disposition: att.disposition,
-    }));
     const webhookMail = {
         id: mailId || "",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
@@ -627,7 +613,6 @@ export async function triggerWebhook(
         raw: parsedEmailContext.rawEmail || "",
         parsedText: parsedEmail?.text || "",
         parsedHtml: parsedEmail?.html || "",
-        attachments: JSON.stringify(webhookAttachments),
     }
     for (const settings of webhookList) {
         const res = await sendWebhook(settings, webhookMail);
