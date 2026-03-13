@@ -481,6 +481,12 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     //             (header) => ({ key: header.key, value: header.value })
     //         ) || [],
     //         html: parsedEmail.body_html || "",
+    //         attachments: (parsedEmail.attachments || []).map(att => ({
+    //             filename: att.filename || "attachment",
+    //             mimeType: att.mimeType || "application/octet-stream",
+    //             content: new Uint8Array(att.content),
+    //             disposition: att.disposition || "attachment",
+    //         })),
     //     };
     //     return parsedEmailContext.parsedEmail;
     // } catch (e) {

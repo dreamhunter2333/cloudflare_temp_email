@@ -456,14 +456,18 @@ export async function sendMailToTelegram(
                 console.error(`Failed to send attachment ${validAttachments[0].filename}:`, e);
             }
         } else if (validAttachments.length >= 2) {
-            try {
-                const mediaGroup: InputMediaDocument[] = validAttachments.map(att => ({
-                    type: 'document',
-                    media: { source: Buffer.from(att.content), filename: att.filename },
-                }));
-                await bot.telegram.sendMediaGroup(targetUserId, mediaGroup);
-            } catch (e) {
-                console.error('Failed to send attachments via sendMediaGroup:', e);
+            const batchSize = 9;
+            for (let i = 0; i < validAttachments.length; i += batchSize) {
+                const batch = validAttachments.slice(i, i + batchSize);
+                try {
+                    const mediaGroup: InputMediaDocument[] = batch.map(att => ({
+                        type: 'document',
+                        media: { source: Buffer.from(att.content), filename: att.filename },
+                    }));
+                    await bot.telegram.sendMediaGroup(targetUserId, mediaGroup);
+                } catch (e) {
+                    console.error(`Failed to send attachment batch ${i / batchSize + 1}:`, e);
+                }
             }
         }
     };
