@@ -448,7 +448,7 @@ export async function sendMailToTelegram(
         });
         if (validAttachments.length > 0) {
             const caption = `From: ${parsedEmailContext.parsedEmail?.sender || ""}\nSubject: ${parsedEmailContext.parsedEmail?.subject || ""}`;
-            const batchSize = 9;
+            const batchSize = 6;
             for (let i = 0; i < validAttachments.length; i += batchSize) {
                 const batch = validAttachments.slice(i, i + batchSize);
                 try {
