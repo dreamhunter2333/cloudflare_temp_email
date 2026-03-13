@@ -170,9 +170,6 @@ const messages: LocaleMessages = {
     TgNoPermissionViewMailMsg: "No permission to view this mail",
     TgBotTokenRequiredMsg: "TELEGRAM_BOT_TOKEN is required",
     TgLangFeatureDisabledMsg: "Language setting feature is disabled. System default language is used.",
-    TgAttachmentTooLargeMsg: "Attachment too large to send (Telegram limit 50MB)",
-    TgAttachmentSendFailedMsg: "Failed to send attachment",
-    TgAttachmentRemovedByConfigMsg: "Attachments removed by configuration",
 }
 
 export default messages;
