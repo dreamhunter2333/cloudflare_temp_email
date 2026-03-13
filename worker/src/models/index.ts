@@ -23,6 +23,13 @@ export class AdminWebhookSettings {
     }
 }
 
+export type WebhookMailAttachment = {
+    filename: string;
+    mimeType: string;
+    content: string; // base64 encoded
+    disposition: string;
+}
+
 export type WebhookMail = {
     id: string;
     url?: string;
@@ -32,6 +39,7 @@ export type WebhookMail = {
     raw: string;
     parsedText: string;
     parsedHtml: string;
+    attachments?: string; // JSON stringified WebhookMailAttachment[]
 }
 
 export type CustomSqlCleanup = {
@@ -146,6 +154,7 @@ export class WebhookSettings {
         "raw": "${raw}",
         "parsedText": "${parsedText}",
         "parsedHtml": "${parsedHtml}",
+        "attachments": "${attachments}",
     }, null, 2)
 }
 

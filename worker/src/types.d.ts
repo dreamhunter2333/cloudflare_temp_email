@@ -135,6 +135,13 @@ type RPCEmailMessage = {
     headers: object | undefined | null,
 }
 
+type ParsedEmailAttachment = {
+    filename: string,
+    mimeType: string,
+    content: Uint8Array,
+    disposition: string,
+}
+
 type ParsedEmailContext = {
     rawEmail: string,
     parsedEmail?: {
@@ -142,7 +149,8 @@ type ParsedEmailContext = {
         subject: string,
         text: string,
         html: string,
-        headers?: Record<string, string>[]
+        headers?: Record<string, string>[],
+        attachments?: ParsedEmailAttachment[],
     } | undefined
 }
 

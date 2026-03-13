@@ -12,6 +12,8 @@ import { UserFromGetMe } from "telegraf/types";
 import i18n from "../i18n";
 import { LocaleMessages } from "../i18n/type";
 
+const TG_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB Telegram Bot API limit
+
 // Helper to get messages by userId
 const getTgMessages = async (
     c: Context<HonoCustomType>,
@@ -421,6 +423,9 @@ export async function sendMailToTelegram(
     ).bind(address, message_id).first<string>("id");
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
 
+    const parsedEmail = await commonParseMail(parsedEmailContext);
+    const attachments = parsedEmail?.attachments || [];
+
     const buildAndSend = async (targetUserId: string, msgs: LocaleMessages) => {
         const { mail } = await parseMail(msgs, parsedEmailContext, address, new Date().toUTCString());
         if (!mail) return;
@@ -434,6 +439,25 @@ export async function sendMailToTelegram(
         await bot.telegram.sendMessage(targetUserId, mail, {
             ...Markup.inlineKeyboard([...buttons])
         });
+        // send attachments
+        for (const att of attachments) {
+            if (att.content.byteLength > TG_MAX_FILE_SIZE) {
+                console.log(`Skipping attachment ${att.filename}: ${(att.content.byteLength / 1024 / 1024).toFixed(1)}MB exceeds 50MB limit`);
+                continue;
+            }
+            try {
+                await bot.telegram.sendDocument(targetUserId, {
+                    source: Buffer.from(att.content),
+                    filename: att.filename,
+                });
+            } catch (e) {
+                console.error(`Failed to send attachment ${att.filename}:`, e);
+                await bot.telegram.sendMessage(
+                    targetUserId,
+                    `${msgs.TgAttachmentSendFailedMsg}: ${att.filename}`
+                );
+            }
+        }
     };
 
     if (globalPush) {

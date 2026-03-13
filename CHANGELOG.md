@@ -12,6 +12,8 @@
 
 - feat: |自动回复| 发件人过滤支持正则表达式匹配，使用 `/pattern/` 语法（如 `/@example\.com$/`），同时保持前缀匹配的向后兼容
 - feat: |Turnstile| 新增全局登录表单 Turnstile 人机验证，通过 `ENABLE_GLOBAL_TURNSTILE_CHECK` 环境变量控制（#767）
+- feat: |Telegram| Telegram 推送支持发送邮件附件，通过 `sendDocument` API 逐个发送（#894）
+- feat: |Webhook| Webhook 推送支持附件，附件以 base64 编码的 `attachments` 字段包含在 webhook body 中（#894）
 
 ### Bug Fixes
 

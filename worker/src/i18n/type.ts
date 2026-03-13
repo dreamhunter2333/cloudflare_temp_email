@@ -168,4 +168,7 @@ export type LocaleMessages = {
     TgNoPermissionViewMailMsg: string
     TgBotTokenRequiredMsg: string
     TgLangFeatureDisabledMsg: string
+    TgAttachmentTooLargeMsg: string
+    TgAttachmentSendFailedMsg: string
+    TgAttachmentRemovedByConfigMsg: string
 }

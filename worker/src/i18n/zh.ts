@@ -170,6 +170,9 @@ const messages: LocaleMessages = {
     TgNoPermissionViewMailMsg: "无权查看此邮件",
     TgBotTokenRequiredMsg: "需要设置 TELEGRAM_BOT_TOKEN",
     TgLangFeatureDisabledMsg: "语言设置功能已禁用，使用系统默认语言",
+    TgAttachmentTooLargeMsg: "附件过大未发送 (Telegram 限制 50MB)",
+    TgAttachmentSendFailedMsg: "附件发送失败",
+    TgAttachmentRemovedByConfigMsg: "附件已按配置移除",
 }
 
 export default messages;
