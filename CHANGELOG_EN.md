@@ -12,7 +12,7 @@
 
 - feat: |Auto Reply| Add regex matching support for sender filter using `/pattern/` syntax (e.g. `/@example\.com$/`), backward compatible with prefix matching
 - feat: |Turnstile| Add global Turnstile CAPTCHA for all login forms via `ENABLE_GLOBAL_TURNSTILE_CHECK` env var (#767)
-- feat: |Telegram| Support sending email attachments in Telegram push via `sendMediaGroup` API (#894)
+- feat: |Telegram| Support sending email attachments in Telegram push (50MB per file limit), multiple attachments sent via `sendMediaGroup` (#894)
 
 ### Bug Fixes
 

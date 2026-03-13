@@ -446,7 +446,16 @@ export async function sendMailToTelegram(
             }
             return true;
         });
-        if (validAttachments.length > 0) {
+        if (validAttachments.length === 1) {
+            try {
+                await bot.telegram.sendDocument(targetUserId, {
+                    source: Buffer.from(validAttachments[0].content),
+                    filename: validAttachments[0].filename,
+                });
+            } catch (e) {
+                console.error(`Failed to send attachment ${validAttachments[0].filename}:`, e);
+            }
+        } else if (validAttachments.length >= 2) {
             try {
                 const mediaGroup: InputMediaDocument[] = validAttachments.map(att => ({
                     type: 'document',
