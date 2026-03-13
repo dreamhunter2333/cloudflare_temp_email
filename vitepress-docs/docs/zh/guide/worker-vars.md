@@ -112,6 +112,7 @@
 | `TG_MAX_ADDRESS`    | 数字      | telegram bot 最多绑定邮箱数量                                          | `5`   |
 | `TG_BOT_INFO`       | 文本      | 可不配置，telegram BOT_INFO，预定义的 BOT_INFO 可以降低 webhook 的延迟 | `{}`  |
 | `TG_ALLOW_USER_LANG`| 文本/JSON | 是否允许用户通过 `/lang` 命令切换语言，默认 `false`                    | `true`|
+| `ENABLE_TG_PUSH_ATTACHMENT`| 布尔值 | 是否启用 Telegram 推送邮件附件，默认 `false`，单文件限制 50MB           | `true`|
 
 > [!NOTE]
 > Telegram 功能需要解析邮件，免费版 CPU 有限，可能会导致大邮件解析超时

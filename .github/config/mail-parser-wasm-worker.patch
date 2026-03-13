@@ -1,16 +1,14 @@
 diff --git a/worker/src/common.ts b/worker/src/common.ts
-index bd9bcc9..e7e2748 100644
+index 9b758f0..e2150b5 100644
 --- a/worker/src/common.ts
 +++ b/worker/src/common.ts
-@@ -273,23 +273,23 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
+@@ -469,29 +469,29 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
      }
      const raw_mail = parsedEmailContext.rawEmail;
-     // TODO: WASM parse email
+     // NOTE: WASM parse email
 -    // try {
 -    //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
-+    try {
-+        const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
- 
+-
 -    //     const parsedEmail = parse_message_wrapper(raw_mail);
 -    //     parsedEmailContext.parsedEmail = {
 -    //         sender: parsedEmail.sender || "",
@@ -20,11 +18,20 @@ index bd9bcc9..e7e2748 100644
 -    //             (header) => ({ key: header.key, value: header.value })
 -    //         ) || [],
 -    //         html: parsedEmail.body_html || "",
+-    //         attachments: (parsedEmail.attachments || []).map(att => ({
+-    //             filename: att.filename || "attachment",
+-    //             mimeType: att.content_type || "application/octet-stream",
+-    //             content: att.content,
+-    //             disposition: "attachment",
+-    //         })),
 -    //     };
 -    //     return parsedEmailContext.parsedEmail;
 -    // } catch (e) {
 -    //     console.error("Failed use mail-parser-wasm-worker to parse email", e);
 -    // }
++    try {
++        const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
++
 +        const parsedEmail = parse_message_wrapper(raw_mail);
 +        parsedEmailContext.parsedEmail = {
 +            sender: parsedEmail.sender || "",
@@ -34,6 +41,12 @@ index bd9bcc9..e7e2748 100644
 +                (header) => ({ key: header.key, value: header.value })
 +            ) || [],
 +            html: parsedEmail.body_html || "",
++            attachments: (parsedEmail.attachments || []).map(att => ({
++                filename: att.filename || "attachment",
++                mimeType: att.content_type || "application/octet-stream",
++                content: att.content,
++                disposition: "attachment",
++            })),
 +        };
 +        return parsedEmailContext.parsedEmail;
 +    } catch (e) {

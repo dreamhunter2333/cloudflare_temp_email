@@ -86,6 +86,7 @@ type Bindings = {
     TG_MAX_ADDRESS: number | undefined
     TG_BOT_INFO: string | object | undefined
     TG_ALLOW_USER_LANG: string | boolean | undefined
+    ENABLE_TG_PUSH_ATTACHMENT: string | boolean | undefined
 
     // webhook config
     FRONTEND_URL: string | undefined
@@ -135,6 +136,13 @@ type RPCEmailMessage = {
     headers: object | undefined | null,
 }
 
+type ParsedEmailAttachment = {
+    filename: string,
+    mimeType: string,
+    content: Uint8Array,
+    disposition: string,
+}
+
 type ParsedEmailContext = {
     rawEmail: string,
     parsedEmail?: {
@@ -142,7 +150,8 @@ type ParsedEmailContext = {
         subject: string,
         text: string,
         html: string,
-        headers?: Record<string, string>[]
+        headers?: Record<string, string>[],
+        attachments?: ParsedEmailAttachment[],
     } | undefined
 }
 

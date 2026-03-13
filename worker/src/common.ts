@@ -456,7 +456,8 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     subject: string,
     text: string,
     html: string,
-    headers?: Record<string, string>[]
+    headers?: Record<string, string>[],
+    attachments?: ParsedEmailAttachment[],
 } | undefined> => {
     // check parsed email context is valid
     if (!parsedEmailContext || !parsedEmailContext.rawEmail) {
@@ -467,7 +468,7 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
         return parsedEmailContext.parsedEmail;
     }
     const raw_mail = parsedEmailContext.rawEmail;
-    // TODO: WASM parse email
+    // NOTE: WASM parse email
     // try {
     //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
 
@@ -480,6 +481,12 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     //             (header) => ({ key: header.key, value: header.value })
     //         ) || [],
     //         html: parsedEmail.body_html || "",
+    //         attachments: (parsedEmail.attachments || []).map(att => ({
+    //             filename: att.filename || "attachment",
+    //             mimeType: att.content_type || "application/octet-stream",
+    //             content: att.content,
+    //             disposition: "attachment",
+    //         })),
     //     };
     //     return parsedEmailContext.parsedEmail;
     // } catch (e) {
@@ -494,6 +501,12 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
             text: parsedEmail.text || "",
             html: parsedEmail.html || "",
             headers: parsedEmail.headers || [],
+            attachments: (parsedEmail.attachments || []).map(att => ({
+                filename: att.filename || "attachment",
+                mimeType: att.mimeType || "application/octet-stream",
+                content: new Uint8Array(att.content),
+                disposition: att.disposition || "attachment",
+            })),
         };
         return parsedEmailContext.parsedEmail;
     }
@@ -605,7 +618,7 @@ export async function triggerWebhook(
         subject: parsedEmail?.subject || "",
         raw: parsedEmailContext.rawEmail || "",
         parsedText: parsedEmail?.text || "",
-        parsedHtml: parsedEmail?.html || ""
+        parsedHtml: parsedEmail?.html || "",
     }
     for (const settings of webhookList) {
         const res = await sendWebhook(settings, webhookMail);

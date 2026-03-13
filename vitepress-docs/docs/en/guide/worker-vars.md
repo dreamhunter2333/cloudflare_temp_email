@@ -112,6 +112,7 @@
 | `TG_MAX_ADDRESS`     | Number    | Maximum number of mailboxes that can be bound to telegram bot               | `5`     |
 | `TG_BOT_INFO`        | Text      | Optional, telegram BOT_INFO, predefined BOT_INFO can reduce webhook latency | `{}`    |
 | `TG_ALLOW_USER_LANG` | Text/JSON | Allow users to switch language via `/lang` command, default `false`         | `true`  |
+| `ENABLE_TG_PUSH_ATTACHMENT` | Boolean | Enable sending email attachments via Telegram push, default `false`, 50MB per file limit | `true` |
 
 > [!NOTE]
 > Telegram functionality requires email parsing, free tier CPU is limited, may cause large email parsing timeout
