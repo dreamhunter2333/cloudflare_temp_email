@@ -452,10 +452,6 @@ export async function sendMailToTelegram(
                 });
             } catch (e) {
                 console.error(`Failed to send attachment ${att.filename}:`, e);
-                await bot.telegram.sendMessage(
-                    targetUserId,
-                    `${msgs.TgAttachmentSendFailedMsg}: ${att.filename}`
-                );
             }
         }
     };
