@@ -2,6 +2,7 @@
 import { Context } from "hono";
 import { Telegraf, Context as TgContext, Markup } from "telegraf";
 import { callbackQuery } from "telegraf/filters";
+import { InputMediaDocument } from "telegraf/types";
 
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getDomains, getJsonObjectValue, getStringValue } from '../utils';
@@ -440,18 +441,22 @@ export async function sendMailToTelegram(
             ...Markup.inlineKeyboard([...buttons])
         });
         // send attachments
-        for (const att of attachments) {
+        const validAttachments = attachments.filter(att => {
             if (att.content.byteLength > TG_MAX_FILE_SIZE) {
                 console.log(`Skipping attachment ${att.filename}: ${(att.content.byteLength / 1024 / 1024).toFixed(1)}MB exceeds 50MB limit`);
-                continue;
+                return false;
             }
+            return true;
+        });
+        if (validAttachments.length > 0) {
             try {
-                await bot.telegram.sendDocument(targetUserId, {
-                    source: Buffer.from(att.content),
-                    filename: att.filename,
-                });
+                const mediaGroup: InputMediaDocument[] = validAttachments.map(att => ({
+                    type: 'document',
+                    media: { source: Buffer.from(att.content), filename: att.filename },
+                }));
+                await bot.telegram.sendMediaGroup(targetUserId, mediaGroup);
             } catch (e) {
-                console.error(`Failed to send attachment ${att.filename}:`, e);
+                console.error('Failed to send attachments via sendMediaGroup:', e);
             }
         }
     };
