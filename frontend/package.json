@@ -31,7 +31,7 @@
     "axios": "^1.13.6",
     "dompurify": "^3.3.3",
     "jszip": "^3.10.1",
-    "mail-parser-wasm": "^0.2.1",
+    "mail-parser-wasm": "^0.2.2",
     "naive-ui": "^2.44.1",
     "postal-mime": "^2.7.3",
     "vooks": "^0.2.12",

@@ -101,38 +101,29 @@ impl MessageResult {
 pub fn parse_attachment(message: &mail_parser::Message) -> Vec<AttachmentResult> {
     let mut attachments: Vec<AttachmentResult> = Vec::new();
     for attachment in message.attachments() {
-        if !attachment.is_message() {
-            attachments.push(AttachmentResult {
-                content_id: attachment
-                    .content_id()
-                    .map(|id| id.to_owned())
-                    .unwrap_or(String::new()),
-                content_type: attachment
-                    .content_type()
-                    .map(|ct| {
-                        let c_type = ct.c_type.clone().into_owned();
-                        let c_subtype = ct.c_subtype.clone();
-                        if c_subtype.is_none() {
-                            return c_type;
-                        } else {
-                            return format!("{}/{}", c_type, c_subtype.unwrap());
-                        }
-                    })
-                    .unwrap_or(String::new()),
-                filename: attachment
-                    .attachment_name()
-                    .map(|name| name.to_owned())
-                    .unwrap_or(String::new()),
-                content: attachment.contents().to_vec(),
-            });
-        } else {
-            attachments.append(
-                &mut attachment
-                    .message()
-                    .map(|msg| parse_attachment(msg))
-                    .unwrap_or(Vec::new()),
-            );
-        }
+        attachments.push(AttachmentResult {
+            content_id: attachment
+                .content_id()
+                .map(|id| id.to_owned())
+                .unwrap_or(String::new()),
+            content_type: attachment
+                .content_type()
+                .map(|ct| {
+                    let c_type = ct.c_type.clone().into_owned();
+                    let c_subtype = ct.c_subtype.clone();
+                    if c_subtype.is_none() {
+                        return c_type;
+                    } else {
+                        return format!("{}/{}", c_type, c_subtype.unwrap());
+                    }
+                })
+                .unwrap_or(String::new()),
+            filename: attachment
+                .attachment_name()
+                .map(|name| name.to_owned())
+                .unwrap_or(String::new()),
+            content: attachment.contents().to_vec(),
+        });
     }
     attachments
 }
