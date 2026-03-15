@@ -17,6 +17,7 @@
 ### Bug Fixes
 
 - fix: |自动回复| 修复 `source_prefix` 为空字符串时自动回复不触发的问题（#459），空值现在正确匹配所有发件人
+- fix: |OAuth2| 修复 Android 等移动端浏览器 OAuth2 登录时 sessionStorage 丢失导致回调失败的问题，新增 localStorage 兜底（#900）
 
 ### Testing
 
