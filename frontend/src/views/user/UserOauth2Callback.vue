@@ -19,28 +19,30 @@ const { t } = useI18n({
         en: {
             logging: 'Logging in...',
             stateNotMatch: 'state not match',
+            codeNotFound: 'code not found',
         },
         zh: {
             logging: '登录中...',
             stateNotMatch: 'state 不匹配',
+            codeNotFound: '未找到授权码',
         }
     }
 });
 
 onMounted(async () => {
-    const state = route.query.state;
-    if (state != userOauth2SessionState.value) {
-        console.error('state not match');
-        message.error(t('stateNotMatch'));
-        return;
-    }
-    const code = route.query.code;
-    if (!code) {
-        console.error('code not found');
-        message.error('code not found');
-        return;
-    }
     try {
+        const state = route.query.state;
+        if (state != userOauth2SessionState.value) {
+            console.error('state not match');
+            message.error(t('stateNotMatch'));
+            return;
+        }
+        const code = route.query.code;
+        if (!code) {
+            console.error('code not found');
+            message.error(t('codeNotFound'));
+            return;
+        }
         const res = await api.fetch(`/user_api/oauth2/callback`, {
             method: 'POST',
             body: JSON.stringify({
@@ -53,6 +55,9 @@ onMounted(async () => {
     } catch (error) {
         console.error(error);
         message.error(error.message || 'error');
+    } finally {
+        userOauth2SessionState.value = '';
+        userOauth2SessionClientID.value = '';
     }
 });
 </script>
