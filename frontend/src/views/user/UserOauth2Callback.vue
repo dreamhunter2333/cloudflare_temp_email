@@ -19,10 +19,12 @@ const { t } = useI18n({
         en: {
             logging: 'Logging in...',
             stateNotMatch: 'state not match',
+            codeNotFound: 'code not found',
         },
         zh: {
             logging: '登录中...',
             stateNotMatch: 'state 不匹配',
+            codeNotFound: '未找到授权码',
         }
     }
 });
@@ -38,7 +40,7 @@ onMounted(async () => {
         const code = route.query.code;
         if (!code) {
             console.error('code not found');
-            message.error('code not found');
+            message.error(t('codeNotFound'));
             return;
         }
         const res = await api.fetch(`/user_api/oauth2/callback`, {
