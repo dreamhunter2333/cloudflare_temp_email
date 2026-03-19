@@ -2,5 +2,5 @@ aiosmtpd==1.4.6
 pydantic-settings==2.13.1
 Twisted==25.5.0
 httpx==0.28.1
-pyOpenSSL==25.3.0
+pyOpenSSL==26.0.0
 service-identity==24.2.0
