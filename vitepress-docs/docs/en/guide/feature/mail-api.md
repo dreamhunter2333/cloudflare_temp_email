@@ -17,6 +17,8 @@ res = requests.get(
 )
 ```
 
+**Note**: `/api/mails` returns raw RFC822 data by design (for example `source`/`raw`), and it does not guarantee parsed fields such as `subject`, `text`, or `html`. Parse the raw source on the client side (for example with `mail-parser-wasm` or `postal-mime`) if you need readable message content.
+
 ## Admin Mail API
 
 Supports `address` filter
@@ -42,6 +44,8 @@ response = requests.get(url, headers=headers, params=querystring)
 
 print(response.json())
 ```
+
+**Note**: `/admin/mails` follows the same design as `/api/mails`: it returns stored raw MIME data. If you need readable subject/body, parse the raw content on the client side.
 
 **Note**: Keyword filtering has been removed from the backend API. If you need to filter emails by content, please use the frontend filter input in the UI, which filters the currently displayed page.
 
@@ -150,5 +154,7 @@ response = requests.get(url, headers=headers, params=querystring)
 
 print(response.json())
 ```
+
+**Note**: `/user_api/mails` also returns raw RFC822 content from storage; parse it in your client to extract `subject`, `text`, and `html`.
 
 **Note**: Keyword filtering has been removed from the backend API. If you need to filter emails by content, please use the frontend filter input in the UI, which filters the currently displayed page.
