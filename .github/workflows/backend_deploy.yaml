@@ -34,6 +34,7 @@ jobs:
         run: |
           export use_worker_assets=${{ secrets.USE_WORKER_ASSETS }}
           export use_worker_assets_with_telegram=${{ secrets.USE_WORKER_ASSETS_WITH_TELEGRAM }}
+          
           if [ -n "$use_worker_assets" ]; then
             cd frontend/
             pnpm install --no-frozen-lockfile
@@ -49,8 +50,11 @@ jobs:
 
           export debug_mode=${{ secrets.DEBUG_MODE }}
           export use_mail_wasm_parser=${{ secrets.BACKEND_USE_MAIL_WASM_PARSER }}
+          
           cd worker/
-          echo '${{ secrets.BACKEND_TOML }}' > wrangler.toml
+          # ✅ 修复核心：使用环境变量写入，避免 Shell 解析特殊字符
+          echo "$WRANGLER_TOML_CONTENT" > wrangler.toml
+          
           pnpm install --no-frozen-lockfile
 
           if [ -n "$use_mail_wasm_parser" ]; then
@@ -74,3 +78,5 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # ✅ 将 secret 映射到环境变量中
+          WRANGLER_TOML_CONTENT: ${{ secrets.BACKEND_TOML }}
