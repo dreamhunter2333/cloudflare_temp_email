@@ -18,10 +18,7 @@
 
 - fix: |Auto Reply| Fix auto-reply not triggering when `source_prefix` is empty string (#459), empty value now correctly matches all senders
 - fix: |OAuth2| Fix OAuth2 login callback failure on Android via browser and other mobile browsers due to sessionStorage loss during redirect, add localStorage fallback (#900)
-- fix: |IMAP| Fix UTF-8 mojibake in nested reply emails (message/rfc822 attachments), add line-by-line encoding fix fallback for mixed content
-- fix: |IMAP| Fix Gmail emails with empty Content-Type header breaking multipart parsing, apply empty header cleanup globally including nested MIME parts
-- fix: |IMAP| Fix missing Date header causing incorrect date display in mail clients, auto-fill from created_at field
-- fix: |IMAP| Fix locale-dependent date formatting causing IMAP INTERNALDATE parse failures on non-English systems, use fixed English month/day names
+- fix: |IMAP| Fix nested reply email mojibake, Gmail empty Content-Type header parsing failure, missing Date header, and locale-dependent date formatting issues
 
 ### Testing
 

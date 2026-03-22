@@ -18,10 +18,7 @@
 
 - fix: |自动回复| 修复 `source_prefix` 为空字符串时自动回复不触发的问题（#459），空值现在正确匹配所有发件人
 - fix: |OAuth2| 修复 Android via 浏览器等移动端 OAuth2 登录时 sessionStorage 丢失导致回调失败的问题，新增 localStorage 兜底（#900）
-- fix: |IMAP| 修复嵌套回复邮件（message/rfc822 附件）中 UTF-8 乱码问题，新增逐行 mojibake 修复兜底机制
-- fix: |IMAP| 修复 Gmail 邮件空 Content-Type 头导致 multipart 解析失败的问题，全局清理空 header 行（含嵌套 MIME 部分）
-- fix: |IMAP| 修复缺失 Date 头的邮件在客户端显示错误日期，使用 created_at 字段自动填充
-- fix: |IMAP| 修复 locale 依赖的日期格式在非英文系统上 IMAP INTERNALDATE 解析失败的问题，改用固定英文月份/星期名
+- fix: |IMAP| 修复嵌套回复邮件乱码、Gmail 空 Content-Type 头解析失败、缺失 Date 头及 locale 依赖日期格式等问题
 
 ### Testing
 
