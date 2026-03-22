@@ -10,7 +10,7 @@ from zope.interface import implementer
 from config import settings
 from imap_http_client import BackendClient
 from imap_message import SimpleMessage
-from parse_email import generate_email_model, parse_email
+from parse_email import generate_email_model, parse_email, clean_raw_headers, fix_mojibake
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.INFO)
@@ -246,6 +246,8 @@ class SimpleMailbox:
                 try:
                     if self.name == "INBOX":
                         raw = item.get("raw", "")
+                        raw = fix_mojibake(raw)
+                        raw = clean_raw_headers(raw)
                         email_model = parse_email(raw)
                     elif self.name == "SENT":
                         email_model, raw = generate_email_model(item)
@@ -256,7 +258,8 @@ class SimpleMailbox:
                         self._flags[uid_val] = {r"\Seen"}
                     flags = self._flags[uid_val]
                     msg = SimpleMessage(
-                        uid_val, email_model, flags=flags, raw=raw
+                        uid_val, email_model, flags=flags, raw=raw,
+                        created_at=item.get("created_at"),
                     )
                     self._cache.put(uid_val, msg)
                 except Exception as e:
