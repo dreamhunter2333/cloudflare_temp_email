@@ -81,13 +81,18 @@ class Account(imap4.MemoryAccount):
     """Custom account that initializes mailbox UID index on select."""
 
     def _emptyMailbox(self, name, id):
-        """Ignore CREATE for unknown mailboxes instead of crashing."""
-        return None
+        """Return a dummy mailbox for CREATE requests (e.g. Gmail creating Drafts)."""
+        _logger.debug("Accepting CREATE request for %s", name)
+        return SimpleMailbox(name, self._client)
 
     def create(self, pathspec):
-        """Silently ignore mailbox creation requests from clients."""
-        _logger.debug("Ignoring CREATE request for %s", pathspec)
-        return False
+        """Accept CREATE silently without actually creating mailboxes."""
+        _logger.debug("Ignoring CREATE for %s", pathspec)
+        return True
+
+    def listMailboxes(self, ref, wildcard):
+        """Only list INBOX and SENT, ignore client-created mailboxes."""
+        return [("INBOX", self.mailboxes["INBOX"]), ("SENT", self.mailboxes["SENT"])]
 
     @defer.inlineCallbacks
     def select(self, name, readwrite=1):
@@ -110,6 +115,7 @@ class SimpleRealm:
         sent = SimpleMailbox("SENT", client)
 
         account = Account(username)
+        account._client = client
         account.mailboxes = {"INBOX": inbox, "SENT": sent}
         account.subscriptions = ["INBOX", "SENT"]
 

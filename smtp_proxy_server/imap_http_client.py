@@ -17,7 +17,7 @@ class BackendClient:
     """
 
     def __init__(self, password: str):
-        self.password = password
+        self.password = password.strip()
         self._client = httpx.Client(
             base_url=settings.proxy_url,
             headers={

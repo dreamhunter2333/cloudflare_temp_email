@@ -18,6 +18,7 @@
 
 - fix: |Auto Reply| Fix auto-reply not triggering when `source_prefix` is empty string (#459), empty value now correctly matches all senders
 - fix: |OAuth2| Fix OAuth2 login callback failure on Android via browser and other mobile browsers due to sessionStorage loss during redirect, add localStorage fallback (#900)
+- fix: |IMAP| Fix nested reply email mojibake, Gmail empty Content-Type header parsing failure, missing Date header, and locale-dependent date formatting issues
 
 ### Testing
 
