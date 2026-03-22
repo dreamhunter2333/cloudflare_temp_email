@@ -53,7 +53,7 @@ jobs:
           
           cd worker/
           # ✅ 修复核心：使用环境变量写入，避免 Shell 解析特殊字符
-          echo "$WRANGLER_TOML_CONTENT" > wrangler.toml
+          printf '%s\n' "$WRANGLER_TOML_CONTENT" > wrangler.toml
           
           pnpm install --no-frozen-lockfile
 
