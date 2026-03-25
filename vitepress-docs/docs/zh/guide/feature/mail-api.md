@@ -131,6 +131,14 @@ print(response.json())
 
 ## user 邮件 API
 
+::: warning 注意：用户 JWT vs 地址 JWT
+此接口使用**用户 JWT**（通过 `/user_api/login` 或 `/user_api/register` 获得），使用 `x-user-token` header。
+
+**请勿与地址 JWT 混淆**：
+- 地址 JWT 使用 `Authorization: Bearer <jwt>` 访问 `/api/*` 接口
+- 用户 JWT 使用 `x-user-token: <jwt>` 访问 `/user_api/*` 接口
+:::
+
 支持 `address` 过滤
 
 ```python

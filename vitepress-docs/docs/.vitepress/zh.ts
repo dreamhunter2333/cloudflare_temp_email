@@ -149,17 +149,23 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: 'AI 邮件识别', link: 'feature/ai-extract' },
                 { text: '配置 SMTP IMAP 代理服务', link: 'feature/config-smtp-proxy' },
-                { text: '发送邮件 API', link: 'feature/send-mail-api' },
-                { text: '查看邮件 API', link: 'feature/mail-api' },
                 { text: '配置子域名邮箱', link: 'feature/subdomain' },
                 { text: '配置 Telegram Bot', link: 'feature/telegram' },
                 { text: '配置 S3 附件', link: 'feature/s3-attachment' },
                 { text: '配置 worker 使用 wasm 解析邮件', link: 'feature/mail_parser_wasm_worker' },
                 { text: '配置 webhook', link: 'feature/webhook' },
-                { text: '新建邮箱地址 API', link: 'feature/new-address-api' },
                 { text: 'Oauth2 第三方登录', link: 'feature/user-oauth2' },
                 { text: '配置其他worker增强', link: 'feature/another-worker-enhanced' },
                 { text: '给网页增加 Google Ads', link: 'feature/google-ads.md' },
+            ]
+        },
+        {
+            text: 'API 接口',
+            collapsed: false,
+            items: [
+                { text: '新建邮箱地址 API', link: 'feature/new-address-api' },
+                { text: '查看邮件 API', link: 'feature/mail-api' },
+                { text: '发送邮件 API', link: 'feature/send-mail-api' },
             ]
         },
         {
