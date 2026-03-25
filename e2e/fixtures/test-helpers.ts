@@ -16,7 +16,7 @@ export async function createTestAddress(
   ctx: APIRequestContext,
   name: string,
   domain: string = TEST_DOMAIN
-): Promise<{ jwt: string; address: string; address_id?: number }> {
+): Promise<{ jwt: string; address: string; address_id: number }> {
   const uniqueName = `${name}${Date.now()}`;
   const res = await ctx.post(`${WORKER_URL}/api/new_address`, {
     data: { name: uniqueName, domain },
