@@ -27,6 +27,7 @@
 
 ### Docs
 
+- docs: |API| Add clarification between Address JWT and User JWT to avoid confusion; reorganize documentation menu structure with dedicated API Endpoints section (#910)
 - docs: |Telegram| Add per-user mail push and global push documentation (#769)
 - docs: |Webhook| Add webhook template examples for Telegram Bot, WeChat Work, Discord and other common push platforms
 - feat: |Webhook| Add Telegram Bot, WeChat Work, Discord preset templates to frontend webhook settings

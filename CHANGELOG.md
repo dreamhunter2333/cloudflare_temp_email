@@ -27,6 +27,7 @@
 
 ### Docs
 
+- docs: |API| 新增地址 JWT 与用户 JWT 的区分说明，避免混淆两种认证方式；调整文档菜单结构，将 API 接口文档归类到独立分组（#910）
 - docs: |Telegram| 新增每用户邮件推送和全局推送功能说明文档（#769）
 - docs: |Webhook| 新增 Telegram Bot、企业微信、Discord 等常用推送平台的 Webhook 模板示例
 - feat: |Webhook| 前端预设模板新增 Telegram Bot、企业微信、Discord 三个模板

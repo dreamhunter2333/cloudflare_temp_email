@@ -149,17 +149,23 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: 'AI Email Recognition', link: 'feature/ai-extract' },
                 { text: 'Configure SMTP IMAP Proxy', link: 'feature/config-smtp-proxy' },
-                { text: 'Send Email API', link: 'feature/send-mail-api' },
-                { text: 'View Email API', link: 'feature/mail-api' },
                 { text: 'Configure Subdomain Email', link: 'feature/subdomain' },
                 { text: 'Configure Telegram Bot', link: 'feature/telegram' },
                 { text: 'Configure S3 Attachments', link: 'feature/s3-attachment' },
                 { text: 'Configure WASM Email Parser', link: 'feature/mail_parser_wasm_worker' },
                 { text: 'Configure Webhook', link: 'feature/webhook' },
-                { text: 'New Address API', link: 'feature/new-address-api' },
                 { text: 'OAuth2 Third-party Login', link: 'feature/user-oauth2' },
                 { text: 'Enhance with Other Workers', link: 'feature/another-worker-enhanced' },
                 { text: 'Add Google Ads', link: 'feature/google-ads.md' },
+            ]
+        },
+        {
+            text: 'API Endpoints',
+            collapsed: false,
+            items: [
+                { text: 'New Address API', link: 'feature/new-address-api' },
+                { text: 'View Email API', link: 'feature/mail-api' },
+                { text: 'Send Email API', link: 'feature/send-mail-api' },
             ]
         },
         {

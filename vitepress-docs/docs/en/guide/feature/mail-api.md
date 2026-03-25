@@ -131,6 +131,14 @@ print(response.json())
 
 ## User Mail API
 
+::: warning Note: User JWT vs Address JWT
+This endpoint uses **User JWT** (obtained via `/user_api/login` or `/user_api/register`), with `x-user-token` header.
+
+**Do not confuse with Address JWT**:
+- Address JWT uses `Authorization: Bearer <jwt>` to access `/api/*` endpoints
+- User JWT uses `x-user-token: <jwt>` to access `/user_api/*` endpoints
+:::
+
 Supports `address` filter
 
 ```python
