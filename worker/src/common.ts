@@ -168,7 +168,7 @@ export const newAddress = async (
         enableCheckNameRegex?: boolean,
         sourceMeta?: string | undefined | null,
     }
-): Promise<{ address: string, jwt: string, password?: string | null }> => {
+): Promise<{ address: string, jwt: string, password?: string | null, address_id?: number | null }> => {
     const msgs = i18n.getMessagesbyContext(c);
     // trim whitespace and remove special characters
     name = name.trim().replace(getNameRegex(c), '')
@@ -259,6 +259,7 @@ export const newAddress = async (
         jwt: jwt,
         address: name,
         password: generatedPassword,
+        address_id: address_id,
     }
 }
 
