@@ -16,7 +16,7 @@ export async function createTestAddress(
   ctx: APIRequestContext,
   name: string,
   domain: string = TEST_DOMAIN
-): Promise<{ jwt: string; address: string }> {
+): Promise<{ jwt: string; address: string; address_id: number }> {
   const uniqueName = `${name}${Date.now()}`;
   const res = await ctx.post(`${WORKER_URL}/api/new_address`, {
     data: { name: uniqueName, domain },
@@ -25,7 +25,7 @@ export async function createTestAddress(
     throw new Error(`Failed to create address: ${res.status()} ${await res.text()}`);
   }
   const body = await res.json();
-  return { jwt: body.jwt, address: body.address };
+  return { jwt: body.jwt, address: body.address, address_id: body.address_id };
 }
 
 /**

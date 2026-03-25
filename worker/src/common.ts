@@ -168,7 +168,7 @@ export const newAddress = async (
         enableCheckNameRegex?: boolean,
         sourceMeta?: string | undefined | null,
     }
-): Promise<{ address: string, jwt: string, password?: string | null }> => {
+): Promise<{ address: string, jwt: string, password?: string | null, address_id: number }> => {
     const msgs = i18n.getMessagesbyContext(c);
     // trim whitespace and remove special characters
     name = name.trim().replace(getNameRegex(c), '')
@@ -247,6 +247,10 @@ export const newAddress = async (
         `SELECT id FROM address where name = ?`
     ).bind(name).first<number>("id");
 
+    if (!address_id) {
+        throw new Error(msgs.FailedCreateAddressMsg);
+    }
+
     // 如果启用地址密码功能，自动生成密码
     const generatedPassword = await generatePasswordForAddress(c, name);
 
@@ -259,6 +263,7 @@ export const newAddress = async (
         jwt: jwt,
         address: name,
         password: generatedPassword,
+        address_id: address_id,
     }
 }
 

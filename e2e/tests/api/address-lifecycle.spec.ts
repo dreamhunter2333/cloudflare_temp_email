@@ -4,9 +4,10 @@ import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress, requestSendA
 test.describe('Address Lifecycle', () => {
   test('create address, request send access, fetch settings, then delete', async ({ request }) => {
     // Create address
-    const { jwt, address } = await createTestAddress(request, 'lifecycle-test');
+    const { jwt, address, address_id } = await createTestAddress(request, 'lifecycle-test');
     expect(address).toContain('@' + TEST_DOMAIN);
     expect(jwt).toBeTruthy();
+    expect(address_id).toBeGreaterThan(0);
 
     // Request send access (creates address_sender row with DEFAULT_SEND_BALANCE)
     await requestSendAccess(request, jwt);
