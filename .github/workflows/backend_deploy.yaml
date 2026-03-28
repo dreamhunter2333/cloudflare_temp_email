@@ -67,12 +67,11 @@ jobs:
           if [ "$debug_mode" = "true" ]; then
             pnpm run deploy
           else
-            if output=$(pnpm run deploy 2>&1); then
-              printf '%s\n' "$output"
+            if pnpm run deploy >/dev/null 2>&1; then
+              echo "Deploy succeeded"
             else
               code=$?
               echo "Command failed with exit code $code"
-              printf '%s\n' "$output"
               exit "$code"
             fi
           fi
