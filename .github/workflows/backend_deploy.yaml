@@ -81,3 +81,4 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           # ✅ 将 secret 映射到环境变量中
           WRANGLER_TOML_CONTENT: ${{ secrets.BACKEND_TOML }}
+          debug_mode: "true"
