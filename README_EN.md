@@ -109,6 +109,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 
 - [x] Use `rust wasm` to parse emails, with fast parsing speed. Almost all emails can be parsed. Even emails that Node.js parsing modules fail to parse can be successfully parsed by rust wasm
 - [x] **AI Email Recognition** - Use Cloudflare Workers AI to automatically extract verification codes, authentication links, service links and other important information from emails
+- [x] Support optional random second-level subdomain mailbox creation for selected base domains
 - [x] Support sending emails with `DKIM` verification
 - [x] Support multiple sending methods such as `SMTP` and `Resend`
 - [x] Add attachment viewing feature with support for displaying attachment images

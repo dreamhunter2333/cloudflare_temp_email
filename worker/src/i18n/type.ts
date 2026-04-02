@@ -55,6 +55,7 @@ export type LocaleMessages = {
     NameTooShortMsg: string
     NameTooLongMsg: string
     InvalidDomainMsg: string
+    RandomSubdomainNotAllowedMsg: string
     AddressAlreadyExistsMsg: string
     MaxAddressCountReachedMsg: string
     AddressNotBindedMsg: string

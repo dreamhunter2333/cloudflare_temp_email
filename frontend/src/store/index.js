@@ -28,6 +28,8 @@ export const useGlobalState = createGlobalState(
             enableIndexAbout: false,
             /** @type {string[]} */
             defaultDomains: [],
+            /** @type {string[]} */
+            randomSubdomainDomains: [],
             /** @type {Array<{label: string, value: string}>} */
             domains: [],
             copyright: 'Dream Hunter',

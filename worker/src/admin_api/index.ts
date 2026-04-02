@@ -45,7 +45,7 @@ api.get('/admin/address', async (c) => {
 })
 
 api.post('/admin/new_address', async (c) => {
-    const { name, domain, enablePrefix } = await c.req.json();
+    const { name, domain, enablePrefix, enableRandomSubdomain } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     if (!name) {
         return c.text(msgs.RequiredFieldMsg, 400)
@@ -53,6 +53,7 @@ api.post('/admin/new_address', async (c) => {
     try {
         const res = await newAddress(c, {
             name, domain, enablePrefix,
+            enableRandomSubdomain: getBooleanValue(enableRandomSubdomain),
             checkLengthByConfig: false,
             addressPrefix: null,
             checkAllowDomains: false,

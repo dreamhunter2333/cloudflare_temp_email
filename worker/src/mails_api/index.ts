@@ -125,7 +125,7 @@ api.post('/api/new_address', async (c) => {
     }
 
     // eslint-disable-next-line prefer-const
-    let { name, domain, cf_token } = await c.req.json();
+    let { name, domain, cf_token, enableRandomSubdomain } = await c.req.json();
     // check cf turnstile
     try {
         await checkCfTurnstile(c, cf_token);
@@ -160,6 +160,7 @@ api.post('/api/new_address', async (c) => {
         const res = await newAddress(c, {
             name, domain,
             enablePrefix: true,
+            enableRandomSubdomain: getBooleanValue(enableRandomSubdomain),
             checkLengthByConfig: true,
             addressPrefix,
             sourceMeta
