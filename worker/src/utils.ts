@@ -126,11 +126,77 @@ export const getStringArray = (
     return value;
 }
 
+export const normalizeDomain = (
+    value: string | undefined | null
+): string => {
+    return getStringValue(value).trim().toLowerCase();
+}
+
+export const normalizeDomains = (domains: string[]): string[] => {
+    return domains
+        .map((domain) => normalizeDomain(domain))
+        .filter((domain) => domain.length > 0);
+}
+
+export const normalizeEmailAddress = (
+    value: string | undefined | null
+): string => {
+    const address = getStringValue(value).trim();
+    if (!address) {
+        return "";
+    }
+    const atIndex = address.lastIndexOf("@");
+    if (atIndex < 0) {
+        return address;
+    }
+    const localPart = address.slice(0, atIndex);
+    const domain = normalizeDomain(address.slice(atIndex + 1));
+    return domain ? `${localPart}@${domain}` : localPart;
+}
+
+export const getMailDomain = (
+    value: string | undefined | null
+): string => {
+    const normalizedAddress = normalizeEmailAddress(value);
+    const atIndex = normalizedAddress.lastIndexOf("@");
+    if (atIndex < 0) {
+        return "";
+    }
+    return normalizedAddress.slice(atIndex + 1);
+}
+
+export const includesDomain = (
+    domains: string[] | undefined | null,
+    domain: string | undefined | null
+): boolean => {
+    const normalizedDomain = normalizeDomain(domain);
+    if (!normalizedDomain || !domains || domains.length === 0) {
+        return false;
+    }
+    return normalizeDomains(domains).includes(normalizedDomain);
+}
+
+export const getDomainMapValue = <T>(
+    valueMap: Record<string, T> | undefined | null,
+    domain: string | undefined | null
+): T | null => {
+    const normalizedDomain = normalizeDomain(domain);
+    if (!normalizedDomain || !valueMap) {
+        return null;
+    }
+    for (const [key, value] of Object.entries(valueMap)) {
+        if (normalizeDomain(key) === normalizedDomain) {
+            return value;
+        }
+    }
+    return null;
+}
+
 export const getDefaultDomains = (c: Context<HonoCustomType>): string[] => {
     if (c.env.DEFAULT_DOMAINS == undefined || c.env.DEFAULT_DOMAINS == null) {
         return getDomains(c);
     }
-    const domains = getStringArray(c.env.DEFAULT_DOMAINS);
+    const domains = normalizeDomains(getStringArray(c.env.DEFAULT_DOMAINS));
     return domains || getDomains(c);
 }
 
@@ -141,36 +207,44 @@ export const getDomains = (c: Context<HonoCustomType>): string[] => {
     // check if DOMAINS is an array, if not use json.parse
     if (!Array.isArray(c.env.DOMAINS)) {
         try {
-            return JSON.parse(c.env.DOMAINS);
+            return normalizeDomains(JSON.parse(c.env.DOMAINS));
         } catch (e) {
             console.error("Failed to parse DOMAINS", e);
             return [];
         }
     }
-    return c.env.DOMAINS;
+    return normalizeDomains(c.env.DOMAINS);
 }
 
 export const getRandomSubdomainDomains = (c: Context<HonoCustomType>): string[] => {
     if (!c.env.RANDOM_SUBDOMAIN_DOMAINS) {
         return [];
     }
-    return getStringArray(c.env.RANDOM_SUBDOMAIN_DOMAINS);
+    return normalizeDomains(getStringArray(c.env.RANDOM_SUBDOMAIN_DOMAINS));
 }
 
 export const getUserRoles = (c: Context<HonoCustomType>): UserRole[] => {
     if (!c.env.USER_ROLES) {
         return [];
     }
+    const normalizeRoles = (roles: UserRole[]): UserRole[] => {
+        return roles.map((role) => ({
+            ...role,
+            domains: Array.isArray(role.domains)
+                ? normalizeDomains(role.domains)
+                : role.domains,
+        }));
+    };
     // check if USER_ROLES is an array, if not use json.parse
     if (!Array.isArray(c.env.USER_ROLES)) {
         try {
-            return JSON.parse(c.env.USER_ROLES);
+            return normalizeRoles(JSON.parse(c.env.USER_ROLES));
         } catch (e) {
             console.error("Failed to parse USER_ROLES", e);
             return [];
         }
     }
-    return c.env.USER_ROLES;
+    return normalizeRoles(c.env.USER_ROLES);
 }
 
 export const getAnotherWorkerList = (c: Context<HonoCustomType>): AnotherWorker[] => {
@@ -373,6 +447,12 @@ export default {
     getBooleanValue,
     getIntValue,
     getStringArray,
+    normalizeDomain,
+    normalizeDomains,
+    normalizeEmailAddress,
+    getMailDomain,
+    includesDomain,
+    getDomainMapValue,
     getDefaultDomains,
     getDomains,
     getRandomSubdomainDomains,

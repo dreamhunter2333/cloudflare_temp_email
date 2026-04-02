@@ -1,6 +1,6 @@
 import { Context } from "hono";
 
-import { getJsonSetting } from "../utils";
+import { getJsonSetting, normalizeEmailAddress } from "../utils";
 import { sendMailToTelegram } from "../telegram_api";
 import { auto_reply } from "./auto_reply";
 import { isBlocked } from "./black_list";
@@ -11,9 +11,13 @@ import { extractEmailInfo } from "./ai_extract";
 import { forwardEmail } from "./forward";
 import { EmailRuleSettings } from "../models";
 import { CONSTANTS } from "../constants";
-
-
 async function email(message: ForwardableEmailMessage, env: Bindings, ctx: ExecutionContext) {
+    const normalizedToAddress = normalizeEmailAddress(message.to);
+    let targetAddress = normalizedToAddress || message.to;
+    let dbAddress:
+        | { id?: number | null; name?: string | null }
+        | null = null;
+
     if (await isBlocked(message.from, env)) {
         message.setReject("Reject from address");
         console.log(`Reject message from ${message.from} to ${message.to}`);
@@ -38,14 +42,17 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
 
     // check if unknown address mail
     try {
+        dbAddress = await env.DB.prepare(
+            `SELECT id, name FROM address WHERE lower(name) = ?`
+        ).bind(targetAddress.toLowerCase()).first<{ id?: number | null, name?: string | null }>();
+        if (dbAddress?.name) {
+            targetAddress = dbAddress.name;
+        }
         const emailRuleSettings = await getJsonSetting<EmailRuleSettings>(
             { env: env } as Context<HonoCustomType>, CONSTANTS.EMAIL_RULE_SETTINGS_KEY
         );
         if (emailRuleSettings?.blockReceiveUnknowAddressEmail) {
-            const db_address_id = await env.DB.prepare(
-                `SELECT id FROM address where name = ? `
-            ).bind(message.to).first("id");
-            if (!db_address_id) {
+            if (!dbAddress?.id) {
                 message.setReject("Unknown address");
                 console.log(`Unknown address mail from ${message.from} to ${message.to}`);
                 return;
@@ -68,7 +75,7 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
         const { success } = await env.DB.prepare(
             `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
         ).bind(
-            message.from, message.to, parsedEmailContext.rawEmail, message_id
+            message.from, targetAddress, parsedEmailContext.rawEmail, message_id
         ).run();
         if (!success) {
             message.setReject(`Failed save message to ${message.to}`);
@@ -80,13 +87,13 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     }
 
     // forward email
-    await forwardEmail(message, env);
+    await forwardEmail(message, env, targetAddress);
 
     // send email to telegram
     try {
         await sendMailToTelegram(
             { env: env } as Context<HonoCustomType>,
-            message.to, parsedEmailContext, message_id);
+            targetAddress, parsedEmailContext, message_id);
     } catch (error) {
         console.error("send mail to telegram error", error);
     }
@@ -95,7 +102,7 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     try {
         await triggerWebhook(
             { env: env } as Context<HonoCustomType>,
-            message.to, parsedEmailContext, message_id
+            targetAddress, parsedEmailContext, message_id
         );
     } catch (error) {
         console.error("send webhook error", error);
@@ -107,7 +114,7 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
         const parsedText = parsedEmail?.text ?? ""
         const rpcEmail: RPCEmailMessage = {
             from: message.from,
-            to: message.to,
+            to: targetAddress,
             rawEmail: rawEmail,
             headers: message.headers
         }
@@ -117,10 +124,10 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     }
 
     // auto reply email
-    await auto_reply(message, env);
+    await auto_reply(message, env, targetAddress);
 
     // AI email content extraction
-    await extractEmailInfo(parsedEmailContext, env, message_id, message.to);
+    await extractEmailInfo(parsedEmailContext, env, message_id, targetAddress);
 }
 
 export { email }

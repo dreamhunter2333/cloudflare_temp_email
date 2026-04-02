@@ -6,7 +6,7 @@ import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue } from '../utils';
+import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue, getDomainMapValue, getMailDomain, includesDomain } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery, updateAddressUpdatedAt } from '../common'
 
@@ -70,7 +70,7 @@ const sendMailByResend = async (
         subject: string, content: string, is_html: boolean
     }
 ): Promise<void> => {
-    const mailDomain = address.split("@")[1];
+    const mailDomain = getMailDomain(address);
     const token = c.env[
         `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
     ] || c.env.RESEND_TOKEN;
@@ -132,9 +132,9 @@ export const sendMail = async (
         throw new Error(msgs.AddressNotFoundMsg)
     }
     // check domain
-    const mailDomain = address.split("@")[1];
+    const mailDomain = getMailDomain(address);
     const domains = getDomains(c);
-    if (!domains.includes(mailDomain)) {
+    if (!includesDomain(domains, mailDomain)) {
         throw new Error(msgs.InvalidDomainMsg)
     }
     const user_role = c.get("userRolePayload");
@@ -180,7 +180,7 @@ export const sendMail = async (
     ];
     // send by smtp
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    const smtpConfig = smtpConfigMap ? smtpConfigMap[mailDomain] : null;
+    const smtpConfig = getDomainMapValue(smtpConfigMap, mailDomain);
     // send by verified address list
     let sendByVerifiedAddressList = false;
     if (c.env.SEND_MAIL) {
