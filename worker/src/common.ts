@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains } from './utils';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, includesDomain, normalizeDomain, normalizeEmailAddress } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
@@ -33,15 +33,17 @@ export const isSendMailEnabled = (
     c: Context<HonoCustomType>,
     mailDomain: string
 ): boolean => {
+    const normalizedMailDomain = normalizeDomain(mailDomain);
+    if (!normalizedMailDomain) return false;
     // Check resend token for domain or global
     const resendEnabled = c.env.RESEND_TOKEN || c.env[
-        `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
+        `RESEND_TOKEN_${normalizedMailDomain.replace(/\./g, "_").toUpperCase()}`
     ];
     if (resendEnabled) return true;
 
     // Check SMTP config for domain
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    if (smtpConfigMap && smtpConfigMap[mailDomain]) return true;
+    if (getDomainMapValue(smtpConfigMap, normalizedMailDomain)) return true;
 
     // Check SEND_MAIL binding
     if (c.env.SEND_MAIL) return true;
@@ -99,10 +101,7 @@ const allowRandomSubdomainForDomain = (
     c: Context<HonoCustomType>,
     domain: string
 ): boolean => {
-    const normalizedDomain = normalizeDomainValue(domain);
-    return getRandomSubdomainDomains(c)
-        .map((item) => normalizeDomainValue(item))
-        .includes(normalizedDomain);
+    return includesDomain(getRandomSubdomainDomains(c), domain);
 }
 
 const isCreateAddressSubdomainMatchEnvConfigured = (c: Context<HonoCustomType>): boolean => {
@@ -358,6 +357,7 @@ export const newAddress = async (
     } else if (enablePrefix) {
         name = getStringValue(c.env.PREFIX).trim() + name;
     }
+    domain = normalizeDomain(domain);
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
     // if domain is not set, select domain based on environment configuration
@@ -388,9 +388,18 @@ export const newAddress = async (
         const addressDomain = enableRandomSubdomain
             ? `${generateRandomSubdomain(c)}.${domain}`
             : domain;
-        const address = `${name}@${addressDomain}`;
+        const address = normalizeEmailAddress(`${name}@${addressDomain}`);
 
         try {
+            const existingAddressId = await c.env.DB.prepare(
+                `SELECT id FROM address WHERE lower(name) = ?`
+            ).bind(address.toLowerCase()).first<number>("id");
+            if (existingAddressId) {
+                if (enableRandomSubdomain && attempt < maxAttempts - 1) {
+                    continue;
+                }
+                throw new Error(msgs.AddressAlreadyExistsMsg);
+            }
             await insertAddressRecord(c, address, sourceMeta, msgs);
             await updateAddressUpdatedAt(c, address);
 
