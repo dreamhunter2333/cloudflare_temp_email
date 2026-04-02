@@ -114,6 +114,8 @@ const selectedCount = computed(() => checkedRowKeys.value.length);
 const showMultiActionBar = computed(() => checkedRowKeys.value.length > 0);
 
 const addressQuery = ref("")
+const sortBy = ref("")
+const sortOrder = ref("")
 
 const data = ref([])
 const count = ref(0)
@@ -290,10 +292,12 @@ const fetchData = async () => {
             + `?limit=${pageSize.value}`
             + `&offset=${(page.value - 1) * pageSize.value}`
             + (addressQuery.value ? `&query=${addressQuery.value}` : "")
+            + (sortBy.value ? `&sort_by=${sortBy.value}` : "")
+            + (sortOrder.value ? `&sort_order=${sortOrder.value}` : "")
         );
         data.value = results;
-        if (addressCount > 0) {
-            count.value = addressCount;
+        if (page.value === 1 || addressCount > 0) {
+            count.value = addressCount ?? 0;
         }
     } catch (error) {
         console.error(error);
@@ -301,29 +305,57 @@ const fetchData = async () => {
     }
 }
 
-const columns = [
+const searchData = () => {
+    if (page.value === 1) {
+        fetchData();
+    } else {
+        page.value = 1;
+    }
+}
+
+const handleSorterChange = (sorter) => {
+    sortBy.value = sorter.columnKey || "";
+    sortOrder.value = sorter.order || "";
+    if (page.value === 1) {
+        fetchData();
+    } else {
+        page.value = 1;
+    }
+}
+
+const columns = computed(() => [
     {
         type: 'selection'
     },
     {
         title: "ID",
-        key: "id"
+        key: "id",
+        sorter: true,
+        sortOrder: sortBy.value === 'id' ? sortOrder.value : false
     },
     {
         title: t('name'),
-        key: "name"
+        key: "name",
+        sorter: true,
+        sortOrder: sortBy.value === 'name' ? sortOrder.value : false
     },
     {
         title: t('created_at'),
-        key: "created_at"
+        key: "created_at",
+        sorter: true,
+        sortOrder: sortBy.value === 'created_at' ? sortOrder.value : false
     },
     {
         title: t('updated_at'),
-        key: "updated_at"
+        key: "updated_at",
+        sorter: true,
+        sortOrder: sortBy.value === 'updated_at' ? sortOrder.value : false
     },
     {
         title: t('source_meta'),
         key: "source_meta",
+        sorter: true,
+        sortOrder: sortBy.value === 'source_meta' ? sortOrder.value : false,
         render(row) {
             const val = row.source_meta;
             if (!val) return '';
@@ -342,6 +374,8 @@ const columns = [
     {
         title: t('mail_count'),
         key: "mail_count",
+        sorter: true,
+        sortOrder: sortBy.value === 'mail_count' ? sortOrder.value : false,
         render(row) {
             return h(NButton,
                 {
@@ -368,6 +402,8 @@ const columns = [
     {
         title: t('send_count'),
         key: "send_count",
+        sorter: true,
+        sortOrder: sortBy.value === 'send_count' ? sortOrder.value : false,
         render(row) {
             return h(NButton,
                 {
@@ -497,7 +533,7 @@ const columns = [
             ])
         }
     }
-]
+])
 
 watch([page, pageSize], async () => {
     await fetchData()
@@ -560,8 +596,8 @@ onMounted(async () => {
         </n-modal>
         <n-input-group style="margin-bottom: 10px;">
             <n-input v-model:value="addressQuery" clearable :placeholder="t('addressQueryTip')"
-                @keydown.enter="fetchData" />
-            <n-button @click="fetchData" type="primary" tertiary>
+                @keydown.enter="searchData" />
+            <n-button @click="searchData" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>
         </n-input-group>
@@ -605,7 +641,7 @@ onMounted(async () => {
                 </n-pagination>
             </div>
             <n-data-table v-model:checked-row-keys="checkedRowKeys" :columns="columns" :data="data" :bordered="false"
-                :row-key="row => row.id" embedded />
+                :row-key="row => row.id" remote @update:sorter="handleSorterChange" embedded />
         </div>
 
         <!-- Multi-action progress modal -->

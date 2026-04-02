@@ -483,7 +483,9 @@ export const handleListQuery = async (
     c: Context<HonoCustomType>,
     query: string, countQuery: string, params: string[],
     limit: string | number | undefined | null,
-    offset: string | number | undefined | null
+    offset: string | number | undefined | null,
+    /** Must be pre-validated (e.g. whitelist), NOT raw user input. Interpolated directly into SQL. */
+    orderBy?: string
 ): Promise<Response> => {
     const msgs = i18n.getMessagesbyContext(c);
     if (typeof limit === "string") {
@@ -498,7 +500,8 @@ export const handleListQuery = async (
     if (offset == null || offset == undefined || offset < 0) {
         return c.text(msgs.InvalidOffsetMsg, 400)
     }
-    const resultsQuery = `${query} order by id desc limit ? offset ?`;
+    const orderClause = orderBy || 'id desc';
+    const resultsQuery = `${query} order by ${orderClause} limit ? offset ?`;
     const { results } = await c.env.DB.prepare(resultsQuery).bind(
         ...params, limit, offset
     ).all();
