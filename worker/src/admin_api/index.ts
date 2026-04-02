@@ -22,7 +22,18 @@ import e2e_test_api from './e2e_test_api'
 export const api = new Hono<HonoCustomType>()
 
 api.get('/admin/address', async (c) => {
-    const { limit, offset, query } = c.req.query();
+    const { limit, offset, query, sort_by, sort_order } = c.req.query();
+    const allowedSortColumns: Record<string, string> = {
+        'id': 'a.id',
+        'name': 'a.name',
+        'created_at': 'a.created_at',
+        'updated_at': 'a.updated_at',
+        'mail_count': 'mail_count',
+        'send_count': 'send_count',
+    };
+    const sortColumn = allowedSortColumns[sort_by] || 'a.id';
+    const sortDirection = sort_order === 'ascend' ? 'asc' : 'desc';
+    const orderBy = `${sortColumn} ${sortDirection}`;
     if (query) {
         return await handleListQuery(c,
             `SELECT a.*,`
@@ -31,7 +42,7 @@ api.get('/admin/address', async (c) => {
             + ` FROM address a`
             + ` where name like ?`,
             `SELECT count(*) as count FROM address where name like ?`,
-            [`%${query}%`], limit, offset
+            [`%${query}%`], limit, offset, orderBy
         );
     }
     return await handleListQuery(c,
@@ -40,7 +51,7 @@ api.get('/admin/address', async (c) => {
         + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
         + ` FROM address a`,
         `SELECT count(*) as count FROM address`,
-        [], limit, offset
+        [], limit, offset, orderBy
     );
 })
 
