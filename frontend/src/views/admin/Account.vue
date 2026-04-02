@@ -296,8 +296,8 @@ const fetchData = async () => {
             + (sortOrder.value ? `&sort_order=${sortOrder.value}` : "")
         );
         data.value = results;
-        if (addressCount > 0) {
-            count.value = addressCount;
+        if (page.value === 1 || addressCount > 0) {
+            count.value = addressCount ?? 0;
         }
     } catch (error) {
         console.error(error);
@@ -354,6 +354,8 @@ const columns = computed(() => [
     {
         title: t('source_meta'),
         key: "source_meta",
+        sorter: true,
+        sortOrder: sortBy.value === 'source_meta' ? sortOrder.value : false,
         render(row) {
             const val = row.source_meta;
             if (!val) return '';

@@ -28,10 +28,11 @@ api.get('/admin/address', async (c) => {
         'name': 'a.name',
         'created_at': 'a.created_at',
         'updated_at': 'a.updated_at',
+        'source_meta': 'a.source_meta',
         'mail_count': 'mail_count',
         'send_count': 'send_count',
     };
-    const sortColumn = allowedSortColumns[sort_by] || 'a.id';
+    const sortColumn = Object.hasOwn(allowedSortColumns, sort_by) ? allowedSortColumns[sort_by] : 'a.id';
     const sortDirection = sort_order === 'ascend' ? 'asc' : 'desc';
     const orderBy = `${sortColumn} ${sortDirection}`;
     if (query) {
