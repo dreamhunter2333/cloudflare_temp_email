@@ -431,6 +431,7 @@ export const handleListQuery = async (
     query: string, countQuery: string, params: string[],
     limit: string | number | undefined | null,
     offset: string | number | undefined | null,
+    /** Must be pre-validated (e.g. whitelist), NOT raw user input. Interpolated directly into SQL. */
     orderBy?: string
 ): Promise<Response> => {
     const msgs = i18n.getMessagesbyContext(c);
