@@ -24,6 +24,8 @@ export default {
             "SUBDOMAIN_FORWARD_ADDRESS_LIST": utils.getJsonObjectValue<SubdomainForwardAddressList[]>(c.env.SUBDOMAIN_FORWARD_ADDRESS_LIST),
             "DEFAULT_DOMAINS": utils.getDefaultDomains(c),
             "DOMAINS": utils.getDomains(c),
+            "RANDOM_SUBDOMAIN_DOMAINS": utils.getRandomSubdomainDomains(c),
+            "RANDOM_SUBDOMAIN_LENGTH": utils.getIntValue(c.env.RANDOM_SUBDOMAIN_LENGTH, 8),
             "DOMAIN_LABELS": utils.getStringArray(c.env.DOMAIN_LABELS),
 
             "HAS_JWT_SECRET": !!utils.getStringValue(c.env.JWT_SECRET),

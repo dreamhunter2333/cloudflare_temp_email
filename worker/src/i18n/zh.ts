@@ -57,6 +57,7 @@ const messages: LocaleMessages = {
     NameTooShortMsg: "名称太短",
     NameTooLongMsg: "名称太长",
     InvalidDomainMsg: "无效的域名",
+    RandomSubdomainNotAllowedMsg: "当前域名未启用随机子域名",
     AddressAlreadyExistsMsg: "邮箱地址已存在",
     MaxAddressCountReachedMsg: "已达到最大地址数量限制",
     AddressNotBindedMsg: "邮箱地址未绑定",

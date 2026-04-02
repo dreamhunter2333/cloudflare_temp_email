@@ -50,6 +50,10 @@ PREFIX = "tmp"
 # CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST = false
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all domain names
+# Allow optional random subdomain generation for the listed base domains
+# e.g. name@abc.com => name@r4nd0m.abc.com
+# RANDOM_SUBDOMAIN_DOMAINS = ["abc.com"]
+# RANDOM_SUBDOMAIN_LENGTH = 8
 # For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
 # DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
 # USER_DEFAULT_ROLE = "vip" # default role for new users(only when enable mail verification)

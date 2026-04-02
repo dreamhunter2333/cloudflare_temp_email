@@ -2,13 +2,15 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue } from './utils';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
+const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
+const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
 
 /**
  * Check if send mail is enabled for a specific domain
@@ -65,6 +67,26 @@ export const generateRandomName = (c: Context<HonoCustomType>): string => {
     // Return truncated to max length
     return fullName.substring(0, Math.min(fullName.length, maxLength));
 };
+
+const generateRandomSubdomain = (c: Context<HonoCustomType>): string => {
+    const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+    const length = Math.min(
+        Math.max(getIntValue(c.env.RANDOM_SUBDOMAIN_LENGTH, DEFAULT_RANDOM_SUBDOMAIN_LENGTH), 1),
+        63
+    );
+    let subdomain = "";
+    for (let i = 0; i < length; i++) {
+        subdomain += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return subdomain;
+}
+
+const allowRandomSubdomainForDomain = (
+    c: Context<HonoCustomType>,
+    domain: string
+): boolean => {
+    return getRandomSubdomainDomains(c).includes(domain);
+}
 
 const checkNameRegex = (c: Context<HonoCustomType>, name: string) => {
     let error = null;
@@ -148,12 +170,42 @@ const generatePasswordForAddress = async (
     return plainPassword;
 }
 
+const insertAddressRecord = async (
+    c: Context<HonoCustomType>,
+    address: string,
+    sourceMeta: string | undefined | null,
+    msgs: ReturnType<typeof i18n.getMessagesbyContext>
+): Promise<void> => {
+    try {
+        const result = await c.env.DB.prepare(
+            `INSERT INTO address(name, source_meta) VALUES(?, ?)`
+        ).bind(address, sourceMeta).run();
+        if (!result.success) {
+            throw new Error(msgs.FailedCreateAddressMsg)
+        }
+    } catch (e) {
+        const message = (e as Error).message;
+        // Fallback: source_meta field may not exist, try without it
+        if (message && message.includes("source_meta")) {
+            const result = await c.env.DB.prepare(
+                `INSERT INTO address(name) VALUES(?)`
+            ).bind(address).run();
+            if (!result.success) {
+                throw new Error(msgs.FailedCreateAddressMsg)
+            }
+            return;
+        }
+        throw e;
+    }
+}
+
 export const newAddress = async (
     c: Context<HonoCustomType>,
     {
         name,
         domain,
         enablePrefix,
+        enableRandomSubdomain = false,
         checkLengthByConfig = true,
         addressPrefix = null,
         checkAllowDomains = true,
@@ -162,6 +214,7 @@ export const newAddress = async (
     }: {
         name: string, domain: string | undefined | null,
         enablePrefix: boolean,
+        enableRandomSubdomain?: boolean,
         checkLengthByConfig?: boolean,
         addressPrefix?: string | undefined | null,
         checkAllowDomains?: boolean,
@@ -215,56 +268,56 @@ export const newAddress = async (
     if (!domain || !allowDomains.includes(domain)) {
         throw new Error(msgs.InvalidDomainMsg)
     }
-    // create address
-    name = name + "@" + domain;
-    try {
-        // Try insert with source_meta field first
-        const result = await c.env.DB.prepare(
-            `INSERT INTO address(name, source_meta) VALUES(?, ?)`
-        ).bind(name, sourceMeta).run();
-        if (!result.success) {
-            throw new Error(msgs.FailedCreateAddressMsg)
-        }
-        await updateAddressUpdatedAt(c, name);
-    } catch (e) {
-        const message = (e as Error).message;
-        // Fallback: source_meta field may not exist, try without it
-        if (message && message.includes("source_meta")) {
-            const result = await c.env.DB.prepare(
-                `INSERT INTO address(name) VALUES(?)`
-            ).bind(name).run();
-            if (!result.success) {
-                throw new Error(msgs.FailedCreateAddressMsg)
+    if (enableRandomSubdomain && !allowRandomSubdomainForDomain(c, domain)) {
+        throw new Error(msgs.RandomSubdomainNotAllowedMsg)
+    }
+
+    const maxAttempts = enableRandomSubdomain ? MAX_RANDOM_SUBDOMAIN_ATTEMPTS : 1;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const addressDomain = enableRandomSubdomain
+            ? `${generateRandomSubdomain(c)}.${domain}`
+            : domain;
+        const address = `${name}@${addressDomain}`;
+
+        try {
+            await insertAddressRecord(c, address, sourceMeta, msgs);
+            await updateAddressUpdatedAt(c, address);
+
+            const address_id = await c.env.DB.prepare(
+                `SELECT id FROM address where name = ?`
+            ).bind(address).first<number>("id");
+
+            if (!address_id) {
+                throw new Error(msgs.FailedCreateAddressMsg);
             }
-            await updateAddressUpdatedAt(c, name);
-        } else if (message && message.includes("UNIQUE")) {
-            throw new Error(msgs.AddressAlreadyExistsMsg)
-        } else {
+
+            // 如果启用地址密码功能，自动生成密码
+            const generatedPassword = await generatePasswordForAddress(c, address);
+
+            // create jwt
+            const jwt = await Jwt.sign({
+                address: address,
+                address_id: address_id
+            }, c.env.JWT_SECRET, "HS256")
+            return {
+                jwt: jwt,
+                address: address,
+                password: generatedPassword,
+                address_id: address_id,
+            }
+        } catch (e) {
+            const message = (e as Error).message;
+            if (message && message.includes("UNIQUE")) {
+                if (enableRandomSubdomain && attempt < maxAttempts - 1) {
+                    continue;
+                }
+                throw new Error(msgs.AddressAlreadyExistsMsg)
+            }
             throw new Error(msgs.FailedCreateAddressMsg)
         }
     }
-    const address_id = await c.env.DB.prepare(
-        `SELECT id FROM address where name = ?`
-    ).bind(name).first<number>("id");
 
-    if (!address_id) {
-        throw new Error(msgs.FailedCreateAddressMsg);
-    }
-
-    // 如果启用地址密码功能，自动生成密码
-    const generatedPassword = await generatePasswordForAddress(c, name);
-
-    // create jwt
-    const jwt = await Jwt.sign({
-        address: name,
-        address_id: address_id
-    }, c.env.JWT_SECRET, "HS256")
-    return {
-        jwt: jwt,
-        address: name,
-        password: generatedPassword,
-        address_id: address_id,
-    }
+    throw new Error(msgs.FailedCreateAddressMsg)
 }
 
 const checkNameBlockList = async (

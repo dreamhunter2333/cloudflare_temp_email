@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { NewLabelOutlined, EmailOutlined } from '@vicons/material'
@@ -19,13 +19,14 @@ const props = defineProps({
     },
     newAddressPath: {
         type: Function,
-        default: async (address_name, domain, cf_token) => {
+        default: async (address_name, domain, cf_token, enableRandomSubdomain) => {
             return await api.fetch("/api/new_address", {
                 method: "POST",
                 body: JSON.stringify({
                     name: address_name,
                     domain: domain,
                     cf_token: cf_token,
+                    enableRandomSubdomain: enableRandomSubdomain,
                 }),
             });
         },
@@ -47,6 +48,7 @@ const credential = ref('')
 const emailName = ref("")
 const emailDomain = ref("")
 const cfToken = ref("")
+const enableRandomSubdomain = ref(false)
 const loginCfToken = ref("")
 const loginTurnstileRef = ref(null)
 const loginMethod = ref('credential') // 'credential' or 'password'
@@ -141,6 +143,8 @@ const { locale, t } = useI18n({
             email: 'Email',
             password: 'Password',
             emailPasswordRequired: 'Email and password are required',
+            enableRandomSubdomain: 'Use Random Subdomain',
+            randomSubdomainTip: 'When enabled, the created address will use a random subdomain. Subdomain addresses are recommended for receiving only.',
         },
         zh: {
             login: '登录',
@@ -163,6 +167,8 @@ const { locale, t } = useI18n({
             email: '邮箱',
             password: '密码',
             emailPasswordRequired: '邮箱和密码不能为空',
+            enableRandomSubdomain: '启用随机子域名',
+            randomSubdomainTip: '启用后，创建出来的地址会自动挂在随机子域名下。子域名地址更建议仅用于收件。',
         }
     }
 });
@@ -215,7 +221,8 @@ const newEmail = async () => {
         const res = await props.newAddressPath(
             nameToSend,
             emailDomain.value,
-            cfToken.value
+            cfToken.value,
+            enableRandomSubdomain.value
         );
         jwt.value = res["jwt"];
         addressPassword.value = res["password"] || '';
@@ -239,6 +246,19 @@ const addressPrefix = computed(() => {
     }
     // if user has no role, return default prefix
     return openSettings.value.prefix;
+});
+
+const canUseRandomSubdomain = computed(() => {
+    if (!emailDomain.value) {
+        return false;
+    }
+    return (openSettings.value.randomSubdomainDomains || []).includes(emailDomain.value);
+});
+
+watch(canUseRandomSubdomain, (enabled) => {
+    if (!enabled) {
+        enableRandomSubdomain.value = false;
+    }
 });
 
 const domainsOptions = computed(() => {
@@ -350,6 +370,14 @@ onMounted(async () => {
                             <n-select v-model:value="emailDomain" :consistent-menu-width="false"
                                 :options="domainsOptions" />
                         </n-input-group>
+                        <n-form-item-row v-if="canUseRandomSubdomain">
+                            <n-checkbox v-model:checked="enableRandomSubdomain">
+                                {{ t('enableRandomSubdomain') }}
+                            </n-checkbox>
+                            <p style="margin: 8px 0 0; opacity: 0.75;">
+                                {{ t('randomSubdomainTip') }}
+                            </p>
+                        </n-form-item-row>
                         <Turnstile v-model:value="cfToken" />
                         <n-button type="primary" block secondary strong @click="newEmail" :loading="loading">
                             <template #icon>

@@ -57,6 +57,7 @@ const messages: LocaleMessages = {
     NameTooShortMsg: "Name is too short",
     NameTooLongMsg: "Name is too long",
     InvalidDomainMsg: "Invalid domain",
+    RandomSubdomainNotAllowedMsg: "Random subdomain is not enabled for this domain",
     AddressAlreadyExistsMsg: "Address already exists",
     MaxAddressCountReachedMsg: "Max address count reached",
     AddressNotBindedMsg: "Address is not binded",
