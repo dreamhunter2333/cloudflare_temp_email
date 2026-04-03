@@ -35,3 +35,24 @@ RANDOM_SUBDOMAIN_LENGTH = 8
 >
 > It does not automatically create Cloudflare-side subdomain mail routes or DNS records for you,
 > so make sure the base-domain/subdomain routing is already available first.
+
+## Let APIs Specify Subdomains Directly
+
+If you do not want the system to generate a random subdomain, and instead want the caller to
+explicitly create addresses like `team.abc.com`, enable:
+
+```toml
+ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
+```
+
+When this is enabled, as long as `abc.com` is in the allowed base-domain list, the following
+addresses can be created through `/api/new_address` or `/admin/new_address`:
+
+- `name@team.abc.com`
+- `name@dev.team.abc.com`
+
+> [!NOTE]
+> This only relaxes the domain validation used by the create-address APIs. It does not change the
+> default domain dropdown, and it does not create Cloudflare-side subdomain mail routes for you.
+>
+> If the admin panel has already saved an override once, you can switch it back to **Follow Environment Variable** to clear the override and return to env fallback behavior.

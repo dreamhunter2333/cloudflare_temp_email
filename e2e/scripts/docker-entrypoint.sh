@@ -14,6 +14,36 @@ for i in $(seq 1 60); do
   sleep 1
 done
 
+if [ -n "${WORKER_URL_SUBDOMAIN:-}" ]; then
+  echo "==> Waiting for subdomain worker at $WORKER_URL_SUBDOMAIN ..."
+  for i in $(seq 1 60); do
+    if curl -sf "$WORKER_URL_SUBDOMAIN/health_check" > /dev/null 2>&1; then
+      echo "    Subdomain worker ready after ${i}s"
+      break
+    fi
+    if [ "$i" -eq 60 ]; then
+      echo "ERROR: Subdomain worker not ready after 60s"
+      exit 1
+    fi
+    sleep 1
+  done
+fi
+
+if [ -n "${WORKER_URL_ENV_OFF:-}" ]; then
+  echo "==> Waiting for env-off worker at $WORKER_URL_ENV_OFF ..."
+  for i in $(seq 1 60); do
+    if curl -sf "$WORKER_URL_ENV_OFF/health_check" > /dev/null 2>&1; then
+      echo "    Env-off worker ready after ${i}s"
+      break
+    fi
+    if [ "$i" -eq 60 ]; then
+      echo "ERROR: Env-off worker not ready after 60s"
+      exit 1
+    fi
+    sleep 1
+  done
+fi
+
 echo "==> Waiting for frontend at $FRONTEND_URL ..."
 for i in $(seq 1 60); do
   if curl -skf "$FRONTEND_URL" > /dev/null 2>&1; then
@@ -43,6 +73,20 @@ echo "==> Initializing database"
 curl -sf -X POST "$WORKER_URL/admin/db_initialize" > /dev/null
 curl -sf -X POST "$WORKER_URL/admin/db_migration" > /dev/null
 echo "    Database initialized"
+
+if [ -n "${WORKER_URL_SUBDOMAIN:-}" ]; then
+  echo "==> Initializing subdomain worker database"
+  curl -sf -X POST "$WORKER_URL_SUBDOMAIN/admin/db_initialize" > /dev/null
+  curl -sf -X POST "$WORKER_URL_SUBDOMAIN/admin/db_migration" > /dev/null
+  echo "    Subdomain worker database initialized"
+fi
+
+if [ -n "${WORKER_URL_ENV_OFF:-}" ]; then
+  echo "==> Initializing env-off worker database"
+  curl -sf -X POST "$WORKER_URL_ENV_OFF/admin/db_initialize" > /dev/null
+  curl -sf -X POST "$WORKER_URL_ENV_OFF/admin/db_migration" > /dev/null
+  echo "    Env-off database initialized"
+fi
 
 echo "==> Running Playwright tests"
 exec npx playwright test "$@"

@@ -2,6 +2,8 @@ import { APIRequestContext } from '@playwright/test';
 import WebSocket from 'ws';
 
 export const WORKER_URL = process.env.WORKER_URL!;
+export const WORKER_URL_SUBDOMAIN = process.env.WORKER_URL_SUBDOMAIN || '';
+export const WORKER_URL_ENV_OFF = process.env.WORKER_URL_ENV_OFF || '';
 export const FRONTEND_URL = process.env.FRONTEND_URL!;
 export const MAILPIT_API = process.env.MAILPIT_API!;
 export const TEST_DOMAIN = 'test.example.com';

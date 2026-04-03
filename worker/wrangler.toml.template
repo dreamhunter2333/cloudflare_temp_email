@@ -50,6 +50,9 @@ PREFIX = "tmp"
 # CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST = false
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all domain names
+# Allow /api/new_address and /admin/new_address to accept subdomains that end with an allowed base domain
+# e.g. if DOMAINS contains "abc.com", API can accept "team.abc.com" and "dev.team.abc.com"
+# ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 # Allow optional random subdomain generation for the listed base domains
 # e.g. name@abc.com => name@r4nd0m.abc.com
 # RANDOM_SUBDOMAIN_DOMAINS = ["abc.com"]

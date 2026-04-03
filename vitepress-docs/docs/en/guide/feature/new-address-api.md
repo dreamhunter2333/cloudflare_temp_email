@@ -39,6 +39,32 @@ res = requests.post(
 print(res.json())
 ```
 
+### Create a Subdomain Mailbox Address
+
+If your base domain is already configured in `DOMAINS` / `DEFAULT_DOMAINS` / `USER_ROLES`, and
+`ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` is enabled (it can also be toggled in the admin panel),
+the create-address APIs can accept subdomains directly:
+
+```python
+res = requests.post(
+    "https://xxxx.xxxx/admin/new_address",
+    json={
+        "enablePrefix": True,
+        "name": "project001",
+        "domain": "team.example.com",
+    },
+    headers={
+        'x-admin-auth': "<your_website_admin_password>",
+        "Content-Type": "application/json"
+    }
+)
+```
+
+- If `example.com` is an allowed base domain, `team.example.com` and `dev.team.example.com` can match successfully
+- Lookalike domains such as `badexample.com` will **not** be treated as `example.com`
+- This is different from `RANDOM_SUBDOMAIN_DOMAINS`: here the caller **explicitly specifies** the subdomain, instead of the system generating a random one
+- In the admin panel, this can be set to **Follow Environment Variable / Force Enable / Force Disable**. Choosing **Follow Environment Variable** clears the admin override and returns to env fallback behavior.
+
 ## Batch Create Random Username Email Addresses API Example
 
 ### Batch Create Email Addresses via Admin API
