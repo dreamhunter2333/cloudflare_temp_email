@@ -11,6 +11,7 @@ import i18n from './i18n';
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
 const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
+const MAX_DOMAIN_LENGTH = 253;
 const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 const normalizeDomainValue = (domain: string): string => {
@@ -154,6 +155,9 @@ const findMatchedAllowedDomain = (
     enableSubdomainMatch: boolean,
 ): string | null => {
     const normalizedDomain = normalizeDomainValue(domain);
+    if (normalizedDomain.length > MAX_DOMAIN_LENGTH) {
+        return null;
+    }
     const domainLabels = normalizedDomain.split('.');
     if (!areValidDomainLabels(domainLabels)) {
         return null;
@@ -168,6 +172,9 @@ const findMatchedAllowedDomain = (
     const matchedDomain = [...normalizedAllowDomains]
         .sort((a, b) => b.length - a.length)
         .find((allowDomain) => {
+            if (allowDomain.length > MAX_DOMAIN_LENGTH) {
+                return false;
+            }
             const allowDomainLabels = allowDomain.split('.');
             if (!areValidDomainLabels(allowDomainLabels)) {
                 return false;

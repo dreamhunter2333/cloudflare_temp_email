@@ -314,7 +314,7 @@ const getSubdomainMatchPayloadValue = (mode) => {
     return null
 }
 
-const fetchData = async () => {
+const fetchData = async ({ suppressErrorMessage = false } = {}) => {
     try {
         const res = await api.fetch(`/admin/account_settings`)
         addressBlockList.value = res.blockList || []
@@ -338,7 +338,10 @@ const fetchData = async () => {
             addressCreationSubdomainMatchStatus.value.storedEnabled
         )
     } catch (error) {
-        message.error(error.message || "error");
+        if (!suppressErrorMessage) {
+            message.error(error.message || "error");
+        }
+        throw error
     }
 }
 
@@ -366,7 +369,7 @@ const save = async () => {
     }
 
     try {
-        await fetchData()
+        await fetchData({ suppressErrorMessage: true })
     } catch (error) {
         console.warn('Failed to refresh account settings after save', error)
         message.warning(error.message || "error");
@@ -375,7 +378,11 @@ const save = async () => {
 
 
 onMounted(async () => {
-    await fetchData();
+    try {
+        await fetchData();
+    } catch {
+        // 首次加载失败时，错误提示已经在 fetchData 内部统一处理，这里无需重复提示。
+    }
 })
 </script>
 
