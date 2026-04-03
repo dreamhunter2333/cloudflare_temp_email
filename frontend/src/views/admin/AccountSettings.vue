@@ -49,6 +49,10 @@ const { t } = useI18n({
             create_address_subdomain_match: 'Allow Subdomain Suffix Match When Creating Address',
             create_address_subdomain_match_tip: 'Only affects /api/new_address and /admin/new_address domain validation. Example: when enabled, foo.example.com can match configured base domain example.com.',
             create_address_subdomain_match_note: 'This is different from RANDOM_SUBDOMAIN_DOMAINS: this switch allows API callers to specify custom subdomains directly, while random subdomain only auto-generates one during creation.',
+            create_address_subdomain_match_follow_env: 'Follow Environment Variable',
+            create_address_subdomain_match_force_enable: 'Force Enable',
+            create_address_subdomain_match_force_disable: 'Force Disable',
+            create_address_subdomain_match_follow_env_note: 'Choosing "Follow Environment Variable" clears the admin override and returns to the unset state. The effective result is still controlled by the Worker env and the precedence rules.',
             create_address_subdomain_match_env_locked: 'Worker env ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH is currently false. The saved admin switch can be modified, but it will not take effect until env is enabled or removed.',
         },
         zh: {
@@ -89,6 +93,10 @@ const { t } = useI18n({
             create_address_subdomain_match: '创建邮箱时允许子域名后缀匹配',
             create_address_subdomain_match_tip: '仅影响 /api/new_address 和 /admin/new_address 的域名校验。例如开启后，foo.example.com 可以匹配已配置的基础域名 example.com。',
             create_address_subdomain_match_note: '这与 RANDOM_SUBDOMAIN_DOMAINS 不同：这里允许 API 调用方直接指定自定义子域名；随机子域名功能只是在创建时自动补一个随机子域名。',
+            create_address_subdomain_match_follow_env: '跟随环境变量',
+            create_address_subdomain_match_force_enable: '强制开启',
+            create_address_subdomain_match_force_disable: '强制关闭',
+            create_address_subdomain_match_follow_env_note: '选择“跟随环境变量”会清空后台覆盖，恢复为未设置状态；最终是否开启仍由 Worker env 和优先级规则决定。',
             create_address_subdomain_match_env_locked: '当前 Worker 环境变量 ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH 为 false。后台开关仍可保存，但在 env 打开或移除前不会生效。',
         }
     }
@@ -103,19 +111,37 @@ const emailRuleSettings = ref({
     blockReceiveUnknowAddressEmail: false,
     emailForwardingList: []
 })
-const addressCreationSettings = ref({
-    enableSubdomainMatch: false
-})
+const ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE = {
+    FOLLOW_ENV: 'follow_env',
+    FORCE_ENABLE: 'force_enable',
+    FORCE_DISABLE: 'force_disable'
+}
+const addressCreationSubdomainMatchMode = ref(ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FOLLOW_ENV)
 const addressCreationSubdomainMatchStatus = ref({
     envConfigured: false,
     envEnabled: false,
     storedEnabled: undefined,
     effectiveEnabled: false
 })
-const initialAddressCreationSubdomainMatchValue = ref(false)
 const subdomainMatchEnvLocked = computed(() => {
     return addressCreationSubdomainMatchStatus.value.envConfigured
         && !addressCreationSubdomainMatchStatus.value.envEnabled
+})
+const subdomainMatchModeOptions = computed(() => {
+    return [
+        {
+            value: ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FOLLOW_ENV,
+            label: t('create_address_subdomain_match_follow_env')
+        },
+        {
+            value: ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FORCE_ENABLE,
+            label: t('create_address_subdomain_match_force_enable')
+        },
+        {
+            value: ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FORCE_DISABLE,
+            label: t('create_address_subdomain_match_force_disable')
+        }
+    ]
 })
 
 const showEmailForwardingModal = ref(false)
@@ -268,6 +294,25 @@ const saveEmailForwardingConfig = () => {
     showEmailForwardingModal.value = false
 }
 
+const getSubdomainMatchModeByStoredValue = (storedEnabled) => {
+    if (storedEnabled === true) {
+        return ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FORCE_ENABLE
+    }
+    if (storedEnabled === false) {
+        return ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FORCE_DISABLE
+    }
+    return ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FOLLOW_ENV
+}
+
+const getSubdomainMatchPayloadValue = (mode) => {
+    if (mode === ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FORCE_ENABLE) {
+        return true
+    }
+    if (mode === ADDRESS_CREATION_SUBDOMAIN_MATCH_MODE.FORCE_DISABLE) {
+        return false
+    }
+    return null
+}
 
 const fetchData = async () => {
     try {
@@ -281,13 +326,6 @@ const fetchData = async () => {
             blockReceiveUnknowAddressEmail: res.emailRuleSettings?.blockReceiveUnknowAddressEmail || false,
             emailForwardingList: res.emailRuleSettings?.emailForwardingList || []
         }
-        const currentSubdomainMatchValue = typeof res.addressCreationSettings?.enableSubdomainMatch === 'boolean'
-            ? res.addressCreationSettings.enableSubdomainMatch
-            : !!res.addressCreationSubdomainMatchStatus?.envEnabled
-        addressCreationSettings.value = {
-            enableSubdomainMatch: currentSubdomainMatchValue
-        }
-        initialAddressCreationSubdomainMatchValue.value = currentSubdomainMatchValue
         addressCreationSubdomainMatchStatus.value = {
             envConfigured: !!res.addressCreationSubdomainMatchStatus?.envConfigured,
             envEnabled: !!res.addressCreationSubdomainMatchStatus?.envEnabled,
@@ -296,6 +334,9 @@ const fetchData = async () => {
                 : undefined,
             effectiveEnabled: !!res.addressCreationSubdomainMatchStatus?.effectiveEnabled
         }
+        addressCreationSubdomainMatchMode.value = getSubdomainMatchModeByStoredValue(
+            addressCreationSubdomainMatchStatus.value.storedEnabled
+        )
     } catch (error) {
         message.error(error.message || "error");
     }
@@ -310,13 +351,9 @@ const save = async () => {
             fromBlockList: fromBlockList.value || [],
             noLimitSendAddressList: noLimitSendAddressList.value || [],
             emailRuleSettings: emailRuleSettings.value,
-        }
-        if (addressCreationSettings.value.enableSubdomainMatch !== initialAddressCreationSubdomainMatchValue.value) {
-            Object.assign(payload, {
-                addressCreationSettings: {
-                    enableSubdomainMatch: addressCreationSettings.value.enableSubdomainMatch
-                }
-            })
+            addressCreationSettings: {
+                enableSubdomainMatch: getSubdomainMatchPayloadValue(addressCreationSubdomainMatchMode.value)
+            }
         }
         await api.fetch(`/admin/account_settings`, {
             method: 'POST',
@@ -400,12 +437,21 @@ onMounted(async () => {
             </n-form-item-row>
             <n-form-item-row :label="t('create_address_subdomain_match')">
                 <n-flex vertical style="width: 100%;">
-                    <n-switch v-model:value="addressCreationSettings.enableSubdomainMatch" :round="false" />
+                    <n-radio-group v-model:value="addressCreationSubdomainMatchMode">
+                        <n-space vertical size="small">
+                            <n-radio v-for="item in subdomainMatchModeOptions" :key="item.value" :value="item.value">
+                                {{ item.label }}
+                            </n-radio>
+                        </n-space>
+                    </n-radio-group>
                     <n-text depth="3">
                         {{ t('create_address_subdomain_match_tip') }}
                     </n-text>
                     <n-text depth="3">
                         {{ t('create_address_subdomain_match_note') }}
+                    </n-text>
+                    <n-text depth="3">
+                        {{ t('create_address_subdomain_match_follow_env_note') }}
                     </n-text>
                     <n-alert v-if="subdomainMatchEnvLocked" type="warning" :show-icon="false" :bordered="false">
                         {{ t('create_address_subdomain_match_env_locked') }}

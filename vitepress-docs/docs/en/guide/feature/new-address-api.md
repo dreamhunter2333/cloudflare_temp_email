@@ -63,6 +63,7 @@ res = requests.post(
 - If `example.com` is an allowed base domain, `team.example.com` and `dev.team.example.com` can match successfully
 - Lookalike domains such as `badexample.com` will **not** be treated as `example.com`
 - This is different from `RANDOM_SUBDOMAIN_DOMAINS`: here the caller **explicitly specifies** the subdomain, instead of the system generating a random one
+- In the admin panel, this can be set to **Follow Environment Variable / Force Enable / Force Disable**. Choosing **Follow Environment Variable** clears the admin override and returns to env fallback behavior.
 
 ## Batch Create Random Username Email Addresses API Example
 

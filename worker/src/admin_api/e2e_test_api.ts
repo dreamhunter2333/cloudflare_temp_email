@@ -1,6 +1,5 @@
 import { Context } from 'hono'
 import { getBooleanValue } from '../utils'
-import { CONSTANTS } from '../constants';
 
 // Direct DB insert — bypasses the email() handler.
 const seedMail = async (c: Context<HonoCustomType>) => {
@@ -60,14 +59,4 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
     return c.json({ success: !state.rejected, replyCalled: state.replyCalled, ...(state.rejected ? { rejected: state.rejected } : {}) });
 };
 
-const resetAddressCreationSettings = async (c: Context<HonoCustomType>) => {
-    if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
-        return c.text("Not available", 404);
-    }
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM settings WHERE key = ?`
-    ).bind(CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY).run();
-    return c.json({ success });
-};
-
-export default { seedMail, receiveMail, resetAddressCreationSettings };
+export default { seedMail, receiveMail };

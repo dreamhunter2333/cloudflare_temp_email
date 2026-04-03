@@ -16,10 +16,50 @@ import { sendMailbyAdmin } from './send_mail'
 import db_api from './db_api'
 import ip_blacklist_settings from './ip_blacklist_settings'
 import ai_extract_settings from './ai_extract_settings'
-import { AddressCreationSettings, EmailRuleSettings } from '../models'
+import { EmailRuleSettings } from '../models'
 import e2e_test_api from './e2e_test_api'
 
 export const api = new Hono<HonoCustomType>()
+
+const normalizeAddressCreationSettingsUpdate = (
+    value: unknown
+): {
+    shouldUpdate: boolean,
+    shouldClear: boolean,
+    nextEnableSubdomainMatch?: boolean,
+} | null => {
+    if (typeof value === 'undefined') {
+        return {
+            shouldUpdate: false,
+            shouldClear: false,
+        };
+    }
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+        return null;
+    }
+    const nextEnableSubdomainMatch = (value as Record<string, unknown>).enableSubdomainMatch;
+    if (typeof nextEnableSubdomainMatch === 'undefined') {
+        return {
+            shouldUpdate: false,
+            shouldClear: false,
+        };
+    }
+    // null 代表“清空后台覆盖，恢复为未设置并回退到 env”，这是给前端三态显式使用的正式路径。
+    if (nextEnableSubdomainMatch === null) {
+        return {
+            shouldUpdate: true,
+            shouldClear: true,
+        };
+    }
+    if (typeof nextEnableSubdomainMatch !== 'boolean') {
+        return null;
+    }
+    return {
+        shouldUpdate: true,
+        shouldClear: false,
+        nextEnableSubdomainMatch,
+    };
+}
 
 api.get('/admin/address', async (c) => {
     const { limit, offset, query, sort_by, sort_order } = c.req.query();
@@ -303,11 +343,9 @@ api.get('/admin/account_settings', async (c) => {
             fromBlockList: fromBlockList || [],
             noLimitSendAddressList: noLimitSendAddressList || [],
             emailRuleSettings: emailRuleSettings || {},
-            addressCreationSettings: {
-                enableSubdomainMatch: typeof addressCreationSettings.enableSubdomainMatch === 'boolean'
-                    ? addressCreationSettings.enableSubdomainMatch
-                    : addressCreationSubdomainMatchStatus.envEnabled
-            },
+            addressCreationSettings: typeof addressCreationSettings.enableSubdomainMatch === 'boolean'
+                ? { enableSubdomainMatch: addressCreationSettings.enableSubdomainMatch }
+                : {},
             addressCreationSubdomainMatchStatus,
         })
     } catch (error) {
@@ -326,8 +364,16 @@ api.post('/admin/account_settings', async (c) => {
     if (!blockList || !sendBlockList || !verifiedAddressList) {
         return c.text(msgs.InvalidInputMsg, 400)
     }
+    const addressCreationSettingsUpdate = normalizeAddressCreationSettingsUpdate(addressCreationSettings);
+    if (!addressCreationSettingsUpdate) {
+        return c.text(msgs.InvalidInputMsg, 400)
+    }
     if (!c.env.SEND_MAIL && verifiedAddressList.length > 0) {
         return c.text(msgs.EnableSendMailMsg, 400)
+    }
+    // 所有输入依赖都先校验，再执行任意写入，避免接口返回 400 时出现部分设置已落库的半成功状态。
+    if (fromBlockList?.length > 0 && !c.env.KV) {
+        return c.text(msgs.EnableKVMsg, 400)
     }
     await saveSetting(
         c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
@@ -341,9 +387,6 @@ api.post('/admin/account_settings', async (c) => {
         c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY,
         JSON.stringify(verifiedAddressList)
     )
-    if (fromBlockList?.length > 0 && !c.env.KV) {
-        return c.text(msgs.EnableKVMsg, 400)
-    }
     if (fromBlockList?.length > 0 && c.env.KV) {
         await c.env.KV.put(CONSTANTS.EMAIL_KV_BLACK_LIST, JSON.stringify(fromBlockList))
     }
@@ -355,34 +398,20 @@ api.post('/admin/account_settings', async (c) => {
         c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY,
         JSON.stringify(emailRuleSettings || {})
     )
-    if (
-        addressCreationSettings !== undefined
-        && addressCreationSettings !== null
-        && typeof addressCreationSettings !== 'object'
-    ) {
-        return c.text(msgs.InvalidInputMsg, 400)
+    if (addressCreationSettingsUpdate.shouldUpdate) {
+        if (addressCreationSettingsUpdate.shouldClear) {
+            await c.env.DB.prepare(
+                `DELETE FROM settings WHERE key = ?`
+            ).bind(CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY).run();
+        } else {
+            await saveSetting(
+                c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY,
+                JSON.stringify({
+                    enableSubdomainMatch: addressCreationSettingsUpdate.nextEnableSubdomainMatch
+                })
+            )
+        }
     }
-    const currentAddressCreationSettings = await getAddressCreationSettings(c);
-    const normalizedAddressCreationSettings = new AddressCreationSettings(
-        addressCreationSettings as AddressCreationSettings | undefined | null
-    );
-    if (
-        typeof normalizedAddressCreationSettings.enableSubdomainMatch !== 'undefined'
-        && typeof normalizedAddressCreationSettings.enableSubdomainMatch !== 'boolean'
-    ) {
-        return c.text(msgs.InvalidInputMsg, 400)
-    }
-    const nextEnableSubdomainMatch = typeof normalizedAddressCreationSettings.enableSubdomainMatch === 'boolean'
-        ? normalizedAddressCreationSettings.enableSubdomainMatch
-        : currentAddressCreationSettings.enableSubdomainMatch;
-    await saveSetting(
-        c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY,
-        JSON.stringify({
-            ...(typeof nextEnableSubdomainMatch === 'boolean'
-                ? { enableSubdomainMatch: nextEnableSubdomainMatch }
-                : {})
-        })
-    )
     return c.json({
         success: true
     })
@@ -442,4 +471,3 @@ api.post("/admin/ai_extract/settings", ai_extract_settings.saveAiExtractSettings
 // E2E test endpoints
 api.post('/admin/test/seed_mail', e2e_test_api.seedMail);
 api.post('/admin/test/receive_mail', e2e_test_api.receiveMail);
-api.post('/admin/test/reset_address_creation_settings', e2e_test_api.resetAddressCreationSettings);

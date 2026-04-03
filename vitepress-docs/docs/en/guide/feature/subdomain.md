@@ -54,3 +54,5 @@ addresses can be created through `/api/new_address` or `/admin/new_address`:
 > [!NOTE]
 > This only relaxes the domain validation used by the create-address APIs. It does not change the
 > default domain dropdown, and it does not create Cloudflare-side subdomain mail routes for you.
+>
+> If the admin panel has already saved an override once, you can switch it back to **Follow Environment Variable** to clear the override and return to env fallback behavior.

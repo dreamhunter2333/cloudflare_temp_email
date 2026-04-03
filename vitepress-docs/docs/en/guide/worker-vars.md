@@ -54,6 +54,10 @@
 > `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` precedence: if the env is explicitly set to `false`, the
 > feature is globally forced off; otherwise the persisted admin setting takes precedence, and the env
 > value is only used as a fallback when no admin setting has been saved.
+>
+> The admin panel exposes three explicit states: **Follow Environment Variable**, **Force Enable**,
+> and **Force Disable**. Saving **Follow Environment Variable** clears the admin override and returns
+> the feature to the "unset" fallback behavior.
 
 ## Email Reception Related Variables
 

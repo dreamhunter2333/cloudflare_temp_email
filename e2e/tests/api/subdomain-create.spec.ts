@@ -17,33 +17,36 @@ async function getAccountSettings(request: any, workerUrl: string) {
   return await res.json();
 }
 
+function buildAccountSettingsPayload(
+  current: any,
+  addressCreationSettings?: { enableSubdomainMatch?: boolean | null },
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    blockList: current.blockList || [],
+    sendBlockList: current.sendBlockList || [],
+    verifiedAddressList: current.verifiedAddressList || [],
+    fromBlockList: current.fromBlockList || [],
+    noLimitSendAddressList: current.noLimitSendAddressList || [],
+    emailRuleSettings: current.emailRuleSettings || {},
+    ...(typeof addressCreationSettings !== 'undefined'
+      ? { addressCreationSettings }
+      : {}),
+    ...overrides,
+  };
+}
+
 async function saveSubdomainMatchSetting(
   request: any,
   workerUrl: string,
-  enableSubdomainMatch: boolean
+  enableSubdomainMatch: boolean | null
 ) {
   const current = await getAccountSettings(request, workerUrl);
   const res = await request.post(`${workerUrl}/admin/account_settings`, {
-    data: {
-      blockList: current.blockList || [],
-      sendBlockList: current.sendBlockList || [],
-      verifiedAddressList: current.verifiedAddressList || [],
-      fromBlockList: current.fromBlockList || [],
-      noLimitSendAddressList: current.noLimitSendAddressList || [],
-      emailRuleSettings: current.emailRuleSettings || {},
-      addressCreationSettings: {
-        enableSubdomainMatch,
-      },
-    },
+    data: buildAccountSettingsPayload(current, {
+      enableSubdomainMatch,
+    }),
   });
-  expect(res.ok()).toBe(true);
-}
-
-async function resetSubdomainMatchSetting(
-  request: any,
-  workerUrl: string
-) {
-  const res = await request.post(`${workerUrl}/admin/test/reset_address_creation_settings`);
   expect(res.ok()).toBe(true);
 }
 
@@ -56,7 +59,7 @@ async function restoreSubdomainMatchSetting(
     await saveSubdomainMatchSetting(request, workerUrl, originalValue);
     return;
   }
-  await resetSubdomainMatchSetting(request, workerUrl);
+  await saveSubdomainMatchSetting(request, workerUrl, null);
 }
 
 test.describe('Create Address Subdomain Match', () => {
@@ -77,8 +80,12 @@ test.describe('Create Address Subdomain Match', () => {
     }
   });
 
-  test('falls back to env value when subdomain setting is not persisted', async ({ request }) => {
-    await resetSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL);
+  test('admin can clear override and return to env fallback', async ({ request }) => {
+    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, true);
+    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, null);
+
+    const settings = await getAccountSettings(request, CREATE_ADDRESS_WORKER_URL);
+    expect(settings.addressCreationSubdomainMatchStatus?.storedEnabled).toBeUndefined();
 
     const res = await request.post(`${CREATE_ADDRESS_WORKER_URL}/admin/new_address`, {
       data: { name: `subenvfb${Date.now()}`, domain: SUBDOMAIN },
@@ -86,6 +93,29 @@ test.describe('Create Address Subdomain Match', () => {
 
     expect(res.ok()).toBe(false);
     expect(await res.text()).toContain('Invalid domain');
+  });
+
+  test('invalid addressCreationSettings payload does not partially persist earlier settings', async ({ request }) => {
+    const current = await getAccountSettings(request, CREATE_ADDRESS_WORKER_URL);
+    const uniqueBlockedKeyword = `should-not-persist-${Date.now()}`;
+
+    const res = await request.post(`${CREATE_ADDRESS_WORKER_URL}/admin/account_settings`, {
+      data: buildAccountSettingsPayload(
+        current,
+        { enableSubdomainMatch: 'invalid-value' as any },
+        {
+          blockList: [...(current.blockList || []), uniqueBlockedKeyword],
+        }
+      ),
+    });
+
+    expect(res.status()).toBe(400);
+
+    const after = await getAccountSettings(request, CREATE_ADDRESS_WORKER_URL);
+    expect(after.blockList || []).toEqual(current.blockList || []);
+    expect(after.addressCreationSubdomainMatchStatus?.storedEnabled).toBe(
+      current.addressCreationSubdomainMatchStatus?.storedEnabled
+    );
   });
 
   test('persisted false still keeps exact match only', async ({ request }) => {

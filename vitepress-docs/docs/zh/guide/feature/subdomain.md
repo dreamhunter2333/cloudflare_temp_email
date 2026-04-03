@@ -53,3 +53,5 @@ ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 > [!NOTE]
 > 这个能力只放宽“创建地址 API 的域名校验”，不会改动默认域名下拉，也不会自动创建 Cloudflare 侧的
 > 子域名邮箱路由。
+>
+> 如果你在管理后台里保存过这个开关，后续也可以通过“跟随环境变量”把它恢复到未设置状态，再重新回退到 env 默认值。
