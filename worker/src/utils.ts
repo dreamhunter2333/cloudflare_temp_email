@@ -230,9 +230,13 @@ export const getUserRoles = (c: Context<HonoCustomType>): UserRole[] => {
     const normalizeRoles = (roles: UserRole[]): UserRole[] => {
         return roles.map((role) => ({
             ...role,
-            domains: Array.isArray(role.domains)
-                ? normalizeDomains(role.domains)
-                : role.domains,
+            domains: normalizeDomains(
+                Array.isArray(role.domains)
+                    ? role.domains
+                    : typeof role.domains === "string"
+                        ? [role.domains]
+                        : []
+            ),
         }));
     };
     // check if USER_ROLES is an array, if not use json.parse

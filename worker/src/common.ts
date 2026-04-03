@@ -617,7 +617,8 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
         return getDefaultDomains(c);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
-    return user_role?.domains || getDefaultDomains(c);;
+    const roleDomains = user_role?.domains;
+    return roleDomains && roleDomains.length > 0 ? roleDomains : getDefaultDomains(c);
 }
 
 export async function sendWebhook(
