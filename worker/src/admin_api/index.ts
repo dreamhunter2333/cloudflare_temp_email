@@ -335,7 +335,7 @@ api.get('/admin/account_settings', async (c) => {
         const emailRuleSettings = await getJsonSetting<EmailRuleSettings>(c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY);
         const noLimitSendAddressList = await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY);
         const addressCreationSettings = await getAddressCreationSettings(c);
-        const addressCreationSubdomainMatchStatus = await getAddressCreationSubdomainMatchStatus(c);
+        const addressCreationSubdomainMatchStatus = await getAddressCreationSubdomainMatchStatus(c, addressCreationSettings);
         return c.json({
             blockList: blockList || [],
             sendBlockList: sendBlockList || [],

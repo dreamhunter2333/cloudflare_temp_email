@@ -359,10 +359,17 @@ const save = async () => {
             method: 'POST',
             body: JSON.stringify(payload)
         })
-        await fetchData()
         message.success(t('successTip'))
     } catch (error) {
         message.error(error.message || "error");
+        return
+    }
+
+    try {
+        await fetchData()
+    } catch (error) {
+        console.warn('Failed to refresh account settings after save', error)
+        message.warning(error.message || "error");
     }
 }
 

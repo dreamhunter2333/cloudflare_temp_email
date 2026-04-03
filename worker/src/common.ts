@@ -120,7 +120,8 @@ export const getAddressCreationSettings = async (
 }
 
 export const getAddressCreationSubdomainMatchStatus = async (
-    c: Context<HonoCustomType>
+    c: Context<HonoCustomType>,
+    existingSettings?: AddressCreationSettings
 ): Promise<{
     envConfigured: boolean,
     envEnabled: boolean,
@@ -129,7 +130,7 @@ export const getAddressCreationSubdomainMatchStatus = async (
 }> => {
     const envConfigured = isCreateAddressSubdomainMatchEnvConfigured(c);
     const envEnabled = getBooleanValue(c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH);
-    const addressCreationSettings = await getAddressCreationSettings(c);
+    const addressCreationSettings = existingSettings || await getAddressCreationSettings(c);
     const storedEnabled = addressCreationSettings.enableSubdomainMatch;
 
     // 业务约束：env=false 作为全局 kill switch，后台开关不能强行打开。
