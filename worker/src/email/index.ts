@@ -68,16 +68,34 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     try {
         let success = false;
         if (getBooleanValue(env.ENABLE_MAIL_GZIP)) {
+            let compressed: ArrayBuffer | null = null;
             try {
-                const compressed = await compressText(parsedEmailContext.rawEmail);
-                ({ success } = await env.DB.prepare(
-                    `INSERT INTO raw_mails (source, address, raw_blob, message_id) VALUES (?, ?, ?, ?)`
-                ).bind(
-                    message.from, message.to, compressed, message_id
-                ).run());
+                compressed = await compressText(parsedEmailContext.rawEmail);
             } catch (gzipError) {
-                // Fallback to plaintext if raw_blob column missing or compression fails
-                console.error("gzip save failed, falling back to plaintext", gzipError);
+                console.error("gzip compression failed, falling back to plaintext", gzipError);
+            }
+            if (compressed) {
+                try {
+                    ({ success } = await env.DB.prepare(
+                        `INSERT INTO raw_mails (source, address, raw_blob, message_id) VALUES (?, ?, ?, ?)`
+                    ).bind(
+                        message.from, message.to, compressed, message_id
+                    ).run());
+                } catch (dbError) {
+                    // Fallback to plaintext only if raw_blob column is missing (migration not applied)
+                    const errMsg = String(dbError);
+                    if (errMsg.includes('raw_blob') || errMsg.includes('no such column')) {
+                        console.error("raw_blob column missing, falling back to plaintext", dbError);
+                        ({ success } = await env.DB.prepare(
+                            `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
+                        ).bind(
+                            message.from, message.to, parsedEmailContext.rawEmail, message_id
+                        ).run());
+                    } else {
+                        throw dbError;
+                    }
+                }
+            } else {
                 ({ success } = await env.DB.prepare(
                     `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
                 ).bind(

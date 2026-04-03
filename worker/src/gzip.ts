@@ -31,7 +31,8 @@ export async function resolveRawEmail(row: RawMailRow): Promise<string> {
  */
 export async function resolveRawEmailRow(row: RawMailRow): Promise<RawMailRow> {
     const raw = await resolveRawEmail(row);
-    return { ...row, raw, raw_blob: undefined };
+    const { raw_blob: _, ...rest } = row;
+    return { ...rest, raw };
 }
 
 /**

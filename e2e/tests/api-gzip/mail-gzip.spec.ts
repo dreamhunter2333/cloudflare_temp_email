@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { WORKER_GZIP_URL, createTestAddress, seedTestMail, deleteAddress, TEST_DOMAIN } from '../../fixtures/test-helpers';
+import { WORKER_GZIP_URL, TEST_DOMAIN } from '../../fixtures/test-helpers';
 
 /**
  * These tests run against a worker instance with ENABLE_MAIL_GZIP=true.
