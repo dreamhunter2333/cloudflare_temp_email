@@ -20,8 +20,13 @@ type RawMailRow = Record<string, any>;
  */
 export async function resolveRawEmail(row: RawMailRow): Promise<string> {
     if (row.raw_blob) {
-        // D1 returns BLOB as Array<number>, convert to ArrayBuffer for decompression
-        return decompressBlob(new Uint8Array(row.raw_blob).buffer);
+        try {
+            // D1 returns BLOB as Array<number>, convert to ArrayBuffer for decompression
+            return await decompressBlob(new Uint8Array(row.raw_blob).buffer);
+        } catch (e) {
+            console.error("decompressBlob failed, fallback to raw field", e);
+            return row.raw ?? '';
+        }
     }
     return row.raw ?? '';
 }
