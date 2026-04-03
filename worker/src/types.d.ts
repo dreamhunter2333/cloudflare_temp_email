@@ -98,6 +98,9 @@ type Bindings = {
     ENABLE_AI_EMAIL_EXTRACT: string | boolean | undefined
     AI_EXTRACT_MODEL: string | undefined
 
+    // gzip compression for raw_mails
+    ENABLE_MAIL_GZIP: string | boolean | undefined
+
     // E2E testing
     E2E_TEST_MODE: string | boolean | undefined
 }

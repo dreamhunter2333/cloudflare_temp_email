@@ -4,6 +4,7 @@ import i18n from '../i18n';
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue, isAddressCountLimitReached } from '../utils';
 import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt, generateRandomName } from '../common'
 import { CONSTANTS } from '../constants'
+import { resolveRawEmailRow } from '../gzip'
 import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
 import s3_attachment from './s3_attachment';
@@ -41,7 +42,8 @@ api.get('/api/mail/:mail_id', async (c) => {
     const result = await c.env.DB.prepare(
         `SELECT * FROM raw_mails where id = ? and address = ?`
     ).bind(mail_id, address).first();
-    return c.json(result);
+    if (!result) return c.json(null);
+    return c.json(await resolveRawEmailRow(result));
 })
 
 api.delete('/api/mails/:id', async (c) => {

@@ -2,6 +2,7 @@ import { Context } from "hono";
 import { CONSTANTS } from "../constants";
 import { AdminWebhookSettings, WebhookSettings } from "../models";
 import { commonParseMail, sendWebhook } from "../common";
+import { resolveRawEmail } from "../gzip";
 import i18n from "../i18n";
 
 
@@ -37,10 +38,12 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const settings = await c.req.json<WebhookSettings>();
     const { address } = c.get("jwtPayload");
     // random raw email
-    const { id: mailId, raw } = await c.env.DB.prepare(
-        `SELECT id, raw FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
-    ).bind(address).first<{ id: string, raw: string }>() || {};
-    const parsedEmailContext: ParsedEmailContext = { rawEmail: raw || "" };
+    const mailRow = await c.env.DB.prepare(
+        `SELECT id, raw, raw_blob FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
+    ).bind(address).first<{ id: string, raw: string, raw_blob: unknown }>();
+    const mailId = mailRow?.id;
+    const raw = mailRow ? await resolveRawEmail(mailRow) : "";
+    const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
     const parsedEmail = await commonParseMail(parsedEmailContext);
     const res = await sendWebhook(settings, {
         id: mailId || "0",
