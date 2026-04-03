@@ -32,8 +32,8 @@ export const auto_reply = async (
     if (getBooleanValue(env.ENABLE_AUTO_REPLY) && message_id) {
         try {
             const results = await env.DB.prepare(
-                `SELECT * FROM auto_reply_mails where lower(address) = ? and enabled = 1`
-            ).bind(targetAddress.toLowerCase()).first<Record<string, string>>();
+                `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
+            ).bind(targetAddress).first<Record<string, string>>();
             if (results && matchSender(message.from, results.source_prefix)) {
                 if (!results.subject || !results.message) {
                     console.log("auto-reply using defaults:", !results.subject ? "subject" : "", !results.message ? "message" : "");

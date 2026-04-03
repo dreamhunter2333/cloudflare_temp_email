@@ -392,8 +392,8 @@ export const newAddress = async (
 
         try {
             const existingAddressId = await c.env.DB.prepare(
-                `SELECT id FROM address WHERE lower(name) = ?`
-            ).bind(address.toLowerCase()).first<number>("id");
+                `SELECT id FROM address WHERE name = ?`
+            ).bind(address).first<number>("id");
             if (existingAddressId) {
                 if (enableRandomSubdomain && attempt < maxAttempts - 1) {
                     continue;

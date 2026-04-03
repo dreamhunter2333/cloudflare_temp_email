@@ -59,10 +59,10 @@ export default {
         }
 
         // 查找地址
-        const normalizedEmail = normalizeEmailAddress(email);
+        const domainNormalizedEmail = normalizeEmailAddress(email);
         const address = await c.env.DB.prepare(
-            `SELECT * FROM address WHERE lower(name) = ?`
-        ).bind(normalizedEmail.toLowerCase()).first();
+            `SELECT * FROM address WHERE name = ?`
+        ).bind(domainNormalizedEmail).first();
 
         if (!address) {
             return c.text(msgs.AddressNotFoundMsg, 404);
