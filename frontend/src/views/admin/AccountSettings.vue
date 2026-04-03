@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, h } from 'vue';
+import { computed, onMounted, ref, h } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { NButton, NPopconfirm, NInput, NSelect, NRadioGroup, NRadio } from 'naive-ui'
 
@@ -46,6 +46,10 @@ const { t } = useI18n({
             regex_invalid: 'Invalid regex pattern',
             forward_address_required: 'Forward address is required',
             rule_index: 'Rule',
+            create_address_subdomain_match: 'Allow Subdomain Suffix Match When Creating Address',
+            create_address_subdomain_match_tip: 'Only affects /api/new_address and /admin/new_address domain validation. Example: when enabled, foo.example.com can match configured base domain example.com.',
+            create_address_subdomain_match_note: 'This is different from RANDOM_SUBDOMAIN_DOMAINS: this switch allows API callers to specify custom subdomains directly, while random subdomain only auto-generates one during creation.',
+            create_address_subdomain_match_env_locked: 'Worker env ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH is currently false. The saved admin switch can be modified, but it will not take effect until env is enabled or removed.',
         },
         zh: {
             tip: '您可以手动输入以下多选输入框, 回车增加',
@@ -82,6 +86,10 @@ const { t } = useI18n({
             regex_invalid: '无效的正则表达式',
             forward_address_required: '转发地址不能为空',
             rule_index: '规则',
+            create_address_subdomain_match: '创建邮箱时允许子域名后缀匹配',
+            create_address_subdomain_match_tip: '仅影响 /api/new_address 和 /admin/new_address 的域名校验。例如开启后，foo.example.com 可以匹配已配置的基础域名 example.com。',
+            create_address_subdomain_match_note: '这与 RANDOM_SUBDOMAIN_DOMAINS 不同：这里允许 API 调用方直接指定自定义子域名；随机子域名功能只是在创建时自动补一个随机子域名。',
+            create_address_subdomain_match_env_locked: '当前 Worker 环境变量 ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH 为 false。后台开关仍可保存，但在 env 打开或移除前不会生效。',
         }
     }
 });
@@ -94,6 +102,19 @@ const fromBlockList = ref([])
 const emailRuleSettings = ref({
     blockReceiveUnknowAddressEmail: false,
     emailForwardingList: []
+})
+const addressCreationSettings = ref({
+    enableSubdomainMatch: false
+})
+const addressCreationSubdomainMatchStatus = ref({
+    envConfigured: false,
+    envEnabled: false,
+    storedEnabled: false,
+    effectiveEnabled: false
+})
+const subdomainMatchEnvLocked = computed(() => {
+    return addressCreationSubdomainMatchStatus.value.envConfigured
+        && !addressCreationSubdomainMatchStatus.value.envEnabled
 })
 
 const showEmailForwardingModal = ref(false)
@@ -259,6 +280,15 @@ const fetchData = async () => {
             blockReceiveUnknowAddressEmail: res.emailRuleSettings?.blockReceiveUnknowAddressEmail || false,
             emailForwardingList: res.emailRuleSettings?.emailForwardingList || []
         }
+        addressCreationSettings.value = {
+            enableSubdomainMatch: !!res.addressCreationSettings?.enableSubdomainMatch
+        }
+        addressCreationSubdomainMatchStatus.value = {
+            envConfigured: !!res.addressCreationSubdomainMatchStatus?.envConfigured,
+            envEnabled: !!res.addressCreationSubdomainMatchStatus?.envEnabled,
+            storedEnabled: !!res.addressCreationSubdomainMatchStatus?.storedEnabled,
+            effectiveEnabled: !!res.addressCreationSubdomainMatchStatus?.effectiveEnabled
+        }
     } catch (error) {
         message.error(error.message || "error");
     }
@@ -275,6 +305,7 @@ const save = async () => {
                 fromBlockList: fromBlockList.value || [],
                 noLimitSendAddressList: noLimitSendAddressList.value || [],
                 emailRuleSettings: emailRuleSettings.value,
+                addressCreationSettings: addressCreationSettings.value,
             })
         })
         message.success(t('successTip'))
@@ -351,6 +382,20 @@ onMounted(async () => {
             </n-form-item-row>
             <n-form-item-row :label="t('block_receive_unknow_address_email')">
                 <n-switch v-model:value="emailRuleSettings.blockReceiveUnknowAddressEmail" :round="false" />
+            </n-form-item-row>
+            <n-form-item-row :label="t('create_address_subdomain_match')">
+                <n-flex vertical style="width: 100%;">
+                    <n-switch v-model:value="addressCreationSettings.enableSubdomainMatch" :round="false" />
+                    <n-text depth="3">
+                        {{ t('create_address_subdomain_match_tip') }}
+                    </n-text>
+                    <n-text depth="3">
+                        {{ t('create_address_subdomain_match_note') }}
+                    </n-text>
+                    <n-alert v-if="subdomainMatchEnvLocked" type="warning" :show-icon="false" :bordered="false">
+                        {{ t('create_address_subdomain_match_env_locked') }}
+                    </n-alert>
+                </n-flex>
             </n-form-item-row>
             <n-form-item-row :label="t('email_forwarding_config')">
                 <n-button @click="openEmailForwardingModal">{{ t('config') }}</n-button>

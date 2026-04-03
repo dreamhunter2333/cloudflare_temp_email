@@ -39,6 +39,30 @@ res = requests.post(
 print(res.json())
 ```
 
+### 创建子域名邮箱地址
+
+如果你已经把基础域名配置进 `DOMAINS` / `DEFAULT_DOMAINS` / `USER_ROLES`，并且开启了
+`ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH`（管理后台也可单独开关），那么创建地址 API 可以直接接收子域名：
+
+```python
+res = requests.post(
+    "https://xxxx.xxxx/admin/new_address",
+    json={
+        "enablePrefix": True,
+        "name": "project001",
+        "domain": "team.example.com",
+    },
+    headers={
+        'x-admin-auth': "<你的网站admin密码>",
+        "Content-Type": "application/json"
+    }
+)
+```
+
+- 如果允许域名里有 `example.com`，则 `team.example.com`、`dev.team.example.com` 都可以匹配成功
+- `badexample.com` 这种**不是点分后缀**的域名不会被误判为 `example.com`
+- 这与 `RANDOM_SUBDOMAIN_DOMAINS` 不同：这里是**由调用方显式指定子域名**，不是系统自动生成随机子域名
+
 ## 批量创建随机用户名邮箱地址 API 示例
 
 ### 通过 admin API 批量新建邮箱地址

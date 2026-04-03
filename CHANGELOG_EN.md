@@ -12,6 +12,7 @@
 
 - feat: |Admin| Admin account list now supports column sorting (ID, name, created at, updated at, mail count, send count), search automatically resets pagination to page 1 (#918)
 - feat: |Admin API| `/admin/new_address` endpoint now returns `address_id` field, avoiding additional query after address creation (#912)
+- feat: |Create Address| Add `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` switch and an admin-panel toggle for suffix-based subdomain matching in create-address APIs; when enabled, `foo.example.com` can match base domain `example.com`
 - feat: |Auto Reply| Add regex matching support for sender filter using `/pattern/` syntax (e.g. `/@example\.com$/`), backward compatible with prefix matching
 - feat: |Turnstile| Add global Turnstile CAPTCHA for all login forms via `ENABLE_GLOBAL_TURNSTILE_CHECK` env var (#767)
 - feat: |Telegram| Support sending email attachments in Telegram push (50MB per file limit), multiple attachments sent via `sendMediaGroup`, controlled by `ENABLE_TG_PUSH_ATTACHMENT` env var (#894)
@@ -24,10 +25,12 @@
 
 ### Testing
 
+- test: |E2E| Add create-address subdomain matching tests covering default exact-match behavior, admin-enabled matching, and env=false hard-disable precedence
 - test: |E2E| Add auto-reply trigger E2E tests covering empty prefix, prefix matching, regex matching, and disabled state
 
 ### Docs
 
+- docs: |Create Address| Update create-address API, worker variables, and subdomain docs to clarify the difference between explicitly specified subdomains and random subdomains
 - docs: |API| Add clarification between Address JWT and User JWT to avoid confusion; reorganize documentation menu structure with dedicated API Endpoints section (#910)
 - docs: |Telegram| Add per-user mail push and global push documentation (#769)
 - docs: |Webhook| Add webhook template examples for Telegram Bot, WeChat Work, Discord and other common push platforms

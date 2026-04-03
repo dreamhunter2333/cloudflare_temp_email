@@ -5,7 +5,7 @@ import { WorkerMailerOptions } from 'worker-mailer';
 import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
-import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
+import { AddressCreationSettings, AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
@@ -86,6 +86,66 @@ const allowRandomSubdomainForDomain = (
     domain: string
 ): boolean => {
     return getRandomSubdomainDomains(c).includes(domain);
+}
+
+const isCreateAddressSubdomainMatchEnvConfigured = (c: Context<HonoCustomType>): boolean => {
+    return c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== undefined
+        && c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== null
+        && c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== "";
+}
+
+export const getAddressCreationSettings = async (
+    c: Context<HonoCustomType>
+): Promise<AddressCreationSettings> => {
+    const value = await getJsonSetting<AddressCreationSettings>(
+        c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY
+    );
+    return new AddressCreationSettings(value);
+}
+
+export const getAddressCreationSubdomainMatchStatus = async (
+    c: Context<HonoCustomType>
+): Promise<{
+    envConfigured: boolean,
+    envEnabled: boolean,
+    storedEnabled: boolean | undefined,
+    effectiveEnabled: boolean,
+}> => {
+    const envConfigured = isCreateAddressSubdomainMatchEnvConfigured(c);
+    const envEnabled = getBooleanValue(c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH);
+    const addressCreationSettings = await getAddressCreationSettings(c);
+    const storedEnabled = addressCreationSettings.enableSubdomainMatch;
+
+    // 业务约束：env=false 作为全局 kill switch，后台开关不能强行打开。
+    const effectiveEnabled = envConfigured && !envEnabled
+        ? false
+        : typeof storedEnabled === "boolean"
+            ? storedEnabled
+            : envEnabled;
+
+    return {
+        envConfigured,
+        envEnabled,
+        storedEnabled,
+        effectiveEnabled,
+    };
+}
+
+const findMatchedAllowedDomain = (
+    domain: string,
+    allowDomains: string[],
+    enableSubdomainMatch: boolean,
+): string | null => {
+    if (allowDomains.includes(domain)) {
+        return domain;
+    }
+    if (!enableSubdomainMatch) {
+        return null;
+    }
+    const matchedDomain = [...allowDomains]
+        .sort((a, b) => b.length - a.length)
+        .find((allowDomain) => domain.endsWith(`.${allowDomain}`));
+    return matchedDomain || null;
 }
 
 const checkNameRegex = (c: Context<HonoCustomType>, name: string) => {
@@ -264,8 +324,12 @@ export const newAddress = async (
             domain = allowDomains[Math.floor(Math.random() * allowDomains.length)];
         }
     }
+    const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
+    const matchedAllowDomain = domain
+        ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch)
+        : null;
     // check domain is valid
-    if (!domain || !allowDomains.includes(domain)) {
+    if (!domain || !matchedAllowDomain) {
         throw new Error(msgs.InvalidDomainMsg)
     }
     if (enableRandomSubdomain && !allowRandomSubdomainForDomain(c, domain)) {

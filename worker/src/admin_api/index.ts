@@ -3,7 +3,7 @@ import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n'
 import { sendAdminInternalMail, getJsonSetting, saveSetting, getUserRoles, getBooleanValue, hashPassword } from '../utils'
-import { newAddress, handleListQuery } from '../common'
+import { newAddress, handleListQuery, getAddressCreationSettings, getAddressCreationSubdomainMatchStatus } from '../common'
 import { CONSTANTS } from '../constants'
 import cleanup_api from './cleanup_api'
 import admin_user_api from './admin_user_api'
@@ -16,7 +16,7 @@ import { sendMailbyAdmin } from './send_mail'
 import db_api from './db_api'
 import ip_blacklist_settings from './ip_blacklist_settings'
 import ai_extract_settings from './ai_extract_settings'
-import { EmailRuleSettings } from '../models'
+import { AddressCreationSettings, EmailRuleSettings } from '../models'
 import e2e_test_api from './e2e_test_api'
 
 export const api = new Hono<HonoCustomType>()
@@ -294,13 +294,21 @@ api.get('/admin/account_settings', async (c) => {
         const fromBlockList = c.env.KV ? await c.env.KV.get<string[]>(CONSTANTS.EMAIL_KV_BLACK_LIST, 'json') : [];
         const emailRuleSettings = await getJsonSetting<EmailRuleSettings>(c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY);
         const noLimitSendAddressList = await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY);
+        const addressCreationSettings = await getAddressCreationSettings(c);
+        const addressCreationSubdomainMatchStatus = await getAddressCreationSubdomainMatchStatus(c);
         return c.json({
             blockList: blockList || [],
             sendBlockList: sendBlockList || [],
             verifiedAddressList: verifiedAddressList || [],
             fromBlockList: fromBlockList || [],
             noLimitSendAddressList: noLimitSendAddressList || [],
-            emailRuleSettings: emailRuleSettings || {}
+            emailRuleSettings: emailRuleSettings || {},
+            addressCreationSettings: {
+                enableSubdomainMatch: typeof addressCreationSettings.enableSubdomainMatch === 'boolean'
+                    ? addressCreationSettings.enableSubdomainMatch
+                    : addressCreationSubdomainMatchStatus.envEnabled
+            },
+            addressCreationSubdomainMatchStatus,
         })
     } catch (error) {
         console.error(error);
@@ -313,7 +321,7 @@ api.post('/admin/account_settings', async (c) => {
     /** @type {{ blockList: Array<string>, sendBlockList: Array<string> }} */
     const {
         blockList, sendBlockList, noLimitSendAddressList,
-        verifiedAddressList, fromBlockList, emailRuleSettings
+        verifiedAddressList, fromBlockList, emailRuleSettings, addressCreationSettings
     } = await c.req.json();
     if (!blockList || !sendBlockList || !verifiedAddressList) {
         return c.text(msgs.InvalidInputMsg, 400)
@@ -346,6 +354,13 @@ api.post('/admin/account_settings', async (c) => {
     await saveSetting(
         c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY,
         JSON.stringify(emailRuleSettings || {})
+    )
+    const normalizedAddressCreationSettings = new AddressCreationSettings(addressCreationSettings);
+    await saveSetting(
+        c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY,
+        JSON.stringify({
+            enableSubdomainMatch: !!normalizedAddressCreationSettings.enableSubdomainMatch
+        })
     )
     return c.json({
         success: true
