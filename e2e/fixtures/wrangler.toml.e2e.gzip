@@ -1,0 +1,34 @@
+name = "cloudflare_temp_email_gzip"
+main = "src/worker.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = [ "nodejs_compat" ]
+keep_vars = true
+
+[vars]
+PREFIX = "tmp"
+DEFAULT_DOMAINS = ["test.example.com"]
+DOMAINS = ["test.example.com"]
+JWT_SECRET = "e2e-test-secret-key"
+BLACK_LIST = ""
+ENABLE_USER_CREATE_EMAIL = true
+ENABLE_USER_DELETE_EMAIL = true
+ENABLE_AUTO_REPLY = true
+DEFAULT_SEND_BALANCE = 10
+ENABLE_ADDRESS_PASSWORD = true
+DISABLE_ADMIN_PASSWORD_CHECK = true
+ADMIN_PASSWORDS = '["e2e-admin-pass"]'
+ENABLE_WEBHOOK = true
+E2E_TEST_MODE = true
+ENABLE_MAIL_GZIP = true
+SMTP_CONFIG = """
+{"test.example.com":{"host":"mailpit","port":1025,"secure":false}}
+"""
+
+[[kv_namespaces]]
+binding = "KV"
+id = "e2e-test-kv-gzip-00000000-0000-0000-0000-000000000000"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "e2e-temp-email-gzip"
+database_id = "e2e-test-db-gzip-00000000-0000-0000-0000-000000000000"

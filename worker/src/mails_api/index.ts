@@ -2,7 +2,7 @@ import { Context, Hono } from 'hono'
 
 import i18n from '../i18n';
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue, isAddressCountLimitReached } from '../utils';
-import { newAddress, handleListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt, generateRandomName } from '../common'
+import { newAddress, handleMailListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt, generateRandomName } from '../common'
 import { CONSTANTS } from '../constants'
 import { resolveRawEmailRow } from '../gzip'
 import auto_reply from './auto_reply'
@@ -29,7 +29,7 @@ api.get('/api/mails', async (c) => {
     }
     const { limit, offset } = c.req.query();
     if (Number.parseInt(offset) <= 0) updateAddressUpdatedAt(c, address);
-    return await handleListQuery(c,
+    return await handleMailListQuery(c,
         `SELECT * FROM raw_mails where address = ?`,
         `SELECT count(*) as count FROM raw_mails where address = ?`,
         [address], limit, offset

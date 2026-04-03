@@ -66,14 +66,24 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     const message_id = message.headers.get("Message-ID");
     // save email
     try {
-        let success: boolean;
+        let success = false;
         if (getBooleanValue(env.ENABLE_MAIL_GZIP)) {
-            const compressed = await compressText(parsedEmailContext.rawEmail);
-            ({ success } = await env.DB.prepare(
-                `INSERT INTO raw_mails (source, address, raw_blob, message_id) VALUES (?, ?, ?, ?)`
-            ).bind(
-                message.from, message.to, compressed, message_id
-            ).run());
+            try {
+                const compressed = await compressText(parsedEmailContext.rawEmail);
+                ({ success } = await env.DB.prepare(
+                    `INSERT INTO raw_mails (source, address, raw_blob, message_id) VALUES (?, ?, ?, ?)`
+                ).bind(
+                    message.from, message.to, compressed, message_id
+                ).run());
+            } catch (gzipError) {
+                // Fallback to plaintext if raw_blob column missing or compression fails
+                console.error("gzip save failed, falling back to plaintext", gzipError);
+                ({ success } = await env.DB.prepare(
+                    `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
+                ).bind(
+                    message.from, message.to, parsedEmailContext.rawEmail, message_id
+                ).run());
+            }
         } else {
             ({ success } = await env.DB.prepare(
                 `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`

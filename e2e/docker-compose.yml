@@ -41,10 +41,28 @@ services:
       context: ..
       dockerfile: e2e/Dockerfile.worker
     ports:
-      - "8788:8788"
-    command: ["pnpm", "exec", "wrangler", "dev", "--port", "8788", "--ip", "0.0.0.0"]
+      - "8790:8790"
+    command: ["pnpm", "exec", "wrangler", "dev", "--port", "8790", "--ip", "0.0.0.0"]
     volumes:
       - ./fixtures/wrangler.toml.e2e.env-off:/app/worker/wrangler.toml:ro
+    depends_on:
+      - mailpit
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8790/health_check"]
+      interval: 3s
+      timeout: 5s
+      start_period: 10s
+      retries: 20
+
+  worker-gzip:
+    build:
+      context: ..
+      dockerfile: e2e/Dockerfile.worker
+      args:
+        WRANGLER_TOML: e2e/fixtures/wrangler.toml.e2e.gzip
+    ports:
+      - "8788:8788"
+    command: ["pnpm", "exec", "wrangler", "dev", "--port", "8788", "--ip", "0.0.0.0"]
     depends_on:
       - mailpit
     healthcheck:
@@ -108,7 +126,8 @@ services:
     environment:
       WORKER_URL: http://worker:8787
       WORKER_URL_SUBDOMAIN: http://worker-subdomain:8789
-      WORKER_URL_ENV_OFF: http://worker-env-off:8788
+      WORKER_URL_ENV_OFF: http://worker-env-off:8790
+      WORKER_GZIP_URL: http://worker-gzip:8788
       FRONTEND_URL: https://frontend:5173
       MAILPIT_API: http://mailpit:8025/api
       SMTP_PROXY_HOST: smtp-proxy
@@ -124,6 +143,8 @@ services:
       worker-subdomain:
         condition: service_healthy
       worker-env-off:
+        condition: service_healthy
+      worker-gzip:
         condition: service_healthy
       frontend:
         condition: service_started

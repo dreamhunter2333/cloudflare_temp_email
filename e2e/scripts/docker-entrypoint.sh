@@ -44,6 +44,21 @@ if [ -n "${WORKER_URL_ENV_OFF:-}" ]; then
   done
 fi
 
+if [ -n "${WORKER_GZIP_URL:-}" ]; then
+  echo "==> Waiting for worker-gzip at $WORKER_GZIP_URL ..."
+  for i in $(seq 1 60); do
+    if curl -sf "$WORKER_GZIP_URL/health_check" > /dev/null 2>&1; then
+      echo "    Worker-gzip ready after ${i}s"
+      break
+    fi
+    if [ "$i" -eq 60 ]; then
+      echo "ERROR: Worker-gzip not ready after 60s"
+      exit 1
+    fi
+    sleep 1
+  done
+fi
+
 echo "==> Waiting for frontend at $FRONTEND_URL ..."
 for i in $(seq 1 60); do
   if curl -skf "$FRONTEND_URL" > /dev/null 2>&1; then
@@ -86,6 +101,13 @@ if [ -n "${WORKER_URL_ENV_OFF:-}" ]; then
   curl -sf -X POST "$WORKER_URL_ENV_OFF/admin/db_initialize" > /dev/null
   curl -sf -X POST "$WORKER_URL_ENV_OFF/admin/db_migration" > /dev/null
   echo "    Env-off database initialized"
+fi
+
+if [ -n "${WORKER_GZIP_URL:-}" ]; then
+  echo "==> Initializing gzip worker database"
+  curl -sf -X POST "$WORKER_GZIP_URL/admin/db_initialize" > /dev/null
+  curl -sf -X POST "$WORKER_GZIP_URL/admin/db_migration" > /dev/null
+  echo "    Gzip worker database initialized"
 fi
 
 echo "==> Running Playwright tests"
