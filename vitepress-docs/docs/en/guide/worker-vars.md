@@ -50,6 +50,10 @@
 > `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` is different from random subdomain generation: it lets
 > API callers **directly specify** a subdomain such as `foo.example.com`, while random subdomain
 > generation appends one automatically during creation.
+>
+> `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` precedence: if the env is explicitly set to `false`, the
+> feature is globally forced off; otherwise the persisted admin setting takes precedence, and the env
+> value is only used as a fallback when no admin setting has been saved.
 
 ## Email Reception Related Variables
 

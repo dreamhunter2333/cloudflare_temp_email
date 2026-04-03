@@ -109,9 +109,10 @@ const addressCreationSettings = ref({
 const addressCreationSubdomainMatchStatus = ref({
     envConfigured: false,
     envEnabled: false,
-    storedEnabled: false,
+    storedEnabled: undefined,
     effectiveEnabled: false
 })
+const initialAddressCreationSubdomainMatchValue = ref(false)
 const subdomainMatchEnvLocked = computed(() => {
     return addressCreationSubdomainMatchStatus.value.envConfigured
         && !addressCreationSubdomainMatchStatus.value.envEnabled
@@ -280,13 +281,19 @@ const fetchData = async () => {
             blockReceiveUnknowAddressEmail: res.emailRuleSettings?.blockReceiveUnknowAddressEmail || false,
             emailForwardingList: res.emailRuleSettings?.emailForwardingList || []
         }
+        const currentSubdomainMatchValue = typeof res.addressCreationSettings?.enableSubdomainMatch === 'boolean'
+            ? res.addressCreationSettings.enableSubdomainMatch
+            : !!res.addressCreationSubdomainMatchStatus?.envEnabled
         addressCreationSettings.value = {
-            enableSubdomainMatch: !!res.addressCreationSettings?.enableSubdomainMatch
+            enableSubdomainMatch: currentSubdomainMatchValue
         }
+        initialAddressCreationSubdomainMatchValue.value = currentSubdomainMatchValue
         addressCreationSubdomainMatchStatus.value = {
             envConfigured: !!res.addressCreationSubdomainMatchStatus?.envConfigured,
             envEnabled: !!res.addressCreationSubdomainMatchStatus?.envEnabled,
-            storedEnabled: !!res.addressCreationSubdomainMatchStatus?.storedEnabled,
+            storedEnabled: typeof res.addressCreationSubdomainMatchStatus?.storedEnabled === 'boolean'
+                ? res.addressCreationSubdomainMatchStatus.storedEnabled
+                : undefined,
             effectiveEnabled: !!res.addressCreationSubdomainMatchStatus?.effectiveEnabled
         }
     } catch (error) {
@@ -296,18 +303,26 @@ const fetchData = async () => {
 
 const save = async () => {
     try {
+        const payload = {
+            blockList: addressBlockList.value || [],
+            sendBlockList: sendAddressBlockList.value || [],
+            verifiedAddressList: verifiedAddressList.value || [],
+            fromBlockList: fromBlockList.value || [],
+            noLimitSendAddressList: noLimitSendAddressList.value || [],
+            emailRuleSettings: emailRuleSettings.value,
+        }
+        if (addressCreationSettings.value.enableSubdomainMatch !== initialAddressCreationSubdomainMatchValue.value) {
+            Object.assign(payload, {
+                addressCreationSettings: {
+                    enableSubdomainMatch: addressCreationSettings.value.enableSubdomainMatch
+                }
+            })
+        }
         await api.fetch(`/admin/account_settings`, {
             method: 'POST',
-            body: JSON.stringify({
-                blockList: addressBlockList.value || [],
-                sendBlockList: sendAddressBlockList.value || [],
-                verifiedAddressList: verifiedAddressList.value || [],
-                fromBlockList: fromBlockList.value || [],
-                noLimitSendAddressList: noLimitSendAddressList.value || [],
-                emailRuleSettings: emailRuleSettings.value,
-                addressCreationSettings: addressCreationSettings.value,
-            })
+            body: JSON.stringify(payload)
         })
+        await fetchData()
         message.success(t('successTip'))
     } catch (error) {
         message.error(error.message || "error");

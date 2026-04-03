@@ -48,6 +48,9 @@
 >
 > `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` 与随机子域名功能不同：它允许 API 调用方**直接指定**
 > `foo.example.com` 这类子域名；而随机子域名功能是系统在创建时自动补一个随机前缀。
+>
+> `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` 的优先级为：当 env 明确设置为 `false` 时，全局硬禁用；
+> 其他情况下优先使用后台持久化设置，后台未设置时再回退到 env 值。
 
 ## 接受邮件相关变量
 

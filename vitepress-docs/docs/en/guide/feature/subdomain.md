@@ -45,12 +45,11 @@ explicitly create addresses like `team.abc.com`, enable:
 ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 ```
 
-When this is enabled, as long as `abc.com` is in the allowed base-domain list:
+When this is enabled, as long as `abc.com` is in the allowed base-domain list, the following
+addresses can be created through `/api/new_address` or `/admin/new_address`:
 
 - `name@team.abc.com`
 - `name@dev.team.abc.com`
-
-can be created through `/api/new_address` or `/admin/new_address`.
 
 > [!NOTE]
 > This only relaxes the domain validation used by the create-address APIs. It does not change the

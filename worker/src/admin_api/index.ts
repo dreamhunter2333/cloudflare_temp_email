@@ -355,11 +355,32 @@ api.post('/admin/account_settings', async (c) => {
         c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY,
         JSON.stringify(emailRuleSettings || {})
     )
-    const normalizedAddressCreationSettings = new AddressCreationSettings(addressCreationSettings);
+    if (
+        addressCreationSettings !== undefined
+        && addressCreationSettings !== null
+        && typeof addressCreationSettings !== 'object'
+    ) {
+        return c.text(msgs.InvalidInputMsg, 400)
+    }
+    const currentAddressCreationSettings = await getAddressCreationSettings(c);
+    const normalizedAddressCreationSettings = new AddressCreationSettings(
+        addressCreationSettings as AddressCreationSettings | undefined | null
+    );
+    if (
+        typeof normalizedAddressCreationSettings.enableSubdomainMatch !== 'undefined'
+        && typeof normalizedAddressCreationSettings.enableSubdomainMatch !== 'boolean'
+    ) {
+        return c.text(msgs.InvalidInputMsg, 400)
+    }
+    const nextEnableSubdomainMatch = typeof normalizedAddressCreationSettings.enableSubdomainMatch === 'boolean'
+        ? normalizedAddressCreationSettings.enableSubdomainMatch
+        : currentAddressCreationSettings.enableSubdomainMatch;
     await saveSetting(
         c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY,
         JSON.stringify({
-            enableSubdomainMatch: !!normalizedAddressCreationSettings.enableSubdomainMatch
+            ...(typeof nextEnableSubdomainMatch === 'boolean'
+                ? { enableSubdomainMatch: nextEnableSubdomainMatch }
+                : {})
         })
     )
     return c.json({

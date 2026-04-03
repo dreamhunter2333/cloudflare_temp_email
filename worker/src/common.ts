@@ -142,9 +142,24 @@ const findMatchedAllowedDomain = (
     if (!enableSubdomainMatch) {
         return null;
     }
+    const domainLabels = domain.toLowerCase().split('.');
+    if (domainLabels.some((label) => label.length === 0)) {
+        return null;
+    }
     const matchedDomain = [...allowDomains]
         .sort((a, b) => b.length - a.length)
-        .find((allowDomain) => domain.endsWith(`.${allowDomain}`));
+        .find((allowDomain) => {
+            const allowDomainLabels = allowDomain.toLowerCase().split('.');
+            if (allowDomainLabels.some((label) => label.length === 0)) {
+                return false;
+            }
+            if (domainLabels.length <= allowDomainLabels.length) {
+                return false;
+            }
+            return allowDomainLabels.every((label, index) => {
+                return domainLabels[domainLabels.length - allowDomainLabels.length + index] === label;
+            });
+        });
     return matchedDomain || null;
 }
 
