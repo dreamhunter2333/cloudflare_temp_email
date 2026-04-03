@@ -43,8 +43,8 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     // check if unknown address mail
     try {
         dbAddress = await env.DB.prepare(
-            `SELECT id, name FROM address WHERE lower(name) = ?`
-        ).bind(targetAddress.toLowerCase()).first<{ id?: number | null, name?: string | null }>();
+            `SELECT id, name FROM address WHERE name = ?`
+        ).bind(targetAddress).first<{ id?: number | null, name?: string | null }>();
         if (dbAddress?.name) {
             targetAddress = dbAddress.name;
         }

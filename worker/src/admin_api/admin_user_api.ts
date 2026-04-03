@@ -159,8 +159,8 @@ export default {
         ).bind(user_email).first<number | undefined | null>("id");
         const normalizedAddress = normalizeEmailAddress(address);
         const db_address_id = address_id ?? await c.env.DB.prepare(
-            `SELECT id FROM address WHERE lower(name) = ?`
-        ).bind(normalizedAddress.toLowerCase()).first<number | undefined | null>("id");
+            `SELECT id FROM address WHERE name = ?`
+        ).bind(normalizedAddress).first<number | undefined | null>("id");
         return await UserBindAddressModule.bindByID(c, db_user_id, db_address_id);
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
