@@ -6,8 +6,8 @@ keep_vars = true
 
 [vars]
 PREFIX = "tmp"
-DEFAULT_DOMAINS = ["test.example.com"]
-DOMAINS = ["test.example.com"]
+DEFAULT_DOMAINS = ["TEST.EXAMPLE.COM"]
+DOMAINS = ["TEST.EXAMPLE.COM"]
 JWT_SECRET = "e2e-test-secret-key"
 BLACK_LIST = ""
 ENABLE_USER_CREATE_EMAIL = true

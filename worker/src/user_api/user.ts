@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import utils, { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue } from "../utils"
+import utils, { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue, getMailDomain, includesDomain } from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
 import { sendMail } from "../mails_api/send_mail_api";
@@ -20,10 +20,10 @@ export default {
         const value = await getJsonSetting(c, CONSTANTS.USER_SETTINGS_KEY);
         const settings = new UserSettings(value)
         // check mail domain allow list
-        const mailDomain = email.split("@")[1];
+        const mailDomain = getMailDomain(email);
         if (settings.enableMailAllowList
             && settings.mailAllowList
-            && !settings.mailAllowList.includes(mailDomain)
+            && !includesDomain(settings.mailAllowList, mailDomain)
         ) {
             return c.text(`${msgs.UserMailDomainMustInMsg} ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
         }
@@ -95,10 +95,10 @@ export default {
             return c.text(msgs.InvalidVerifyCodeMsg, 400)
         }
         // check mail domain allow list
-        const mailDomain = email.split("@")[1];
+        const mailDomain = getMailDomain(email);
         if (settings.enableMailAllowList
             && settings.mailAllowList
-            && !settings.mailAllowList.includes(mailDomain)
+            && !includesDomain(settings.mailAllowList, mailDomain)
         ) {
             return c.text(`${msgs.UserMailDomainMustInMsg} ${JSON.stringify(settings.mailAllowList, null, 2)}`, 400)
         }

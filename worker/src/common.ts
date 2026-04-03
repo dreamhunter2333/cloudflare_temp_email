@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains } from './utils';
+import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, includesDomain, normalizeDomain, normalizeEmailAddress } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
@@ -19,15 +19,17 @@ export const isSendMailEnabled = (
     c: Context<HonoCustomType>,
     mailDomain: string
 ): boolean => {
+    const normalizedMailDomain = normalizeDomain(mailDomain);
+    if (!normalizedMailDomain) return false;
     // Check resend token for domain or global
     const resendEnabled = c.env.RESEND_TOKEN || c.env[
-        `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
+        `RESEND_TOKEN_${normalizedMailDomain.replace(/\./g, "_").toUpperCase()}`
     ];
     if (resendEnabled) return true;
 
     // Check SMTP config for domain
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    if (smtpConfigMap && smtpConfigMap[mailDomain]) return true;
+    if (getDomainMapValue(smtpConfigMap, normalizedMailDomain)) return true;
 
     // Check SEND_MAIL binding
     if (c.env.SEND_MAIL) return true;
@@ -85,7 +87,7 @@ const allowRandomSubdomainForDomain = (
     c: Context<HonoCustomType>,
     domain: string
 ): boolean => {
-    return getRandomSubdomainDomains(c).includes(domain);
+    return includesDomain(getRandomSubdomainDomains(c), domain);
 }
 
 const checkNameRegex = (c: Context<HonoCustomType>, name: string) => {
@@ -253,6 +255,7 @@ export const newAddress = async (
     } else if (enablePrefix) {
         name = getStringValue(c.env.PREFIX).trim() + name;
     }
+    domain = normalizeDomain(domain);
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
     // if domain is not set, select domain based on environment configuration
@@ -265,7 +268,7 @@ export const newAddress = async (
         }
     }
     // check domain is valid
-    if (!domain || !allowDomains.includes(domain)) {
+    if (!domain || !includesDomain(allowDomains, domain)) {
         throw new Error(msgs.InvalidDomainMsg)
     }
     if (enableRandomSubdomain && !allowRandomSubdomainForDomain(c, domain)) {
@@ -277,9 +280,18 @@ export const newAddress = async (
         const addressDomain = enableRandomSubdomain
             ? `${generateRandomSubdomain(c)}.${domain}`
             : domain;
-        const address = `${name}@${addressDomain}`;
+        const address = normalizeEmailAddress(`${name}@${addressDomain}`);
 
         try {
+            const existingAddressId = await c.env.DB.prepare(
+                `SELECT id FROM address WHERE name = ?`
+            ).bind(address).first<number>("id");
+            if (existingAddressId) {
+                if (enableRandomSubdomain && attempt < maxAttempts - 1) {
+                    continue;
+                }
+                throw new Error(msgs.AddressAlreadyExistsMsg);
+            }
             await insertAddressRecord(c, address, sourceMeta, msgs);
             await updateAddressUpdatedAt(c, address);
 
@@ -605,7 +617,8 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
         return getDefaultDomains(c);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
-    return user_role?.domains || getDefaultDomains(c);;
+    const roleDomains = user_role?.domains;
+    return roleDomains && roleDomains.length > 0 ? roleDomains : getDefaultDomains(c);
 }
 
 export async function sendWebhook(
