@@ -11,6 +11,19 @@ import i18n from './i18n';
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
 const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
+const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+
+const normalizeDomainValue = (domain: string): string => {
+    return domain.trim().toLowerCase();
+}
+
+const isValidDomainLabel = (label: string): boolean => {
+    return DOMAIN_LABEL_RE.test(label);
+}
+
+const areValidDomainLabels = (labels: string[]): boolean => {
+    return labels.length > 0 && labels.every((label) => isValidDomainLabel(label));
+}
 
 /**
  * Check if send mail is enabled for a specific domain
@@ -85,7 +98,10 @@ const allowRandomSubdomainForDomain = (
     c: Context<HonoCustomType>,
     domain: string
 ): boolean => {
-    return getRandomSubdomainDomains(c).includes(domain);
+    const normalizedDomain = normalizeDomainValue(domain);
+    return getRandomSubdomainDomains(c)
+        .map((item) => normalizeDomainValue(item))
+        .includes(normalizedDomain);
 }
 
 const isCreateAddressSubdomainMatchEnvConfigured = (c: Context<HonoCustomType>): boolean => {
@@ -136,24 +152,30 @@ const findMatchedAllowedDomain = (
     allowDomains: string[],
     enableSubdomainMatch: boolean,
 ): string | null => {
-    if (allowDomains.includes(domain)) {
-        return domain;
+    const normalizedDomain = normalizeDomainValue(domain);
+    const domainLabels = normalizedDomain.split('.');
+    if (!areValidDomainLabels(domainLabels)) {
+        return null;
+    }
+    const normalizedAllowDomains = allowDomains.map((allowDomain) => normalizeDomainValue(allowDomain));
+    if (normalizedAllowDomains.includes(normalizedDomain)) {
+        return normalizedDomain;
     }
     if (!enableSubdomainMatch) {
         return null;
     }
-    const domainLabels = domain.toLowerCase().split('.');
-    if (domainLabels.some((label) => label.length === 0)) {
-        return null;
-    }
-    const matchedDomain = [...allowDomains]
+    const matchedDomain = [...normalizedAllowDomains]
         .sort((a, b) => b.length - a.length)
         .find((allowDomain) => {
-            const allowDomainLabels = allowDomain.toLowerCase().split('.');
-            if (allowDomainLabels.some((label) => label.length === 0)) {
+            const allowDomainLabels = allowDomain.split('.');
+            if (!areValidDomainLabels(allowDomainLabels)) {
                 return false;
             }
             if (domainLabels.length <= allowDomainLabels.length) {
+                return false;
+            }
+            const prefixLabels = domainLabels.slice(0, domainLabels.length - allowDomainLabels.length);
+            if (!areValidDomainLabels(prefixLabels)) {
                 return false;
             }
             return allowDomainLabels.every((label, index) => {
@@ -334,10 +356,12 @@ export const newAddress = async (
     if (!domain && allowDomains.length > 0) {
         const createAddressDefaultDomainFirst = getBooleanValue(c.env.CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST);
         if (createAddressDefaultDomainFirst) {
-            domain = allowDomains[0];
+            domain = normalizeDomainValue(allowDomains[0]);
         } else {
-            domain = allowDomains[Math.floor(Math.random() * allowDomains.length)];
+            domain = normalizeDomainValue(allowDomains[Math.floor(Math.random() * allowDomains.length)]);
         }
+    } else if (typeof domain === "string") {
+        domain = normalizeDomainValue(domain);
     }
     const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
     const matchedAllowDomain = domain

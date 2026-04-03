@@ -3,10 +3,13 @@ import { TEST_DOMAIN, WORKER_URL, WORKER_URL_ENV_OFF, WORKER_URL_SUBDOMAIN } fro
 
 const SUBDOMAIN = `team.${TEST_DOMAIN}`;
 const NESTED_SUBDOMAIN = `deep.team.${TEST_DOMAIN}`;
+const MIXED_CASE_SUBDOMAIN = `TeAm.${TEST_DOMAIN.toUpperCase()}`;
 const INVALID_LOOKALIKE_DOMAIN = `bad${TEST_DOMAIN}`;
 const INVALID_EMPTY_PREFIX_DOMAIN = `.${TEST_DOMAIN}`;
 const INVALID_EMPTY_LABEL_DOMAIN = `a..b.${TEST_DOMAIN}`;
 const CREATE_ADDRESS_WORKER_URL = WORKER_URL_SUBDOMAIN || WORKER_URL;
+let originalCreateAddressStoredEnabled: boolean | undefined;
+let originalEnvOffStoredEnabled: boolean | undefined;
 
 async function getAccountSettings(request: any, workerUrl: string) {
   const res = await request.get(`${workerUrl}/admin/account_settings`);
@@ -36,8 +39,56 @@ async function saveSubdomainMatchSetting(
   expect(res.ok()).toBe(true);
 }
 
+async function resetSubdomainMatchSetting(
+  request: any,
+  workerUrl: string
+) {
+  const res = await request.post(`${workerUrl}/admin/test/reset_address_creation_settings`);
+  expect(res.ok()).toBe(true);
+}
+
+async function restoreSubdomainMatchSetting(
+  request: any,
+  workerUrl: string,
+  originalValue: boolean | undefined
+) {
+  if (typeof originalValue === 'boolean') {
+    await saveSubdomainMatchSetting(request, workerUrl, originalValue);
+    return;
+  }
+  await resetSubdomainMatchSetting(request, workerUrl);
+}
+
 test.describe('Create Address Subdomain Match', () => {
-  test('default stays exact match only when switch is not enabled', async ({ request }) => {
+  test.beforeAll(async ({ request }) => {
+    const createAddressSettings = await getAccountSettings(request, CREATE_ADDRESS_WORKER_URL);
+    originalCreateAddressStoredEnabled = createAddressSettings.addressCreationSubdomainMatchStatus?.storedEnabled;
+
+    if (WORKER_URL_ENV_OFF) {
+      const envOffSettings = await getAccountSettings(request, WORKER_URL_ENV_OFF);
+      originalEnvOffStoredEnabled = envOffSettings.addressCreationSubdomainMatchStatus?.storedEnabled;
+    }
+  });
+
+  test.afterEach(async ({ request }) => {
+    await restoreSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, originalCreateAddressStoredEnabled);
+    if (WORKER_URL_ENV_OFF) {
+      await restoreSubdomainMatchSetting(request, WORKER_URL_ENV_OFF, originalEnvOffStoredEnabled);
+    }
+  });
+
+  test('falls back to env value when subdomain setting is not persisted', async ({ request }) => {
+    await resetSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL);
+
+    const res = await request.post(`${CREATE_ADDRESS_WORKER_URL}/admin/new_address`, {
+      data: { name: `subenvfb${Date.now()}`, domain: SUBDOMAIN },
+    });
+
+    expect(res.ok()).toBe(false);
+    expect(await res.text()).toContain('Invalid domain');
+  });
+
+  test('persisted false still keeps exact match only', async ({ request }) => {
     await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, false);
 
     const uniqueName = `subdomain-default-${Date.now()}`;
@@ -69,6 +120,13 @@ test.describe('Create Address Subdomain Match', () => {
     const userBody = await userRes.json();
     expect(userBody.address).toContain(`@${NESTED_SUBDOMAIN}`);
     expect(userBody.address_id).toBeGreaterThan(0);
+
+    const mixedCaseRes = await request.post(`${CREATE_ADDRESS_WORKER_URL}/admin/new_address`, {
+      data: { name: `subcase${Date.now()}`, domain: MIXED_CASE_SUBDOMAIN },
+    });
+    expect(mixedCaseRes.ok()).toBe(true);
+    const mixedCaseBody = await mixedCaseRes.json();
+    expect(mixedCaseBody.address).toContain(`@${SUBDOMAIN}`);
 
     const invalidRes = await request.post(`${CREATE_ADDRESS_WORKER_URL}/admin/new_address`, {
       data: { name: `subinvalid${Date.now()}`, domain: INVALID_LOOKALIKE_DOMAIN },
