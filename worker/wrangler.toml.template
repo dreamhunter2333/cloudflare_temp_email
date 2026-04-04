@@ -123,6 +123,8 @@ ENABLE_AUTO_REPLY = false
 # REMOVE_EXCEED_SIZE_ATTACHMENT = true
 # remove all attachment, mail maybe mising some information due to parsing
 # REMOVE_ALL_ATTACHMENT = true
+# enable gzip compressed email storage in raw_blob column (run db_migration first)
+# ENABLE_MAIL_GZIP = true
 # AI email extraction, automatically extract verification codes, auth links, etc.
 # ENABLE_AI_EMAIL_EXTRACT = true
 # AI model name, choose from https://developers.cloudflare.com/workers-ai/models/#text-generation
