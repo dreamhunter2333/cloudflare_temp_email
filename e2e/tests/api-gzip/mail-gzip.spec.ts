@@ -88,6 +88,10 @@ async function deleteGzipAddress(ctx: any, jwt: string) {
 }
 
 test.describe('Mail Gzip Storage', () => {
+  test.beforeEach(() => {
+    test.skip(!WORKER_GZIP_URL, 'WORKER_GZIP_URL not set — skipping gzip tests');
+  });
+
   test('gzip-compressed mail is readable in list', async ({ request }) => {
     const { jwt, address } = await createGzipAddress(request, 'gzip-list');
     try {
@@ -121,6 +125,7 @@ test.describe('Mail Gzip Storage', () => {
         headers: { Authorization: `Bearer ${jwt}` },
       });
       const { results } = await listRes.json();
+      expect(results.length).toBeGreaterThanOrEqual(1);
       const mailId = results[0].id;
 
       const detailRes = await request.get(`${WORKER_GZIP_URL}/api/mail/${mailId}`, {
@@ -183,6 +188,7 @@ test.describe('Mail Gzip Storage', () => {
       );
       expect(senderListRes.ok()).toBe(true);
       const senderList = await senderListRes.json();
+      expect(senderList.results.length).toBeGreaterThanOrEqual(1);
       const senderId = senderList.results[0].id;
 
       // 3. Update send access via admin API → triggers sendAdminInternalMail
@@ -220,6 +226,7 @@ test.describe('Mail Gzip Storage', () => {
         headers: { Authorization: `Bearer ${jwt}` },
       });
       const { results } = await listRes.json();
+      expect(results.length).toBeGreaterThanOrEqual(1);
       expect(results[0]).not.toHaveProperty('raw_blob');
 
       // Check detail response
