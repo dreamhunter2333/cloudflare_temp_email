@@ -190,3 +190,14 @@ export type RoleConfig = {
 }
 
 export type RoleAddressConfig = Record<string, RoleConfig>;
+
+export type RawMailRow = {
+    id: number;
+    message_id?: string;
+    source?: string;
+    address?: string;
+    raw?: string;
+    raw_blob?: unknown;
+    metadata?: string;
+    created_at?: string;
+}

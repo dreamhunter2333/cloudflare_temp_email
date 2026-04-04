@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { CONSTANTS } from "../constants";
-import { WebhookSettings } from "../models";
+import { WebhookSettings, RawMailRow } from "../models";
 import { commonParseMail, sendWebhook } from "../common";
 import { resolveRawEmail } from "../gzip";
 
@@ -24,8 +24,8 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     // random raw email
     const mailRow = await c.env.DB.prepare(
         `SELECT * FROM raw_mails ORDER BY RANDOM() LIMIT 1`
-    ).first<Record<string, unknown>>();
-    const mailId = mailRow?.id as string | undefined;
+    ).first<RawMailRow>();
+    const mailId = mailRow?.id;
     const raw = mailRow ? await resolveRawEmail(mailRow) : "";
     const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
     const parsedEmail = await commonParseMail(parsedEmailContext);

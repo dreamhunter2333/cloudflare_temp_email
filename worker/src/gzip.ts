@@ -3,6 +3,8 @@
  * Uses Web Standard CompressionStream/DecompressionStream (native in CF Workers).
  */
 
+import { RawMailRow } from "./models";
+
 export async function compressText(text: string): Promise<ArrayBuffer> {
     const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'));
     return new Response(stream).arrayBuffer();
@@ -13,8 +15,6 @@ export async function decompressBlob(buffer: ArrayBuffer): Promise<string> {
     return new Response(stream).text();
 }
 
-type RawMailRow = Record<string, any>;
-
 /**
  * Resolve the raw email text from either raw_blob (gzip) or raw (plaintext) field.
  */
@@ -22,7 +22,7 @@ export async function resolveRawEmail(row: RawMailRow): Promise<string> {
     if (row.raw_blob) {
         try {
             // D1 returns BLOB as Array<number>, convert to ArrayBuffer for decompression
-            return await decompressBlob(new Uint8Array(row.raw_blob).buffer);
+            return await decompressBlob(new Uint8Array(row.raw_blob as ArrayLike<number>).buffer);
         } catch (e) {
             console.error("decompressBlob failed, fallback to raw field", e);
             return row.raw ?? '';
