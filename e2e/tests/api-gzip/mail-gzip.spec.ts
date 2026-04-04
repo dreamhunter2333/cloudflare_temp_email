@@ -199,9 +199,10 @@ test.describe('Mail Gzip Storage', () => {
       const { results } = await mailsRes.json();
       expect(results.length).toBeGreaterThanOrEqual(1);
 
-      const internalMail = results.find((m: any) => m.raw?.includes('Account Send Access Updated'));
+      // mimetext base64-encodes the Subject header, so match on body content instead
+      const internalMail = results.find((m: any) => m.raw?.includes('balance: 99'));
       expect(internalMail).toBeDefined();
-      expect(internalMail.raw).toContain('enabled');
+      expect(internalMail.raw).toContain('admin@internal');
       expect(internalMail.raw).toContain('balance: 99');
       expect(internalMail).not.toHaveProperty('raw_blob');
     } finally {
