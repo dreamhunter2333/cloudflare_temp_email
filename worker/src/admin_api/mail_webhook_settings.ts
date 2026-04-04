@@ -23,9 +23,9 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const settings = await c.req.json<WebhookSettings>();
     // random raw email
     const mailRow = await c.env.DB.prepare(
-        `SELECT id, raw, raw_blob FROM raw_mails ORDER BY RANDOM() LIMIT 1`
-    ).first<{ id: string, raw: string, raw_blob: unknown }>();
-    const mailId = mailRow?.id;
+        `SELECT * FROM raw_mails ORDER BY RANDOM() LIMIT 1`
+    ).first<Record<string, unknown>>();
+    const mailId = mailRow?.id as string | undefined;
     const raw = mailRow ? await resolveRawEmail(mailRow) : "";
     const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
     const parsedEmail = await commonParseMail(parsedEmailContext);

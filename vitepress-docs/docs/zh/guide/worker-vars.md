@@ -66,7 +66,7 @@
 | `FORWARD_ADDRESS_LIST`          | JSON      | 全局转发地址列表，如果不配置则不启用，启用后所有邮件都会转发到列表中的地址 | `["xxx@xxx.com"]`          |
 | `REMOVE_EXCEED_SIZE_ATTACHMENT` | 文本/JSON | 如果附件大小超过 2MB，则删除附件，邮件可能由于解析而丢失一些信息           | `true`                     |
 | `REMOVE_ALL_ATTACHMENT`         | 文本/JSON | 移除所有附件，邮件可能由于解析而丢失一些信息                               | `true`                     |
-| `ENABLE_MAIL_GZIP`             | 文本/JSON | 启用后新邮件将 Gzip 压缩存储到 `raw_blob` 字段，可节省 D1 数据库空间。已有明文 `raw` 数据自动兼容读取 | `true`                     |
+| `ENABLE_MAIL_GZIP`             | 文本/JSON | 启用后新邮件将 Gzip 压缩存储到 `raw_blob` 字段，可节省 D1 数据库空间。已有明文 `raw` 数据自动兼容读取。**启用前请先执行数据库迁移（管理后台 → 数据库迁移），确保 `raw_blob` 列已创建** | `true`                     |
 
 > [!NOTE]
 > `垃圾邮件检查` 和 `移除附件功能` 需要解析邮件，免费版 CPU 有限，可能会导致大邮件解析超时

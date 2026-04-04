@@ -16,7 +16,7 @@
 - feat: |自动回复| 发件人过滤支持正则表达式匹配，使用 `/pattern/` 语法（如 `/@example\.com$/`），同时保持前缀匹配的向后兼容
 - feat: |Turnstile| 新增全局登录表单 Turnstile 人机验证，通过 `ENABLE_GLOBAL_TURNSTILE_CHECK` 环境变量控制（#767）
 - feat: |Telegram| Telegram 推送支持发送邮件附件（单文件限制 50MB），多附件通过 `sendMediaGroup` 批量发送，通过 `ENABLE_TG_PUSH_ATTACHMENT` 环境变量开启（#894）
-- feat: |邮件存储| 支持 Gzip 压缩存储邮件原文到 D1 数据库 `raw_blob` 字段，通过 `ENABLE_MAIL_GZIP` 环境变量开启，兼容已有明文 `raw` 字段的双字段读取（#823）
+- feat: |邮件存储| 支持 Gzip 压缩存储邮件原文到 D1 数据库 `raw_blob` 字段，通过 `ENABLE_MAIL_GZIP` 环境变量开启，兼容已有明文 `raw` 字段的双字段读取。**启用前需先执行数据库迁移**（#823）
 
 ### Bug Fixes
 
