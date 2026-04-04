@@ -9,6 +9,8 @@ import { TelegramSettings } from "./settings";
 import { sendTelegramAttachments } from "./tg_file_upload";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 import { commonParseMail } from "../common";
+import { resolveRawEmail } from "../gzip";
+import { RawMailRow } from "../models";
 import { UserFromGetMe } from "telegraf/types";
 import i18n from "../i18n";
 import { LocaleMessages } from "../i18n/type";
@@ -301,12 +303,15 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         if (!db_address_id) {
             return await ctx.reply(msgs.TgInvalidAddressMsg);
         }
-        const { raw, id: mailId, created_at } = await c.env.DB.prepare(
+        const mailRow = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where address = ? `
             + ` order by id desc limit 1 offset ?`
         ).bind(
             queryAddress, mailIndex
-        ).first<{ raw: string, id: string, created_at: string }>() || {};
+        ).first<RawMailRow>();
+        const raw = mailRow ? await resolveRawEmail(mailRow) : undefined;
+        const mailId = mailRow?.id;
+        const created_at = mailRow?.created_at;
         const { mail } = raw ? await parseMail(msgs, { rawEmail: raw }, queryAddress, created_at) : { mail: msgs.TgNoMoreMailsMsg };
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const miniAppButtons = []
