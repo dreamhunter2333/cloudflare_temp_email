@@ -307,10 +307,10 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             + ` order by id desc limit 1 offset ?`
         ).bind(
             queryAddress, mailIndex
-        ).first<{ raw: string, raw_blob: unknown, id: string, created_at: string }>();
+        ).first<Record<string, unknown>>();
         const raw = mailRow ? await resolveRawEmail(mailRow) : undefined;
-        const mailId = mailRow?.id;
-        const created_at = mailRow?.created_at;
+        const mailId = mailRow?.id as string | undefined;
+        const created_at = mailRow?.created_at as string | undefined;
         const { mail } = raw ? await parseMail(msgs, { rawEmail: raw }, queryAddress, created_at) : { mail: msgs.TgNoMoreMailsMsg };
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const miniAppButtons = []
