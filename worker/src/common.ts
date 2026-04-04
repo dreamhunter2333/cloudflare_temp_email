@@ -5,12 +5,26 @@ import { WorkerMailerOptions } from 'worker-mailer';
 import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
-import { AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
+import { AddressCreationSettings, AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
 const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
+const MAX_DOMAIN_LENGTH = 253;
+const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+
+const normalizeDomainValue = (domain: string): string => {
+    return domain.trim().toLowerCase();
+}
+
+const isValidDomainLabel = (label: string): boolean => {
+    return DOMAIN_LABEL_RE.test(label);
+}
+
+const areValidDomainLabels = (labels: string[]): boolean => {
+    return labels.length > 0 && labels.every((label) => isValidDomainLabel(label));
+}
 
 /**
  * Check if send mail is enabled for a specific domain
@@ -85,7 +99,98 @@ const allowRandomSubdomainForDomain = (
     c: Context<HonoCustomType>,
     domain: string
 ): boolean => {
-    return getRandomSubdomainDomains(c).includes(domain);
+    const normalizedDomain = normalizeDomainValue(domain);
+    return getRandomSubdomainDomains(c)
+        .map((item) => normalizeDomainValue(item))
+        .includes(normalizedDomain);
+}
+
+const isCreateAddressSubdomainMatchEnvConfigured = (c: Context<HonoCustomType>): boolean => {
+    return c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== undefined
+        && c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== null
+        && c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== "";
+}
+
+export const getAddressCreationSettings = async (
+    c: Context<HonoCustomType>
+): Promise<AddressCreationSettings> => {
+    const value = await getJsonSetting<AddressCreationSettings>(
+        c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY
+    );
+    return new AddressCreationSettings(value);
+}
+
+export const getAddressCreationSubdomainMatchStatus = async (
+    c: Context<HonoCustomType>,
+    existingSettings?: AddressCreationSettings
+): Promise<{
+    envConfigured: boolean,
+    envEnabled: boolean,
+    storedEnabled: boolean | undefined,
+    effectiveEnabled: boolean,
+}> => {
+    const envConfigured = isCreateAddressSubdomainMatchEnvConfigured(c);
+    const envEnabled = getBooleanValue(c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH);
+    const addressCreationSettings = existingSettings || await getAddressCreationSettings(c);
+    const storedEnabled = addressCreationSettings.enableSubdomainMatch;
+
+    // 业务约束：env=false 作为全局 kill switch，后台开关不能强行打开。
+    const effectiveEnabled = envConfigured && !envEnabled
+        ? false
+        : typeof storedEnabled === "boolean"
+            ? storedEnabled
+            : envEnabled;
+
+    return {
+        envConfigured,
+        envEnabled,
+        storedEnabled,
+        effectiveEnabled,
+    };
+}
+
+const findMatchedAllowedDomain = (
+    domain: string,
+    allowDomains: string[],
+    enableSubdomainMatch: boolean,
+): string | null => {
+    const normalizedDomain = normalizeDomainValue(domain);
+    if (normalizedDomain.length > MAX_DOMAIN_LENGTH) {
+        return null;
+    }
+    const domainLabels = normalizedDomain.split('.');
+    if (!areValidDomainLabels(domainLabels)) {
+        return null;
+    }
+    const normalizedAllowDomains = allowDomains.map((allowDomain) => normalizeDomainValue(allowDomain));
+    if (normalizedAllowDomains.includes(normalizedDomain)) {
+        return normalizedDomain;
+    }
+    if (!enableSubdomainMatch) {
+        return null;
+    }
+    const matchedDomain = [...normalizedAllowDomains]
+        .sort((a, b) => b.length - a.length)
+        .find((allowDomain) => {
+            if (allowDomain.length > MAX_DOMAIN_LENGTH) {
+                return false;
+            }
+            const allowDomainLabels = allowDomain.split('.');
+            if (!areValidDomainLabels(allowDomainLabels)) {
+                return false;
+            }
+            if (domainLabels.length <= allowDomainLabels.length) {
+                return false;
+            }
+            const prefixLabels = domainLabels.slice(0, domainLabels.length - allowDomainLabels.length);
+            if (!areValidDomainLabels(prefixLabels)) {
+                return false;
+            }
+            return allowDomainLabels.every((label, index) => {
+                return domainLabels[domainLabels.length - allowDomainLabels.length + index] === label;
+            });
+        });
+    return matchedDomain || null;
 }
 
 const checkNameRegex = (c: Context<HonoCustomType>, name: string) => {
@@ -259,13 +364,19 @@ export const newAddress = async (
     if (!domain && allowDomains.length > 0) {
         const createAddressDefaultDomainFirst = getBooleanValue(c.env.CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST);
         if (createAddressDefaultDomainFirst) {
-            domain = allowDomains[0];
+            domain = normalizeDomainValue(allowDomains[0]);
         } else {
-            domain = allowDomains[Math.floor(Math.random() * allowDomains.length)];
+            domain = normalizeDomainValue(allowDomains[Math.floor(Math.random() * allowDomains.length)]);
         }
+    } else if (typeof domain === "string") {
+        domain = normalizeDomainValue(domain);
     }
+    const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
+    const matchedAllowDomain = domain
+        ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch)
+        : null;
     // check domain is valid
-    if (!domain || !allowDomains.includes(domain)) {
+    if (!domain || !matchedAllowDomain) {
         throw new Error(msgs.InvalidDomainMsg)
     }
     if (enableRandomSubdomain && !allowRandomSubdomainForDomain(c, domain)) {

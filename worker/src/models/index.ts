@@ -119,6 +119,16 @@ export class UserSettings {
     }
 }
 
+export class AddressCreationSettings {
+
+    enableSubdomainMatch: boolean | undefined;
+
+    constructor(data: AddressCreationSettings | undefined | null) {
+        const { enableSubdomainMatch } = data || {};
+        this.enableSubdomainMatch = enableSubdomainMatch;
+    }
+}
+
 export class UserInfo {
 
     geoData: GeoData;
