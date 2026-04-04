@@ -18,7 +18,7 @@ test.describe('Admin New Address', () => {
   });
 
   test('accepts uppercase domain input and normalizes the created address', async ({ request }) => {
-    const uniqueName = `admin-case${Date.now()}`;
+    const uniqueName = `admincase${Date.now()}`;
     const res = await request.post(`${WORKER_URL}/admin/new_address`, {
       data: { name: uniqueName, domain: TEST_DOMAIN.toUpperCase() },
     });
