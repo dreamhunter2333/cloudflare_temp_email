@@ -1,6 +1,16 @@
 <!-- markdownlint-disable-file MD004 MD024 MD033 MD034 MD036 -->
 # CHANGE LOG
 
+## v1.6.0(main)
+
+### Features
+
+### Bug Fixes
+
+### Improvements
+
+
+
 <p align="center">
   <a href="CHANGELOG.md">中文</a> |
   <a href="CHANGELOG_EN.md">English</a>
