@@ -6,6 +6,14 @@
   <a href="CHANGELOG_EN.md">English</a>
 </p>
 
+## v1.6.0(main)
+
+### Features
+
+### Bug Fixes
+
+### Improvements
+
 ## v1.5.0(main)
 
 ### Features

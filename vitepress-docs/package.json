@@ -1,12 +1,12 @@
 {
   "name": "temp-mail-docs",
   "private": true,
-  "version": "1.5.0",
+  "version": "1.6.0",
   "type": "module",
   "devDependencies": {
-    "@types/node": "^25.4.0",
+    "@types/node": "^25.5.2",
     "vitepress": "^1.6.4",
-    "wrangler": "^4.72.0"
+    "wrangler": "^4.80.0"
   },
   "scripts": {
     "dev": "vitepress dev docs",
