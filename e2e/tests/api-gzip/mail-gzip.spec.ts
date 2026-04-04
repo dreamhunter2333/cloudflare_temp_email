@@ -168,6 +168,47 @@ test.describe('Mail Gzip Storage', () => {
     }
   });
 
+  test('admin internal mail (sendAdminInternalMail) is gzip-compressed and readable', async ({ request }) => {
+    const { jwt, address } = await createGzipAddress(request, 'gzip-admin-mail');
+    try {
+      // 1. Request send access → creates address_sender row
+      const reqAccessRes = await request.post(`${WORKER_GZIP_URL}/api/request_send_mail_access`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      expect(reqAccessRes.ok()).toBe(true);
+
+      // 2. Get address_sender id
+      const senderListRes = await request.get(
+        `${WORKER_GZIP_URL}/admin/address_sender?limit=10&offset=0&address=${encodeURIComponent(address)}`,
+      );
+      expect(senderListRes.ok()).toBe(true);
+      const senderList = await senderListRes.json();
+      const senderId = senderList.results[0].id;
+
+      // 3. Update send access via admin API → triggers sendAdminInternalMail
+      const updateRes = await request.post(`${WORKER_GZIP_URL}/admin/address_sender`, {
+        data: { address, address_id: senderId, balance: 99, enabled: true },
+      });
+      expect(updateRes.ok()).toBe(true);
+
+      // 4. Verify the internal mail is readable
+      const mailsRes = await request.get(`${WORKER_GZIP_URL}/api/mails?limit=10&offset=0`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      expect(mailsRes.ok()).toBe(true);
+      const { results } = await mailsRes.json();
+      expect(results.length).toBeGreaterThanOrEqual(1);
+
+      const internalMail = results.find((m: any) => m.raw?.includes('Account Send Access Updated'));
+      expect(internalMail).toBeDefined();
+      expect(internalMail.raw).toContain('enabled');
+      expect(internalMail.raw).toContain('balance: 99');
+      expect(internalMail).not.toHaveProperty('raw_blob');
+    } finally {
+      await deleteGzipAddress(request, jwt);
+    }
+  });
+
   test('raw_blob field is not exposed in API response', async ({ request }) => {
     const { jwt, address } = await createGzipAddress(request, 'gzip-noblob');
     try {
