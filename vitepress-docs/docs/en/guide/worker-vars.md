@@ -70,9 +70,11 @@
 | `FORWARD_ADDRESS_LIST`          | JSON      | Global forward address list, disabled if not configured, all emails will be forwarded to listed addresses when enabled | `["xxx@xxx.com"]`          |
 | `REMOVE_EXCEED_SIZE_ATTACHMENT` | Text/JSON | If attachment exceeds 2MB, remove it, email may lose some information due to parsing                                   | `true`                     |
 | `REMOVE_ALL_ATTACHMENT`         | Text/JSON | Remove all attachments, email may lose some information due to parsing                                                 | `true`                     |
-| `ENABLE_MAIL_GZIP`             | Text/JSON | When enabled, new emails are gzip-compressed and stored in `raw_blob` column to save D1 database space. Existing plaintext `raw` data is automatically compatible for reading. **Run database migration first (Admin → DB Migration) to ensure `raw_blob` column exists before enabling** | `true`                     |
+| `ENABLE_MAIL_GZIP`             | Text/JSON | When enabled, new emails are gzip-compressed and stored in `raw_blob` column to save D1 database space. Existing plaintext `raw` data is automatically compatible for reading. **Run database migration first (`Admin -> Quick Setup -> Database -> Migrate Database` or `POST /admin/db_migration`) to ensure the `raw_blob` column exists before enabling. This feature adds compression/decompression CPU overhead, so enabling it on a paid Cloudflare Worker plan is recommended.** | `true`                     |
 
 > [!NOTE]
+> `ENABLE_MAIL_GZIP` adds CPU cost for gzip compression on write and decompression on read. Free-tier Workers are more likely to hit CPU limits, so a paid plan is recommended before enabling it
+>
 > `Junk mail checking` and `attachment removal` require email parsing, free tier CPU is limited, may cause large email parsing timeout
 >
 > If you want stronger email parsing capabilities
