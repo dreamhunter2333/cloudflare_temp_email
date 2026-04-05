@@ -14,10 +14,6 @@ const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
 const MAX_DOMAIN_LENGTH = 253;
 const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
-const normalizeDomainValue = (domain: string): string => {
-    return domain.trim().toLowerCase();
-}
-
 const isValidDomainLabel = (label: string): boolean => {
     return DOMAIN_LABEL_RE.test(label);
 }
@@ -153,7 +149,7 @@ const findMatchedAllowedDomain = (
     allowDomains: string[],
     enableSubdomainMatch: boolean,
 ): string | null => {
-    const normalizedDomain = normalizeDomainValue(domain);
+    const normalizedDomain = normalizeDomain(domain);
     if (normalizedDomain.length > MAX_DOMAIN_LENGTH) {
         return null;
     }
@@ -161,7 +157,7 @@ const findMatchedAllowedDomain = (
     if (!areValidDomainLabels(domainLabels)) {
         return null;
     }
-    const normalizedAllowDomains = allowDomains.map((allowDomain) => normalizeDomainValue(allowDomain));
+    const normalizedAllowDomains = allowDomains.map((allowDomain) => normalizeDomain(allowDomain));
     if (normalizedAllowDomains.includes(normalizedDomain)) {
         return normalizedDomain;
     }
@@ -364,12 +360,12 @@ export const newAddress = async (
     if (!domain && allowDomains.length > 0) {
         const createAddressDefaultDomainFirst = getBooleanValue(c.env.CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST);
         if (createAddressDefaultDomainFirst) {
-            domain = normalizeDomainValue(allowDomains[0]);
+            domain = normalizeDomain(allowDomains[0]);
         } else {
-            domain = normalizeDomainValue(allowDomains[Math.floor(Math.random() * allowDomains.length)]);
+            domain = normalizeDomain(allowDomains[Math.floor(Math.random() * allowDomains.length)]);
         }
     } else if (typeof domain === "string") {
-        domain = normalizeDomainValue(domain);
+        domain = normalizeDomain(domain);
     }
     const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
     const matchedAllowDomain = domain
@@ -391,6 +387,9 @@ export const newAddress = async (
         const address = normalizeEmailAddress(`${name}@${addressDomain}`);
 
         try {
+            // Best-effort pre-check so random-subdomain retries can skip obvious duplicates
+            // before INSERT. A TOCTOU race with the INSERT below is acceptable because the
+            // UNIQUE-constraint handling in the catch block is the definitive guard.
             const existingAddressId = await c.env.DB.prepare(
                 `SELECT id FROM address WHERE name = ?`
             ).bind(address).first<number>("id");
