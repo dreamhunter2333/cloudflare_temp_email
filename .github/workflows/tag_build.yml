@@ -123,11 +123,13 @@ jobs:
         with:
           path: artifacts
 
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            artifacts/frontend/frontend.zip
-            artifacts/telegram-frontend/telegram-frontend.zip
-            artifacts/worker-js/worker.js
-            artifacts/worker-wasm/worker-with-wasm-mail-parser.zip
+      - name: Create Release and Upload Assets
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            artifacts/frontend/frontend.zip \
+            artifacts/telegram-frontend/telegram-frontend.zip \
+            artifacts/worker-js/worker.js \
+            artifacts/worker-wasm/worker-with-wasm-mail-parser.zip \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
