@@ -14,6 +14,13 @@
 
 ### Improvements
 
+- docs: |Send Mail API| Clarify authentication differences between `/api/send_mail` and `/external/api/send_mail`, add "Address JWT" concept explanation (#922)
+- docs: |Worker Variables| Add generation instructions for `JWT_SECRET` (`openssl rand -hex 32`) (#932)
+- docs: |CLI Deployment| Add usage explanation for `routes` custom domain configuration (#932)
+- docs: |Admin API| Add `address_id` field to `/admin/new_address` response documentation (#912)
+- docs: |Admin| Add account list sorting feature documentation (#918)
+- docs: |Pages Deployment| Add SPA mode instructions to avoid 404 when refreshing or accessing sub-paths directly (#813)
+
 ## v1.5.0(main)
 
 ### Features
