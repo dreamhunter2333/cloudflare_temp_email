@@ -24,9 +24,10 @@ export default {
         }
 
         // 更新密码
+        const hashedPassword = await hashPassword(new_password);
         const { success } = await c.env.DB.prepare(
             `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
-        ).bind(new_password, address_id).run();
+        ).bind(hashedPassword, address_id).run();
 
         if (!success) {
             return c.text(msgs.FailedUpdatePasswordMsg, 500);
@@ -68,7 +69,8 @@ export default {
         }
 
         // 验证密码
-        if (address.password !== password) {
+        const hashedInput = await hashPassword(password);
+        if (address.password !== hashedInput) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 401);
         }
 
