@@ -35,7 +35,7 @@ res = requests.post(
     }
 )
 
-# Returns {"jwt": "<Jwt>"}
+# Returns {"jwt": "<Jwt>", "address": "<email_address>", "address_id": 123}
 print(res.json())
 ```
 

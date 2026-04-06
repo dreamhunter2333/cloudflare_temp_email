@@ -35,6 +35,8 @@ compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat" ]
 
 # 如果你想使用自定义域名，你需要添加 routes 配置
+# 将 pattern 替换为你自己的域名，该域名需要已添加到你的 Cloudflare 账户中
+# 配置后 Worker 将通过该自定义域名提供服务，而非默认的 *.workers.dev 域名
 # routes = [
 #  { pattern = "temp-email-api.xxxxx.xyz", custom_domain = true },
 # ]
@@ -59,7 +61,8 @@ compatibility_flags = [ "nodejs_compat" ]
 PREFIX = "tmp"
 # 用于临时邮箱的所有域名, 支持多个域名
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
-# 用于生成 jwt 的密钥, jwt 用于给用户登录以及鉴权
+# 用于签名 JWT 的密钥，JWT 用于登录鉴权
+# 请使用随机字符串，例如通过 openssl rand -hex 32 生成
 JWT_SECRET = "xxx"
 
 # admin 控制台密码, 不配置则不允许访问控制台

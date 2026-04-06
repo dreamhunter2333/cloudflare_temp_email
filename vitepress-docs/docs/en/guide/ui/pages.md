@@ -70,7 +70,13 @@ const generate = async () => {
     >
     > Search for `https://temp-email-api.xxx.xxx` and replace it with your worker's domain, then deploy the new zip file
 
-4. Select `Pages`, click `Create Pages`, modify the name, upload the downloaded zip package, and then click `Deploy`
+4. Select `Pages`, click `Create Pages`, modify the name, upload the downloaded zip package
+
+    > [!warning] Important: SPA Mode
+    > This project is a Single-Page Application (SPA). **You must expand the advanced options during deployment and set "Not Found handling" to `Single-page application (SPA)`**.
+    > Otherwise, refreshing the page or directly accessing sub-paths like `/admin` will return a 404 error.
+
+    Then click `Deploy`
 
     ![pages1](/ui_install/pages-1.png)
 

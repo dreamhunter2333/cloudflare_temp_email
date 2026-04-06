@@ -70,7 +70,13 @@ const generate = async () => {
     >
     > 搜索 `https://temp-email-api.xxx.xxx` ，替换成你worker 的域名，然后部署新的zip文件
 
-4. 选择 `Pages`，点击 `Create Pages`, 修改名称，上传下载的 zip 包，然后点击 `Deploy`
+4. 选择 `Pages`，点击 `Create Pages`, 修改名称，上传下载的 zip 包
+
+    > [!warning] 重要：SPA 模式
+    > 本项目是单页应用（SPA），**必须在部署时展开高级选项，将「未找到处理」设置为 `Single-page application (SPA)`**。
+    > 否则刷新页面或直接访问 `/admin` 等子路径时会返回 404。
+
+    然后点击 `Deploy`
 
     ![pages1](/ui_install/pages-1.png)
 

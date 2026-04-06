@@ -35,7 +35,7 @@ res = requests.post(
     }
 )
 
-# 返回值 {"jwt": "<Jwt>"}
+# 返回值 {"jwt": "<Jwt>", "address": "<邮箱地址>", "address_id": 123}
 print(res.json())
 ```
 

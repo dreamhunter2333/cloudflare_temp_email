@@ -10,6 +10,19 @@ You need to configure `ADMIN_PASSWORDS` in the backend or ensure the current use
 
 ![admin](/feature/admin.png)
 
+## Account List Sorting
+
+The Accounts tab in the admin console supports column sorting. Click the column header to toggle ascending/descending order for:
+
+- ID
+- Name
+- Created At
+- Updated At
+- Mail Count
+- Send Count
+
+When searching for email addresses, pagination automatically resets to page 1.
+
 ## If your website is for private access only, you can disable this check
 
 `DISABLE_ADMIN_PASSWORD_CHECK = true`
