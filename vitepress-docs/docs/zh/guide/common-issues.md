@@ -1,4 +1,4 @@
-# 常见问题
+# 常见问题 (FAQ)
 
 > [!NOTE] 注意
 > 如果你的问题没有在这里找到解决方案，请到 `Github Issues` 中搜索或者提问, 或者到 Telegram 群组中提问。
@@ -10,7 +10,7 @@
 | 使用 Cloudflare Workers 给已认证的转发邮箱发送邮件 | 使用 cf 的 API 进行发送，只支持绑定到 CF 上的收件地址，即 CF EMAIL 转发目的地址 |
 | 绑定多个域名                                       | 每个域名都需要设置 email 转发到 worker                                          |
 
-## worker 相关
+## Worker 相关
 
 | 问题                                                               | 解决方案                                                                    |
 | ------------------------------------------------------------------ | --------------------------------------------------------------------------- |
@@ -19,15 +19,30 @@
 | `二级域名无法发送邮件`                                             | [参考](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/515) |
 | `Failed to send verify code: No balance`                           | admin 后台设置无限制邮件或者发件权限页面增加额度                            |
 | `Github OAuth无法获取到邮箱 400 Failed to get user email`          | 需要 github 用户设置公开邮箱                                                |
-| `Cannot read properties of undefined (reading 'map')`              | worker 变量没有设置成功                                                     |
+| `Cannot read properties of undefined (reading 'map')`              | worker 变量没有设置成功，请检查 `DOMAINS`、`ADMIN_PASSWORDS` 等 JSON 格式变量是否正确配置 |
 
-## pages 相关
+## Pages 相关
 
 | 问题            | 解决方案                                 |
 | --------------- | ---------------------------------------- |
 | `network error` | 使用无痕模式或者清空浏览器缓存，DNS 缓存 |
+| 刷新页面或直接访问 `/admin`、`/user` 返回 404 | 本项目是单页应用（SPA），通过 UI 部署 Pages 时需要在高级选项中将「未找到处理」设置为 `Single-page application (SPA)`。详见 [Pages 前端部署](/zh/guide/ui/pages) |
 
-## telegram bot
+## 发送邮件相关
+
+| 问题            | 解决方案                                 |
+| --------------- | ---------------------------------------- |
+| 设置了 `DEFAULT_SEND_BALANCE` 但仍提示 `No balance` | `DEFAULT_SEND_BALANCE` 是用户**申请发信权限时**的默认额度，用户需要先在前端界面点击「申请发信权限」才会生效。也可以在 admin 后台将地址加入「无限制发送地址列表」，或配置 `NO_LIMIT_SEND_ROLE` |
+| 提示 `请先为此域名启用 resend 或 smtp` | 需要先配置 `RESEND_TOKEN` 或 `SMTP_CONFIG`，详见 [配置发送邮件](/zh/guide/config-send-mail) |
+| `SMTP_CONFIG` 配置了但发送失败 | 请确认 JSON 中的 key 是**你自己的发信域名**（如 `your-domain.com`），而不是示例中的 `awsl.uk`。详见 [配置发送邮件](/zh/guide/config-send-mail#使用-smtp-发送邮件) |
+
+## 邮件客户端相关
+
+| 问题            | 解决方案                                 |
+| --------------- | ---------------------------------------- |
+| 设置了 `ENABLE_ADDRESS_PASSWORD` 但 Foxmail/Outlook 等客户端无法登录 | `ENABLE_ADDRESS_PASSWORD` 只是开启「地址密码登录」Web 接口，**不等于**提供标准 IMAP/SMTP 服务。要使用邮件客户端收发邮件，需要额外部署 [SMTP/IMAP 代理服务](/zh/guide/feature/config-smtp-proxy) |
+
+## Telegram Bot
 
 | 问题                                                           | 解决方案                                           |
 | -------------------------------------------------------------- | -------------------------------------------------- |
