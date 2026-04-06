@@ -35,12 +35,18 @@ wrangler secret put RESEND_TOKEN_DREAMHUNTER2333_XYZ
 
 ## Send Emails Using SMTP
 
-The format of `SMTP_CONFIG` is as follows, where key is the domain name and value is the SMTP configuration. For SMTP configuration format details, refer to [zou-yu/worker-mailer](https://github.com/zou-yu/worker-mailer/blob/main/README_zh-CN.md)
+The format of `SMTP_CONFIG` is as follows. **The key must be your own sending domain**, and the value is the SMTP configuration.
+
+For SMTP configuration format details, refer to [zou-yu/worker-mailer](https://github.com/zou-yu/worker-mailer/blob/main/README_zh-CN.md)
+
+> [!warning] Important
+> The JSON key (e.g. `your-domain.com` in the example below) must be replaced with **your own domain** — the domain configured in your `DOMAINS` variable.
+> This is one of the most common configuration mistakes. Do not copy the example domain directly.
 
 ```json
 {
-    "awsl.uk": {
-        "host": "smtp.xxx.com",
+    "your-domain.com": {
+        "host": "smtp.example.com",
         "port": 465,
         "secure": true,
         "authType": [
@@ -48,9 +54,42 @@ The format of `SMTP_CONFIG` is as follows, where key is the domain name and valu
             "login"
         ],
         "credentials": {
-            "username": "username",
-            "password": "password"
+            "username": "your-smtp-username",
+            "password": "your-smtp-password"
         }
+    }
+}
+```
+
+**Field Reference:**
+
+| Field | Description |
+|-------|-------------|
+| key (e.g. `your-domain.com`) | Your sending domain, must match a domain configured in `DOMAINS` |
+| `host` | SMTP server address, e.g. `smtp.mailgun.org`, `smtp.gmail.com`, or your self-hosted SMTP server |
+| `port` | SMTP port, typically `465` (SSL) or `587` (STARTTLS) |
+| `secure` | Whether to use SSL/TLS. Set to `true` for port 465, `false` for port 587 |
+| `authType` | Authentication method, typically `["plain", "login"]` |
+| `credentials.username` | SMTP server login username |
+| `credentials.password` | SMTP server login password |
+
+If you have **multiple domains** using different SMTP services, add multiple keys in the same JSON:
+
+```json
+{
+    "domain-a.com": {
+        "host": "smtp.mailgun.org",
+        "port": 465,
+        "secure": true,
+        "authType": ["plain", "login"],
+        "credentials": { "username": "user@domain-a.com", "password": "xxx" }
+    },
+    "domain-b.com": {
+        "host": "smtp.gmail.com",
+        "port": 465,
+        "secure": true,
+        "authType": ["plain", "login"],
+        "credentials": { "username": "user@gmail.com", "password": "app-password" }
     }
 }
 ```
@@ -67,6 +106,19 @@ If you deployed through the UI, you can add it under `Variables and Secrets` in 
 cd worker
 wrangler secret put SMTP_CONFIG
 ```
+
+## Send Balance Mechanism
+
+Users need a send balance to send emails. The balance mechanism works as follows:
+
+1. **Request Send Permission**: Users must first click the "Request Send Permission" button in the frontend
+2. **Default Quota**: Upon requesting, users receive the default quota set by the `DEFAULT_SEND_BALANCE` environment variable (defaults to 0 if not set)
+3. **Unlimited Sending**: The following methods can bypass balance checks:
+   - Add the address to the "No Limit Send Address List" in the admin console
+   - Configure the `NO_LIMIT_SEND_ROLE` environment variable to specify roles that can send without limits
+
+> [!NOTE]
+> `DEFAULT_SEND_BALANCE` does **NOT** automatically grant balance to all addresses. Users must actively request send permission first for the quota to take effect.
 
 ## Send Emails to Authenticated Forwarding Addresses on Cloudflare
 

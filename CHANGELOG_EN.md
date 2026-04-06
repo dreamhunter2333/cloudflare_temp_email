@@ -20,6 +20,9 @@
 - docs: |Admin API| Add `address_id` field to `/admin/new_address` response documentation (#912)
 - docs: |Admin| Add account list sorting feature documentation (#918)
 - docs: |Pages Deployment| Add SPA mode instructions to avoid 404 when refreshing or accessing sub-paths directly (#813)
+- docs: |Sidebar| Restructure documentation sidebar into "Core Configuration", "Notifications & Integrations", "Advanced Features", "Admin Console" groups
+- docs: |FAQ| Significantly expand FAQ with SPA 404, send balance, SMTP_CONFIG, mail client login and more (#919, #925, #839, #715, #921, #609)
+- docs: |Email Sending| Enhance SMTP_CONFIG field reference and multi-domain examples, add send balance mechanism documentation
 
 ## v1.5.0(main)
 
