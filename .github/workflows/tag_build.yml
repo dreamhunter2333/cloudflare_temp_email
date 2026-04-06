@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 22
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           version: 10
@@ -30,7 +30,7 @@ jobs:
         run: cd frontend/dist/ && zip -r frontend.zip * && mv frontend.zip ../
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend
           path: frontend/frontend.zip
@@ -46,7 +46,7 @@ jobs:
         with:
           node-version: 22
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           version: 10
@@ -59,7 +59,7 @@ jobs:
         run: cd frontend/dist/ && zip -r telegram-frontend.zip * && mv telegram-frontend.zip ../
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: telegram-frontend
           path: frontend/telegram-frontend.zip
@@ -75,7 +75,7 @@ jobs:
         with:
           node-version: 22
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           version: 10
@@ -101,13 +101,13 @@ jobs:
           zip -r worker-with-wasm-mail-parser.zip dist/worker.js dist/*.wasm
 
       - name: Upload worker.js
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: worker-js
           path: worker/worker.js
 
       - name: Upload wasm worker
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: worker-wasm
           path: worker/worker-with-wasm-mail-parser.zip
@@ -119,7 +119,7 @@ jobs:
       contents: write
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           path: artifacts
 
