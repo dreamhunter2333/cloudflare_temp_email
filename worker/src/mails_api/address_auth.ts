@@ -70,8 +70,19 @@ export default {
 
         // 验证密码
         const hashedInput = await hashPassword(password);
-        if (address.password !== hashedInput) {
+        const isHashedMatch = address.password === hashedInput;
+        const isLegacyPlaintextMatch = address.password === password;
+        if (!isHashedMatch && !isLegacyPlaintextMatch) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 401);
+        }
+
+        // 历史明文密码：登录成功后回写为哈希，完成在线迁移
+        if (isLegacyPlaintextMatch && !isHashedMatch) {
+            c.env.DB.prepare(
+                `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
+            ).bind(hashedInput, address.id).run().catch((err: Error) => {
+                console.error('Failed to migrate legacy plaintext password:', err);
+            });
         }
 
         // 创建JWT
