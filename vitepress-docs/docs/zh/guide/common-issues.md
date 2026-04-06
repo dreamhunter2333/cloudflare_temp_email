@@ -34,7 +34,7 @@
 | --------------- | ---------------------------------------- |
 | 设置了 `DEFAULT_SEND_BALANCE` 但仍提示 `No balance` | `DEFAULT_SEND_BALANCE` 是用户**申请发信权限时**的默认额度，用户需要先在前端界面点击「申请发信权限」才会生效。也可以在 admin 后台将地址加入「无限制发送地址列表」，或配置 `NO_LIMIT_SEND_ROLE` |
 | 提示 `请先为此域名启用 resend 或 smtp` | 需要先配置 `RESEND_TOKEN` 或 `SMTP_CONFIG`，详见 [配置发送邮件](/zh/guide/config-send-mail) |
-| `SMTP_CONFIG` 配置了但发送失败 | 请确认 JSON 中的 key 是**你自己的发信域名**（如 `your-domain.com`），而不是示例中的 `awsl.uk`。详见 [配置发送邮件](/zh/guide/config-send-mail#使用-smtp-发送邮件) |
+| `SMTP_CONFIG` 配置了但发送失败 | 请确认 JSON 中的 key 是**你自己的发信域名**（如 `your-domain.com`），不要直接复制示例 key。详见 [配置发送邮件](/zh/guide/config-send-mail#使用-smtp-发送邮件) |
 
 ## 邮件客户端相关
 
