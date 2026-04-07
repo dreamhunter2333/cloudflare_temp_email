@@ -22,9 +22,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@fingerprintjs/fingerprintjs": "^5.1.0",
+    "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@simplewebauthn/browser": "13.2.2",
-    "@unhead/vue": "^2.1.12",
+    "@unhead/vue": "^2.1.13",
     "@vueuse/core": "^14.2.1",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
@@ -37,7 +37,7 @@
     "vooks": "^0.2.12",
     "vue": "^3.5.32",
     "vue-clipboard3": "^2.0.0",
-    "vue-i18n": "^11.3.0",
+    "vue-i18n": "^11.3.1",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
@@ -47,7 +47,7 @@
     "jsdom": "^28.1.0",
     "unplugin-auto-import": "^20.3.0",
     "unplugin-vue-components": "^30.0.0",
-    "vite": "^7.3.1",
+    "vite": "^7.3.2",
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-wasm": "^3.6.0",
     "vitest": "^3.2.4",
