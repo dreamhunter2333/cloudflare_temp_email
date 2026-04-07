@@ -19,13 +19,14 @@
 | `Subdomain cannot send emails`                                     | [Reference](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/515) |
 | `Failed to send verify code: No balance`                           | Set unlimited emails in admin console or increase quota on the sending permission page |
 | `Github OAuth unable to get email 400 Failed to get user email`    | GitHub user needs to set email to public                                    |
-| `Cannot read properties of undefined (reading 'map')`              | Worker variables not set successfully. Check that JSON-format variables like `DOMAINS` and `ADMIN_PASSWORDS` are configured correctly |
+| `Cannot read properties of undefined (reading 'map')` during page initialization | First check whether `/open_api/settings` is returning valid data. In a direct Worker deployment, this usually means Worker variables were not configured correctly, so verify JSON-format variables such as `DOMAINS` and `ADMIN_PASSWORDS`. If this happens in a Pages deployment because requests are going to the wrong backend address, continue with the Pages troubleshooting section below |
 
 ## Pages Related
 
 | Issue           | Solution                                                  |
 | --------------- | --------------------------------------------------------- |
 | `network error` | Use incognito mode or clear browser cache and DNS cache   |
+| Pages deployment shows the `map` error, or API requests such as `/admin/users` / `/admin/new_address` return `405 Method Not Allowed` | This is usually caused by an incorrect frontend backend address. Check `VITE_API_BASE`, the URL entered when generating the zip in the UI guide, or `FRONTEND_ENV`: for separate frontend/backend deployment talking directly to Worker, it should be the backend Worker API root URL, start with `https://`, and have no trailing `/`; if you use `PAGE_TOML` to proxy backend requests through Page Functions, `VITE_API_BASE` can be left empty to use same-origin requests. See [Pages Frontend Deployment](/en/guide/ui/pages) |
 | Refreshing page or directly visiting `/admin`, `/user` returns 404 | This project is a Single-Page Application (SPA). When deploying Pages via UI, set "Not Found handling" to `Single-page application (SPA)` in the advanced options. See [Pages Frontend Deployment](/en/guide/ui/pages) |
 
 ## Email Sending Related
