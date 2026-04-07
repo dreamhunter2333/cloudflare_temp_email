@@ -42,7 +42,7 @@ wrangler d1 execute temp-email-db --file=db/schema.sql --remote
 wrangler kv:namespace create DEV
 ```
 
-Use a project-specific D1 database name such as `temp-email-db` instead of a generic name like `dev`.
+Use a D1 database name such as `temp-email-db` or `cloudflare-temp-email-prod`.
 
 ![d1](/readme_assets/d1.png)
 
