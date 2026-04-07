@@ -76,14 +76,19 @@ api.get('/admin/address', async (c) => {
     const sortDirection = sort_order === 'ascend' ? 'asc' : 'desc';
     const orderBy = `${sortColumn} ${sortDirection}`;
     if (query) {
+        // D1 caps LIKE pattern length at 50 bytes; fall back to instr() for
+        // longer queries to avoid "LIKE or GLOB pattern too complex" (#956).
+        const useInstr = new TextEncoder().encode(query).length + 2 > 50;
+        const whereClause = useInstr ? `instr(name, ?) > 0` : `name like ?`;
+        const param = useInstr ? query : `%${query}%`;
         return await handleListQuery(c,
             `SELECT a.*,`
             + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
             + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
             + ` FROM address a`
-            + ` where name like ?`,
-            `SELECT count(*) as count FROM address where name like ?`,
-            [`%${query}%`], limit, offset, orderBy
+            + ` where ${whereClause}`,
+            `SELECT count(*) as count FROM address where ${whereClause}`,
+            [param], limit, offset, orderBy
         );
     }
     return await handleListQuery(c,
