@@ -19,13 +19,14 @@
 | `二级域名无法发送邮件`                                             | [参考](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/515) |
 | `Failed to send verify code: No balance`                           | admin 后台设置无限制邮件或者发件权限页面增加额度                            |
 | `Github OAuth无法获取到邮箱 400 Failed to get user email`          | 需要 github 用户设置公开邮箱                                                |
-| `Cannot read properties of undefined (reading 'map')`              | worker 变量没有设置成功，请检查 `DOMAINS`、`ADMIN_PASSWORDS` 等 JSON 格式变量是否正确配置 |
+| 页面初始化时报 `Cannot read properties of undefined (reading 'map')` | 先看 `/open_api/settings` 返回是否正常。如果是 Worker 直连部署，通常是 worker 变量没有设置成功，请检查 `DOMAINS`、`ADMIN_PASSWORDS` 等 JSON 格式变量是否正确配置；如果是 Pages 前端部署并且请求打到了错误地址，则继续看下方 Pages 相关排障 |
 
 ## Pages 相关
 
 | 问题            | 解决方案                                 |
 | --------------- | ---------------------------------------- |
 | `network error` | 使用无痕模式或者清空浏览器缓存，DNS 缓存 |
+| Pages 部署后页面报 `map` 错误，或 `/admin/users`、`/admin/new_address` 等接口返回 `405 Method Not Allowed` | 通常是前端后端地址配置错误。请检查 `VITE_API_BASE`、UI 页面生成 zip 时填写的地址或 `FRONTEND_ENV`：前后端分离直连 Worker 时，应填写后端 Worker API 根地址，并且以 `https://` 开头、末尾不要带 `/`；如果使用 `PAGE_TOML` 通过 Page Functions 反代后端，则可保持 `VITE_API_BASE` 为空走同域请求。详见 [Pages 前端部署](/zh/guide/ui/pages) |
 | 刷新页面或直接访问 `/admin`、`/user` 返回 404 | 本项目是单页应用（SPA），通过 UI 部署 Pages 时需要在高级选项中将「未找到处理」设置为 `Single-page application (SPA)`。详见 [Pages 前端部署](/zh/guide/ui/pages) |
 
 ## 发送邮件相关

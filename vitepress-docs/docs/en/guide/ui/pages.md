@@ -7,14 +7,67 @@ import JSZip from 'jszip';
 const domain = ref("")
 const downloadUrl = ref("")
 const tip = ref("Download")
+const errorMessage = ref("")
+
+const resetDownloadUrl = () => {
+    if (!downloadUrl.value) {
+        return
+    }
+    window.URL.revokeObjectURL(downloadUrl.value)
+    downloadUrl.value = ""
+}
+
+const validateDomain = (value) => {
+    const normalizedValue = value.trim()
+    if (!normalizedValue) {
+        return "Please enter a backend API URL starting with https://"
+    }
+    if (/\s/.test(normalizedValue)) {
+        return "The backend API URL must not contain whitespace characters"
+    }
+    if (!normalizedValue.startsWith("https://")) {
+        return "The backend API URL must start with https://"
+    }
+    if (normalizedValue.endsWith("/")) {
+        return "Do not add a trailing / to the backend API URL"
+    }
+    try {
+        const url = new URL(normalizedValue)
+        if (url.protocol !== "https:") {
+            return "The backend API URL must start with https://"
+        }
+        if (url.pathname !== "/" || url.search || url.hash) {
+            return "Please enter the backend API root URL only, without a path, query, or hash"
+        }
+    } catch {
+        return "The backend API URL format is invalid"
+    }
+    return ""
+}
 
 const generate = async () => {
+    const normalizedDomain = domain.value.trim()
+    const validationError = validateDomain(normalizedDomain)
+    errorMessage.value = validationError
+    resetDownloadUrl()
+    if (validationError) {
+        return
+    }
+    domain.value = normalizedDomain
+    let timeoutId = 0
     try {
-        const response = await fetch("/ui_install/frontend.zip");
+        const controller = new AbortController()
+        timeoutId = window.setTimeout(() => controller.abort(), 10000)
+        const response = await fetch("/ui_install/frontend.zip", {
+            signal: controller.signal
+        });
+        if (!response.ok) {
+            errorMessage.value = "Failed to download the frontend zip file. Please try again later"
+            return
+        }
         const arrayBuffer = await response.arrayBuffer();
         var zip = new JSZip();
         await zip.loadAsync(arrayBuffer);
-        let target_content = ""
         let target_path = ""
         const directory = zip.folder("assets");
         if (directory) {
@@ -22,7 +75,7 @@ const generate = async () => {
                 console.log(relativePath);
                 if (relativePath.startsWith("assets/index-") && relativePath.endsWith(".js")){
                     let content = await zipEntry.async("string");
-                    content = content.replace("https://temp-email-api.xxx.xxx", domain.value);
+                    content = content.replaceAll("https://temp-email-api.xxx.xxx", normalizedDomain);
                     target_path = relativePath;
                     zip.file(relativePath, content);
                     break;
@@ -30,14 +83,22 @@ const generate = async () => {
             }
         }
         if (!target_path) {
-            tip.value = "Generation failed";
-            downloadUrl.value = '';
+            errorMessage.value = "Could not find the frontend entry file. Generation failed"
+            return
         }
         const blob = await zip.generateAsync({ type: "blob" });
         const url = window.URL.createObjectURL(blob);
+        errorMessage.value = ""
         downloadUrl.value = url;
     } catch (error) {
         console.error("Error: ", error);
+        if (error instanceof DOMException && error.name === "AbortError") {
+            errorMessage.value = "Download timed out. Please refresh the page and try again"
+            return
+        }
+        errorMessage.value = "Generation failed. Please refresh the page and try again"
+    } finally {
+        window.clearTimeout(timeoutId)
     }
 }
 </script>
@@ -50,25 +111,28 @@ const generate = async () => {
 
     ![pages](/ui_install/pages.png)
 
-3. Enter the address of the deployed worker. The address should not include a trailing `/`. Click generate, and if successful, a download button will appear. You will get a zip package.
+3. Enter the deployed worker address. It must be the backend API root URL, start with `https://`, and must not include a trailing `/`. Click generate, and if successful, a download button will appear. You will get a zip package.
     - The worker domain here is the backend API domain. For example, if I deployed at `https://temp-email-api.awsl.uk`, then fill in `https://temp-email-api.awsl.uk`
     - If your domain is `https://temp-email-api.xxx.workers.dev`, then fill in `https://temp-email-api.xxx.workers.dev`
+    - Do not enter your frontend `Pages` domain, and do not include paths like `/admin` or `/api`. Otherwise frontend requests will hit the wrong address and you may see `Cannot read properties of undefined (reading 'map')` or `405 Method Not Allowed`
 
     > [!warning] Note
     > The `worker.dev` domain is not accessible in China, please use a custom domain.
 
     <div :class="$style.container">
-        <input :class="$style.input" type="text" v-model="domain" placeholder="Please enter address"></input>
+        <input :class="$style.input" type="text" v-model="domain" placeholder="Enter a backend API URL starting with https://"></input>
         <button :class="$style.button" @click="generate">Generate</button>
         <a v-if="downloadUrl" :href="downloadUrl" download="frontend.zip">{{ tip }}</a>
     </div>
+    <p :class="$style.hint">Example: `https://temp-email-api.example.com`. Do not enter the frontend Pages domain and do not add a trailing `/`.</p>
+    <p v-if="errorMessage" :class="$style.error">{{ errorMessage }}</p>
 
     > [!NOTE]
     > You can also deploy manually. Download the zip from here: [frontend.zip](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/frontend.zip)
     >
     > Modify the index-xxx.js file in the archive, where xx is a random string
     >
-    > Search for `https://temp-email-api.xxx.xxx` and replace it with your worker's domain, then deploy the new zip file
+    > Search for `https://temp-email-api.xxx.xxx` and replace it with your worker's backend API root URL, then deploy the new zip file. If you replace it with the frontend Pages domain, common symptoms are the `map` error or `405` responses from API requests
 
 4. Select `Pages`, click `Create Pages`, modify the name, upload the downloaded zip package
 
@@ -107,5 +171,15 @@ const generate = async () => {
 
 .button:hover {
     background-color: green;
+}
+
+.hint {
+    margin-top: 8px;
+    color: var(--vp-c-text-2);
+}
+
+.error {
+    margin-top: 8px;
+    color: #d03050;
 }
 </style>
