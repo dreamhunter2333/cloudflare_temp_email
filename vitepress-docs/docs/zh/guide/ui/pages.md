@@ -22,6 +22,9 @@ const validateDomain = (value) => {
     if (!normalizedValue) {
         return "请输入以 https:// 开头的后端 API 地址"
     }
+    if (/\s/.test(normalizedValue)) {
+        return "后端 API 地址不能包含空白字符"
+    }
     if (!normalizedValue.startsWith("https://")) {
         return "后端 API 地址必须以 https:// 开头"
     }
@@ -51,8 +54,17 @@ const generate = async () => {
         return
     }
     domain.value = normalizedDomain
+    let timeoutId = 0
     try {
-        const response = await fetch("/ui_install/frontend.zip");
+        const controller = new AbortController()
+        timeoutId = window.setTimeout(() => controller.abort(), 10000)
+        const response = await fetch("/ui_install/frontend.zip", {
+            signal: controller.signal
+        });
+        if (!response.ok) {
+            errorMessage.value = "下载前端压缩包失败，请稍后重试"
+            return
+        }
         const arrayBuffer = await response.arrayBuffer();
         var zip = new JSZip();
         await zip.loadAsync(arrayBuffer);
@@ -80,7 +92,13 @@ const generate = async () => {
         downloadUrl.value = url;
     } catch (error) {
         console.error("Error: ", error);
+        if (error instanceof DOMException && error.name === "AbortError") {
+            errorMessage.value = "下载超时，请刷新页面后重试"
+            return
+        }
         errorMessage.value = "生成失败，请刷新页面后重试"
+    } finally {
+        window.clearTimeout(timeoutId)
     }
 }
 </script>

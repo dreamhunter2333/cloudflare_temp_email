@@ -22,6 +22,9 @@ const validateDomain = (value) => {
     if (!normalizedValue) {
         return "Please enter a backend API URL starting with https://"
     }
+    if (/\s/.test(normalizedValue)) {
+        return "The backend API URL must not contain whitespace characters"
+    }
     if (!normalizedValue.startsWith("https://")) {
         return "The backend API URL must start with https://"
     }
@@ -51,8 +54,17 @@ const generate = async () => {
         return
     }
     domain.value = normalizedDomain
+    let timeoutId = 0
     try {
-        const response = await fetch("/ui_install/frontend.zip");
+        const controller = new AbortController()
+        timeoutId = window.setTimeout(() => controller.abort(), 10000)
+        const response = await fetch("/ui_install/frontend.zip", {
+            signal: controller.signal
+        });
+        if (!response.ok) {
+            errorMessage.value = "Failed to download the frontend zip file. Please try again later"
+            return
+        }
         const arrayBuffer = await response.arrayBuffer();
         var zip = new JSZip();
         await zip.loadAsync(arrayBuffer);
@@ -80,7 +92,13 @@ const generate = async () => {
         downloadUrl.value = url;
     } catch (error) {
         console.error("Error: ", error);
+        if (error instanceof DOMException && error.name === "AbortError") {
+            errorMessage.value = "Download timed out. Please refresh the page and try again"
+            return
+        }
         errorMessage.value = "Generation failed. Please refresh the page and try again"
+    } finally {
+        window.clearTimeout(timeoutId)
     }
 }
 </script>
