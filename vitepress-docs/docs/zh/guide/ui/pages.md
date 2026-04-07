@@ -63,7 +63,7 @@ const generate = async () => {
                 console.log(relativePath);
                 if (relativePath.startsWith("assets/index-") && relativePath.endsWith(".js")){
                     let content = await zipEntry.async("string");
-                    content = content.replace("https://temp-email-api.xxx.xxx", normalizedDomain);
+                    content = content.replaceAll("https://temp-email-api.xxx.xxx", normalizedDomain);
                     target_path = relativePath;
                     zip.file(relativePath, content);
                     break;
