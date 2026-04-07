@@ -39,15 +39,21 @@ export default {
     getUsers: async (c: Context<HonoCustomType>) => {
         const { limit, offset, query } = c.req.query();
         if (query) {
+            // D1 caps LIKE pattern length at 50 bytes; fall back to instr()
+            // for longer queries to avoid "LIKE or GLOB pattern too complex" (#956).
+            const useInstr = new TextEncoder().encode(query).length + 2 > 50;
+            const param = useInstr ? query : `%${query}%`;
+            const userEmailWhere = useInstr ? `instr(u.user_email, ?) > 0` : `u.user_email like ?`;
+            const userEmailWhereCount = useInstr ? `instr(user_email, ?) > 0` : `user_email like ?`;
             return await handleListQuery(c,
                 `SELECT u.id as id, u.user_email, u.created_at, u.updated_at,`
                 + ` ur.role_text as role_text,`
                 + ` (SELECT COUNT(*) FROM users_address WHERE user_id = u.id) AS address_count`
                 + ` FROM users u`
                 + ` LEFT JOIN user_roles ur ON u.id = ur.user_id`
-                + ` where u.user_email like ?`,
-                `SELECT count(*) as count FROM users where user_email like ?`,
-                [`%${query}%`], limit, offset
+                + ` where ${userEmailWhere}`,
+                `SELECT count(*) as count FROM users where ${userEmailWhereCount}`,
+                [param], limit, offset
             );
         }
         return await handleListQuery(c,
