@@ -113,7 +113,7 @@ export class UserSettings {
         this.verifyMailSender = verifyMailSender;
         this.enableMailAllowList = enableMailAllowList;
         this.mailAllowList = mailAllowList;
-        this.maxAddressCount = maxAddressCount || 5;
+        this.maxAddressCount = typeof maxAddressCount === "number" ? maxAddressCount : 5;
         this.enableEmailCheckRegex = enableEmailCheckRegex;
         this.emailCheckRegex = emailCheckRegex;
     }
