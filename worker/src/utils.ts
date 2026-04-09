@@ -366,7 +366,7 @@ export const getMaxAddressCount = async (
     if (!roleConfigs) return settings.maxAddressCount;
     const roleMaxCount = roleConfigs[userRole]?.maxAddressCount;
     if (typeof roleMaxCount !== 'number') return settings.maxAddressCount;
-    if (roleMaxCount <= 0) return settings.maxAddressCount;
+    if (roleMaxCount < 0) return settings.maxAddressCount;
     return roleMaxCount;
 };
 

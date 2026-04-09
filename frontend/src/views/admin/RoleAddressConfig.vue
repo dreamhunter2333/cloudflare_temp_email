@@ -13,20 +13,20 @@ const { t } = useI18n({
     messages: {
         en: {
             role: 'Role',
-            maxAddressCount: 'Max Address Count',
+            maxAddressCount: 'Max Address Count (0 = Unlimited)',
             save: 'Save',
             successTip: 'Success',
             noRolesAvailable: 'No roles available in system config',
-            roleConfigDesc: 'Configure maximum address count for each user role. Role-based limits take priority over global settings.',
+            roleConfigDesc: 'Configure maximum address count for each user role. Role-based limits take priority over global settings. Set 0 for unlimited.',
             notConfigured: 'Not Configured (Use Global Settings)',
         },
         zh: {
             role: '角色',
-            maxAddressCount: '最大地址数量',
+            maxAddressCount: '最大地址数量（0 为不限制）',
             save: '保存',
             successTip: '成功',
             noRolesAvailable: '系统配置中没有可用的角色',
-            roleConfigDesc: '为每个用户角色配置最大地址数量。角色配置优先于全局设置。',
+            roleConfigDesc: '为每个用户角色配置最大地址数量。角色配置优先于全局设置。设置为 0 表示不限制。',
             notConfigured: '未配置（使用全局设置）',
         }
     }
