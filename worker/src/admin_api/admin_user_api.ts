@@ -183,7 +183,10 @@ export default {
     saveRoleAddressConfig: async (c: Context<HonoCustomType>) => {
         const msgs = i18n.getMessagesbyContext(c);
         const { configs } = await c.req.json<{ configs: RoleAddressConfig }>();
-        for (const config of Object.values(configs || {})) {
+        if (typeof configs !== "object" || configs === null || Array.isArray(configs)) {
+            return c.text(msgs.InvalidMaxAddressCountMsg, 400);
+        }
+        for (const config of Object.values(configs)) {
             if (typeof config?.maxAddressCount === "number" && config.maxAddressCount < 0) {
                 return c.text(msgs.InvalidMaxAddressCountMsg, 400);
             }
