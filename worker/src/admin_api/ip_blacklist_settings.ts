@@ -104,6 +104,9 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
 
     const sanitizedWhitelist: string[] = [];
     for (const pattern of settings.whitelist) {
+        if (typeof pattern !== 'string') {
+            return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: whitelist element must be a string`, 400);
+        }
         const p = pattern.trim();
         if (!p) continue;
         // Validate regex patterns before saving to prevent runtime lockout
