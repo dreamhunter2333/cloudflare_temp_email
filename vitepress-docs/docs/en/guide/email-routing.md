@@ -7,3 +7,6 @@
 3. Configure the `Catch-all address` in the routing rules of each domain's `Email Routing` to send to `worker`.
 
 ![email](/readme_assets/email.png)
+
+> [!WARNING] Subdomains must be configured separately
+> If you want to receive mail on a **subdomain** (e.g. `mail.example.com`), you must enable `Email Routing` on **that subdomain** in the CF dashboard and configure its email DNS records and Catch-all rule separately. Enabling Email Routing only on the apex domain **does not cover subdomains**.
