@@ -108,6 +108,11 @@ function isWhitelisted(value: string | null | undefined, whitelist: string[] | u
             return normalizedValue === normalizedPattern;
         }
 
+        // IPv4-mapped IPv6: ::ffff:1.2.3.4 → exact match
+        if (/^::ffff:\d+\.\d+\.\d+\.\d+$/i.test(normalizedPattern)) {
+            return normalizedValue === normalizedPattern;
+        }
+
         // IPv6 detection: hex digits and colons → exact match
         if (/^[0-9a-fA-F:]+$/.test(normalizedPattern) && normalizedPattern.includes(':')) {
             return normalizedValue === normalizedPattern;
@@ -120,7 +125,7 @@ function isWhitelisted(value: string | null | undefined, whitelist: string[] | u
                 return regex.test(normalizedValue);
             } catch (error) {
                 // Invalid regex in a whitelist = never match (fail closed)
-                console.warn(`Whitelist regex "${normalizedPattern}" failed to parse, treating as no-match`);
+                console.warn(`Whitelist regex "${normalizedPattern}" failed to parse: ${(error as Error).message}, treating as no-match`);
                 return false;
             }
         }

@@ -85,7 +85,7 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
     }
 
     if (settings.whitelist.length > MAX_BLACKLIST_SIZE) {
-        return c.text(`${msgs.BlacklistExceedsMaxSizeMsg}: whitelist (${MAX_BLACKLIST_SIZE})`, 400);
+        return c.text(`${msgs.BlacklistExceedsMaxSizeMsg}: whitelist (${settings.whitelist.length}/${MAX_BLACKLIST_SIZE})`, 400);
     }
 
     // Sanitize patterns (trim and remove empty strings)
