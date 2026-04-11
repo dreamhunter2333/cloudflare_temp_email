@@ -9,6 +9,7 @@
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
 | Sending emails to authenticated forwarding addresses using Cloudflare Workers | Use CF's API for sending, only supports recipient addresses bound to CF, i.e., CF EMAIL forwarding destination addresses |
 | Binding multiple domains                               | Each domain needs to configure email forwarding to worker                                         |
+| Subdomain cannot receive email                         | Subdomains must have Email Routing **enabled separately** on Cloudflare with their own DNS records and Catch-all rule. Enabling it only on the apex domain does NOT cover subdomains. See [Email Routing](/en/guide/email-routing) |
 
 ## Worker Related
 

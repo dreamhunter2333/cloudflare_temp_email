@@ -7,3 +7,6 @@
 3. 配置每个域名的 `Email Routing` 的路由规则中的  `Catch-all 地址` 发送到 `worker`
 
 ![email](/readme_assets/email.png)
+
+> [!WARNING] 子域需要单独配置
+> 如果你要用**子域名**（如 `mail.example.com`）收信，必须在 CF 控制台里对 **该子域** 单独启用 `Email Routing`，并配置邮件 DNS 记录与 Catch-all 规则。仅在一级域名上开启 Email Routing **不会自动覆盖子域名**。
