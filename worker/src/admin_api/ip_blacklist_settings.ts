@@ -32,9 +32,13 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
     const msgs = i18n.getMessagesbyContext(c);
     const settings = await c.req.json<IpBlacklistSettings>();
 
-    // Backward compatibility: default new fields if absent (older frontends)
-    settings.enableWhitelist = settings.enableWhitelist ?? false;
-    settings.whitelist = settings.whitelist ?? [];
+    // Backward compatibility: if new whitelist fields are absent (older frontends),
+    // preserve existing values from DB to avoid silently clearing active whitelist rules.
+    if (settings.enableWhitelist === undefined || settings.whitelist === undefined) {
+        const existing = await getJsonSetting<IpBlacklistSettings>(c, CONSTANTS.IP_BLACKLIST_SETTINGS_KEY);
+        settings.enableWhitelist = settings.enableWhitelist ?? existing?.enableWhitelist ?? false;
+        settings.whitelist = settings.whitelist ?? existing?.whitelist ?? [];
+    }
 
     // Validate settings
     if (typeof settings.enabled !== 'boolean') {
@@ -102,9 +106,18 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
         .map(pattern => pattern.trim())
         .filter(pattern => pattern.length > 0);
 
-    const sanitizedWhitelist = settings.whitelist
-        .map(pattern => pattern.trim())
-        .filter(pattern => pattern.length > 0);
+    const sanitizedWhitelist: string[] = [];
+    for (const pattern of settings.whitelist) {
+        const p = pattern.trim();
+        if (!p) continue;
+        // Validate regex patterns before saving to prevent runtime lockout
+        if (/[\^$.*+?\[\]{}()|\\]/.test(p)) {
+            try { new RegExp(p); } catch {
+                return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: whitelist invalid regex: ${p}`, 400);
+            }
+        }
+        sanitizedWhitelist.push(p);
+    }
 
     const sanitizedSettings: IpBlacklistSettings = {
         enabled: settings.enabled,
