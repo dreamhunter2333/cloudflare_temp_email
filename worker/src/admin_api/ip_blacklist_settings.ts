@@ -32,13 +32,9 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
     const msgs = i18n.getMessagesbyContext(c);
     const settings = await c.req.json<IpBlacklistSettings>();
 
-    // Backward compatibility: if new whitelist fields are absent (older frontends),
-    // preserve existing values from DB to avoid silently clearing active whitelist rules.
-    if (settings.enableWhitelist === undefined || settings.whitelist === undefined) {
-        const existing = await getJsonSetting<IpBlacklistSettings>(c, CONSTANTS.IP_BLACKLIST_SETTINGS_KEY);
-        settings.enableWhitelist = settings.enableWhitelist ?? existing?.enableWhitelist ?? false;
-        settings.whitelist = settings.whitelist ?? existing?.whitelist ?? [];
-    }
+    // Backward compatibility: default new fields if absent (older frontends)
+    settings.enableWhitelist = settings.enableWhitelist ?? false;
+    settings.whitelist = settings.whitelist ?? [];
 
     // Validate settings
     if (typeof settings.enabled !== 'boolean') {
