@@ -18,8 +18,6 @@ async function getIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Respo
         blacklist: [],
         asnBlacklist: [],
         fingerprintBlacklist: [],
-        enableWhitelist: false,
-        whitelist: [],
         enableDailyLimit: false,
         dailyRequestLimit: 1000
     });
@@ -31,10 +29,6 @@ async function getIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Respo
 async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Response> {
     const msgs = i18n.getMessagesbyContext(c);
     const settings = await c.req.json<IpBlacklistSettings>();
-
-    // Backward compatibility: default new fields if absent (older frontends)
-    settings.enableWhitelist = settings.enableWhitelist ?? false;
-    settings.whitelist = settings.whitelist ?? [];
 
     // Validate settings
     if (typeof settings.enabled !== 'boolean') {
@@ -51,14 +45,6 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
 
     if (!Array.isArray(settings.fingerprintBlacklist)) {
         return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: fingerprintBlacklist`, 400);
-    }
-
-    if (typeof settings.enableWhitelist !== 'boolean') {
-        return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: enableWhitelist`, 400);
-    }
-
-    if (!Array.isArray(settings.whitelist)) {
-        return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: whitelist`, 400);
     }
 
     if (typeof settings.enableDailyLimit !== 'boolean') {
@@ -84,10 +70,6 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
         return c.text(`${msgs.BlacklistExceedsMaxSizeMsg}: fingerprintBlacklist (${MAX_BLACKLIST_SIZE})`, 400);
     }
 
-    if (settings.whitelist.length > MAX_BLACKLIST_SIZE) {
-        return c.text(`${msgs.BlacklistExceedsMaxSizeMsg}: whitelist (${MAX_BLACKLIST_SIZE})`, 400);
-    }
-
     // Sanitize patterns (trim and remove empty strings)
     // Both regex and plain strings are allowed
     const sanitizedBlacklist = settings.blacklist
@@ -102,17 +84,11 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
         .map(pattern => pattern.trim())
         .filter(pattern => pattern.length > 0);
 
-    const sanitizedWhitelist = settings.whitelist
-        .map(pattern => pattern.trim())
-        .filter(pattern => pattern.length > 0);
-
     const sanitizedSettings: IpBlacklistSettings = {
         enabled: settings.enabled,
         blacklist: sanitizedBlacklist,
         asnBlacklist: sanitizedAsnBlacklist,
         fingerprintBlacklist: sanitizedFingerprintBlacklist,
-        enableWhitelist: settings.enableWhitelist,
-        whitelist: sanitizedWhitelist,
         enableDailyLimit: settings.enableDailyLimit,
         dailyRequestLimit: settings.dailyRequestLimit
     };
