@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Admin| Add **IP Whitelist (strict mode)** to IP blacklist settings: when enabled, ONLY whitelisted IPs can access rate-limited APIs (create address, send mail, external send mail, user register, verify code); all other IPs are denied (#920)
+
 ### Bug Fixes
 
 - fix: |Admin| Fix `D1_ERROR: LIKE or GLOB pattern too complex` on `/admin/address` and `/admin/users` when searching by full email address (query length pushes the LIKE pattern over D1's 50-byte limit). Long queries now fall back to `instr()` to bypass the LIKE pattern length cap (#956)

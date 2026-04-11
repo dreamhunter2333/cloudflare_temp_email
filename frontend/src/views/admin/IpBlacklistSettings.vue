@@ -17,6 +17,12 @@ const { t } = useI18n({
             successTip: 'Save Success',
             enable_ip_blacklist: 'Enable IP Blacklist',
             enable_tip: 'Block IPs matching blacklist patterns from accessing rate-limited APIs',
+            enable_ip_whitelist: 'Enable IP Whitelist (Strict)',
+            enable_whitelist_tip: 'Strict mode: ONLY IPs matching the whitelist can access rate-limited APIs. All other IPs will be denied.',
+            ip_whitelist: 'IP Whitelist Patterns',
+            ip_whitelist_placeholder: 'Exact IP (e.g., 1.2.3.4) or anchored regex (e.g., ^192\\.168\\.1\\.\\d+$)',
+            tip_whitelist: 'IP Whitelist: Strict allowlist — plain entries must be EXACT IP matches (no substring). Use anchored regex (^...$) for ranges. Whitelisted IPs skip blacklist checks.',
+            whitelist_empty_warning: 'IP whitelist is enabled but the list is empty. This is ignored by the server to prevent lockout. Please add at least one entry before enabling.',
             ip_blacklist: 'IP Blacklist Patterns',
             ip_blacklist_placeholder: 'Enter pattern (e.g., 192.168.1 or ^10\\.0\\.0\\.5$)',
             asn_blacklist: 'ASN Organization Blacklist',
@@ -40,6 +46,12 @@ const { t } = useI18n({
             successTip: '保存成功',
             enable_ip_blacklist: '启用 IP 黑名单',
             enable_tip: '阻止匹配黑名单的 IP 访问限流 API',
+            enable_ip_whitelist: '启用 IP 白名单（严格模式）',
+            enable_whitelist_tip: '严格模式：仅允许匹配白名单的 IP 访问限流 API，其他所有 IP 将被拒绝',
+            ip_whitelist: 'IP 白名单匹配模式',
+            ip_whitelist_placeholder: '精确 IP(如 1.2.3.4)或锚定正则(如 ^192\\.168\\.1\\.\\d+$)',
+            tip_whitelist: 'IP 白名单: 严格放行名单——纯文本必须是精确 IP(不支持子串匹配), 批量放行请用锚定正则 ^...$. 命中白名单的 IP 将跳过黑名单检查.',
+            whitelist_empty_warning: 'IP 白名单已启用但列表为空，服务端将忽略该开关以防止锁死。请先添加至少一条白名单条目再启用。',
             ip_blacklist: 'IP 黑名单匹配模式',
             ip_blacklist_placeholder: '输入匹配模式（例如：192.168.1 或 ^10\\.0\\.0\\.5$）',
             asn_blacklist: 'ASN 组织（运营商）黑名单',
@@ -63,6 +75,8 @@ const enabled = ref(false)
 const ipBlacklist = ref([])
 const asnBlacklist = ref([])
 const fingerprintBlacklist = ref([])
+const enableWhitelist = ref(false)
+const ipWhitelist = ref([])
 const enableDailyLimit = ref(false)
 const dailyRequestLimit = ref(1000)
 
@@ -74,6 +88,8 @@ const fetchData = async () => {
         ipBlacklist.value = res.blacklist || []
         asnBlacklist.value = res.asnBlacklist || []
         fingerprintBlacklist.value = res.fingerprintBlacklist || []
+        enableWhitelist.value = res.enableWhitelist || false
+        ipWhitelist.value = res.whitelist || []
         enableDailyLimit.value = res.enableDailyLimit || false
         dailyRequestLimit.value = res.dailyRequestLimit || 1000
     } catch (error) {
@@ -84,6 +100,10 @@ const fetchData = async () => {
 }
 
 const save = async () => {
+    if (enableWhitelist.value && (!ipWhitelist.value || ipWhitelist.value.length === 0)) {
+        message.warning(t('whitelist_empty_warning'))
+        return
+    }
     try {
         loading.value = true
         await api.fetch(`/admin/ip_blacklist/settings`, {
@@ -93,6 +113,8 @@ const save = async () => {
                 blacklist: ipBlacklist.value || [],
                 asnBlacklist: asnBlacklist.value || [],
                 fingerprintBlacklist: fingerprintBlacklist.value || [],
+                enableWhitelist: enableWhitelist.value,
+                whitelist: ipWhitelist.value || [],
                 enableDailyLimit: enableDailyLimit.value,
                 dailyRequestLimit: dailyRequestLimit.value
             })
@@ -123,12 +145,38 @@ onMounted(async () => {
                 <n-alert :show-icon="false" :bordered="false" type="info">
                     <div style="line-height: 1.8;">
                         <div><strong>{{ t("tip_scope") }}</strong></div>
+                        <div>• {{ t("tip_whitelist") }}</div>
                         <div>• {{ t("tip_ip") }}</div>
                         <div>• {{ t("tip_asn") }}</div>
                         <div>• {{ t("tip_fingerprint") }}</div>
                         <div>• {{ t("tip_daily_limit") }}</div>
                     </div>
                 </n-alert>
+
+                <n-form-item-row :label="t('enable_ip_whitelist')">
+                    <n-switch v-model:value="enableWhitelist" :round="false" />
+                    <n-text depth="3" style="margin-left: 10px; font-size: 12px;">
+                        {{ t('enable_whitelist_tip') }}
+                    </n-text>
+                </n-form-item-row>
+
+                <n-form-item-row :label="t('ip_whitelist')">
+                    <n-select
+                        v-model:value="ipWhitelist"
+                        filterable
+                        multiple
+                        tag
+                        :placeholder="t('ip_whitelist_placeholder')"
+                        :disabled="!enableWhitelist">
+                        <template #empty>
+                            <n-text depth="3">
+                                {{ t('manualInputPrompt') }}
+                            </n-text>
+                        </template>
+                    </n-select>
+                </n-form-item-row>
+
+                <n-divider />
 
                 <n-form-item-row :label="t('enable_ip_blacklist')">
                     <n-switch v-model:value="enabled" :round="false" />
