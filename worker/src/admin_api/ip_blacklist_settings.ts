@@ -110,6 +110,7 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
         const p = pattern.trim();
         if (!p) continue;
         // Validate regex patterns before saving to prevent runtime lockout
+        // eslint-disable-next-line no-useless-escape
         if (/[\^$.*+?\[\]{}()|\\]/.test(p)) {
             try { new RegExp(p); } catch {
                 return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: whitelist invalid regex: ${p}`, 400);
