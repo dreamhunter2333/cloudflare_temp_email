@@ -28,7 +28,7 @@
     "@vueuse/core": "^14.2.1",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
-    "axios": "^1.14.0",
+    "axios": "^1.15.0",
     "dompurify": "^3.3.3",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.2",
