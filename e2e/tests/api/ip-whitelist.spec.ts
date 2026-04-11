@@ -3,7 +3,25 @@ import { WORKER_URL, createTestAddress } from '../../fixtures/test-helpers';
 
 const ADMIN_PASSWORD = 'e2e-admin-pass';
 
+const RESET_SETTINGS = {
+  enabled: false,
+  blacklist: [],
+  asnBlacklist: [],
+  fingerprintBlacklist: [],
+  enableWhitelist: false,
+  whitelist: [],
+  enableDailyLimit: false,
+  dailyRequestLimit: 1000,
+};
+
 test.describe('IP Whitelist Settings', () => {
+  test.afterEach(async ({ request }) => {
+    await request.post(`${WORKER_URL}/admin/ip_blacklist/settings`, {
+      headers: { 'x-admin-auth': ADMIN_PASSWORD },
+      data: RESET_SETTINGS,
+    });
+  });
+
   test('get default IP whitelist settings returns disabled with empty list', async ({ request }) => {
     const res = await request.get(`${WORKER_URL}/admin/ip_blacklist/settings`, {
       headers: { 'x-admin-auth': ADMIN_PASSWORD },
@@ -154,6 +172,25 @@ test.describe('IP Whitelist Settings', () => {
     // Empty strings should be filtered out, whitespace trimmed
     expect(settings.whitelist).toEqual(['1.2.3.4', '5.6.7.8']);
   });
+
+  test('whitelist rejects invalid regex pattern', async ({ request }) => {
+    const saveRes = await request.post(`${WORKER_URL}/admin/ip_blacklist/settings`, {
+      headers: { 'x-admin-auth': ADMIN_PASSWORD },
+      data: { ...RESET_SETTINGS, whitelist: ['^[1.2.3.4$'] }, // invalid regex
+    });
+    expect(saveRes.ok()).toBe(false);
+    expect(saveRes.status()).toBe(400);
+    expect(await saveRes.text()).toContain('whitelist');
+  });
+
+  test('whitelist rejects non-string elements', async ({ request }) => {
+    const saveRes = await request.post(`${WORKER_URL}/admin/ip_blacklist/settings`, {
+      headers: { 'x-admin-auth': ADMIN_PASSWORD },
+      data: { ...RESET_SETTINGS, whitelist: [1, null] },
+    });
+    expect(saveRes.ok()).toBe(false);
+    expect(saveRes.status()).toBe(400);
+  });
 });
 
 test.describe('IP Whitelist Runtime Behavior', () => {
@@ -180,36 +217,41 @@ test.describe('IP Whitelist Runtime Behavior', () => {
     expect(res.address).toBeTruthy();
   });
 
-  test('whitelist blocks requests when cf-connecting-ip is missing', async ({ request }) => {
-    // Enable whitelist with non-empty list
+  test('whitelist blocks requests when IP does not match whitelist', async ({ request }) => {
     await request.post(`${WORKER_URL}/admin/ip_blacklist/settings`, {
       headers: { 'x-admin-auth': ADMIN_PASSWORD },
       data: {
-        enabled: false,
-        blacklist: [],
-        asnBlacklist: [],
-        fingerprintBlacklist: [],
+        ...RESET_SETTINGS,
         enableWhitelist: true,
         whitelist: ['1.2.3.4'],
-        enableDailyLimit: false,
-        dailyRequestLimit: 1000,
       },
     });
 
-    // Try to create address
-    // In e2e environment, cf-connecting-ip is likely missing
-    // Should be blocked with 403 (fail-closed)
+    // In e2e, cf-connecting-ip is absent → fail-closed → 403
     const res = await request.post(`${WORKER_URL}/api/new_address`, {
       data: { name: `whitelist-block-${Date.now()}`, domain: 'test.example.com' },
     });
+    expect(res.status()).toBe(403);
+    const body = await res.text();
+    expect(body).toContain('IP');
+  });
 
-    // Expect 403 if cf-connecting-ip is missing and whitelist is active
-    // OR success if cf-connecting-ip exists and matches
-    if (!res.ok()) {
-      expect(res.status()).toBe(403);
-      const body = await res.text();
-      expect(body).toContain('IP');
-    }
+  test('fingerprint blacklist blocks even when cf-connecting-ip is absent', async ({ request }) => {
+    await request.post(`${WORKER_URL}/admin/ip_blacklist/settings`, {
+      headers: { 'x-admin-auth': ADMIN_PASSWORD },
+      data: {
+        ...RESET_SETTINGS,
+        enabled: true,
+        fingerprintBlacklist: ['blocked-fingerprint-123'],
+      },
+    });
+
+    const res = await request.post(`${WORKER_URL}/api/new_address`, {
+      headers: { 'x-fingerprint': 'blocked-fingerprint-123' },
+      data: { name: `fp-block-${Date.now()}`, domain: 'test.example.com' },
+    });
+    expect(res.status()).toBe(403);
+    expect(await res.text()).toContain('fingerprint');
   });
 
   test.afterEach(async ({ request }) => {

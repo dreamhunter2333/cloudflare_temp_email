@@ -180,17 +180,34 @@ function checkIpWhitelist(
 }
 
 /**
- * Layer 2 — Blacklist check (IP + ASN + fingerprint), gated by the single `enabled` flag.
- * Returns a 403 Response if any blacklist hits, null otherwise.
+ * Layer 2a — Fingerprint blacklist check. Does NOT require a client IP.
+ * Must run before the IP-based early-return so fingerprint bans cannot be bypassed.
  */
-function checkBlacklist(
+function checkFingerprintBlacklist(
+    c: Context<HonoCustomType>,
+    settings: IpBlacklistSettings,
+): Response | null {
+    if (!settings.enabled) return null;
+    if (!settings.fingerprintBlacklist || settings.fingerprintBlacklist.length === 0) return null;
+
+    const fingerprint = c.req.raw.headers.get("x-fingerprint");
+    if (fingerprint && isBlacklisted(fingerprint, settings.fingerprintBlacklist, true)) {
+        console.warn(`Blocked blacklisted fingerprint: ${fingerprint} for path: ${c.req.path}`);
+        return c.text(`Access denied: Browser fingerprint is blacklisted`, 403);
+    }
+    return null;
+}
+
+/**
+ * Layer 2b — IP + ASN blacklist check. Requires a client IP.
+ */
+function checkIpAsnBlacklist(
     c: Context<HonoCustomType>,
     settings: IpBlacklistSettings,
     reqIp: string
 ): Response | null {
     if (!settings.enabled) return null;
 
-    // Check if IP is blacklisted (case-sensitive matching)
     if (settings.blacklist && settings.blacklist.length > 0) {
         if (isBlacklisted(reqIp, settings.blacklist, true)) {
             console.warn(`Blocked blacklisted IP: ${reqIp} for path: ${c.req.path}`);
@@ -198,21 +215,11 @@ function checkBlacklist(
         }
     }
 
-    // Check ASN organization blacklist (case-insensitive)
     if (settings.asnBlacklist && settings.asnBlacklist.length > 0) {
         const asOrganization = c.req.raw.cf?.asOrganization;
         if (asOrganization && isBlacklisted(asOrganization as string, settings.asnBlacklist, false)) {
             console.warn(`Blocked blacklisted ASN: ${asOrganization} (IP: ${reqIp}) for path: ${c.req.path}`);
             return c.text(`Access denied: ASN organization is blacklisted`, 403);
-        }
-    }
-
-    // Check browser fingerprint blacklist (case-sensitive)
-    if (settings.fingerprintBlacklist && settings.fingerprintBlacklist.length > 0) {
-        const fingerprint = c.req.raw.headers.get("x-fingerprint");
-        if (fingerprint && isBlacklisted(fingerprint, settings.fingerprintBlacklist, true)) {
-            console.warn(`Blocked blacklisted fingerprint: ${fingerprint} (IP: ${reqIp}) for path: ${c.req.path}`);
-            return c.text(`Access denied: Browser fingerprint is blacklisted`, 403);
         }
     }
 
@@ -267,13 +274,19 @@ export async function checkAccessControl(
         const whitelistResult = checkIpWhitelist(c, settings, reqIp);
         if (whitelistResult.response) return whitelistResult.response;
 
+        // Layer 2a: fingerprint blacklist (does not require IP)
+        if (!whitelistResult.hit) {
+            const fingerprintResp = checkFingerprintBlacklist(c, settings);
+            if (fingerprintResp) return fingerprintResp;
+        }
+
         // Without a client IP, skip IP-keyed layers below
         if (!reqIp) return null;
 
-        // Layer 2: blacklist (skipped when whitelist trusted the IP)
+        // Layer 2b: IP + ASN blacklist (skipped when whitelist trusted the IP)
         if (!whitelistResult.hit) {
-            const blacklistResp = checkBlacklist(c, settings, reqIp);
-            if (blacklistResp) return blacklistResp;
+            const ipAsnResp = checkIpAsnBlacklist(c, settings, reqIp);
+            if (ipAsnResp) return ipAsnResp;
         }
 
         // Layer 3: daily limit (always enforced)
