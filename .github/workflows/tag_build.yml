@@ -30,7 +30,7 @@ jobs:
         run: cd frontend/dist/ && zip -r frontend.zip * && mv frontend.zip ../
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend
           path: frontend/frontend.zip
@@ -59,7 +59,7 @@ jobs:
         run: cd frontend/dist/ && zip -r telegram-frontend.zip * && mv telegram-frontend.zip ../
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: telegram-frontend
           path: frontend/telegram-frontend.zip
@@ -101,13 +101,13 @@ jobs:
           zip -r worker-with-wasm-mail-parser.zip dist/worker.js dist/*.wasm
 
       - name: Upload worker.js
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: worker-js
           path: worker/worker.js
 
       - name: Upload wasm worker
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: worker-wasm
           path: worker/worker-with-wasm-mail-parser.zip
@@ -122,7 +122,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
