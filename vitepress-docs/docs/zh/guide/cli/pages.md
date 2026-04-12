@@ -12,6 +12,8 @@
 > [!warning] 重要：SPA 模式
 > 本项目是单页应用（SPA）。如果你通过 Cloudflare 控制台手动上传部署，**必须在高级选项中将「未找到处理」设置为 `Single-page application (SPA)`**，否则刷新页面或直接访问 `/admin` 等子路径时会返回 404。
 > 通过 CLI（`wrangler pages deploy`）部署时会自动处理，无需额外配置。
+>
+> ![pages spa setting](/ui_install/pages-spa-setting.jpg)
 
 第一次部署会提示创建项目, `production` 分支请填写 `production`
 

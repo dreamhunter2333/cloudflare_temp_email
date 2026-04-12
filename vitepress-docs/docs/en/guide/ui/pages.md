@@ -139,6 +139,8 @@ const generate = async () => {
     > [!warning] Important: SPA Mode
     > This project is a Single-Page Application (SPA). **You must expand the advanced options during deployment and set "Not Found handling" to `Single-page application (SPA)`**.
     > Otherwise, refreshing the page or directly accessing sub-paths like `/admin` will return a 404 error.
+    >
+    > ![pages spa setting](/ui_install/pages-spa-setting.jpg)
 
     Then click `Deploy`
 
