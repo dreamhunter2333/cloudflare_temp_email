@@ -12,6 +12,8 @@ Refer to [Deploy Worker](/en/guide/cli/worker#deploy-worker-with-frontend-option
 > [!warning] Important: SPA Mode
 > This project is a Single-Page Application (SPA). If you deploy manually via the Cloudflare dashboard, **you must set "Not Found handling" to `Single-page application (SPA)` in the advanced options**, otherwise refreshing the page or directly accessing sub-paths like `/admin` will return a 404 error.
 > When deploying via CLI (`wrangler pages deploy`), this is handled automatically and no extra configuration is needed.
+>
+> ![pages spa setting](/ui_install/pages-spa-setting.jpg)
 
 The first deployment will prompt you to create a project. For the `production` branch, enter `production`.
 
