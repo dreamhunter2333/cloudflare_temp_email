@@ -728,13 +728,13 @@ export const commonGetUserRole = async (
 export const getAddressPrefix = async (c: Context<HonoCustomType>): Promise<string | undefined> => {
     const user = c.get("userPayload");
     if (!user) {
-        return getStringValue(c.env.PREFIX);
+        return getStringValue(c.env.PREFIX).trim().toLowerCase();
     }
     const user_role = await commonGetUserRole(c, user.user_id);
     if (typeof user_role?.prefix === "string") {
-        return user_role.prefix;
+        return user_role.prefix.trim().toLowerCase();
     }
-    return getStringValue(c.env.PREFIX);
+    return getStringValue(c.env.PREFIX).trim().toLowerCase();
 }
 
 export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<string[]> => {
