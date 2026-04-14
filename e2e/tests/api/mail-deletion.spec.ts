@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 import { WORKER_URL, WORKER_URL_ENV_OFF, createTestAddress, seedTestMail, deleteAddress } from '../../fixtures/test-helpers';
 
@@ -7,6 +8,7 @@ test.describe('Mail Deletion', () => {
 
     const testUserEmail = `mail-delete-e2e-${Date.now()}@test.example.com`;
     const testUserPassword = 'test-password-123';
+    const testUserPasswordHash = createHash('sha256').update(testUserPassword).digest('hex');
 
     const enableRes = await request.post(`${WORKER_URL_ENV_OFF}/admin/user_settings`, {
       data: {
@@ -17,12 +19,12 @@ test.describe('Mail Deletion', () => {
     expect(enableRes.ok()).toBe(true);
 
     const registerRes = await request.post(`${WORKER_URL_ENV_OFF}/user_api/register`, {
-      data: { email: testUserEmail, password: testUserPassword },
+      data: { email: testUserEmail, password: testUserPasswordHash },
     });
     expect(registerRes.ok()).toBe(true);
 
     const loginRes = await request.post(`${WORKER_URL_ENV_OFF}/user_api/login`, {
-      data: { email: testUserEmail, password: testUserPassword },
+      data: { email: testUserEmail, password: testUserPasswordHash },
     });
     expect(loginRes.ok()).toBe(true);
     const { jwt: userJwt } = await loginRes.json();
