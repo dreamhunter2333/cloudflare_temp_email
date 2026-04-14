@@ -1,7 +1,6 @@
 import { Context } from "hono";
 import { getBooleanValue } from "../utils";
 import i18n from "../i18n";
-import { normalizeEmailAddress } from "../common";
 
 
 export default {
@@ -11,10 +10,9 @@ export default {
             return c.text(msgs.AutoReplyDisabledMsg, 403)
         }
         const { address } = c.get("jwtPayload")
-        const normalizedAddress = normalizeEmailAddress(address);
         const results = await c.env.DB.prepare(
             `SELECT * FROM auto_reply_mails where address = ? `
-        ).bind(normalizedAddress).first();
+        ).bind(address).first();
         if (!results) {
             return c.json({});
         }
@@ -32,7 +30,6 @@ export default {
             return c.text(msgs.AutoReplyDisabledMsg, 403)
         }
         const { address } = c.get("jwtPayload");
-        const normalizedAddress = normalizeEmailAddress(address);
         const { auto_reply } = await c.req.json();
         const { name, subject, source_prefix, message, enabled } = auto_reply;
         if ((!subject || !message) && enabled) {
@@ -46,7 +43,7 @@ export default {
             + ` (name, address, source_prefix, subject, message, enabled)`
             + ` VALUES (?, ?, ?, ?, ?, ?)`
         ).bind(
-            name || '', normalizedAddress, source_prefix || '',
+            name || '', address, source_prefix || '',
             subject || '', message || '', enabled ? 1 : 0
         ).run();
         if (!success) {

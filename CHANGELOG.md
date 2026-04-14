@@ -16,7 +16,7 @@
 ### Bug Fixes
 
 - fix: |用户侧收件箱| 修复 `ENABLE_USER_DELETE_EMAIL` 关闭时用户中心仍显示删除按钮且仍可通过 `/user_api/mails/:id` 删除邮件的问题（#978）
-- fix: |Address| 修复带大写字母的邮箱地址在密码登录后收件箱、发件箱和相关设置查不到数据的问题；新建地址统一按小写存储，并通过数据库迁移将历史地址数据归一化为小写（#930）
+- fix: |Address| 创建邮箱时统一将配置的前缀转为小写，避免生成包含大写前缀的地址；历史数据需用户自行迁移为小写（#930）
 - fix: |Admin| 修复 `/admin/address` 与 `/admin/users` 在使用完整邮箱（query 长度超过 50 字节）作为搜索条件时报错 `D1_ERROR: LIKE or GLOB pattern too complex` 的问题，长查询自动改用 `instr()` 绕开 D1 的 LIKE pattern 长度限制（#956）
 
 ### Improvements

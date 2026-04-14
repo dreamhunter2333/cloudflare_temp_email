@@ -8,7 +8,7 @@ import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
 import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue } from '../utils';
 import { GeoData } from '../models'
-import { handleListQuery, normalizeEmailAddress, updateAddressUpdatedAt } from '../common'
+import { handleListQuery, updateAddressUpdatedAt } from '../common'
 
 
 export const api = new Hono<HonoCustomType>()
@@ -19,13 +19,12 @@ api.post('/api/request_send_mail_access', async (c) => {
     if (!address) {
         return c.text(msgs.AddressNotFoundMsg, 400)
     }
-    const normalizedAddress = normalizeEmailAddress(address);
     try {
         const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
         const { success } = await c.env.DB.prepare(
             `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
         ).bind(
-            normalizedAddress, default_balance, default_balance > 0 ? 1 : 0
+            address, default_balance, default_balance > 0 ? 1 : 0
         ).run();
         if (!success) {
             return c.text(msgs.OperationFailedMsg, 500)
@@ -132,9 +131,8 @@ export const sendMail = async (
     if (!address) {
         throw new Error(msgs.AddressNotFoundMsg)
     }
-    const normalizedAddress = normalizeEmailAddress(address);
     // check domain
-    const mailDomain = normalizedAddress.split("@")[1];
+    const mailDomain = address.split("@")[1];
     const domains = getDomains(c);
     if (!domains.includes(mailDomain)) {
         throw new Error(msgs.InvalidDomainMsg)
@@ -145,16 +143,14 @@ export const sendMail = async (
     // no need find noLimitSendAddressList if is_no_limit_send_balance
     const noLimitSendAddressList = is_no_limit_send_balance ?
         [] : await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY) || [];
-    const normalizedNoLimitSendAddressList = noLimitSendAddressList
-        ?.map((item: string) => normalizeEmailAddress(item));
-    const isNoLimitSendAddress = normalizedNoLimitSendAddressList?.includes(normalizedAddress);
+    const isNoLimitSendAddress = noLimitSendAddressList?.includes(address);
     const needCheckBalance = !is_no_limit_send_balance && !options?.isAdmin && !isNoLimitSendAddress;
     if (needCheckBalance) {
         // check permission
         const balance = await c.env.DB.prepare(
             `SELECT balance FROM address_sender
             where address = ? and enabled = 1`
-        ).bind(normalizedAddress).first<number>("balance");
+        ).bind(address).first<number>("balance");
         if (!balance || balance <= 0) {
             throw new Error(msgs.NoBalanceMsg)
         }
@@ -190,7 +186,7 @@ export const sendMail = async (
     if (c.env.SEND_MAIL) {
         const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY) || [];
         if (verifiedAddressList.includes(to_mail)) {
-            await sendMailToVerifyAddress(c, normalizedAddress, reqJson);
+            await sendMailToVerifyAddress(c, address, reqJson);
             sendByVerifiedAddressList = true;
         }
     }
@@ -201,10 +197,10 @@ export const sendMail = async (
     }
     // send by resend
     else if (resendEnabled) {
-        await sendMailByResend(c, normalizedAddress, reqJson);
+        await sendMailByResend(c, address, reqJson);
     }
     else if (smtpConfig) {
-        await sendMailBySmtp(c, normalizedAddress, reqJson, smtpConfig);
+        await sendMailBySmtp(c, address, reqJson, smtpConfig);
     }
     else {
         if (c.env.SEND_MAIL) {
@@ -218,16 +214,16 @@ export const sendMail = async (
         try {
             const { success } = await c.env.DB.prepare(
                 `UPDATE address_sender SET balance = balance - 1 where address = ?`
-            ).bind(normalizedAddress).run();
+            ).bind(address).run();
             if (!success) {
-                console.warn(`Failed to update balance for ${normalizedAddress}`);
+                console.warn(`Failed to update balance for ${address}`);
             }
         } catch (e) {
-            console.warn(`Failed to update balance for ${normalizedAddress}`);
+            console.warn(`Failed to update balance for ${address}`);
         }
     }
     // update address updated_at
-    updateAddressUpdatedAt(c, normalizedAddress);
+    updateAddressUpdatedAt(c, address);
     // save to sendbox
     try {
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
@@ -239,12 +235,12 @@ export const sendMail = async (
         };
         const { success: success2 } = await c.env.DB.prepare(
             `INSERT INTO sendbox (address, raw) VALUES (?, ?)`
-        ).bind(normalizedAddress, JSON.stringify(body)).run();
+        ).bind(address, JSON.stringify(body)).run();
         if (!success2) {
-            console.warn(`Failed to save to sendbox for ${normalizedAddress}`);
+            console.warn(`Failed to save to sendbox for ${address}`);
         }
     } catch (e) {
-        console.warn(`Failed to save to sendbox for ${normalizedAddress}`);
+        console.warn(`Failed to save to sendbox for ${address}`);
     }
 }
 
@@ -269,7 +265,7 @@ api.post('/external/api/send_mail', async (c) => {
             return c.text(msgs.AddressNotFoundMsg, 400)
         }
         const reqJson = await c.req.json();
-        await sendMail(c, normalizeEmailAddress(address as string), reqJson);
+        await sendMail(c, address as string, reqJson);
         return c.json({ status: "ok" })
     } catch (e) {
         console.error("Failed to send mail", e);
@@ -284,11 +280,10 @@ export const getSendbox = async (
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }
-    const normalizedAddress = normalizeEmailAddress(address);
     return await handleListQuery(c,
         `SELECT * FROM sendbox where address = ? `,
         `SELECT count(*) as count FROM sendbox where address = ? `,
-        [normalizedAddress], limit, offset
+        [address], limit, offset
     );
 }
 
@@ -304,11 +299,10 @@ api.delete('/api/sendbox/:id', async (c) => {
         return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
     }
     const { address } = c.get("jwtPayload")
-    const normalizedAddress = normalizeEmailAddress(address);
     const { id } = c.req.param();
     const { success } = await c.env.DB.prepare(
         `DELETE FROM sendbox WHERE address = ? and id = ? `
-    ).bind(normalizedAddress, id).run();
+    ).bind(address, id).run();
     return c.json({
         success: success
     })

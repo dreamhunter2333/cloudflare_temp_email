@@ -1,6 +1,5 @@
 import { createMimeMessage } from "mimetext";
 import { getBooleanValue } from "../utils";
-import { normalizeEmailAddress } from "../common";
 
 /**
  * Check if the sender matches the source_prefix filter.
@@ -24,13 +23,12 @@ function matchSender(from: string, sourcePrefix: string | undefined): boolean {
 
 export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings): Promise<void> => {
     const message_id = message.headers.get("Message-ID");
-    const normalizedTo = normalizeEmailAddress(message.to);
     // auto reply email
     if (getBooleanValue(env.ENABLE_AUTO_REPLY) && message_id) {
         try {
             const results = await env.DB.prepare(
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
-            ).bind(normalizedTo).first<Record<string, string>>();
+            ).bind(message.to).first<Record<string, string>>();
             if (results && matchSender(message.from, results.source_prefix)) {
                 if (!results.subject || !results.message) {
                     console.log("auto-reply using defaults:", !results.subject ? "subject" : "", !results.message ? "message" : "");
@@ -52,7 +50,7 @@ export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings
                 } else {
                     const { EmailMessage } = await import('cloudflare:email');
                     const replyMessage = new EmailMessage(
-                        normalizedTo,
+                        message.to,
                         message.from,
                         msg.asRaw()
                     );
