@@ -3,9 +3,11 @@ import { onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n'
 
 import { api } from '../../api'
+import { useGlobalState } from '../../store'
 import MailBox from '../../components/MailBox.vue';
 
 const message = useMessage()
+const { openSettings } = useGlobalState()
 
 const { t } = useI18n({
     messages: {
@@ -78,7 +80,7 @@ onMounted(() => {
             </n-button>
         </n-input-group>
         <div style="margin-top: 10px;"></div>
-        <MailBox :key="mailBoxKey" :enableUserDeleteEmail="true" :fetchMailData="fetchMailData"
+        <MailBox :key="mailBoxKey" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail" :fetchMailData="fetchMailData"
             :deleteMail="deleteMail" :showFilterInput="true" />
     </div>
 </template>
