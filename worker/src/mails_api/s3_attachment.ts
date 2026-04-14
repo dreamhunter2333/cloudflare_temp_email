@@ -7,6 +7,7 @@ import {
     DeleteObjectCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { normalizeEmailAddress } from "../common";
 
 export const isS3Enabled = (c: Context<HonoCustomType>) => {
     return !(!c.env.S3_ENDPOINT ||
@@ -37,13 +38,14 @@ const getS3Client = (c: Context<HonoCustomType>) => {
 export default {
     getSignedGetUrl: async (c: Context<HonoCustomType>) => {
         const { address } = c.get("jwtPayload")
+        const normalizedAddress = normalizeEmailAddress(address)
         const { key } = await c.req.json()
         const client = getS3Client(c);
         const url = await getSignedUrl(
             client,
             new GetObjectCommand({
                 Bucket: c.env.S3_BUCKET,
-                Key: `${address}/${key}`
+                Key: `${normalizedAddress}/${key}`
             }),
             { expiresIn: c.env.S3_URL_EXPIRES || 360 }
         );
@@ -51,13 +53,14 @@ export default {
     },
     getSignedPutUrl: async (c: Context<HonoCustomType>) => {
         const { address } = c.get("jwtPayload")
+        const normalizedAddress = normalizeEmailAddress(address)
         const { key } = await c.req.json()
         const client = getS3Client(c);
         const url = await getSignedUrl(
             client,
             new PutObjectCommand({
                 Bucket: c.env.S3_BUCKET,
-                Key: `${address}/${key}`
+                Key: `${normalizedAddress}/${key}`
             }),
             { expiresIn: c.env.S3_URL_EXPIRES || 360 }
         );
@@ -65,17 +68,18 @@ export default {
     },
     list: async (c: Context<HonoCustomType>) => {
         const { address } = c.get("jwtPayload")
+        const normalizedAddress = normalizeEmailAddress(address)
         const client = getS3Client(c);
         const data = await client.send(
             new ListObjectsV2Command({
                 Bucket: c.env.S3_BUCKET,
-                Prefix: `${address}/`
+                Prefix: `${normalizedAddress}/`
             })
         );
         return c.json(
             {
                 results: data?.Contents
-                    ?.map((v) => v.Key?.replace(`${address}/`, ""))
+                    ?.map((v) => v.Key?.replace(`${normalizedAddress}/`, ""))
                     ?.filter(k => k)
                     ?.map((k) => ({ key: k }))
             }
@@ -83,12 +87,13 @@ export default {
     },
     deleteKey: async (c: Context<HonoCustomType>) => {
         const { address } = c.get("jwtPayload")
+        const normalizedAddress = normalizeEmailAddress(address)
         const { key } = await c.req.json()
         const client = getS3Client(c);
         await client.send(
             new DeleteObjectCommand({
                 Bucket: c.env.S3_BUCKET,
-                Key: `${address}/${key}`
+                Key: `${normalizedAddress}/${key}`
             })
         );
         return c.json({ success: true });

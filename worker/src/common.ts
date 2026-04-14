@@ -18,6 +18,10 @@ const normalizeDomainValue = (domain: string): string => {
     return domain.trim().toLowerCase();
 }
 
+export const normalizeEmailAddress = (address: string): string => {
+    return address.trim().toLowerCase();
+}
+
 const isValidDomainLabel = (label: string): boolean => {
     return DOMAIN_LABEL_RE.test(label);
 }
@@ -232,14 +236,15 @@ export function updateAddressUpdatedAt(
     if (!address) {
         return;
     }
+    const normalizedAddress = normalizeEmailAddress(address);
     // update address updated_at asynchronously
     c.executionCtx.waitUntil((async () => {
         try {
             await c.env.DB.prepare(
                 `UPDATE address SET updated_at = datetime('now') where name = ?`
-            ).bind(address).run();
+            ).bind(normalizedAddress).run();
         } catch (e) {
-            console.warn("[updateAddressUpdatedAt] failed:", address, e);
+            console.warn("[updateAddressUpdatedAt] failed:", normalizedAddress, e);
         }
     })());
 }
@@ -261,11 +266,12 @@ const generatePasswordForAddress = async (
         return null;
     }
 
+    const normalizedAddress = normalizeEmailAddress(address);
     const plainPassword = generateRandomPassword();
     const hashedPassword = await hashPassword(plainPassword);
     const { success } = await c.env.DB.prepare(
         `UPDATE address SET password = ?, updated_at = datetime('now') WHERE name = ?`
-    ).bind(hashedPassword, address).run();
+    ).bind(hashedPassword, normalizedAddress).run();
 
     if (!success) {
         console.warn("Failed to set generated password for address:", address);
@@ -281,10 +287,17 @@ const insertAddressRecord = async (
     sourceMeta: string | undefined | null,
     msgs: ReturnType<typeof i18n.getMessagesbyContext>
 ): Promise<void> => {
+    const normalizedAddress = normalizeEmailAddress(address);
+    const existingAddressId = await c.env.DB.prepare(
+        `SELECT id FROM address WHERE name = ?`
+    ).bind(normalizedAddress).first<number>("id");
+    if (existingAddressId) {
+        throw new Error(msgs.AddressAlreadyExistsMsg)
+    }
     try {
         const result = await c.env.DB.prepare(
             `INSERT INTO address(name, source_meta) VALUES(?, ?)`
-        ).bind(address, sourceMeta).run();
+        ).bind(normalizedAddress, sourceMeta).run();
         if (!result.success) {
             throw new Error(msgs.FailedCreateAddressMsg)
         }
@@ -294,7 +307,7 @@ const insertAddressRecord = async (
         if (message && message.includes("source_meta")) {
             const result = await c.env.DB.prepare(
                 `INSERT INTO address(name) VALUES(?)`
-            ).bind(address).run();
+            ).bind(normalizedAddress).run();
             if (!result.success) {
                 throw new Error(msgs.FailedCreateAddressMsg)
             }
@@ -388,7 +401,7 @@ export const newAddress = async (
         const addressDomain = enableRandomSubdomain
             ? `${generateRandomSubdomain(c)}.${domain}`
             : domain;
-        const address = `${name}@${addressDomain}`;
+        const address = normalizeEmailAddress(`${name}@${addressDomain}`);
 
         try {
             await insertAddressRecord(c, address, sourceMeta, msgs);
@@ -418,7 +431,7 @@ export const newAddress = async (
             }
         } catch (e) {
             const message = (e as Error).message;
-            if (message && message.includes("UNIQUE")) {
+            if (message === msgs.AddressAlreadyExistsMsg || (message && message.includes("UNIQUE"))) {
                 if (enableRandomSubdomain && attempt < maxAttempts - 1) {
                     continue;
                 }
@@ -553,7 +566,7 @@ export const deleteAddressWithData = async (
     if (!address_id) {
         address_id = await c.env.DB.prepare(
             `SELECT id FROM address where name = ?`
-        ).bind(address).first<number>("id");
+        ).bind(normalizeEmailAddress(address || "")).first<number>("id");
     } else if (!address) {
         address = await c.env.DB.prepare(
             `SELECT name FROM address where id = ?`
@@ -563,27 +576,28 @@ export const deleteAddressWithData = async (
     if (!address || !address_id) {
         throw new Error(msgs.AddressNotFoundMsg);
     }
+    const normalizedAddress = normalizeEmailAddress(address);
     // unbind telegram
-    await unbindTelegramByAddress(c, address);
+    await unbindTelegramByAddress(c, normalizedAddress);
     // delete address and related data
     const { success: mailSuccess } = await c.env.DB.prepare(
         `DELETE FROM raw_mails WHERE address = ? `
-    ).bind(address).run();
+    ).bind(normalizedAddress).run();
     const { success: sendAccess } = await c.env.DB.prepare(
         `DELETE FROM address_sender WHERE address = ? `
-    ).bind(address).run();
+    ).bind(normalizedAddress).run();
     const { success: sendboxSuccess } = await c.env.DB.prepare(
         `DELETE FROM sendbox WHERE address = ? `
-    ).bind(address).run();
+    ).bind(normalizedAddress).run();
     const { success: addressSuccess } = await c.env.DB.prepare(
         `DELETE FROM users_address WHERE address_id = ? `
     ).bind(address_id).run();
     const { success: autoReplySuccess } = await c.env.DB.prepare(
         `DELETE FROM auto_reply_mails WHERE address = ? `
-    ).bind(address).run();
+    ).bind(normalizedAddress).run();
     const { success } = await c.env.DB.prepare(
         `DELETE FROM address WHERE name = ? `
-    ).bind(address).run();
+    ).bind(normalizedAddress).run();
     if (!success || !mailSuccess || !sendboxSuccess || !addressSuccess || !sendAccess || !autoReplySuccess) {
         throw new Error(msgs.OperationFailedMsg)
     }

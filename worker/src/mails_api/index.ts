@@ -2,7 +2,7 @@ import { Context, Hono } from 'hono'
 
 import i18n from '../i18n';
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue, isAddressCountLimitReached } from '../utils';
-import { newAddress, handleMailListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt, generateRandomName } from '../common'
+import { newAddress, handleMailListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt, generateRandomName, normalizeEmailAddress } from '../common'
 import { CONSTANTS } from '../constants'
 import { resolveRawEmailRow } from '../gzip'
 import auto_reply from './auto_reply'
@@ -27,21 +27,23 @@ api.get('/api/mails', async (c) => {
     if (!address) {
         return c.json({ "error": "No address" }, 400)
     }
+    const normalizedAddress = normalizeEmailAddress(address);
     const { limit, offset } = c.req.query();
-    if (Number.parseInt(offset) <= 0) updateAddressUpdatedAt(c, address);
+    if (Number.parseInt(offset) <= 0) updateAddressUpdatedAt(c, normalizedAddress);
     return await handleMailListQuery(c,
         `SELECT * FROM raw_mails where address = ?`,
         `SELECT count(*) as count FROM raw_mails where address = ?`,
-        [address], limit, offset
+        [normalizedAddress], limit, offset
     );
 })
 
 api.get('/api/mail/:mail_id', async (c) => {
     const { address } = c.get("jwtPayload")
+    const normalizedAddress = normalizeEmailAddress(address);
     const { mail_id } = c.req.param();
     const result = await c.env.DB.prepare(
         `SELECT * FROM raw_mails where id = ? and address = ?`
-    ).bind(mail_id, address).first();
+    ).bind(mail_id, normalizedAddress).first();
     if (!result) return c.json(null);
     return c.json(await resolveRawEmailRow(result));
 })
@@ -52,11 +54,11 @@ api.delete('/api/mails/:id', async (c) => {
         return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
     }
     const { address } = c.get("jwtPayload")
+    const normalizedAddress = normalizeEmailAddress(address);
     const { id } = c.req.param();
-    // TODO: add toLowerCase() to handle old data
     const { success } = await c.env.DB.prepare(
         `DELETE FROM raw_mails WHERE address = ? and id = ? `
-    ).bind(address.toLowerCase(), id).run();
+    ).bind(normalizedAddress, id).run();
     return c.json({
         success: success
     })
@@ -64,6 +66,7 @@ api.delete('/api/mails/:id', async (c) => {
 
 api.get('/api/settings', async (c) => {
     const { address, address_id } = c.get("jwtPayload")
+    const normalizedAddress = normalizeEmailAddress(address);
     const user_role = c.get("userRolePayload")
     const msgs = i18n.getMessagesbyContext(c);
     if (address_id && address_id > 0) {
@@ -83,7 +86,7 @@ api.get('/api/settings', async (c) => {
         if (!address_id) {
             const db_address_id = await c.env.DB.prepare(
                 `SELECT id FROM address where name = ? `
-            ).bind(address).first("id");
+            ).bind(normalizedAddress).first("id");
             if (!db_address_id) {
                 return c.text(msgs.InvalidAddressMsg, 400)
             }
@@ -92,15 +95,15 @@ api.get('/api/settings', async (c) => {
         return c.text(msgs.InvalidAddressMsg, 400)
     }
 
-    updateAddressUpdatedAt(c, address);
+    updateAddressUpdatedAt(c, normalizedAddress);
 
     const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
     const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
     const balance = is_no_limit_send_balance ? 99999 : await c.env.DB.prepare(
         `SELECT balance FROM address_sender where address = ? and enabled = 1`
-    ).bind(address).first("balance");
+    ).bind(normalizedAddress).first("balance");
     return c.json({
-        address: address,
+        address: normalizedAddress,
         send_balance: balance || 0,
     });
 })
@@ -187,9 +190,10 @@ api.delete('/api/clear_inbox', async (c) => {
         return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
     }
     const { address } = c.get("jwtPayload")
+    const normalizedAddress = normalizeEmailAddress(address);
     const { success } = await c.env.DB.prepare(
         `DELETE FROM raw_mails WHERE address = ?`
-    ).bind(address).run();
+    ).bind(normalizedAddress).run();
     if (!success) {
         return c.text(msgs.FailedClearInboxMsg, 500)
     }
@@ -204,9 +208,10 @@ api.delete('/api/clear_sent_items', async (c) => {
         return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
     }
     const { address } = c.get("jwtPayload")
+    const normalizedAddress = normalizeEmailAddress(address);
     const { success } = await c.env.DB.prepare(
         `DELETE FROM sendbox WHERE address = ?`
-    ).bind(address).run();
+    ).bind(normalizedAddress).run();
     if (!success) {
         return c.text(msgs.FailedClearSentItemsMsg, 500)
     }

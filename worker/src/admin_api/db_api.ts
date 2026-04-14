@@ -125,6 +125,178 @@ CREATE INDEX IF NOT EXISTS idx_user_passkeys_user_id ON user_passkeys(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_passkeys_user_id_passkey_id ON user_passkeys(user_id, passkey_id);
 `
 
+const MIGRATE_V008_QUERIES = `
+DROP TABLE IF EXISTS address_id_map_v008;
+CREATE TABLE address_id_map_v008 (
+    old_id INTEGER PRIMARY KEY,
+    new_id INTEGER NOT NULL
+);
+
+INSERT INTO address_id_map_v008 (old_id, new_id)
+SELECT
+    a1.id,
+    (
+        SELECT MIN(a2.id)
+        FROM address a2
+        WHERE lower(trim(a2.name)) = lower(trim(a1.name))
+    ) AS new_id
+FROM address a1;
+
+DROP TABLE IF EXISTS address_v008;
+CREATE TABLE address_v008 (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE,
+    password TEXT,
+    source_meta TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO address_v008 (id, name, password, source_meta, created_at, updated_at)
+SELECT
+    grouped.new_id,
+    grouped.normalized_name,
+    (
+        SELECT a2.password
+        FROM address a2
+        WHERE lower(trim(a2.name)) = grouped.normalized_name
+            AND a2.password IS NOT NULL
+            AND a2.password != ''
+        ORDER BY a2.id ASC
+        LIMIT 1
+    ) AS password,
+    (
+        SELECT a2.source_meta
+        FROM address a2
+        WHERE lower(trim(a2.name)) = grouped.normalized_name
+            AND a2.source_meta IS NOT NULL
+            AND a2.source_meta != ''
+        ORDER BY a2.id ASC
+        LIMIT 1
+    ) AS source_meta,
+    (
+        SELECT MIN(a2.created_at)
+        FROM address a2
+        WHERE lower(trim(a2.name)) = grouped.normalized_name
+    ) AS created_at,
+    (
+        SELECT MAX(a2.updated_at)
+        FROM address a2
+        WHERE lower(trim(a2.name)) = grouped.normalized_name
+    ) AS updated_at
+FROM (
+    SELECT
+        MIN(id) AS new_id,
+        lower(trim(name)) AS normalized_name
+    FROM address
+    GROUP BY lower(trim(name))
+) grouped;
+
+DROP TABLE IF EXISTS users_address_v008;
+CREATE TABLE users_address_v008 (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    address_id INTEGER UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO users_address_v008 (id, user_id, address_id, created_at)
+SELECT
+    MIN(ua.id) AS id,
+    (
+        SELECT ua2.user_id
+        FROM users_address ua2
+        JOIN address_id_map_v008 map2 ON map2.old_id = ua2.address_id
+        WHERE map2.new_id = grouped.new_id
+        ORDER BY ua2.id ASC
+        LIMIT 1
+    ) AS user_id,
+    grouped.new_id AS address_id,
+    MIN(ua.created_at) AS created_at
+FROM users_address ua
+JOIN address_id_map_v008 grouped ON grouped.old_id = ua.address_id
+GROUP BY grouped.new_id;
+
+DROP TABLE IF EXISTS address_sender_v008;
+CREATE TABLE address_sender_v008 (
+    id INTEGER PRIMARY KEY,
+    address TEXT UNIQUE,
+    balance INTEGER DEFAULT 0,
+    enabled INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO address_sender_v008 (id, address, balance, enabled, created_at)
+SELECT
+    MIN(id) AS id,
+    lower(trim(address)) AS address,
+    SUM(COALESCE(balance, 0)) AS balance,
+    MAX(CASE WHEN enabled = 1 THEN 1 ELSE 0 END) AS enabled,
+    MIN(created_at) AS created_at
+FROM address_sender
+GROUP BY lower(trim(address));
+
+DROP TABLE IF EXISTS auto_reply_mails_v008;
+CREATE TABLE auto_reply_mails_v008 (
+    id INTEGER PRIMARY KEY,
+    source_prefix TEXT,
+    name TEXT,
+    address TEXT UNIQUE,
+    subject TEXT,
+    message TEXT,
+    enabled INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO auto_reply_mails_v008 (id, source_prefix, name, address, subject, message, enabled, created_at)
+SELECT
+    selected.id,
+    selected.source_prefix,
+    selected.name,
+    lower(trim(selected.address)) AS address,
+    selected.subject,
+    selected.message,
+    selected.enabled,
+    selected.created_at
+FROM auto_reply_mails selected
+WHERE selected.id IN (
+    SELECT MAX(id)
+    FROM auto_reply_mails
+    GROUP BY lower(trim(address))
+);
+
+UPDATE raw_mails
+SET address = lower(trim(address))
+WHERE address IS NOT NULL AND address != lower(trim(address));
+
+UPDATE sendbox
+SET address = lower(trim(address))
+WHERE address IS NOT NULL AND address != lower(trim(address));
+
+DROP TABLE users_address;
+ALTER TABLE users_address_v008 RENAME TO users_address;
+
+DROP TABLE address;
+ALTER TABLE address_v008 RENAME TO address;
+
+DROP TABLE address_sender;
+ALTER TABLE address_sender_v008 RENAME TO address_sender;
+
+DROP TABLE auto_reply_mails;
+ALTER TABLE auto_reply_mails_v008 RENAME TO auto_reply_mails;
+
+DROP TABLE address_id_map_v008;
+`;
+
+const migrateAddressStorageToLowercase = async (c: Context<HonoCustomType>): Promise<void> => {
+    const query = MIGRATE_V008_QUERIES.replace(/[\r\n]/g, "")
+        .split(";")
+        .map((query) => query.trim())
+        .filter(Boolean)
+        .join(";\n");
+    await c.env.DB.exec(query);
+}
+
 export default {
     initialize: async (c: Context<HonoCustomType>) => {
         // remove all \r and \n characters from the query string
@@ -196,6 +368,10 @@ export default {
             if (!hasRawBlob) {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_blob BLOB;`);
             }
+        }
+        if (version && version <= "v0.0.7") {
+            // migration to v0.0.8: normalize stored mailbox addresses to lowercase
+            await migrateAddressStorageToLowercase(c);
         }
         if (version != CONSTANTS.DB_VERSION) {
             // remove all \r and \n characters from the query string
