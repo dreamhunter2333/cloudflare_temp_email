@@ -1,6 +1,8 @@
 import { Context } from "hono";
+import i18n from "../i18n";
 import { handleMailListQuery } from "../common";
 import UserBindAddressModule from "./bind_address";
+import { getBooleanValue } from "../utils";
 
 export default {
     getMails: async (c: Context<HonoCustomType>) => {
@@ -26,6 +28,10 @@ export default {
         );
     },
     deleteMail: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
+        if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
+            return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
+        }
         const { id } = c.req.param();
         const { user_id } = c.get("userPayload");
         const bindedAddressList = await UserBindAddressModule.getBindedAddressListById(c, user_id);
