@@ -69,7 +69,8 @@ export type LocaleMessages = {
     ContentEmptyMsg: string
     AlreadyRequestedMsg: string
     EnableResendOrSmtpMsg: string
-    EnableResendOrSmtpWithVerifiedMsg: string
+    SendMailDailyLimitMsg: string
+    SendMailMonthlyLimitMsg: string
     InvalidToMailMsg: string
 
     // Admin related

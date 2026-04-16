@@ -12,7 +12,8 @@ import mail_webhook_settings from './mail_webhook_settings'
 import oauth2_settings from './oauth2_settings'
 import worker_config from './worker_config'
 import admin_mail_api from './admin_mail_api'
-import { sendMailbyAdmin } from './send_mail'
+import { sendMailbyAdmin, sendMailByBindingAdmin } from './send_mail'
+import { getSendMailLimitConfig, normalizeSendMailLimitConfig } from '../mails_api/send_mail_limit_utils'
 import db_api from './db_api'
 import ip_blacklist_settings from './ip_blacklist_settings'
 import ai_extract_settings from './ai_extract_settings'
@@ -341,6 +342,7 @@ api.get('/admin/account_settings', async (c) => {
         const noLimitSendAddressList = await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY);
         const addressCreationSettings = await getAddressCreationSettings(c);
         const addressCreationSubdomainMatchStatus = await getAddressCreationSubdomainMatchStatus(c, addressCreationSettings);
+        const sendMailLimitConfig = await getSendMailLimitConfig(c);
         return c.json({
             blockList: blockList || [],
             sendBlockList: sendBlockList || [],
@@ -352,6 +354,7 @@ api.get('/admin/account_settings', async (c) => {
                 ? { enableSubdomainMatch: addressCreationSettings.enableSubdomainMatch }
                 : {},
             addressCreationSubdomainMatchStatus,
+            sendMailLimitConfig,
         })
     } catch (error) {
         console.error(error);
@@ -364,7 +367,8 @@ api.post('/admin/account_settings', async (c) => {
     /** @type {{ blockList: Array<string>, sendBlockList: Array<string> }} */
     const {
         blockList, sendBlockList, noLimitSendAddressList,
-        verifiedAddressList, fromBlockList, emailRuleSettings, addressCreationSettings
+        verifiedAddressList, fromBlockList, emailRuleSettings, addressCreationSettings,
+        sendMailLimitConfig
     } = await c.req.json();
     if (!blockList || !sendBlockList || !verifiedAddressList) {
         return c.text(msgs.InvalidInputMsg, 400)
@@ -378,6 +382,19 @@ api.post('/admin/account_settings', async (c) => {
     }
     // 所有输入依赖都先校验，再执行任意写入，避免接口返回 400 时出现部分设置已落库的半成功状态。
     if (fromBlockList?.length > 0 && !c.env.KV) {
+        return c.text(msgs.EnableKVMsg, 400)
+    }
+    const normalizedSendMailLimitConfig = sendMailLimitConfig
+        ? normalizeSendMailLimitConfig(sendMailLimitConfig)
+        : null;
+    if (sendMailLimitConfig && !normalizedSendMailLimitConfig) {
+        return c.text(msgs.InvalidInputMsg, 400)
+    }
+    if (
+        normalizedSendMailLimitConfig
+        && (normalizedSendMailLimitConfig.dailyEnabled || normalizedSendMailLimitConfig.monthlyEnabled)
+        && !c.env.KV
+    ) {
         return c.text(msgs.EnableKVMsg, 400)
     }
     await saveSetting(
@@ -416,6 +433,12 @@ api.post('/admin/account_settings', async (c) => {
                 })
             )
         }
+    }
+    if (normalizedSendMailLimitConfig) {
+        await saveSetting(
+            c, CONSTANTS.SEND_MAIL_LIMIT_CONFIG_KEY,
+            JSON.stringify(normalizedSendMailLimitConfig)
+        )
     }
     return c.json({
         success: true
@@ -459,6 +482,7 @@ api.get("/admin/worker/configs", worker_config.getConfig);
 
 // send mail by admin
 api.post("/admin/send_mail", sendMailbyAdmin);
+api.post("/admin/send_mail_by_binding", sendMailByBindingAdmin);
 
 // db api
 api.get('admin/db_version', db_api.getVersion);

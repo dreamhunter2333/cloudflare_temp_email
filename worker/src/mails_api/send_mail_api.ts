@@ -6,9 +6,12 @@ import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue } from '../utils';
+import {
+    getJsonSetting, getDomains, getIntValue, getBooleanValue, getJsonObjectValue, getSplitStringListValue
+} from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery, updateAddressUpdatedAt } from '../common'
+import { ensureSendMailLimit, increaseSendMailLimitCount } from './send_mail_limit_utils';
 
 
 export const api = new Hono<HonoCustomType>()
@@ -61,6 +64,25 @@ export const sendMailToVerifyAddress = async (
     const { EmailMessage } = await import('cloudflare:email');
     const message = new EmailMessage(address, to_mail, msg.asRaw());
     await c.env.SEND_MAIL.send(message);
+}
+
+export const sendMailByBinding = async (
+    c: Context<HonoCustomType>, address: string,
+    reqJson: {
+        from_name: string, to_mail: string, to_name: string,
+        subject: string, content: string, is_html: boolean
+    }
+): Promise<void> => {
+    const {
+        from_name, to_mail, to_name,
+        subject, content, is_html
+    } = reqJson;
+    await c.env.SEND_MAIL.send({
+        from: from_name ? { email: address, name: from_name } : address,
+        to: to_name ? [`${to_name} <${to_mail}>`] : [to_mail],
+        subject,
+        ...(is_html ? { html: content } : { text: content }),
+    });
 }
 
 const sendMailByResend = async (
@@ -173,6 +195,7 @@ export const sendMail = async (
     if (!content) {
         throw new Error(msgs.ContentEmptyMsg)
     }
+    await ensureSendMailLimit(c);
 
     // send to verified address list, do not update balance
     const resendEnabled = c.env.RESEND_TOKEN || c.env[
@@ -202,12 +225,13 @@ export const sendMail = async (
     else if (smtpConfig) {
         await sendMailBySmtp(c, address, reqJson, smtpConfig);
     }
+    else if (c.env.SEND_MAIL) {
+        await sendMailByBinding(c, address, reqJson);
+    }
     else {
-        if (c.env.SEND_MAIL) {
-            throw new Error(`${msgs.EnableResendOrSmtpWithVerifiedMsg} (${mailDomain})`);
-        }
         throw new Error(`${msgs.EnableResendOrSmtpMsg} (${mailDomain})`);
     }
+    await increaseSendMailLimitCount(c);
 
     // update balance
     if (!sendByVerifiedAddressList && needCheckBalance) {
