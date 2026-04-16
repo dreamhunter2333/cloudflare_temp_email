@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import i18n from '../i18n';
-import utils, { getBooleanValue, hashPassword, checkCfTurnstile } from '../utils';
+import utils, { getBooleanValue, hashPassword, checkCfTurnstile, normalizeEmailAddress } from '../utils';
 import { Jwt } from 'hono/utils/jwt';
 
 export default {
@@ -59,9 +59,10 @@ export default {
         }
 
         // 查找地址
+        const domainNormalizedEmail = normalizeEmailAddress(email);
         const address = await c.env.DB.prepare(
             `SELECT * FROM address WHERE name = ?`
-        ).bind(email).first();
+        ).bind(domainNormalizedEmail).first();
 
         if (!address) {
             return c.text(msgs.AddressNotFoundMsg, 404);

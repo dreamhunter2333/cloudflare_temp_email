@@ -16,4 +16,18 @@ test.describe('Admin New Address', () => {
     expect(body.address_id).toBeGreaterThan(0);
     expect(typeof body.address_id).toBe('number');
   });
+
+  test('accepts uppercase domain input and normalizes the created address', async ({ request }) => {
+    const uniqueName = `admincase${Date.now()}`;
+    const res = await request.post(`${WORKER_URL}/admin/new_address`, {
+      data: { name: uniqueName, domain: TEST_DOMAIN.toUpperCase() },
+    });
+
+    expect(res.ok()).toBe(true);
+    const body = await res.json();
+
+    expect(body.address).toBe(`${uniqueName}@${TEST_DOMAIN}`);
+    expect(body.jwt).toBeTruthy();
+    expect(body.address_id).toBeGreaterThan(0);
+  });
 });
