@@ -3,7 +3,7 @@ import { Context } from 'hono'
 import { CONSTANTS } from '../constants'
 import { getJsonSetting, getIntValue, getSplitStringListValue } from '../utils'
 
-export const ensureDefaultSendBalance = async (
+const ensureDefaultSendBalance = async (
     c: Context<HonoCustomType>,
     address: string
 ): Promise<void> => {
@@ -44,6 +44,7 @@ export const getSendBalanceState = async (
     }
 ): Promise<{
     isNoLimitSender: boolean,
+    needCheckBalance: boolean,
     balance: number | null
 }> => {
     const user_role = c.get("userRolePayload");
@@ -54,17 +55,56 @@ export const getSendBalanceState = async (
         [] : await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY) || [];
     const isNoLimitSendAddress = !!noLimitSendAddressList?.includes(address);
     const isNoLimitSender = is_no_limit_send_balance || isNoLimitSendAddress;
-    if (!isNoLimitSender && !options?.isAdmin && options?.initializeDefaultBalance !== false) {
+    const needCheckBalance = !options?.isAdmin && !isNoLimitSender;
+    if (needCheckBalance && options?.initializeDefaultBalance !== false) {
         await ensureDefaultSendBalance(c, address);
     }
     if (isNoLimitSender) {
         return {
             isNoLimitSender: true,
+            needCheckBalance: false,
             balance: 99999,
         };
     }
     return {
         isNoLimitSender: false,
+        needCheckBalance: needCheckBalance,
         balance: await getEnabledSendBalance(c, address),
     };
+}
+
+export const requestSendMailAccess = async (
+    c: Context<HonoCustomType>,
+    address: string
+): Promise<{
+    status: 'ok' | 'already_requested' | 'operation_failed'
+}> => {
+    const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
+    if (default_balance > 0) {
+        await ensureDefaultSendBalance(c, address);
+        const { balance } = await getSendBalanceState(c, address, {
+            initializeDefaultBalance: false,
+        });
+        if (balance && balance > 0) {
+            return { status: 'ok' };
+        }
+        return { status: 'already_requested' };
+    }
+    try {
+        const { success } = await c.env.DB.prepare(
+            `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
+        ).bind(
+            address, default_balance, default_balance > 0 ? 1 : 0
+        ).run();
+        if (!success) {
+            return { status: 'operation_failed' };
+        }
+    } catch (e) {
+        const message = (e as Error).message;
+        if (message && message.includes("UNIQUE")) {
+            return { status: 'already_requested' };
+        }
+        return { status: 'operation_failed' };
+    }
+    return { status: 'ok' };
 }

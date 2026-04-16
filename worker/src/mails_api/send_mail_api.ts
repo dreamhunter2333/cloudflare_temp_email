@@ -6,10 +6,10 @@ import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue } from '../utils';
+import { getJsonSetting, getDomains, getBooleanValue, getStringValue, getJsonObjectValue } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery, updateAddressUpdatedAt } from '../common'
-import { ensureDefaultSendBalance, getSendBalanceState } from './send_balance';
+import { getSendBalanceState, requestSendMailAccess } from './send_balance';
 
 
 export const api = new Hono<HonoCustomType>()
@@ -20,34 +20,14 @@ api.post('/api/request_send_mail_access', async (c) => {
     if (!address) {
         return c.text(msgs.AddressNotFoundMsg, 400)
     }
-    const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
-    if (default_balance > 0) {
-        await ensureDefaultSendBalance(c, address);
-        const { balance } = await getSendBalanceState(c, address, {
-            initializeDefaultBalance: false,
-        });
-        if (balance && balance > 0) {
-            return c.json({ status: "ok" })
-        }
+    const result = await requestSendMailAccess(c, address);
+    if (result.status === "ok") {
+        return c.json({ status: "ok" })
+    }
+    if (result.status === "already_requested") {
         return c.text(msgs.AlreadyRequestedMsg, 400)
     }
-    try {
-        const { success } = await c.env.DB.prepare(
-            `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
-        ).bind(
-            address, default_balance, default_balance > 0 ? 1 : 0
-        ).run();
-        if (!success) {
-            return c.text(msgs.OperationFailedMsg, 500)
-        }
-    } catch (e) {
-        const message = (e as Error).message;
-        if (message && message.includes("UNIQUE")) {
-            return c.text(msgs.AlreadyRequestedMsg, 400)
-        }
-        return c.text(msgs.OperationFailedMsg, 500)
-    }
-    return c.json({ status: "ok" })
+    return c.text(msgs.OperationFailedMsg, 500)
 })
 
 export const sendMailToVerifyAddress = async (
@@ -151,8 +131,7 @@ export const sendMail = async (
     const sendBalanceState = await getSendBalanceState(c, address, {
         isAdmin: options?.isAdmin,
     });
-    const needCheckBalance = !sendBalanceState.isNoLimitSender && !options?.isAdmin;
-    if (needCheckBalance) {
+    if (sendBalanceState.needCheckBalance) {
         if (!sendBalanceState.balance || sendBalanceState.balance <= 0) {
             throw new Error(msgs.NoBalanceMsg)
         }
@@ -212,7 +191,7 @@ export const sendMail = async (
     }
 
     // update balance
-    if (!sendByVerifiedAddressList && needCheckBalance) {
+    if (!sendByVerifiedAddressList && sendBalanceState.needCheckBalance) {
         try {
             const { success } = await c.env.DB.prepare(
                 `UPDATE address_sender SET balance = balance - 1 where address = ?`
