@@ -111,14 +111,14 @@ wrangler secret put SMTP_CONFIG
 
 Users need a send balance to send emails. The balance mechanism works as follows:
 
-1. **Request Send Permission**: Users must first click the "Request Send Permission" button in the frontend
-2. **Default Quota**: Upon requesting, users receive the default quota set by the `DEFAULT_SEND_BALANCE` environment variable (defaults to 0 if not set)
+1. **Auto-initialize Default Quota**: When `DEFAULT_SEND_BALANCE > 0`, the system automatically initializes the default quota when the user opens the send page or calls the send-mail API for the first time
+2. **Manual Request**: If `DEFAULT_SEND_BALANCE = 0`, users can still click "Request Send Permission" in the frontend to create a pending send-access record for admins to review
 3. **Unlimited Sending**: The following methods can bypass balance checks:
    - Add the address to the "No Limit Send Address List" in the admin console
    - Configure the `NO_LIMIT_SEND_ROLE` environment variable to specify roles that can send without limits
 
 > [!NOTE]
-> `DEFAULT_SEND_BALANCE` does **NOT** automatically grant balance to all addresses. Users must actively request send permission first for the quota to take effect.
+> `DEFAULT_SEND_BALANCE` is applied through an `INSERT ... ON CONFLICT` upsert to auto-initialize or repair old `balance = 0 && enabled = 0` sender rows, but it does **not** automatically refill addresses that were already enabled and later used up their quota.
 
 ## Send Emails to Authenticated Forwarding Addresses on Cloudflare
 

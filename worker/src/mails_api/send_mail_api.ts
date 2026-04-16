@@ -13,14 +13,40 @@ import { handleListQuery, updateAddressUpdatedAt } from '../common'
 
 export const api = new Hono<HonoCustomType>()
 
+export const ensureDefaultSendBalance = async (
+    c: Context<HonoCustomType>,
+    address: string
+): Promise<void> => {
+    if (!address) {
+        return;
+    }
+    const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
+    if (default_balance <= 0) {
+        return;
+    }
+    await c.env.DB.prepare(
+        `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)
+        ON CONFLICT(address) DO UPDATE SET
+            balance = excluded.balance,
+            enabled = excluded.enabled
+        WHERE excluded.balance > 0
+            AND address_sender.balance <= 0
+            AND address_sender.enabled = 0`
+    ).bind(address, default_balance, 1).run();
+}
+
 api.post('/api/request_send_mail_access', async (c) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { address } = c.get("jwtPayload")
     if (!address) {
         return c.text(msgs.AddressNotFoundMsg, 400)
     }
+    const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
+    if (default_balance > 0) {
+        await ensureDefaultSendBalance(c, address);
+        return c.json({ status: "ok" })
+    }
     try {
-        const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
         const { success } = await c.env.DB.prepare(
             `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
         ).bind(
@@ -146,6 +172,7 @@ export const sendMail = async (
     const isNoLimitSendAddress = noLimitSendAddressList?.includes(address);
     const needCheckBalance = !is_no_limit_send_balance && !options?.isAdmin && !isNoLimitSendAddress;
     if (needCheckBalance) {
+        await ensureDefaultSendBalance(c, address);
         // check permission
         const balance = await c.env.DB.prepare(
             `SELECT balance FROM address_sender

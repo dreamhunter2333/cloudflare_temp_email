@@ -12,6 +12,7 @@
 
 ### Bug Fixes
 
+- fix: |发送邮件| 当 `DEFAULT_SEND_BALANCE > 0` 时，自动通过 `ON CONFLICT` 初始化或修复旧的发信额度记录，用户不再需要先手动申请发信权限（#925）
 - fix: |用户侧收件箱| 修复 `ENABLE_USER_DELETE_EMAIL` 关闭时用户中心仍显示删除按钮且仍可通过 `/user_api/mails/:id` 删除邮件的问题（#978）
 - fix: |Address| 创建邮箱时统一将配置的前缀转为小写，避免生成包含大写前缀的地址；历史数据需用户自行迁移为小写（#930）
 
