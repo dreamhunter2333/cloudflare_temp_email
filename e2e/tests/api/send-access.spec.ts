@@ -66,4 +66,29 @@ test.describe('Send Access', () => {
       await deleteAddress(request, jwt);
     }
   });
+
+  test('request send access does not falsely succeed when quota is already exhausted', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'sendexh');
+
+    try {
+      await requestSendAccess(request, jwt);
+
+      const sender = await getAddressSender(request, address);
+      await updateAddressSender(request, {
+        address,
+        address_id: sender.id,
+        balance: 0,
+        enabled: true,
+      });
+
+      const retryRes = await request.post(`${WORKER_URL}/api/request_send_mail_access`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      expect(retryRes.status()).toBe(400);
+      const retryBody = await retryRes.text();
+      expect(retryBody).toContain('Already');
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
 });

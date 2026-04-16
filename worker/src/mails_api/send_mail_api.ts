@@ -6,34 +6,13 @@ import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue } from '../utils';
+import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery, updateAddressUpdatedAt } from '../common'
+import { ensureDefaultSendBalance, getSendBalanceState } from './send_balance';
 
 
 export const api = new Hono<HonoCustomType>()
-
-export const ensureDefaultSendBalance = async (
-    c: Context<HonoCustomType>,
-    address: string
-): Promise<void> => {
-    if (!address) {
-        return;
-    }
-    const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
-    if (default_balance <= 0) {
-        return;
-    }
-    await c.env.DB.prepare(
-        `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)
-        ON CONFLICT(address) DO UPDATE SET
-            balance = excluded.balance,
-            enabled = excluded.enabled
-        WHERE excluded.balance > 0
-            AND address_sender.balance <= 0
-            AND address_sender.enabled = 0`
-    ).bind(address, default_balance, 1).run();
-}
 
 api.post('/api/request_send_mail_access', async (c) => {
     const msgs = i18n.getMessagesbyContext(c);
@@ -44,7 +23,13 @@ api.post('/api/request_send_mail_access', async (c) => {
     const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
     if (default_balance > 0) {
         await ensureDefaultSendBalance(c, address);
-        return c.json({ status: "ok" })
+        const { balance } = await getSendBalanceState(c, address, {
+            initializeDefaultBalance: false,
+        });
+        if (balance && balance > 0) {
+            return c.json({ status: "ok" })
+        }
+        return c.text(msgs.AlreadyRequestedMsg, 400)
     }
     try {
         const { success } = await c.env.DB.prepare(
@@ -163,22 +148,12 @@ export const sendMail = async (
     if (!domains.includes(mailDomain)) {
         throw new Error(msgs.InvalidDomainMsg)
     }
-    const user_role = c.get("userRolePayload");
-    const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
-    const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
-    // no need find noLimitSendAddressList if is_no_limit_send_balance
-    const noLimitSendAddressList = is_no_limit_send_balance ?
-        [] : await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY) || [];
-    const isNoLimitSendAddress = noLimitSendAddressList?.includes(address);
-    const needCheckBalance = !is_no_limit_send_balance && !options?.isAdmin && !isNoLimitSendAddress;
+    const sendBalanceState = await getSendBalanceState(c, address, {
+        isAdmin: options?.isAdmin,
+    });
+    const needCheckBalance = !sendBalanceState.isNoLimitSender && !options?.isAdmin;
     if (needCheckBalance) {
-        await ensureDefaultSendBalance(c, address);
-        // check permission
-        const balance = await c.env.DB.prepare(
-            `SELECT balance FROM address_sender
-            where address = ? and enabled = 1`
-        ).bind(address).first<number>("balance");
-        if (!balance || balance <= 0) {
+        if (!sendBalanceState.balance || sendBalanceState.balance <= 0) {
             throw new Error(msgs.NoBalanceMsg)
         }
     }

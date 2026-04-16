@@ -207,7 +207,7 @@ export async function getAddressSender(
   workerUrl: string = WORKER_URL
 ): Promise<any> {
   const res = await ctx.get(
-    `${workerUrl}/admin/address_sender?limit=10&offset=0&address=${encodeURIComponent(address)}`,
+    `${workerUrl}/admin/address_sender?limit=1&offset=0&address=${encodeURIComponent(address)}`,
   );
   if (!res.ok()) {
     throw new Error(`Failed to get address sender: ${res.status()} ${await res.text()}`);
