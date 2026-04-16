@@ -396,6 +396,27 @@ test.describe('Send Mail Limit', () => {
     await deleteAddress(request, jwt);
   });
 
+  test('minus one means unlimited at runtime', async ({ request }) => {
+    const { jwt } = await createTestAddress(request, 'limit-unlimited');
+    await requestSendAccess(request, jwt);
+
+    const save = await saveLimitConfig(request, {
+      dailyEnabled: true,
+      monthlyEnabled: true,
+      dailyLimit: -1,
+      monthlyLimit: -1,
+    });
+    expect(save.ok()).toBe(true);
+
+    for (let i = 0; i < 3; i++) {
+      const { res, listener } = await sendOneMail(request, jwt, `unl${i}`);
+      expect(res.ok(), `send #${i} should succeed`).toBe(true);
+      await listener!.message;
+    }
+
+    await deleteAddress(request, jwt);
+  });
+
   test('/admin/send_mail_by_binding returns 400 when SEND_MAIL binding is missing', async ({ request }) => {
     const res = await request.post(`${WORKER_URL}/admin/send_mail_by_binding`, {
       headers: ADMIN_HEADERS,
