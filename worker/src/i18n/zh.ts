@@ -71,7 +71,9 @@ const messages: LocaleMessages = {
     ContentEmptyMsg: "内容不能为空",
     AlreadyRequestedMsg: "已经申请过了",
     EnableResendOrSmtpMsg: "请先为此域名启用 resend 或 smtp",
-    EnableResendOrSmtpWithVerifiedMsg: "请先为此域名启用 resend 或 smtp，或将收件人添加到已验证地址列表",
+    EnableResendOrSmtpOrSendMailMsg: "请先为此域名启用 resend、smtp 或 SEND_MAIL",
+    ServerSendMailDailyLimitMsg: "服务器今日发信次数已达上限",
+    ServerSendMailMonthlyLimitMsg: "服务器本月发信次数已达上限",
     InvalidToMailMsg: "收件人地址无效",
 
     // Admin related

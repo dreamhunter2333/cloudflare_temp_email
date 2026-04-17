@@ -1,13 +1,50 @@
 
 # 配置发送邮件
 
-::: warning 注意
-三种方式可以同时配置，发送邮件时会优先使用 `resend`，如果没有配置 `resend`，则会使用 `smtp`.
+::: tip 推荐方案
+推荐使用 Cloudflare `send_email` binding 作为默认发信通道。绑定 `SEND_MAIL` 并完成 Email Routing onboarding 后，即可直接向任意外部地址发信。
 
-如果配置了 Cloudflare 已认证的转发邮箱地址，会优先使用 cf 内部 API 发送邮件
+Workers Paid 每月含 3,000 封，超出部分 $0.35 / 1000 封。
 :::
 
-## 使用 resend 发送邮件
+## 发信通道优先级
+
+每次 `/api/send_mail` 请求按如下顺序匹配通道，**命中即发送**：
+
+| 顺序 | 条件 | 通道 | 扣 balance |
+|------|------|------|-----------|
+| 1 | `SEND_MAIL` 已绑定 **且** 收件人在 `verifiedAddressList` | Cloudflare binding（兼容模式） | 否 |
+| 2 | `RESEND_TOKEN` 或 `RESEND_TOKEN_<DOMAIN>` 已配置 | Resend API | 是 |
+| 3 | `SMTP_CONFIG` 含当前域名配置 | worker-mailer SMTP | 是 |
+| 4 | `SEND_MAIL` 已绑定（以上均未命中） | **Cloudflare binding（推荐主通道）** | 是 |
+| — | 以上均未命中 | 抛错 | — |
+
+> [!NOTE]
+> binding 发信失败会直接报错。
+
+## 使用 Cloudflare `send_email` binding（推荐）
+
+仅 CLI 部署时使用，在 `wrangler.toml` 中添加：
+
+```toml
+# 通过 Cloudflare send_email binding 发送邮件
+send_email = [
+   { name = "SEND_MAIL" },
+]
+```
+
+> [!warning] 重要
+> 绑定名必须为 `SEND_MAIL`，与 Cloudflare 官方文档示例中的 `SEND_EMAIL` 不同。
+
+完成下列步骤后即可直接向任意外部地址发信：
+
+1. 在 Cloudflare Dashboard 给对应域名开启 Email Routing 并完成 onboarding
+2. `wrangler.toml` 添加上述 `send_email` 绑定
+3. 部署 Worker
+
+无需配置任何额外的 env var。
+
+## 使用 Resend 发送邮件
 
 注册 `https://resend.com/domains` 根据提示添加 DNS 记录,
 
@@ -119,18 +156,17 @@ wrangler secret put SMTP_CONFIG
 
 > [!NOTE]
 > `DEFAULT_SEND_BALANCE` **不会**自动给所有地址充值余额，用户必须先主动申请发信权限，额度才会生效。
+>
+> 第 1 层 `verifiedAddressList` 命中时不扣余额，但同样计入发信额度；第 2/3/4 层统一扣 balance。
+>
+> 发信额度对**全部**发信渠道生效，admin 发信接口也会一起计入。
+>
+> 每日和每月额度按 **UTC** 时间窗口计算。
+>
+> 当前额度实现属于 **soft guard**，适合日常额度控制；在数据库异常或高并发场景下，它不适合作为绝对严格的成本硬闸。
 
 ## 给 Cloudflare 上已认证的转发邮箱发送邮件
 
-仅支持 CLI 部署时使用，在 `wrangler.toml` 中添加 `send_email` 配置
+适合未完成 Email Routing onboarding 的域名，或 Workers 免费版。
 
-发送的目的邮箱地址必须是 Cloudflare 上已认证的邮箱地址，局限性较大，如果需要发送邮件给其他邮箱，可以使用 `resend` 或者 `smtp` 发送邮件
-
-```toml
-# 通过 Cloudflare 发送邮件
-send_email = [
-   { name = "SEND_MAIL" },
-]
-```
-
-admin 后台 账号配置 `已验证地址列表(可通过 cf 内部 api 发送邮件)`
+只有收件人在 admin 后台的 `已验证地址列表` 中时，才会通过 `SEND_MAIL` binding 发信。

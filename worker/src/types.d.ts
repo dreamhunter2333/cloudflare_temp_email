@@ -8,8 +8,8 @@ type Bindings = {
     // bindings
     DB: D1Database
     KV: KVNamespace
-    RATE_LIMITER: any
-    SEND_MAIL: any
+    RATE_LIMITER: RateLimit
+    SEND_MAIL: SendEmail
     ASSETS: Fetcher
     AI: Ai
 

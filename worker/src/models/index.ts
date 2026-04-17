@@ -184,6 +184,13 @@ export type EmailRuleSettings = {
     emailForwardingList: SubdomainForwardAddressList[]
 }
 
+export type SendMailLimitConfig = {
+    dailyEnabled: boolean;
+    monthlyEnabled: boolean;
+    dailyLimit: number | null;
+    monthlyLimit: number | null;
+}
+
 export type RoleConfig = {
     maxAddressCount?: number;
     // future configs can be added here
