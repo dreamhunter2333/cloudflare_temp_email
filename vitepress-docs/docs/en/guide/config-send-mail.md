@@ -161,6 +161,6 @@ Users need a send balance to send emails. The balance mechanism works as follows
 
 ## Send Emails to Authenticated Forwarding Addresses on Cloudflare
 
-Use this for non-onboarded domains or Workers free-tier users.
+Typical use case: non-onboarded domains or Workers free-tier users.
 
-Mail is sent via `SEND_MAIL` binding only when the recipient is in the admin `Verified Address List`.
+In this compatibility mode, mail is sent via `SEND_MAIL` binding only when the recipient is in the admin `Verified Address List`.

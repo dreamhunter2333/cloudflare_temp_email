@@ -388,12 +388,12 @@ api.post('/admin/account_settings', async (c) => {
     if (fromBlockList?.length > 0 && !c.env.KV) {
         return c.text(msgs.EnableKVMsg, 400)
     }
-    const sendMailLimitConfigToSave = sendMailLimitConfig
-        ? getSendMailLimitConfigToSave(sendMailLimitConfig)
-        : null;
     if (sendMailLimitConfig && !validateSendMailLimitConfig(sendMailLimitConfig)) {
         return c.text(msgs.InvalidInputMsg, 400)
     }
+    const sendMailLimitConfigToSave = sendMailLimitConfig
+        ? getSendMailLimitConfigToSave(sendMailLimitConfig)
+        : null;
     await saveSetting(
         c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
         JSON.stringify(blockList)

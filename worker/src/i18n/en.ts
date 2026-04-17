@@ -71,6 +71,7 @@ const messages: LocaleMessages = {
     ContentEmptyMsg: "Content is empty",
     AlreadyRequestedMsg: "Already requested",
     EnableResendOrSmtpMsg: "Please enable resend or smtp for this domain",
+    EnableResendOrSmtpOrSendMailMsg: "Please enable resend, smtp or SEND_MAIL for this domain",
     ServerSendMailDailyLimitMsg: "Server daily send quota has been reached",
     ServerSendMailMonthlyLimitMsg: "Server monthly send quota has been reached",
     InvalidToMailMsg: "Invalid recipient address",

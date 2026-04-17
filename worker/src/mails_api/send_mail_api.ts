@@ -229,7 +229,7 @@ export const sendMail = async (
         await sendMailByBinding(c, address, reqJson);
     }
     else {
-        throw new Error(`${msgs.EnableResendOrSmtpMsg} (${mailDomain})`);
+        throw new Error(`${msgs.EnableResendOrSmtpOrSendMailMsg} (${mailDomain})`);
     }
     await increaseSendMailLimitCount(c);
 

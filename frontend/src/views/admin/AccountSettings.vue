@@ -25,6 +25,8 @@ const { t } = useI18n({
             send_mail_limit_tip: 'This applies to all send channels. Use -1 for unlimited and 0 to block sending.',
             send_mail_daily_limit: 'Daily Limit',
             send_mail_monthly_limit: 'Monthly Limit',
+            send_mail_daily_limit_invalid: 'Daily limit must be an integer greater than or equal to -1',
+            send_mail_monthly_limit_invalid: 'Monthly limit must be an integer greater than or equal to -1',
             fromBlockList: 'Block Keywords for receive email',
             block_receive_unknow_address_email: 'Block receive unknow address email',
             email_forwarding_config: 'Email Forwarding Configuration',
@@ -73,6 +75,8 @@ const { t } = useI18n({
             send_mail_limit_tip: '对全部发信渠道生效。-1 表示无限，0 表示禁止发送。',
             send_mail_daily_limit: '每日额度',
             send_mail_monthly_limit: '每月额度',
+            send_mail_daily_limit_invalid: '每日额度必须是大于等于 -1 的整数',
+            send_mail_monthly_limit_invalid: '每月额度必须是大于等于 -1 的整数',
             fromBlockList: '接收邮件地址屏蔽关键词',
             block_receive_unknow_address_email: '禁止接收未知地址邮件',
             email_forwarding_config: '邮件转发配置',
@@ -337,6 +341,22 @@ const getSendMailLimitPayload = () => {
     }
 }
 
+const isValidSendMailLimit = (value) => {
+    return Number.isInteger(value) && value >= -1
+}
+
+const validateSendMailLimit = () => {
+    if (sendMailDailyLimitEnabled.value && !isValidSendMailLimit(sendMailDailyLimit.value)) {
+        message.error(t('send_mail_daily_limit_invalid'))
+        return false
+    }
+    if (sendMailMonthlyLimitEnabled.value && !isValidSendMailLimit(sendMailMonthlyLimit.value)) {
+        message.error(t('send_mail_monthly_limit_invalid'))
+        return false
+    }
+    return true
+}
+
 const fetchData = async ({ suppressErrorMessage = false } = {}) => {
     try {
         const res = await api.fetch(`/admin/account_settings`)
@@ -378,6 +398,9 @@ const fetchData = async ({ suppressErrorMessage = false } = {}) => {
 }
 
 const save = async () => {
+    if (!validateSendMailLimit()) {
+        return
+    }
     try {
         const payload = {
             blockList: addressBlockList.value || [],
