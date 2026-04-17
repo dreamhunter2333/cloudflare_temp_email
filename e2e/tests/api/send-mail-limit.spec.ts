@@ -1,6 +1,7 @@
 import { test, expect, APIRequestContext } from '@playwright/test';
 import {
   WORKER_URL,
+  WORKER_URL_SEND_MAIL_DOMAIN,
   createTestAddress,
   deleteAddress,
   deleteAllMailpitMessages,
@@ -422,6 +423,34 @@ test.describe('Send Mail Limit', () => {
       },
     });
     expect(res.status()).toBe(400);
+  });
+
+  test('/admin/send_mail_by_binding returns 200 when domain is allowed', async ({ request }) => {
+    const res = await request.post(`${WORKER_URL_SEND_MAIL_DOMAIN}/admin/send_mail_by_binding`, {
+      headers: ADMIN_HEADERS,
+      data: {
+        from: 'admin@test.example.com',
+        to: ['recipient@test.example.com'],
+        subject: `send-mail-domain-ok-${Date.now()}`,
+        text: 'body',
+      },
+    });
+    expect(res.ok()).toBe(true);
+    expect(await res.json()).toEqual({ status: 'ok' });
+  });
+
+  test('/admin/send_mail_by_binding returns 400 when domain is not allowed', async ({ request }) => {
+    const res = await request.post(`${WORKER_URL_SEND_MAIL_DOMAIN}/admin/send_mail_by_binding`, {
+      headers: ADMIN_HEADERS,
+      data: {
+        from: 'admin@blocked.example.com',
+        to: ['recipient@test.example.com'],
+        subject: `send-mail-domain-blocked-${Date.now()}`,
+        text: 'body',
+      },
+    });
+    expect(res.status()).toBe(400);
+    expect(await res.text()).toContain('Please enable SEND_MAIL for this domain first');
   });
 
   test('daily and monthly counters both increment on successful send', async ({ request }) => {
