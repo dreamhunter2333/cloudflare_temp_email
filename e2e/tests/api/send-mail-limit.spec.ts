@@ -73,70 +73,66 @@ async function sendOneMail(
   return { res, listener, subject };
 }
 
-// Probe current daily count by setting dailyLimit=1 and observing the rejection
-// message "(<count>/1)". Only usable when current count >= 1 is possible; when
-// count == 0 the probe send succeeds instead, so we treat that as baseline 0.
+async function probeLimitBaseline(
+  request: APIRequestContext,
+  jwt: string,
+  config: {
+    dailyEnabled: boolean;
+    monthlyEnabled: boolean;
+    dailyLimit: number | null;
+    monthlyLimit: number | null;
+  },
+  subjectPrefix: string,
+  maxProbeLimit: number = 50
+): Promise<number> {
+  for (let limit = 1; limit <= maxProbeLimit; limit++) {
+    const save = await saveLimitConfig(request, {
+      ...config,
+      dailyLimit: config.dailyEnabled ? limit : null,
+      monthlyLimit: config.monthlyEnabled ? limit : null,
+    });
+    expect(save.ok()).toBe(true);
+
+    const probe = await request.post(`${WORKER_URL}/api/send_mail`, {
+      headers: { Authorization: `Bearer ${jwt}` },
+      data: {
+        from_name: 'probe',
+        to_name: '',
+        to_mail: 'recipient@test.example.com',
+        subject: `${subjectPrefix}-${limit}-${Date.now()}`,
+        content: 'probe',
+        is_html: false,
+      },
+    });
+    if (probe.ok()) {
+      return limit;
+    }
+  }
+  throw new Error(`Failed to probe send mail limit baseline within ${maxProbeLimit}`);
+}
+
 async function probeDailyBaseline(
   request: APIRequestContext,
   jwt: string
 ): Promise<number> {
-  const save = await saveLimitConfig(request, {
+  return probeLimitBaseline(request, jwt, {
     dailyEnabled: true,
     monthlyEnabled: false,
     dailyLimit: 1,
     monthlyLimit: null,
-  });
-  expect(save.ok()).toBe(true);
-
-  const probe = await request.post(`${WORKER_URL}/api/send_mail`, {
-    headers: { Authorization: `Bearer ${jwt}` },
-    data: {
-      from_name: 'probe',
-      to_name: '',
-      to_mail: 'recipient@test.example.com',
-      subject: `probe-${Date.now()}`,
-      content: 'probe',
-      is_html: false,
-    },
-  });
-  if (probe.ok()) {
-    // current count was 0; probe consumed one slot → baseline is now 1.
-    return 1;
-  }
-  const text = await probe.text();
-  const m = text.match(/\((\d+)\/1\)/);
-  expect(m, `probe rejection should expose count: ${text}`).not.toBeNull();
-  return Number.parseInt(m![1], 10);
+  }, 'probe-daily');
 }
 
 async function probeMonthlyBaseline(
   request: APIRequestContext,
   jwt: string
 ): Promise<number> {
-  const save = await saveLimitConfig(request, {
+  return probeLimitBaseline(request, jwt, {
     dailyEnabled: false,
     monthlyEnabled: true,
     dailyLimit: null,
     monthlyLimit: 1,
-  });
-  expect(save.ok()).toBe(true);
-
-  const probe = await request.post(`${WORKER_URL}/api/send_mail`, {
-    headers: { Authorization: `Bearer ${jwt}` },
-    data: {
-      from_name: 'probe',
-      to_name: '',
-      to_mail: 'recipient@test.example.com',
-      subject: `probe-m-${Date.now()}`,
-      content: 'probe',
-      is_html: false,
-    },
-  });
-  if (probe.ok()) return 1;
-  const text = await probe.text();
-  const m = text.match(/\((\d+)\/1\)/);
-  expect(m, `monthly probe rejection should expose count: ${text}`).not.toBeNull();
-  return Number.parseInt(m![1], 10);
+  }, 'probe-monthly');
 }
 
 test.describe('Send Mail Limit', () => {
@@ -244,7 +240,7 @@ test.describe('Send Mail Limit', () => {
     });
     expect(res.ok()).toBe(false);
     const text = await res.text();
-    expect(text).toContain('0/0');
+    expect(text).toContain('Server daily send quota has been reached');
 
     await deleteAddress(request, jwt);
   });
@@ -277,7 +273,6 @@ test.describe('Send Mail Limit', () => {
     expect(blocked.ok()).toBe(false);
     const text = await blocked.text();
     expect(text).toContain('Server daily send quota has been reached');
-    expect(text).toContain(`${limit}/${limit}`);
 
     await deleteAddress(request, jwt);
   });
@@ -310,7 +305,6 @@ test.describe('Send Mail Limit', () => {
     expect(blocked.ok()).toBe(false);
     const text = await blocked.text();
     expect(text).toContain('Server monthly send quota has been reached');
-    expect(text).toContain(`${limit}/${limit}`);
 
     await deleteAddress(request, jwt);
   });
@@ -450,9 +444,7 @@ test.describe('Send Mail Limit', () => {
     expect(res.ok()).toBe(true);
     await listener!.message;
 
-    // Re-probe to confirm both counters moved by exactly the sent amount
-    // (probe itself sets dailyLimit=1 which triggers a rejection, so the
-    // rejection count reflects the real current value).
+    // Re-probe to confirm both counters moved forward after the successful send.
     const dailyAfter = await probeDailyBaseline(request, jwt);
     expect(dailyAfter).toBeGreaterThanOrEqual(dailyBaseline + 1);
     const monthlyAfter = await probeMonthlyBaseline(request, jwt);

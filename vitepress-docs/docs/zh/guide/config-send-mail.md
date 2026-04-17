@@ -158,6 +158,12 @@ wrangler secret put SMTP_CONFIG
 > `DEFAULT_SEND_BALANCE` **不会**自动给所有地址充值余额，用户必须先主动申请发信权限，额度才会生效。
 >
 > 第 1 层 `verifiedAddressList` 命中时不扣余额，但同样计入发信额度；第 2/3/4 层统一扣 balance。
+>
+> 发信额度对**全部**发信渠道生效，admin 发信接口也会一起计入。
+>
+> 每日和每月额度按 **UTC** 时间窗口计算。
+>
+> 当前额度实现属于 **soft guard**，适合日常额度控制；在数据库异常或高并发场景下，它不适合作为绝对严格的成本硬闸。
 
 ## 给 Cloudflare 上已认证的转发邮箱发送邮件
 

@@ -158,6 +158,12 @@ Users need a send balance to send emails. The balance mechanism works as follows
 > `DEFAULT_SEND_BALANCE` does **NOT** automatically grant balance to all addresses. Users must actively request send permission first for the quota to take effect.
 >
 > Layer 1 (`verifiedAddressList` hit) does not deduct balance, but it still counts toward send limits; layers 2/3/4 all deduct balance.
+>
+> Send limits apply to **all** send channels, including admin send endpoints.
+>
+> Daily and monthly windows are calculated in **UTC**.
+>
+> The current limit implementation is a **soft guard**. It is suitable for routine quota control, but it should not be treated as a strict hard-stop cost gate under database errors or high concurrency.
 
 ## Send Emails to Authenticated Forwarding Addresses on Cloudflare
 
