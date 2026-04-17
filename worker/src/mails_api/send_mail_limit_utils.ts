@@ -4,7 +4,7 @@ import { SendMailLimitConfig } from "../models";
 import { CONSTANTS } from "../constants";
 import { getJsonObjectValue, getSetting } from "../utils";
 
-const normalizeNullableLimit = (value: unknown): number | null => {
+const parseLimitValue = (value: unknown): number | null => {
     if (value === null || typeof value === "undefined") {
         return null;
     }
@@ -18,7 +18,7 @@ const isValidLimitValue = (value: number | null): boolean => {
     return value === -1 || (value !== null && value >= 0);
 }
 
-export const normalizeSendMailLimitConfig = (value: unknown): SendMailLimitConfig | null => {
+const parseSendMailLimitConfig = (value: unknown): SendMailLimitConfig | null => {
     if (value === null || typeof value !== "object" || Array.isArray(value)) {
         return null;
     }
@@ -26,8 +26,8 @@ export const normalizeSendMailLimitConfig = (value: unknown): SendMailLimitConfi
     if (typeof config.dailyEnabled !== "boolean" || typeof config.monthlyEnabled !== "boolean") {
         return null;
     }
-    const dailyLimit = normalizeNullableLimit(config.dailyLimit);
-    const monthlyLimit = normalizeNullableLimit(config.monthlyLimit);
+    const dailyLimit = parseLimitValue(config.dailyLimit);
+    const monthlyLimit = parseLimitValue(config.monthlyLimit);
     const monthlyValid = config.monthlyEnabled
         ? isValidLimitValue(monthlyLimit)
         : (config.monthlyLimit === null || typeof config.monthlyLimit === "undefined" || monthlyLimit !== null);
@@ -40,18 +40,36 @@ export const normalizeSendMailLimitConfig = (value: unknown): SendMailLimitConfi
     return {
         dailyEnabled: config.dailyEnabled,
         monthlyEnabled: config.monthlyEnabled,
-        dailyLimit: config.dailyEnabled ? dailyLimit : null,
-        monthlyLimit: config.monthlyEnabled ? monthlyLimit : null,
+        dailyLimit,
+        monthlyLimit,
+    };
+}
+
+export const validateSendMailLimitConfig = (value: unknown): boolean => {
+    return !!parseSendMailLimitConfig(value);
+}
+
+export const getSendMailLimitConfigToSave = (
+    value: unknown
+): SendMailLimitConfig | null => {
+    const sendMailLimitConfig = parseSendMailLimitConfig(value);
+    if (!sendMailLimitConfig) {
+        return null;
+    }
+    return {
+        dailyEnabled: sendMailLimitConfig.dailyEnabled,
+        monthlyEnabled: sendMailLimitConfig.monthlyEnabled,
+        dailyLimit: sendMailLimitConfig.dailyEnabled ? sendMailLimitConfig.dailyLimit : null,
+        monthlyLimit: sendMailLimitConfig.monthlyEnabled ? sendMailLimitConfig.monthlyLimit : null,
     };
 }
 
 export const getSendMailLimitConfig = async (
     c: Context<HonoCustomType>
 ): Promise<SendMailLimitConfig | null> => {
-    const config = getJsonObjectValue<SendMailLimitConfig>(
+    return getSendMailLimitConfigToSave(getJsonObjectValue<SendMailLimitConfig>(
         await getSetting(c, CONSTANTS.SEND_MAIL_LIMIT_CONFIG_KEY)
-    );
-    return normalizeSendMailLimitConfig(config);
+    ));
 }
 
 const requireLimitKV = (
@@ -104,13 +122,13 @@ export const ensureSendMailLimit = async (
     if (config.dailyEnabled && config.dailyLimit !== null && config.dailyLimit !== -1) {
         const current = await getCount(kv, getDailyCountKey());
         if (current >= config.dailyLimit) {
-            throw new Error(`${msgs.SendMailDailyLimitMsg} (${current}/${config.dailyLimit})`);
+            throw new Error(`${msgs.ServerSendMailDailyLimitMsg} (${current}/${config.dailyLimit})`);
         }
     }
     if (config.monthlyEnabled && config.monthlyLimit !== null && config.monthlyLimit !== -1) {
         const current = await getCount(kv, getMonthlyCountKey());
         if (current >= config.monthlyLimit) {
-            throw new Error(`${msgs.SendMailMonthlyLimitMsg} (${current}/${config.monthlyLimit})`);
+            throw new Error(`${msgs.ServerSendMailMonthlyLimitMsg} (${current}/${config.monthlyLimit})`);
         }
     }
 }

@@ -13,7 +13,11 @@ import oauth2_settings from './oauth2_settings'
 import worker_config from './worker_config'
 import admin_mail_api from './admin_mail_api'
 import { sendMailbyAdmin, sendMailByBindingAdmin } from './send_mail'
-import { getSendMailLimitConfig, normalizeSendMailLimitConfig } from '../mails_api/send_mail_limit_utils'
+import {
+    getSendMailLimitConfig,
+    getSendMailLimitConfigToSave,
+    validateSendMailLimitConfig
+} from '../mails_api/send_mail_limit_utils'
 import db_api from './db_api'
 import ip_blacklist_settings from './ip_blacklist_settings'
 import ai_extract_settings from './ai_extract_settings'
@@ -22,7 +26,7 @@ import e2e_test_api from './e2e_test_api'
 
 export const api = new Hono<HonoCustomType>()
 
-const normalizeAddressCreationSettingsUpdate = (
+const getAddressCreationSettingsUpdate = (
     value: unknown
 ): {
     shouldUpdate: boolean,
@@ -373,7 +377,7 @@ api.post('/admin/account_settings', async (c) => {
     if (!blockList || !sendBlockList || !verifiedAddressList) {
         return c.text(msgs.InvalidInputMsg, 400)
     }
-    const addressCreationSettingsUpdate = normalizeAddressCreationSettingsUpdate(addressCreationSettings);
+    const addressCreationSettingsUpdate = getAddressCreationSettingsUpdate(addressCreationSettings);
     if (!addressCreationSettingsUpdate) {
         return c.text(msgs.InvalidInputMsg, 400)
     }
@@ -384,15 +388,15 @@ api.post('/admin/account_settings', async (c) => {
     if (fromBlockList?.length > 0 && !c.env.KV) {
         return c.text(msgs.EnableKVMsg, 400)
     }
-    const normalizedSendMailLimitConfig = sendMailLimitConfig
-        ? normalizeSendMailLimitConfig(sendMailLimitConfig)
+    const sendMailLimitConfigToSave = sendMailLimitConfig
+        ? getSendMailLimitConfigToSave(sendMailLimitConfig)
         : null;
-    if (sendMailLimitConfig && !normalizedSendMailLimitConfig) {
+    if (sendMailLimitConfig && !validateSendMailLimitConfig(sendMailLimitConfig)) {
         return c.text(msgs.InvalidInputMsg, 400)
     }
     if (
-        normalizedSendMailLimitConfig
-        && (normalizedSendMailLimitConfig.dailyEnabled || normalizedSendMailLimitConfig.monthlyEnabled)
+        sendMailLimitConfigToSave
+        && (sendMailLimitConfigToSave.dailyEnabled || sendMailLimitConfigToSave.monthlyEnabled)
         && !c.env.KV
     ) {
         return c.text(msgs.EnableKVMsg, 400)
@@ -434,10 +438,10 @@ api.post('/admin/account_settings', async (c) => {
             )
         }
     }
-    if (normalizedSendMailLimitConfig) {
+    if (sendMailLimitConfigToSave) {
         await saveSetting(
             c, CONSTANTS.SEND_MAIL_LIMIT_CONFIG_KEY,
-            JSON.stringify(normalizedSendMailLimitConfig)
+            JSON.stringify(sendMailLimitConfigToSave)
         )
     }
     return c.json({
