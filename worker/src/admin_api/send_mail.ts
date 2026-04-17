@@ -1,4 +1,5 @@
 import { Context } from "hono";
+import { isSendMailBindingEnabled } from "../common";
 import i18n from "../i18n";
 import { sendMail } from "../mails_api/send_mail_api";
 import { ensureSendMailLimit, increaseSendMailLimitCount } from "../mails_api/send_mail_limit_utils";
@@ -65,6 +66,16 @@ export const sendMailByBindingAdmin = async (c: Context<HonoCustomType>) => {
     } = reqJson;
     if (!from || !to || !subject || (!html && !text)) {
         return c.text(msgs.InvalidInputMsg, 400)
+    }
+    const fromMail = typeof from === "string" ? from : from?.email;
+    const mailDomain = typeof fromMail === "string" && fromMail.includes("@")
+        ? fromMail.split("@")[1]?.trim().toLowerCase()
+        : null;
+    if (!mailDomain) {
+        return c.text(msgs.InvalidInputMsg, 400)
+    }
+    if (!isSendMailBindingEnabled(c, mailDomain)) {
+        return c.text(msgs.EnableSendMailForDomainMsg, 400)
     }
     try {
         await ensureSendMailLimit(c);

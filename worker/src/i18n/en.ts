@@ -80,6 +80,7 @@ const messages: LocaleMessages = {
     InvalidAddressIdMsg: "Invalid address_id",
     EnableKVMsg: "Please enable KV first",
     EnableSendMailMsg: "Please enable SEND_MAIL first",
+    EnableSendMailForDomainMsg: "Please enable SEND_MAIL for this domain first",
     InvalidCleanupConfigMsg: "Invalid cleanType or cleanDays",
     InvalidCleanTypeMsg: "Invalid cleanType",
     EnableKVForMailVerifyMsg: "Please enable KV first if you want to enable mail verify",

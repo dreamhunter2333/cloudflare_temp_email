@@ -80,6 +80,7 @@ const messages: LocaleMessages = {
     InvalidAddressIdMsg: "无效的 address_id",
     EnableKVMsg: "请先启用 KV",
     EnableSendMailMsg: "请先启用 SEND_MAIL",
+    EnableSendMailForDomainMsg: "请先为此域名启用 SEND_MAIL",
     InvalidCleanupConfigMsg: "无效的 cleanType 或 cleanDays",
     InvalidCleanTypeMsg: "无效的 cleanType",
     EnableKVForMailVerifyMsg: "如果要启用邮件验证，请先启用 KV",
