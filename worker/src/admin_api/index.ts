@@ -26,7 +26,7 @@ import e2e_test_api from './e2e_test_api'
 
 export const api = new Hono<HonoCustomType>()
 
-const getAddressCreationSettingsUpdate = (
+const normalizeAddressCreationSettingsUpdate = (
     value: unknown
 ): {
     shouldUpdate: boolean,
@@ -377,7 +377,7 @@ api.post('/admin/account_settings', async (c) => {
     if (!blockList || !sendBlockList || !verifiedAddressList) {
         return c.text(msgs.InvalidInputMsg, 400)
     }
-    const addressCreationSettingsUpdate = getAddressCreationSettingsUpdate(addressCreationSettings);
+    const addressCreationSettingsUpdate = normalizeAddressCreationSettingsUpdate(addressCreationSettings);
     if (!addressCreationSettingsUpdate) {
         return c.text(msgs.InvalidInputMsg, 400)
     }

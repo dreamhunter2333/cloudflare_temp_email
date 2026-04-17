@@ -50,7 +50,7 @@ export const sendMailByBindingAdmin = async (c: Context<HonoCustomType>) => {
         await increaseSendMailLimitCount(c);
     } catch (e) {
         console.error("Admin raw send_mail failed", e);
-        return c.text(`Failed to send mail ${(e as Error).message}`, 400)
+        return c.text(msgs.OperationFailedMsg, 400)
     }
     return c.json({ status: "ok" });
 }
