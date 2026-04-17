@@ -10,7 +10,7 @@ import {
     getJsonSetting, getDomains, getIntValue, getBooleanValue, getJsonObjectValue, getSplitStringListValue
 } from '../utils';
 import { GeoData } from '../models'
-import { handleListQuery, updateAddressUpdatedAt } from '../common'
+import { handleListQuery, isSendMailBindingEnabled, updateAddressUpdatedAt } from '../common'
 import { ensureSendMailLimit, increaseSendMailLimitCount } from './send_mail_limit_utils';
 
 
@@ -213,6 +213,7 @@ export const sendMail = async (
             sendByVerifiedAddressList = true;
         }
     }
+    const sendMailBindingEnabled = isSendMailBindingEnabled(c, mailDomain);
 
     // send mail workflow
     if (sendByVerifiedAddressList) {
@@ -225,7 +226,7 @@ export const sendMail = async (
     else if (smtpConfig) {
         await sendMailBySmtp(c, address, reqJson, smtpConfig);
     }
-    else if (c.env.SEND_MAIL) {
+    else if (sendMailBindingEnabled) {
         await sendMailByBinding(c, address, reqJson);
     }
     else {

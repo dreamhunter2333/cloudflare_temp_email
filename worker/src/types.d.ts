@@ -83,6 +83,7 @@ type Bindings = {
 
     // SMTP config
     SMTP_CONFIG: string | object | undefined
+    SEND_MAIL_DOMAINS: string | string[] | undefined
 
     // telegram config
     TELEGRAM_BOT_TOKEN: string
