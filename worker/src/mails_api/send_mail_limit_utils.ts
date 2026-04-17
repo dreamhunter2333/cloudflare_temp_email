@@ -4,6 +4,12 @@ import { SendMailLimitConfig } from "../models";
 import { CONSTANTS } from "../constants";
 import { getJsonObjectValue, getSetting } from "../utils";
 
+class SendMailLimitError extends Error {
+    constructor(message: string) {
+        super(message);
+    }
+}
+
 const parseLimitValue = (value: unknown): number | null => {
     if (value === null || typeof value === "undefined") {
         return null;
@@ -72,16 +78,6 @@ export const getSendMailLimitConfig = async (
     ));
 }
 
-const requireLimitKV = (
-    c: Context<HonoCustomType>
-): KVNamespace => {
-    const kv = c.env.KV;
-    if (!kv) {
-        throw new Error(i18n.getMessagesbyContext(c).EnableKVMsg);
-    }
-    return kv;
-}
-
 const getDailyCountKey = (date: Date = new Date()): string => {
     const yyyy = date.getUTCFullYear();
     const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
@@ -96,10 +92,10 @@ const getMonthlyCountKey = (date: Date = new Date()): string => {
 }
 
 const getCount = async (
-    kv: KVNamespace,
+    c: Context<HonoCustomType>,
     key: string
 ): Promise<number> => {
-    const value = await kv.get(key);
+    const value = await getSetting(c, key);
     if (!value) {
         return 0;
     }
@@ -110,74 +106,88 @@ const getCount = async (
     return parsed;
 }
 
+const cleanupSendMailLimitCount = async (
+    c: Context<HonoCustomType>,
+    currentDailyKey: string,
+    currentMonthlyKey: string
+): Promise<void> => {
+    await c.env.DB.batch([
+        c.env.DB.prepare(
+            `DELETE FROM settings
+            WHERE key LIKE ?
+            AND key < ?`
+        ).bind(`${CONSTANTS.SEND_MAIL_LIMIT_COUNT_KEY_PREFIX}daily:%`, currentDailyKey),
+        c.env.DB.prepare(
+            `DELETE FROM settings
+            WHERE key LIKE ?
+            AND key < ?`
+        ).bind(`${CONSTANTS.SEND_MAIL_LIMIT_COUNT_KEY_PREFIX}monthly:%`, currentMonthlyKey),
+    ]);
+}
+
 export const ensureSendMailLimit = async (
     c: Context<HonoCustomType>
 ): Promise<void> => {
-    const msgs = i18n.getMessagesbyContext(c);
-    const config = await getSendMailLimitConfig(c);
-    if (!config || (!config.dailyEnabled && !config.monthlyEnabled)) {
-        return;
-    }
-    const kv = requireLimitKV(c);
-    if (config.dailyEnabled && config.dailyLimit !== null && config.dailyLimit !== -1) {
-        const current = await getCount(kv, getDailyCountKey());
-        if (current >= config.dailyLimit) {
-            throw new Error(`${msgs.ServerSendMailDailyLimitMsg} (${current}/${config.dailyLimit})`);
+    try {
+        const msgs = i18n.getMessagesbyContext(c);
+        const config = await getSendMailLimitConfig(c);
+        if (!config || (!config.dailyEnabled && !config.monthlyEnabled)) {
+            return;
         }
-    }
-    if (config.monthlyEnabled && config.monthlyLimit !== null && config.monthlyLimit !== -1) {
-        const current = await getCount(kv, getMonthlyCountKey());
-        if (current >= config.monthlyLimit) {
-            throw new Error(`${msgs.ServerSendMailMonthlyLimitMsg} (${current}/${config.monthlyLimit})`);
+        if (config.dailyEnabled && config.dailyLimit !== null && config.dailyLimit !== -1) {
+            const current = await getCount(c, getDailyCountKey());
+            if (current >= config.dailyLimit) {
+                throw new SendMailLimitError(msgs.ServerSendMailDailyLimitMsg);
+            }
         }
+        if (config.monthlyEnabled && config.monthlyLimit !== null && config.monthlyLimit !== -1) {
+            const current = await getCount(c, getMonthlyCountKey());
+            if (current >= config.monthlyLimit) {
+                throw new SendMailLimitError(msgs.ServerSendMailMonthlyLimitMsg);
+            }
+        }
+    } catch (error) {
+        if (error instanceof SendMailLimitError) {
+            throw error;
+        }
+        console.warn("Failed to ensure send mail limit", error);
     }
-}
-
-const getNextUtcDayExpiration = (date: Date = new Date()): number => {
-    return Math.floor(Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate() + 1,
-        0, 0, 0
-    ) / 1000);
-}
-
-const getNextUtcMonthExpiration = (date: Date = new Date()): number => {
-    return Math.floor(Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth() + 1,
-        1,
-        0, 0, 0
-    ) / 1000);
 }
 
 const increaseCount = async (
-    kv: KVNamespace,
+    c: Context<HonoCustomType>,
     key: string,
-    expiration: number
 ): Promise<void> => {
-    const current = await getCount(kv, key);
-    const now = Math.floor(Date.now() / 1000);
-    const expirationTtl = Math.max(expiration - now, 60);
-    await kv.put(key, String(current + 1), { expirationTtl });
+    await c.env.DB.prepare(
+        `INSERT INTO settings (key, value)
+        VALUES (?, '1')
+        ON CONFLICT(key) DO UPDATE SET
+            value = CAST(COALESCE(value, '0') AS INTEGER) + 1,
+            updated_at = datetime('now')`
+    ).bind(key).run();
 }
 
 export const increaseSendMailLimitCount = async (
     c: Context<HonoCustomType>
 ): Promise<void> => {
-    const config = await getSendMailLimitConfig(c);
-    if (!config || (!config.dailyEnabled && !config.monthlyEnabled)) {
-        return;
-    }
-    const kv = requireLimitKV(c);
     try {
+        const config = await getSendMailLimitConfig(c);
+        if (!config || (!config.dailyEnabled && !config.monthlyEnabled)) {
+            return;
+        }
+        const dailyKey = getDailyCountKey();
+        const monthlyKey = getMonthlyCountKey();
         if (config.dailyEnabled) {
-            await increaseCount(kv, getDailyCountKey(), getNextUtcDayExpiration());
+            await increaseCount(c, dailyKey);
         }
         if (config.monthlyEnabled) {
-            await increaseCount(kv, getMonthlyCountKey(), getNextUtcMonthExpiration());
+            await increaseCount(c, monthlyKey);
         }
-    } catch (e) {
-        console.warn(`Failed to increment send_mail_limit_count`, e);
+        await cleanupSendMailLimitCount(c, dailyKey, monthlyKey);
+    } catch (error) {
+        if (error instanceof SendMailLimitError) {
+            throw error;
+        }
+        console.warn(`Failed to increment send_mail_limit_count`, error);
     }
 }

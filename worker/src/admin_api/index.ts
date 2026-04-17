@@ -394,13 +394,6 @@ api.post('/admin/account_settings', async (c) => {
     if (sendMailLimitConfig && !validateSendMailLimitConfig(sendMailLimitConfig)) {
         return c.text(msgs.InvalidInputMsg, 400)
     }
-    if (
-        sendMailLimitConfigToSave
-        && (sendMailLimitConfigToSave.dailyEnabled || sendMailLimitConfigToSave.monthlyEnabled)
-        && !c.env.KV
-    ) {
-        return c.text(msgs.EnableKVMsg, 400)
-    }
     await saveSetting(
         c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
         JSON.stringify(blockList)
