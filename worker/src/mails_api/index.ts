@@ -9,6 +9,7 @@ import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
 import s3_attachment from './s3_attachment';
 import address_auth from './address_auth';
+import { getSendBalanceState } from './send_balance';
 
 export const api = new Hono<HonoCustomType>()
 
@@ -94,11 +95,7 @@ api.get('/api/settings', async (c) => {
 
     updateAddressUpdatedAt(c, address);
 
-    const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
-    const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
-    const balance = is_no_limit_send_balance ? 99999 : await c.env.DB.prepare(
-        `SELECT balance FROM address_sender where address = ? and enabled = 1`
-    ).bind(address).first("balance");
+    const { balance } = await getSendBalanceState(c, address);
     return c.json({
         address: address,
         send_balance: balance || 0,

@@ -1,18 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress, requestSendAccess } from '../../fixtures/test-helpers';
+import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress } from '../../fixtures/test-helpers';
 
 test.describe('Address Lifecycle', () => {
-  test('create address, request send access, fetch settings, then delete', async ({ request }) => {
+  test('create address, auto-init send balance via settings, then delete', async ({ request }) => {
     // Create address
     const { jwt, address, address_id } = await createTestAddress(request, 'lifecycle-test');
     expect(address).toContain('@' + TEST_DOMAIN);
     expect(jwt).toBeTruthy();
     expect(address_id).toBeGreaterThan(0);
 
-    // Request send access (creates address_sender row with DEFAULT_SEND_BALANCE)
-    await requestSendAccess(request, jwt);
-
-    // Fetch address settings — balance should match DEFAULT_SEND_BALANCE=10
+    // Fetch address settings — balance should auto-initialize from DEFAULT_SEND_BALANCE=10
     const settingsRes = await request.get(`${WORKER_URL}/api/settings`, {
       headers: { Authorization: `Bearer ${jwt}` },
     });
