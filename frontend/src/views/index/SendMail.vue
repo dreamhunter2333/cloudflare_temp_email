@@ -144,6 +144,7 @@ const send = async () => {
             contentType: 'text',
             content: "",
         }
+        isPreview.value = false
         message.success(t("successSend"));
         indexTab.value = 'sendbox'
     } catch (error) {
