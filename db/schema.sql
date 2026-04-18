@@ -50,7 +50,6 @@ CREATE TABLE IF NOT EXISTS address_sender (
     address TEXT UNIQUE,
     balance INTEGER DEFAULT 0,
     enabled INTEGER DEFAULT 1,
-    source TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

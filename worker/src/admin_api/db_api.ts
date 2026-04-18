@@ -55,7 +55,6 @@ CREATE TABLE IF NOT EXISTS address_sender (
     address TEXT UNIQUE,
     balance INTEGER DEFAULT 0,
     enabled INTEGER DEFAULT 1,
-    source TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -197,27 +196,6 @@ export default {
             if (!hasRawBlob) {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_blob BLOB;`);
             }
-        }
-        if (version && version <= "v0.0.7") {
-            // migration to v0.0.8: add source column to address_sender to
-            // separate legacy repair from admin/user control state
-            const tableInfo = await c.env.DB.prepare(
-                `PRAGMA table_info(address_sender)`
-            ).all();
-            const hasSource = tableInfo.results?.some(
-                (col: any) => col.name === 'source'
-            );
-            if (!hasSource) {
-                await c.env.DB.exec(`ALTER TABLE address_sender ADD COLUMN source TEXT;`);
-            }
-            // Backfill pre-migration rows as 'legacy' so ensureDefaultSendBalance
-            // cannot silently re-enable an admin-disabled row from an older
-            // schema. Pre-v0.0.8 data cannot distinguish legacy request-send
-            // remnants from admin-disabled rows, so we treat all of them as
-            // off-limits to runtime auto-repair.
-            await c.env.DB.exec(
-                `UPDATE address_sender SET source = 'legacy' WHERE source IS NULL;`
-            );
         }
         if (version != CONSTANTS.DB_VERSION) {
             // remove all \r and \n characters from the query string

@@ -6,7 +6,6 @@ import {
   deleteAddress,
   deleteAddressSender,
   getAddressSender,
-  resetSenderToLegacy,
   updateAddressSender,
 } from '../../fixtures/test-helpers';
 
@@ -40,48 +39,6 @@ test.describe('Send Access', () => {
     }
   });
 
-  test('legacy (source=legacy) disabled zero-balance rows stay untouched by runtime auto-init', async ({ request }) => {
-    const { jwt, address } = await createTestAddress(request, 'send-access-legacy');
-
-    try {
-      await requestSendAccess(request, jwt);
-
-      // Simulate a post-migration legacy row: the v0.0.8 migration backfills
-      // every pre-existing address_sender row with source='legacy' because
-      // older schemas cannot tell legacy remnants from admin-disabled rows.
-      await resetSenderToLegacy(request, address);
-
-      // Reading settings must not re-enable a legacy row.
-      const settingsRes = await request.get(`${WORKER_URL}/api/settings`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      });
-      expect(settingsRes.ok()).toBe(true);
-      const settings = await settingsRes.json();
-      expect(settings.send_balance).toBe(0);
-
-      // Attempting to send must also fail and must not re-enable the row.
-      const sendRes = await request.post(`${WORKER_URL}/api/send_mail`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-        data: {
-          from_name: 'E2E',
-          to_name: 'E2E',
-          to_mail: 'recipient@test.example.com',
-          subject: 'should not send',
-          content: 'body',
-          is_html: false,
-        },
-      });
-      expect(sendRes.ok()).toBe(false);
-
-      const unchanged = await getAddressSender(request, address);
-      expect(unchanged.balance).toBe(0);
-      expect(unchanged.enabled).toBe(0);
-      expect(unchanged.source).toBe('legacy');
-    } finally {
-      await deleteAddress(request, jwt);
-    }
-  });
-
   test('admin-disabled rows are not overwritten by settings or send', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'sa-admin-blocked');
 
@@ -107,7 +64,6 @@ test.describe('Send Access', () => {
       const stillDisabled = await getAddressSender(request, address);
       expect(stillDisabled.balance).toBe(0);
       expect(stillDisabled.enabled).toBe(0);
-      expect(stillDisabled.source).toBe('admin');
 
       // Attempting to send must also fail and must not auto-repair the row.
       const sendRes = await request.post(`${WORKER_URL}/api/send_mail`, {
@@ -126,7 +82,6 @@ test.describe('Send Access', () => {
       const afterSend = await getAddressSender(request, address);
       expect(afterSend.balance).toBe(0);
       expect(afterSend.enabled).toBe(0);
-      expect(afterSend.source).toBe('admin');
     } finally {
       await deleteAddress(request, jwt);
     }
@@ -154,11 +109,10 @@ test.describe('Send Access', () => {
       });
       expect(sendRes.ok()).toBe(true);
 
-      // A new row should exist, tagged 'auto', with balance decremented by 1.
+      // A fresh row should exist with the default balance decremented by 1.
       const recreated = await getAddressSender(request, address);
       expect(recreated.enabled).toBe(1);
       expect(recreated.balance).toBe(9);
-      expect(recreated.source).toBe('auto');
     } finally {
       await deleteAddress(request, jwt);
     }

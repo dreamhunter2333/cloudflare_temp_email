@@ -14,14 +14,10 @@ const ensureDefaultSendBalance = async (
     if (default_balance <= 0) {
         return;
     }
-    // Only create rows that don't exist yet. Tag them 'auto' so future
-    // admin/user writes can be distinguished from runtime-managed state.
-    // Existing rows are never touched here — any pre-migration row is
-    // marked 'legacy' by the v0.0.8 migration and recovery is delegated
-    // to the admin UI, because pre-v0.0.8 data cannot distinguish legacy
-    // remnants from admin-disabled rows.
+    // Auto-initialize a sender row only when one does not exist yet.
+    // Existing rows — including admin-disabled ones — are never touched.
     await c.env.DB.prepare(
-        `INSERT INTO address_sender (address, balance, enabled, source) VALUES (?, ?, ?, 'auto')
+        `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)
         ON CONFLICT(address) DO NOTHING`
     ).bind(address, default_balance, 1).run();
 }
@@ -93,7 +89,7 @@ export const requestSendMailAccess = async (
     }
     try {
         const { success } = await c.env.DB.prepare(
-            `INSERT INTO address_sender (address, balance, enabled, source) VALUES (?, ?, ?, 'user')`
+            `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
         ).bind(
             address, default_balance, default_balance > 0 ? 1 : 0
         ).run();
