@@ -9,6 +9,7 @@ import { api } from '../../api'
 const message = useMessage()
 const isPreview = ref(false)
 const editorRef = shallowRef()
+const sending = ref(false)
 
 const sendMailModel = useSessionStorage('sendMailByAdminModel', {
     fromName: "",
@@ -33,6 +34,10 @@ const { t } = useI18n({
             preview: 'Preview',
             content: 'Content',
             send: 'Send',
+            fromMailEmpty: 'Sender address is empty',
+            subjectEmpty: 'Subject is empty',
+            toMailEmpty: 'Recipient address is empty',
+            contentEmpty: 'Content is empty',
             text: 'Text',
             html: 'HTML',
             'rich text': 'Rich Text',
@@ -48,6 +53,10 @@ const { t } = useI18n({
             preview: '预览',
             content: '内容',
             send: '发送',
+            fromMailEmpty: '发件人地址不能为空',
+            subjectEmpty: '主题不能为空',
+            toMailEmpty: '收件人地址不能为空',
+            contentEmpty: '内容不能为空',
             text: '文本',
             html: 'HTML',
             'rich text': '富文本',
@@ -62,21 +71,65 @@ const contentTypes = [
     { label: t('rich text'), value: 'rich' },
 ]
 
+const hasSendMailContent = (content, contentType) => {
+    if (contentType === 'text') {
+        return content.trim().length > 0
+    }
+
+    const plainContent = content
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .trim()
+    if (plainContent) {
+        return true
+    }
+
+    return /<(img|audio|video|iframe|svg|canvas|table)\b/i.test(content)
+}
+
 const send = async () => {
+    if (sending.value) {
+        return
+    }
+
+    const fromMail = `${sendMailModel.value.fromMail ?? ''}`.trim()
+    const toMail = `${sendMailModel.value.toMail ?? ''}`.trim()
+    const subject = `${sendMailModel.value.subject ?? ''}`.trim()
+    const content = `${sendMailModel.value.content ?? ''}`
+
+    if (!fromMail) {
+        message.error(t('fromMailEmpty'))
+        return
+    }
+    if (!subject) {
+        message.error(t('subjectEmpty'))
+        return
+    }
+    if (!toMail) {
+        message.error(t('toMailEmpty'))
+        return
+    }
+    if (!hasSendMailContent(content, sendMailModel.value.contentType)) {
+        message.error(t('contentEmpty'))
+        return
+    }
+
+    const payload = {
+        from_name: sendMailModel.value.fromName,
+        from_mail: fromMail,
+        to_name: sendMailModel.value.toName,
+        to_mail: toMail,
+        subject,
+        is_html: sendMailModel.value.contentType != 'text',
+        content,
+    }
+
+    sending.value = true
     try {
         await api.fetch(`/admin/send_mail`,
             {
                 method: 'POST',
-                body:
-                    JSON.stringify({
-                        from_name: sendMailModel.value.fromName,
-                        from_mail: sendMailModel.value.fromMail,
-                        to_name: sendMailModel.value.toName,
-                        to_mail: sendMailModel.value.toMail,
-                        subject: sendMailModel.value.subject,
-                        is_html: sendMailModel.value.contentType != 'text',
-                        content: sendMailModel.value.content,
-                    })
+                body: JSON.stringify(payload)
             })
         sendMailModel.value = {
             fromName: "",
@@ -87,10 +140,11 @@ const send = async () => {
             contentType: 'text',
             content: "",
         }
+        message.success(t("successSend"));
     } catch (error) {
         message.error(error.message || "error");
     } finally {
-        message.success(t("successSend"));
+        sending.value = false
     }
 }
 
@@ -125,7 +179,7 @@ const handleCreated = (editor) => {
     <div class="center">
         <n-card :bordered="false" embedded>
             <n-flex justify="end">
-                <n-button type="primary" @click="send">{{ t('send') }}</n-button>
+                <n-button type="primary" :loading="sending" :disabled="sending" @click="send">{{ t('send') }}</n-button>
             </n-flex>
             <div class="left">
                 <n-form :model="sendMailModel">

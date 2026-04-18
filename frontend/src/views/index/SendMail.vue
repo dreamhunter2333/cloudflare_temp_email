@@ -11,6 +11,7 @@ import { api } from '../../api'
 const message = useMessage()
 const isPreview = ref(false)
 const editorRef = shallowRef()
+const sending = ref(false)
 
 
 const { settings, sendMailModel, indexTab, userSettings } = useGlobalState()
@@ -28,6 +29,9 @@ const { t } = useI18n({
             preview: 'Preview',
             content: 'Content',
             send: 'Send',
+            subjectEmpty: 'Subject is empty',
+            toMailEmpty: 'Recipient address is empty',
+            contentEmpty: 'Content is empty',
             requestAccess: 'Request Access',
             requestAccessTip: 'You need to request access to send mail, if have request, please contact admin.',
             send_balance: 'Send Mail Balance Left',
@@ -46,6 +50,9 @@ const { t } = useI18n({
             preview: '预览',
             content: '内容',
             send: '发送',
+            subjectEmpty: '主题不能为空',
+            toMailEmpty: '收件人地址不能为空',
+            contentEmpty: '内容不能为空',
             requestAccess: '申请权限',
             requestAccessTip: '您需要申请权限才能发送邮件, 如果已经申请过, 请联系管理员提升额度。',
             send_balance: '剩余发送邮件额度',
@@ -63,20 +70,59 @@ const contentTypes = [
     { label: t('rich text'), value: 'rich' },
 ]
 
+const hasSendMailContent = (content, contentType) => {
+    if (contentType === 'text') {
+        return content.trim().length > 0
+    }
+
+    const plainContent = content
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .trim()
+    if (plainContent) {
+        return true
+    }
+
+    return /<(img|audio|video|iframe|svg|canvas|table)\b/i.test(content)
+}
+
 const send = async () => {
+    if (sending.value) {
+        return
+    }
+
+    const subject = `${sendMailModel.value.subject ?? ''}`.trim()
+    const toMail = `${sendMailModel.value.toMail ?? ''}`.trim()
+    const content = `${sendMailModel.value.content ?? ''}`
+
+    if (!subject) {
+        message.error(t('subjectEmpty'))
+        return
+    }
+    if (!toMail) {
+        message.error(t('toMailEmpty'))
+        return
+    }
+    if (!hasSendMailContent(content, sendMailModel.value.contentType)) {
+        message.error(t('contentEmpty'))
+        return
+    }
+
+    const payload = {
+        from_name: sendMailModel.value.fromName,
+        to_name: sendMailModel.value.toName,
+        to_mail: toMail,
+        subject,
+        is_html: sendMailModel.value.contentType != 'text',
+        content,
+    }
+
+    sending.value = true
     try {
         await api.fetch(`/api/send_mail`,
             {
                 method: 'POST',
-                body:
-                    JSON.stringify({
-                        from_name: sendMailModel.value.fromName,
-                        to_name: sendMailModel.value.toName,
-                        to_mail: sendMailModel.value.toMail,
-                        subject: sendMailModel.value.subject,
-                        is_html: sendMailModel.value.contentType != 'text',
-                        content: sendMailModel.value.content,
-                    })
+                body: JSON.stringify(payload)
             })
         sendMailModel.value = {
             fromName: "",
@@ -86,11 +132,12 @@ const send = async () => {
             contentType: 'text',
             content: "",
         }
+        message.success(t("successSend"));
+        indexTab.value = 'sendbox'
     } catch (error) {
         message.error(error.message || "error");
     } finally {
-        message.success(t("successSend"));
-        indexTab.value = 'sendbox'
+        sending.value = false
     }
 }
 
@@ -158,7 +205,7 @@ onMounted(async () => {
                     {{ t('send_balance') }}: {{ settings.send_balance }}
                 </n-alert>
                 <n-flex justify="end">
-                    <n-button type="primary" @click="send">{{ t('send') }}</n-button>
+                    <n-button type="primary" :loading="sending" :disabled="sending" @click="send">{{ t('send') }}</n-button>
                 </n-flex>
                 <div class="left">
                     <n-form :model="sendMailModel">
