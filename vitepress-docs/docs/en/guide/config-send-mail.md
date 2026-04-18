@@ -1,11 +1,48 @@
 
 # Configure Email Sending
 
-::: warning Note
-All three methods can be configured simultaneously. When sending emails, it will prioritize using `resend`, if `resend` is not configured, it will use `smtp`.
+::: tip Recommended
+Use Cloudflare `send_email` binding as the default send channel. Bind `SEND_MAIL` and finish Email Routing onboarding, then the Worker can send to any external address directly.
 
-If a Cloudflare authenticated forwarding email address is configured, CF's internal API will be prioritized for sending emails
+Workers Paid includes 3,000 messages/month, then $0.35 per 1,000 messages.
 :::
+
+## Send Channel Priority
+
+Each `/api/send_mail` request matches channels in order; **the first hit sends**:
+
+| Order | Condition | Channel | Deducts balance |
+|-------|-----------|---------|----------------|
+| 1 | `SEND_MAIL` bound **AND** recipient in `verifiedAddressList` | Cloudflare binding (compat mode) | No |
+| 2 | `RESEND_TOKEN` or `RESEND_TOKEN_<DOMAIN>` set | Resend API | Yes |
+| 3 | `SMTP_CONFIG` has entry for current domain | worker-mailer SMTP | Yes |
+| 4 | `SEND_MAIL` bound (none of the above) | **Cloudflare binding (recommended primary)** | Yes |
+| — | None of the above | Throws | — |
+
+> [!NOTE]
+> Binding send failures return an error directly.
+
+## Using the Cloudflare `send_email` Binding (Recommended)
+
+Only available when deploying via CLI. Add to `wrangler.toml`:
+
+```toml
+# Send emails via the Cloudflare send_email binding
+send_email = [
+   { name = "SEND_MAIL" },
+]
+```
+
+> [!warning] Important
+> The binding name must be `SEND_MAIL` — different from Cloudflare's official `SEND_EMAIL` example.
+
+After the following steps, you can send to any external address directly:
+
+1. Enable Email Routing on the domain in the Cloudflare Dashboard and complete onboarding
+2. Add the `send_email` binding shown above to `wrangler.toml`
+3. Deploy the Worker
+
+No additional env var is required.
 
 ## Send Emails Using Resend
 
@@ -118,19 +155,18 @@ Users need a send balance to send emails. The balance mechanism works as follows
    - Configure the `NO_LIMIT_SEND_ROLE` environment variable to specify roles that can send without limits
 
 > [!NOTE]
-> `DEFAULT_SEND_BALANCE` is applied through an `INSERT ... ON CONFLICT` upsert to auto-initialize or repair old `balance = 0 && enabled = 0` sender rows, but it does **not** automatically refill addresses that were already enabled and later used up their quota.
+> `DEFAULT_SEND_BALANCE` is auto-initialized the first time a user opens the send settings or calls the send-mail API, and also performs a one-shot repair on legacy rows with `balance = 0 && enabled = 0` that were never touched by admin/user actions (`source IS NULL`). It does **not** overwrite admin-disabled or user-managed rows, and does **not** refill addresses that were already enabled and later used up their quota.
+>
+> Layer 1 (`verifiedAddressList` hit) does not deduct balance, but it still counts toward send limits; layers 2/3/4 all deduct balance.
+>
+> Send limits apply to **all** send channels, including admin send endpoints.
+>
+> Daily and monthly windows are calculated in **UTC**.
+>
+> The current limit implementation is a **soft guard**. It is suitable for routine quota control, but it should not be treated as a strict hard-stop cost gate under database errors or high concurrency.
 
 ## Send Emails to Authenticated Forwarding Addresses on Cloudflare
 
-Only supported for CLI deployment, add `send_email` configuration in `wrangler.toml`.
+Typical use case: non-onboarded domains or Workers free-tier users.
 
-The destination email address must be an authenticated email address on Cloudflare, which has significant limitations. If you need to send emails to other addresses, you can use `resend` or `smtp` to send emails.
-
-```toml
-# Send emails through Cloudflare
-send_email = [
-   { name = "SEND_MAIL" },
-]
-```
-
-Admin console account configuration `Verified address list (can send emails through CF internal API)`
+In this compatibility mode, mail is sent via `SEND_MAIL` binding only when the recipient is in the admin `Verified Address List`.

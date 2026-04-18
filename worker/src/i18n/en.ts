@@ -71,13 +71,16 @@ const messages: LocaleMessages = {
     ContentEmptyMsg: "Content is empty",
     AlreadyRequestedMsg: "Already requested",
     EnableResendOrSmtpMsg: "Please enable resend or smtp for this domain",
-    EnableResendOrSmtpWithVerifiedMsg: "Please enable resend or smtp for this domain, or add recipient to verified address list",
+    EnableResendOrSmtpOrSendMailMsg: "Please enable resend, smtp or SEND_MAIL for this domain",
+    ServerSendMailDailyLimitMsg: "Server daily send quota has been reached",
+    ServerSendMailMonthlyLimitMsg: "Server monthly send quota has been reached",
     InvalidToMailMsg: "Invalid recipient address",
 
     // Admin related
     InvalidAddressIdMsg: "Invalid address_id",
     EnableKVMsg: "Please enable KV first",
     EnableSendMailMsg: "Please enable SEND_MAIL first",
+    EnableSendMailForDomainMsg: "Please enable SEND_MAIL for this domain first",
     InvalidCleanupConfigMsg: "Invalid cleanType or cleanDays",
     InvalidCleanTypeMsg: "Invalid cleanType",
     EnableKVForMailVerifyMsg: "Please enable KV first if you want to enable mail verify",
