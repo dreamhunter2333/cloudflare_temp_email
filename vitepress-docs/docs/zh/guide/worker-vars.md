@@ -39,6 +39,7 @@
 | `ENABLE_AUTO_REPLY`                   | 文本/JSON | 允许自动回复邮件。发件人过滤（`source_prefix`）支持三种模式：留空匹配所有发件人、填写前缀进行 `startsWith` 匹配、使用 `/regex/` 语法进行正则匹配（如 `/@example\.com$/`） | `true`                                    |
 | `DEFAULT_SEND_BALANCE`                | 文本/JSON | 默认发送邮件余额，如果不设置，将为 0                                                                                              | `1`                                       |
 | `ENABLE_ADDRESS_PASSWORD`             | 文本/JSON | 启用邮箱地址密码功能，启用后创建新地址时会自动生成密码，并支持密码登录和修改                                                      | `true`                                    |
+| `SEND_MAIL_DOMAINS`                   | JSON      | 限制 `SEND_MAIL` binding 可用于哪些发件域名；留空或不配置时允许所有域名                                                            | `["example.com", "mail.example.com"]`     |
 
 > [!NOTE]
 > `RANDOM_SUBDOMAIN_DOMAINS` 只负责“创建地址时自动补随机子域名”，不会自动帮你创建 Cloudflare
@@ -54,6 +55,9 @@
 >
 > 管理后台提供三种显式状态：**跟随环境变量**、**强制开启**、**强制关闭**。当你选择
 > “跟随环境变量”并保存时，会清空后台覆盖，恢复到“未设置”的回退行为。
+>
+> `SEND_MAIL_DOMAINS` 只影响 `SEND_MAIL` binding 的兜底发信路径和 `/admin/send_mail_by_binding`。
+> 它不影响 Resend、SMTP、`verifiedAddressList` 等其他发信通道。
 
 ## 接受邮件相关变量
 

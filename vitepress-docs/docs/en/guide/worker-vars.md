@@ -39,6 +39,7 @@
 | `ENABLE_AUTO_REPLY`                   | Text/JSON | Allow automatic email replies. Sender filter (`source_prefix`) supports three modes: empty to match all senders, prefix for `startsWith` matching, or `/regex/` syntax for regex matching (e.g. `/@example\.com$/`) | `true`                                    |
 | `DEFAULT_SEND_BALANCE`                | Text/JSON | Default email sending balance, will be 0 if not set                                                                                                                                                               | `1`                                       |
 | `ENABLE_ADDRESS_PASSWORD`             | Text/JSON | Enable address password feature, when enabled, passwords will be auto-generated for new addresses, supports password login and modification                                                                       | `true`                                    |
+| `SEND_MAIL_DOMAINS`                   | JSON      | Restrict which sender domains can use the `SEND_MAIL` binding; when unset or empty, all domains are allowed                                                                                                     | `["example.com", "mail.example.com"]`     |
 
 > [!NOTE]
 > `RANDOM_SUBDOMAIN_DOMAINS` only controls automatic random subdomain generation during mailbox
@@ -58,6 +59,9 @@
 > The admin panel exposes three explicit states: **Follow Environment Variable**, **Force Enable**,
 > and **Force Disable**. Saving **Follow Environment Variable** clears the admin override and returns
 > the feature to the "unset" fallback behavior.
+>
+> `SEND_MAIL_DOMAINS` only affects the `SEND_MAIL` binding fallback path and
+> `/admin/send_mail_by_binding`. It does not affect Resend, SMTP, or `verifiedAddressList`.
 
 ## Email Reception Related Variables
 
