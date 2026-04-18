@@ -70,16 +70,28 @@ const contentTypes = [
     { label: t('rich text'), value: 'rich' },
 ]
 
+const normalizeSendMailText = (content) => {
+    return content
+        .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
 const hasSendMailContent = (content, contentType) => {
-    if (contentType === 'text') {
-        return content.trim().length > 0
+    if (typeof content !== 'string' || !content) {
+        return false
     }
 
-    const plainContent = content
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/gi, ' ')
-        .trim()
-    if (plainContent) {
+    if (contentType === 'text') {
+        return normalizeSendMailText(content).length > 0
+    }
+
+    const container = document.createElement('div')
+    container.innerHTML = content
+    container.querySelectorAll('script, style, noscript, template').forEach((node) => node.remove())
+
+    const plainContent = normalizeSendMailText(container.textContent ?? '')
+    if (plainContent.length > 0) {
         return true
     }
 
