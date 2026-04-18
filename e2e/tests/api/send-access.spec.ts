@@ -40,27 +40,43 @@ test.describe('Send Access', () => {
     }
   });
 
-  test('settings repairs legacy (source IS NULL) disabled zero-balance rows', async ({ request }) => {
+  test('legacy (source=legacy) disabled zero-balance rows stay untouched by runtime auto-init', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'send-access-legacy');
 
     try {
       await requestSendAccess(request, jwt);
 
-      // Simulate a pre-migration row: disabled, zero balance, no source tag.
+      // Simulate a post-migration legacy row: the v0.0.8 migration backfills
+      // every pre-existing address_sender row with source='legacy' because
+      // older schemas cannot tell legacy remnants from admin-disabled rows.
       await resetSenderToLegacy(request, address);
 
+      // Reading settings must not re-enable a legacy row.
       const settingsRes = await request.get(`${WORKER_URL}/api/settings`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
       expect(settingsRes.ok()).toBe(true);
       const settings = await settingsRes.json();
-      expect(settings.send_balance).toBe(10);
+      expect(settings.send_balance).toBe(0);
 
-      const repairedSender = await getAddressSender(request, address);
-      expect(repairedSender.balance).toBe(10);
-      expect(repairedSender.enabled).toBe(1);
-      // Legacy rows graduate into the 'auto' lifecycle after repair.
-      expect(repairedSender.source).toBe('auto');
+      // Attempting to send must also fail and must not re-enable the row.
+      const sendRes = await request.post(`${WORKER_URL}/api/send_mail`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        data: {
+          from_name: 'E2E',
+          to_name: 'E2E',
+          to_mail: 'recipient@test.example.com',
+          subject: 'should not send',
+          content: 'body',
+          is_html: false,
+        },
+      });
+      expect(sendRes.ok()).toBe(false);
+
+      const unchanged = await getAddressSender(request, address);
+      expect(unchanged.balance).toBe(0);
+      expect(unchanged.enabled).toBe(0);
+      expect(unchanged.source).toBe('legacy');
     } finally {
       await deleteAddress(request, jwt);
     }

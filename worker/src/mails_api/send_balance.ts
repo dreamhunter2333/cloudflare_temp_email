@@ -14,19 +14,15 @@ const ensureDefaultSendBalance = async (
     if (default_balance <= 0) {
         return;
     }
-    // New rows are tagged source='auto' so admin/user-controlled rows are
-    // never overwritten by auto-init. Legacy rows (source IS NULL) are
-    // repaired once and then also move into the 'auto' lifecycle.
+    // Only create rows that don't exist yet. Tag them 'auto' so future
+    // admin/user writes can be distinguished from runtime-managed state.
+    // Existing rows are never touched here — any pre-migration row is
+    // marked 'legacy' by the v0.0.8 migration and recovery is delegated
+    // to the admin UI, because pre-v0.0.8 data cannot distinguish legacy
+    // remnants from admin-disabled rows.
     await c.env.DB.prepare(
         `INSERT INTO address_sender (address, balance, enabled, source) VALUES (?, ?, ?, 'auto')
-        ON CONFLICT(address) DO UPDATE SET
-            balance = excluded.balance,
-            enabled = excluded.enabled,
-            source = excluded.source
-        WHERE excluded.balance > 0
-            AND address_sender.balance <= 0
-            AND address_sender.enabled = 0
-            AND address_sender.source IS NULL`
+        ON CONFLICT(address) DO NOTHING`
     ).bind(address, default_balance, 1).run();
 }
 

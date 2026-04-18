@@ -18,7 +18,7 @@
 
 ### Bug Fixes
 
-- fix: |Send Mail| Auto-initialize send balance when `DEFAULT_SEND_BALANCE > 0` so users no longer need to manually request send permission first; add an `address_sender.source` column to tag rows as legacy / auto / user / admin, so auto-repair only touches legacy rows (`source IS NULL`) and never overwrites admin- or user-controlled state (#925 #985)
+- fix: |Send Mail| Auto-initialize send balance when `DEFAULT_SEND_BALANCE > 0` on the first send-settings read or send API call so users no longer need to manually request send permission first. Add an `address_sender.source` column to tag rows as legacy / auto / user / admin; runtime auto-init only inserts **new** rows (`ON CONFLICT DO NOTHING`) and never touches existing ones. The v0.0.8 migration backfills every pre-existing row with `source = 'legacy'`; these legacy rows, along with admin-disabled or user-managed rows, are off-limits to runtime auto-repair and must be restored manually by an admin if needed (#925 #985)
 - fix: |User Mailbox| Fix an issue where the user center still showed delete actions and could still delete mail via `/user_api/mails/:id` when `ENABLE_USER_DELETE_EMAIL` was disabled (#978)
 - fix: |Address| Lowercase configured prefixes when creating addresses to avoid generating mixed-case mailbox names; existing data must be migrated to lowercase manually by the user (#930)
 

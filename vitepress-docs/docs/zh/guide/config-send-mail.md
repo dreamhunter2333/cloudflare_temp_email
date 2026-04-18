@@ -155,7 +155,7 @@ wrangler secret put SMTP_CONFIG
    - 配置 `NO_LIMIT_SEND_ROLE` 环境变量，指定可以无限发送的用户角色
 
 > [!NOTE]
-> `DEFAULT_SEND_BALANCE` 会在首次打开发信设置或调用发信接口时自动初始化，同时对旧版 `balance = 0 且 enabled = 0` 且未被管理员/用户显式管理的历史记录（`source IS NULL`）做一次性修复；**不会**覆盖管理员禁用或手动设置的记录，也不会给已启用并用完额度的地址自动充值。
+> `DEFAULT_SEND_BALANCE` 会在首次打开发信设置或调用发信接口时自动为**尚未建过 sender 记录**的地址插入初始额度（`ON CONFLICT DO NOTHING`），**不会**覆盖任何已有记录。升级到 v0.0.8 时，迁移会把存量行 backfill 为 `source = 'legacy'`，这些历史行与管理员禁用 / 用户手动申请的记录一样，都不在 runtime 自动修复范围内；如需让某个历史地址重新可发信，请由管理员在后台启用并设置余额。
 >
 > 第 1 层 `verifiedAddressList` 命中时不扣余额，但同样计入发信额度；第 2/3/4 层统一扣 balance。
 >

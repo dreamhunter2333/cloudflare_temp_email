@@ -155,7 +155,7 @@ Users need a send balance to send emails. The balance mechanism works as follows
    - Configure the `NO_LIMIT_SEND_ROLE` environment variable to specify roles that can send without limits
 
 > [!NOTE]
-> `DEFAULT_SEND_BALANCE` is auto-initialized the first time a user opens the send settings or calls the send-mail API, and also performs a one-shot repair on legacy rows with `balance = 0 && enabled = 0` that were never touched by admin/user actions (`source IS NULL`). It does **not** overwrite admin-disabled or user-managed rows, and does **not** refill addresses that were already enabled and later used up their quota.
+> `DEFAULT_SEND_BALANCE` is applied on the first send-settings read or send-mail call and inserts an initial quota **only for addresses that do not yet have a sender row** (`ON CONFLICT DO NOTHING`); existing rows are never overwritten. Upgrading to v0.0.8 backfills every pre-existing row with `source = 'legacy'`, and those rows — along with admin-disabled and user-requested rows — are excluded from runtime auto-repair. Restoring a legacy address must go through the admin console (enable + set balance).
 >
 > Layer 1 (`verifiedAddressList` hit) does not deduct balance, but it still counts toward send limits; layers 2/3/4 all deduct balance.
 >

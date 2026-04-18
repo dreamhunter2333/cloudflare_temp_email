@@ -210,6 +210,14 @@ export default {
             if (!hasSource) {
                 await c.env.DB.exec(`ALTER TABLE address_sender ADD COLUMN source TEXT;`);
             }
+            // Backfill pre-migration rows as 'legacy' so ensureDefaultSendBalance
+            // cannot silently re-enable an admin-disabled row from an older
+            // schema. Pre-v0.0.8 data cannot distinguish legacy request-send
+            // remnants from admin-disabled rows, so we treat all of them as
+            // off-limits to runtime auto-repair.
+            await c.env.DB.exec(
+                `UPDATE address_sender SET source = 'legacy' WHERE source IS NULL;`
+            );
         }
         if (version != CONSTANTS.DB_VERSION) {
             // remove all \r and \n characters from the query string

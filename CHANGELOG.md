@@ -18,7 +18,7 @@
 
 ### Bug Fixes
 
-- fix: |发送邮件| 当 `DEFAULT_SEND_BALANCE > 0` 时，自动初始化发信额度，用户不再需要先手动申请发信权限；新增 `address_sender.source` 列区分 legacy / auto / user / admin 来源，自动修复仅作用于 `source IS NULL` 的历史异常记录，管理员禁用或手动设置的记录不会被自动覆盖（#925 #985）
+- fix: |发送邮件| 当 `DEFAULT_SEND_BALANCE > 0` 时，首次访问发信设置或发信接口会自动初始化发信额度，用户不再需要先手动申请发信权限；新增 `address_sender.source` 列区分 legacy / auto / user / admin 来源，runtime 自动初始化仅对**新插入的行**生效（`ON CONFLICT DO NOTHING`），不会覆盖已存在的记录。升级时 v0.0.8 迁移会把存量行 backfill 为 `source = 'legacy'`，这些历史行（以及管理员禁用或手动设置的行）均不被 runtime 修复，如需恢复请由管理员在后台手动启用（#925 #985）
 - fix: |用户侧收件箱| 修复 `ENABLE_USER_DELETE_EMAIL` 关闭时用户中心仍显示删除按钮且仍可通过 `/user_api/mails/:id` 删除邮件的问题（#978）
 - fix: |Address| 创建邮箱时统一将配置的前缀转为小写，避免生成包含大写前缀的地址；历史数据需用户自行迁移为小写（#930）
 
