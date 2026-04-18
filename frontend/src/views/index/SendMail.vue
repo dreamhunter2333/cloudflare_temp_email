@@ -11,6 +11,7 @@ import { api } from '../../api'
 const message = useMessage()
 const isPreview = ref(false)
 const editorRef = shallowRef()
+const sending = ref(false)
 
 
 const { settings, sendMailModel, indexTab, userSettings } = useGlobalState()
@@ -28,6 +29,9 @@ const { t } = useI18n({
             preview: 'Preview',
             content: 'Content',
             send: 'Send',
+            subjectEmpty: 'Subject is empty',
+            toMailEmpty: 'Recipient address is empty',
+            contentEmpty: 'Content is empty',
             requestAccess: 'Request Access',
             requestAccessTip: 'No send balance yet. If your admin enabled a default balance it should be assigned automatically; otherwise request access or contact the admin.',
             send_balance: 'Send Mail Balance Left',
@@ -46,6 +50,9 @@ const { t } = useI18n({
             preview: '预览',
             content: '内容',
             send: '发送',
+            subjectEmpty: '主题不能为空',
+            toMailEmpty: '收件人地址不能为空',
+            contentEmpty: '内容不能为空',
             requestAccess: '申请权限',
             requestAccessTip: '当前还没有可用的发信额度。如果管理员启用了默认额度，会自动发放；否则请申请权限或联系管理员处理。',
             send_balance: '剩余发送邮件额度',
@@ -63,20 +70,71 @@ const contentTypes = [
     { label: t('rich text'), value: 'rich' },
 ]
 
+const normalizeSendMailText = (content) => {
+    return content
+        .replace(/[\u00AD\u200B-\u200D\u2060\uFEFF]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
+const hasSendMailContent = (content, contentType) => {
+    if (typeof content !== 'string' || !content) {
+        return false
+    }
+
+    if (contentType === 'text') {
+        return normalizeSendMailText(content).length > 0
+    }
+
+    const container = document.createElement('div')
+    container.innerHTML = content
+    container.querySelectorAll('script, style, noscript, template').forEach((node) => node.remove())
+
+    const plainContent = normalizeSendMailText(container.textContent ?? '')
+    if (plainContent.length > 0) {
+        return true
+    }
+
+    return Boolean(container.querySelector('img, audio, video, iframe, svg, canvas, table'))
+}
+
 const send = async () => {
+    if (sending.value) {
+        return
+    }
+
+    const subject = `${sendMailModel.value.subject ?? ''}`.trim()
+    const toMail = `${sendMailModel.value.toMail ?? ''}`.trim()
+    const content = `${sendMailModel.value.content ?? ''}`
+
+    if (!subject) {
+        message.error(t('subjectEmpty'))
+        return
+    }
+    if (!toMail) {
+        message.error(t('toMailEmpty'))
+        return
+    }
+    if (!hasSendMailContent(content, sendMailModel.value.contentType)) {
+        message.error(t('contentEmpty'))
+        return
+    }
+
+    const payload = {
+        from_name: sendMailModel.value.fromName,
+        to_name: sendMailModel.value.toName,
+        to_mail: toMail,
+        subject,
+        is_html: sendMailModel.value.contentType != 'text',
+        content,
+    }
+
+    sending.value = true
     try {
         await api.fetch(`/api/send_mail`,
             {
                 method: 'POST',
-                body:
-                    JSON.stringify({
-                        from_name: sendMailModel.value.fromName,
-                        to_name: sendMailModel.value.toName,
-                        to_mail: sendMailModel.value.toMail,
-                        subject: sendMailModel.value.subject,
-                        is_html: sendMailModel.value.contentType != 'text',
-                        content: sendMailModel.value.content,
-                    })
+                body: JSON.stringify(payload)
             })
         sendMailModel.value = {
             fromName: "",
@@ -86,11 +144,13 @@ const send = async () => {
             contentType: 'text',
             content: "",
         }
+        isPreview.value = false
+        message.success(t("successSend"));
+        indexTab.value = 'sendbox'
     } catch (error) {
         message.error(error.message || "error");
     } finally {
-        message.success(t("successSend"));
-        indexTab.value = 'sendbox'
+        sending.value = false
     }
 }
 
@@ -158,7 +218,7 @@ onMounted(async () => {
                     {{ t('send_balance') }}: {{ settings.send_balance }}
                 </n-alert>
                 <n-flex justify="end">
-                    <n-button type="primary" @click="send">{{ t('send') }}</n-button>
+                    <n-button type="primary" :loading="sending" :disabled="sending" @click="send">{{ t('send') }}</n-button>
                 </n-flex>
                 <div class="left">
                     <n-form :model="sendMailModel">
