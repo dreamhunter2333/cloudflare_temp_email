@@ -73,7 +73,7 @@ const contentTypes = [
 
 const normalizeSendMailText = (content) => {
     return content
-        .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+        .replace(/[\u00AD\u200B-\u200D\u2060\uFEFF]/g, '')
         .replace(/\s+/g, ' ')
         .trim()
 }
@@ -96,7 +96,7 @@ const hasSendMailContent = (content, contentType) => {
         return true
     }
 
-    return /<(img|audio|video|iframe|svg|canvas|table)\b/i.test(content)
+    return Boolean(container.querySelector('img, audio, video, iframe, svg, canvas, table'))
 }
 
 const send = async () => {
