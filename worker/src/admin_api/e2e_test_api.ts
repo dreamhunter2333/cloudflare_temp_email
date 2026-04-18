@@ -59,4 +59,21 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
     return c.json({ success: !state.rejected, replyCalled: state.replyCalled, ...(state.rejected ? { rejected: state.rejected } : {}) });
 };
 
-export default { seedMail, receiveMail };
+// Force an existing address_sender row into a legacy shape (source IS NULL,
+// disabled, zero balance) so tests can exercise the one-shot repair path
+// that ensureDefaultSendBalance applies to pre-migration rows.
+const resetSenderToLegacy = async (c: Context<HonoCustomType>) => {
+    if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
+        return c.text("Not available", 404);
+    }
+    const { address } = await c.req.json();
+    if (!address) {
+        return c.text("address is required", 400);
+    }
+    const { success } = await c.env.DB.prepare(
+        `UPDATE address_sender SET balance = 0, enabled = 0, source = NULL WHERE address = ?`
+    ).bind(address).run();
+    return c.json({ success });
+};
+
+export default { seedMail, receiveMail, resetSenderToLegacy };

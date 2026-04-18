@@ -14,14 +14,19 @@ const ensureDefaultSendBalance = async (
     if (default_balance <= 0) {
         return;
     }
+    // New rows are tagged source='auto' so admin/user-controlled rows are
+    // never overwritten by auto-init. Legacy rows (source IS NULL) are
+    // repaired once and then also move into the 'auto' lifecycle.
     await c.env.DB.prepare(
-        `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)
+        `INSERT INTO address_sender (address, balance, enabled, source) VALUES (?, ?, ?, 'auto')
         ON CONFLICT(address) DO UPDATE SET
             balance = excluded.balance,
-            enabled = excluded.enabled
+            enabled = excluded.enabled,
+            source = excluded.source
         WHERE excluded.balance > 0
             AND address_sender.balance <= 0
-            AND address_sender.enabled = 0`
+            AND address_sender.enabled = 0
+            AND address_sender.source IS NULL`
     ).bind(address, default_balance, 1).run();
 }
 
@@ -92,7 +97,7 @@ export const requestSendMailAccess = async (
     }
     try {
         const { success } = await c.env.DB.prepare(
-            `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
+            `INSERT INTO address_sender (address, balance, enabled, source) VALUES (?, ?, ?, 'user')`
         ).bind(
             address, default_balance, default_balance > 0 ? 1 : 0
         ).run();

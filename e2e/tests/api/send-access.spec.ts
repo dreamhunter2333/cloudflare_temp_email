@@ -4,7 +4,9 @@ import {
   createTestAddress,
   requestSendAccess,
   deleteAddress,
+  deleteAddressSender,
   getAddressSender,
+  resetSenderToLegacy,
   updateAddressSender,
 } from '../../fixtures/test-helpers';
 
@@ -38,8 +40,34 @@ test.describe('Send Access', () => {
     }
   });
 
-  test('settings repairs old disabled zero-balance sender rows', async ({ request }) => {
-    const { jwt, address } = await createTestAddress(request, 'send-access-repair');
+  test('settings repairs legacy (source IS NULL) disabled zero-balance rows', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'send-access-legacy');
+
+    try {
+      await requestSendAccess(request, jwt);
+
+      // Simulate a pre-migration row: disabled, zero balance, no source tag.
+      await resetSenderToLegacy(request, address);
+
+      const settingsRes = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      expect(settingsRes.ok()).toBe(true);
+      const settings = await settingsRes.json();
+      expect(settings.send_balance).toBe(10);
+
+      const repairedSender = await getAddressSender(request, address);
+      expect(repairedSender.balance).toBe(10);
+      expect(repairedSender.enabled).toBe(1);
+      // Legacy rows graduate into the 'auto' lifecycle after repair.
+      expect(repairedSender.source).toBe('auto');
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
+
+  test('admin-disabled rows are not overwritten by settings or send', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'sa-admin-blocked');
 
     try {
       await requestSendAccess(request, jwt);
@@ -52,16 +80,69 @@ test.describe('Send Access', () => {
         enabled: false,
       });
 
+      // Reading settings must not auto-repair an admin-disabled row.
       const settingsRes = await request.get(`${WORKER_URL}/api/settings`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
       expect(settingsRes.ok()).toBe(true);
       const settings = await settingsRes.json();
-      expect(settings.send_balance).toBe(10);
+      expect(settings.send_balance).toBe(0);
 
-      const repairedSender = await getAddressSender(request, address);
-      expect(repairedSender.balance).toBe(10);
-      expect(repairedSender.enabled).toBe(1);
+      const stillDisabled = await getAddressSender(request, address);
+      expect(stillDisabled.balance).toBe(0);
+      expect(stillDisabled.enabled).toBe(0);
+      expect(stillDisabled.source).toBe('admin');
+
+      // Attempting to send must also fail and must not auto-repair the row.
+      const sendRes = await request.post(`${WORKER_URL}/api/send_mail`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        data: {
+          from_name: 'E2E',
+          to_name: 'E2E',
+          to_mail: 'recipient@test.example.com',
+          subject: 'should not send',
+          content: 'body',
+          is_html: false,
+        },
+      });
+      expect(sendRes.ok()).toBe(false);
+
+      const afterSend = await getAddressSender(request, address);
+      expect(afterSend.balance).toBe(0);
+      expect(afterSend.enabled).toBe(0);
+      expect(afterSend.source).toBe('admin');
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
+
+  test('send after admin deletion auto-initializes a fresh sender row', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'send-access-deleted');
+
+    try {
+      await requestSendAccess(request, jwt);
+
+      const sender = await getAddressSender(request, address);
+      await deleteAddressSender(request, sender.id);
+
+      const sendRes = await request.post(`${WORKER_URL}/api/send_mail`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        data: {
+          from_name: 'E2E',
+          to_name: 'E2E',
+          to_mail: 'recipient@test.example.com',
+          subject: `E2E reinit ${Date.now()}`,
+          content: 'body',
+          is_html: false,
+        },
+      });
+      expect(sendRes.ok()).toBe(true);
+
+      // A new row should exist, tagged 'auto', with balance decremented by 1.
+      const recreated = await getAddressSender(request, address);
+      expect(recreated.enabled).toBe(1);
+      expect(recreated.balance).toBe(9);
+      expect(recreated.source).toBe('auto');
     } finally {
       await deleteAddress(request, jwt);
     }

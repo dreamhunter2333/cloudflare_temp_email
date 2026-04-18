@@ -241,6 +241,38 @@ export async function updateAddressSender(
 }
 
 /**
+ * Delete a sender access row through the admin API by its id.
+ */
+export async function deleteAddressSender(
+  ctx: APIRequestContext,
+  id: number,
+  workerUrl: string = WORKER_URL
+): Promise<void> {
+  const res = await ctx.delete(`${workerUrl}/admin/address_sender/${id}`);
+  if (!res.ok()) {
+    throw new Error(`Failed to delete address sender: ${res.status()} ${await res.text()}`);
+  }
+}
+
+/**
+ * Force a sender row into a pre-migration "legacy" shape
+ * (balance=0, enabled=0, source=NULL) to exercise the one-shot
+ * repair path in ensureDefaultSendBalance.
+ */
+export async function resetSenderToLegacy(
+  ctx: APIRequestContext,
+  address: string,
+  workerUrl: string = WORKER_URL
+): Promise<void> {
+  const res = await ctx.post(`${workerUrl}/admin/test/reset_sender_to_legacy`, {
+    data: { address },
+  });
+  if (!res.ok()) {
+    throw new Error(`Failed to reset sender to legacy: ${res.status()} ${await res.text()}`);
+  }
+}
+
+/**
  * Delete a test address via its JWT.
  */
 export async function deleteAddress(

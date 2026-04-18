@@ -251,8 +251,10 @@ api.post('/admin/address_sender', async (c) => {
         return c.text(msgs.InvalidAddressIdMsg, 400)
     }
     enabled = enabled ? 1 : 0;
+    // Mark the row as admin-controlled so ensureDefaultSendBalance will not
+    // overwrite this state (disables stay disabled, balances stay as set).
     const { success } = await c.env.DB.prepare(
-        `UPDATE address_sender SET enabled = ?, balance = ? WHERE id = ? `
+        `UPDATE address_sender SET enabled = ?, balance = ?, source = 'admin' WHERE id = ? `
     ).bind(enabled, balance, address_id).run();
     if (!success) {
         return c.text(msgs.OperationFailedMsg, 500)
@@ -476,3 +478,4 @@ api.post("/admin/ai_extract/settings", ai_extract_settings.saveAiExtractSettings
 // E2E test endpoints
 api.post('/admin/test/seed_mail', e2e_test_api.seedMail);
 api.post('/admin/test/receive_mail', e2e_test_api.receiveMail);
+api.post('/admin/test/reset_sender_to_legacy', e2e_test_api.resetSenderToLegacy);

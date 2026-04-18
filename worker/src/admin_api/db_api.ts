@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS address_sender (
     address TEXT UNIQUE,
     balance INTEGER DEFAULT 0,
     enabled INTEGER DEFAULT 1,
+    source TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -195,6 +196,19 @@ export default {
             );
             if (!hasRawBlob) {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_blob BLOB;`);
+            }
+        }
+        if (version && version <= "v0.0.7") {
+            // migration to v0.0.8: add source column to address_sender to
+            // separate legacy repair from admin/user control state
+            const tableInfo = await c.env.DB.prepare(
+                `PRAGMA table_info(address_sender)`
+            ).all();
+            const hasSource = tableInfo.results?.some(
+                (col: any) => col.name === 'source'
+            );
+            if (!hasSource) {
+                await c.env.DB.exec(`ALTER TABLE address_sender ADD COLUMN source TEXT;`);
             }
         }
         if (version != CONSTANTS.DB_VERSION) {
