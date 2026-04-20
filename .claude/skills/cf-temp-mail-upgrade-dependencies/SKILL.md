@@ -1,5 +1,5 @@
 ---
-name: upgrade-dependencies
+name: cf-temp-mail-upgrade-dependencies
 description: Upgrade npm dependencies across all sub-packages of the project. Use when the user asks to upgrade/update dependencies, bump deps, refresh lockfiles, or update wrangler. Runs pnpm upgrades on frontend/, worker/, pages/, and vitepress-docs/.
 ---
 
