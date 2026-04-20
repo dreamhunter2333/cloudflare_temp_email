@@ -6,11 +6,10 @@ import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import {
-    getJsonSetting, getDomains, getIntValue, getBooleanValue, getJsonObjectValue, getSplitStringListValue
-} from '../utils';
+import { getJsonSetting, getDomains, getBooleanValue, getJsonObjectValue } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery, isSendMailBindingEnabled, updateAddressUpdatedAt } from '../common'
+import { getSendBalanceState, requestSendMailAccess } from './send_balance';
 import { ensureSendMailLimit, increaseSendMailLimitCount } from './send_mail_limit_utils';
 
 
@@ -22,24 +21,14 @@ api.post('/api/request_send_mail_access', async (c) => {
     if (!address) {
         return c.text(msgs.AddressNotFoundMsg, 400)
     }
-    try {
-        const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
-        const { success } = await c.env.DB.prepare(
-            `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
-        ).bind(
-            address, default_balance, default_balance > 0 ? 1 : 0
-        ).run();
-        if (!success) {
-            return c.text(msgs.OperationFailedMsg, 500)
-        }
-    } catch (e) {
-        const message = (e as Error).message;
-        if (message && message.includes("UNIQUE")) {
-            return c.text(msgs.AlreadyRequestedMsg, 400)
-        }
-        return c.text(msgs.OperationFailedMsg, 500)
+    const result = await requestSendMailAccess(c, address);
+    if (result.status === "ok") {
+        return c.json({ status: "ok" })
     }
-    return c.json({ status: "ok" })
+    if (result.status === "already_requested") {
+        return c.text(msgs.AlreadyRequestedMsg, 400)
+    }
+    return c.text(msgs.OperationFailedMsg, 500)
 })
 
 export const sendMailToVerifyAddress = async (
@@ -159,21 +148,11 @@ export const sendMail = async (
     if (!domains.includes(mailDomain)) {
         throw new Error(msgs.InvalidDomainMsg)
     }
-    const user_role = c.get("userRolePayload");
-    const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
-    const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
-    // no need find noLimitSendAddressList if is_no_limit_send_balance
-    const noLimitSendAddressList = is_no_limit_send_balance ?
-        [] : await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY) || [];
-    const isNoLimitSendAddress = noLimitSendAddressList?.includes(address);
-    const needCheckBalance = !is_no_limit_send_balance && !options?.isAdmin && !isNoLimitSendAddress;
-    if (needCheckBalance) {
-        // check permission
-        const balance = await c.env.DB.prepare(
-            `SELECT balance FROM address_sender
-            where address = ? and enabled = 1`
-        ).bind(address).first<number>("balance");
-        if (!balance || balance <= 0) {
+    const sendBalanceState = await getSendBalanceState(c, address, {
+        isAdmin: options?.isAdmin,
+    });
+    if (sendBalanceState.needCheckBalance) {
+        if (!sendBalanceState.balance || sendBalanceState.balance <= 0) {
             throw new Error(msgs.NoBalanceMsg)
         }
     }
@@ -235,7 +214,7 @@ export const sendMail = async (
     await increaseSendMailLimitCount(c);
 
     // update balance
-    if (!sendByVerifiedAddressList && needCheckBalance) {
+    if (!sendByVerifiedAddressList && sendBalanceState.needCheckBalance) {
         try {
             const { success } = await c.env.DB.prepare(
                 `UPDATE address_sender SET balance = balance - 1 where address = ?`

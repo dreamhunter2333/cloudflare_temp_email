@@ -34,7 +34,7 @@
 
 | Issue           | Solution                                                  |
 | --------------- | --------------------------------------------------------- |
-| Set `DEFAULT_SEND_BALANCE` but still getting `No balance` | `DEFAULT_SEND_BALANCE` is the default quota when users **request sending permission**. Users must first click "Request Send Permission" in the frontend. Alternatively, add the address to the "No Limit Send Address List" in the admin console, or configure `NO_LIMIT_SEND_ROLE` |
+| Set `DEFAULT_SEND_BALANCE` but still getting `No balance` | Refresh the settings page or try sending again first. When `DEFAULT_SEND_BALANCE > 0`, the system only auto-initializes the default quota for addresses that have **no `address_sender` row yet**; existing rows — including legacy `balance = 0 && enabled = 0` rows, admin-disabled rows, and admin-edited rows — are never modified by the runtime and must be manually restored by an admin (enable + set balance). Alternatively, add the address to the "No Limit Send Address List" in the admin console, or configure `NO_LIMIT_SEND_ROLE` |
 | Error: `Please enable resend or smtp for this domain` | You need to configure `RESEND_TOKEN` or `SMTP_CONFIG` first. See [Configure Email Sending](/en/guide/config-send-mail) |
 | `SMTP_CONFIG` configured but sending fails | Make sure the JSON key is **your own sending domain** (e.g. `your-domain.com`), not the example `awsl.uk`. See [Configure Email Sending](/en/guide/config-send-mail#send-emails-using-smtp) |
 

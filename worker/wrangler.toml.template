@@ -86,7 +86,7 @@ ENABLE_AUTO_REPLY = false
 # DISABLE_SHOW_GITHUB = true
 # Status monitoring page URL
 # STATUS_URL = "https://status.example.com"
-# default send balance, if not set, it will be 0
+# default send balance, auto initialized when users open settings or send mail; if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
 # the role which can send emails without limit, multiple roles can be separated by ,
 # NO_LIMIT_SEND_ROLE = "vip"
