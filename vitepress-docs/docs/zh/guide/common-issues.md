@@ -34,7 +34,7 @@
 
 | 问题            | 解决方案                                 |
 | --------------- | ---------------------------------------- |
-| 设置了 `DEFAULT_SEND_BALANCE` 但仍提示 `No balance` | 先刷新前端设置页或重试发送。现在当 `DEFAULT_SEND_BALANCE > 0` 时，系统会自动初始化默认额度，并自动修复旧的 `balance = 0 且 enabled = 0` 记录；但不会给已经启用且额度用完的地址自动充值。也可以在 admin 后台将地址加入「无限制发送地址列表」，或配置 `NO_LIMIT_SEND_ROLE` |
+| 设置了 `DEFAULT_SEND_BALANCE` 但仍提示 `No balance` | 先刷新前端设置页或重试发送。当 `DEFAULT_SEND_BALANCE > 0` 时，系统只会为**尚无 `address_sender` 记录**的地址自动初始化默认额度；已有记录（包括历史 `balance = 0 且 enabled = 0` 的行、管理员禁用或手动设置的行）不会被 runtime 修改，需要管理员在后台手动启用并设置余额。也可以将地址加入「无限制发送地址列表」或配置 `NO_LIMIT_SEND_ROLE` |
 | 提示 `请先为此域名启用 resend 或 smtp` | 需要先配置 `RESEND_TOKEN` 或 `SMTP_CONFIG`，详见 [配置发送邮件](/zh/guide/config-send-mail) |
 | `SMTP_CONFIG` 配置了但发送失败 | 请确认 JSON 中的 key 是**你自己的发信域名**（如 `your-domain.com`），不要直接复制示例 key。详见 [配置发送邮件](/zh/guide/config-send-mail#使用-smtp-发送邮件) |
 
