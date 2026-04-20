@@ -1,5 +1,5 @@
 ---
-name: version-upgrade
+name: cf-temp-mail-version-upgrade
 description: Upgrade the project version number. Use when the user asks to bump the version, upgrade the version, or prepare a new release version. Supports major, minor, and patch upgrades.
 ---
 
