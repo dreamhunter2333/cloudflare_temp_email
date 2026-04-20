@@ -1,0 +1,5 @@
+{
+  "token": "<telegram bot token>",
+  "chat_id": "@cloudflare_temp_email",
+  "message_thread_id": 82
+}
