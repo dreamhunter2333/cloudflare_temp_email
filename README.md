@@ -150,6 +150,7 @@
 - [x] Webhook 支持，消息推送集成
 - [x] 支持 `CF Turnstile` 人机验证
 - [x] 限流配置，防止滥用
+- [x] **Agent 友好**：内置 [`cf-temp-mail-agent-mail`](.claude/skills/cf-temp-mail-agent-mail/SKILL.md) skill，AI agent 可直接消费邮箱，详见 [文档](vitepress-docs/docs/zh/guide/feature/agent-email.md)
 
 </details>
 

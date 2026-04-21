@@ -150,6 +150,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - [x] Webhook support and message push integration
 - [x] Support `CF Turnstile` CAPTCHA verification
 - [x] Rate limiting configuration to prevent abuse
+- [x] **Agent-friendly**: bundled [`cf-temp-mail-agent-mail`](.claude/skills/cf-temp-mail-agent-mail/SKILL.md) skill lets AI agents consume a mailbox directly, see [docs](vitepress-docs/docs/en/guide/feature/agent-email.md)
 
 </details>
 
