@@ -64,6 +64,16 @@ export const saveSetting = async (
     return true;
 }
 
+export const deleteSetting = async (
+    c: Context<HonoCustomType>,
+    key: string
+) => {
+    await c.env.DB.prepare(
+        `DELETE FROM settings WHERE key = ?`
+    ).bind(key).run();
+    return true;
+}
+
 export const getStringValue = (value: any): string => {
     if (typeof value === "string") {
         return value;

@@ -1,7 +1,7 @@
 import { Context } from 'hono'
 
 import i18n from '../i18n'
-import { getJsonSetting, saveSetting } from '../utils'
+import { deleteSetting, getJsonSetting, saveSetting } from '../utils'
 import { getAddressCreationSettings, getAddressCreationSubdomainMatchStatus } from '../common'
 import { CONSTANTS } from '../constants'
 import {
@@ -109,9 +109,7 @@ const save = async (c: Context<HonoCustomType>) => {
     await saveSetting(c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY, JSON.stringify(emailRuleSettings || {}));
     if (addressCreationSettingsUpdate.shouldUpdate) {
         if (addressCreationSettingsUpdate.shouldClear) {
-            await c.env.DB.prepare(
-                `DELETE FROM settings WHERE key = ?`
-            ).bind(CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY).run();
+            await deleteSetting(c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY);
         } else {
             await saveSetting(
                 c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY,
