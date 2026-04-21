@@ -150,31 +150,9 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - [x] Webhook support and message push integration
 - [x] Support `CF Turnstile` CAPTCHA verification
 - [x] Rate limiting configuration to prevent abuse
-- [x] **Agent-friendly**: server-side parsed endpoints `/api/parsed_mails` / `/api/parsed_mail/:id`, plus the bundled `cf-temp-mail-agent-mail` skill, let AI agents like OpenClaw / Codex / Cursor consume a mailbox with a user-supplied JWT to read verification codes / magic links — no client-side MIME parser needed, and it sidesteps the Turnstile challenge on mailbox creation
+- [x] **Agent-friendly**: bundled [`cf-temp-mail-agent-mail`](.claude/skills/cf-temp-mail-agent-mail/SKILL.md) skill lets AI agents consume a mailbox directly, see [docs](vitepress-docs/docs/en/guide/feature/agent-email.md)
 
 </details>
-
-## For AI Agents: `cf-temp-mail-agent-mail` skill
-
-A read-only skill is bundled at `.claude/skills/cf-temp-mail-agent-mail/`. It lets an AI agent consume a mailbox using a user-supplied `Address JWT + API base URL` (list mails / fetch one / poll for verification codes), bypassing the Turnstile challenge required to create a mailbox in the UI.
-
-Pick any install method:
-
-```bash
-# Option 1: npx skills (recommended, auto-detects Claude Code / Cursor / Codex / OpenClaw etc.)
-npx skills add dreamhunter2333/cloudflare_temp_email --skill cf-temp-mail-agent-mail
-# Add -g to install globally (user-level, available to all projects)
-npx skills add dreamhunter2333/cloudflare_temp_email --skill cf-temp-mail-agent-mail -g
-
-# Option 2: npx degit to copy the sub-directory into your agent's skills folder
-npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/cf-temp-mail-agent-mail
-
-# Option 3: clone the repo and copy
-git clone --depth 1 https://github.com/dreamhunter2333/cloudflare_temp_email.git /tmp/cf-temp-mail
-cp -r /tmp/cf-temp-mail/.claude/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/
-```
-
-See [.claude/skills/cf-temp-mail-agent-mail/SKILL.md](.claude/skills/cf-temp-mail-agent-mail/SKILL.md) for details.
 
 ## Technical Architecture
 
