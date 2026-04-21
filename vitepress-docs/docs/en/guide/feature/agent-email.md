@@ -184,7 +184,7 @@ For attachment bytes, use `postal-mime` directly — `parsed.attachments[i].cont
 
 ## `cf-temp-mail-agent-mail` Skill
 
-The repo ships an agent skill at `.claude/skills/cf-temp-mail-agent-mail/` that wraps the flow above. Works with Claude Code / Cursor / Codex / OpenClaw and other agents.
+The repo ships an agent skill at `skills/cf-temp-mail-agent-mail/` that wraps the flow above. Works with Claude Code / Cursor / Codex / OpenClaw and other agents.
 
 Pick any install method:
 
@@ -195,14 +195,14 @@ npx skills add dreamhunter2333/cloudflare_temp_email --skill cf-temp-mail-agent-
 npx skills add dreamhunter2333/cloudflare_temp_email --skill cf-temp-mail-agent-mail -g
 
 # Option 2: npx degit to copy into your agent's skills folder
-npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/cf-temp-mail-agent-mail
+npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/cf-temp-mail-agent-mail
 
 # Option 3: clone and copy
 git clone --depth 1 https://github.com/dreamhunter2333/cloudflare_temp_email.git /tmp/cf-temp-mail
-cp -r /tmp/cf-temp-mail/.claude/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/
+cp -r /tmp/cf-temp-mail/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/
 ```
 
-See [SKILL.md](https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/.claude/skills/cf-temp-mail-agent-mail/SKILL.md) for details.
+See [SKILL.md](https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/skills/cf-temp-mail-agent-mail/SKILL.md) for details.
 
 ## Common errors
 

@@ -184,7 +184,7 @@ const parsed = await parseRaw(row.raw);
 
 ## `cf-temp-mail-agent-mail` Skill
 
-仓库内置了 Agent 技能：`.claude/skills/cf-temp-mail-agent-mail/`，把上述流程封装成 AI Agent 可直接调用的形式，支持 Claude Code / Cursor / Codex / OpenClaw 等。
+仓库内置了 Agent 技能：`skills/cf-temp-mail-agent-mail/`，把上述流程封装成 AI Agent 可直接调用的形式，支持 Claude Code / Cursor / Codex / OpenClaw 等。
 
 安装方式任选其一：
 
@@ -195,14 +195,14 @@ npx skills add dreamhunter2333/cloudflare_temp_email --skill cf-temp-mail-agent-
 npx skills add dreamhunter2333/cloudflare_temp_email --skill cf-temp-mail-agent-mail -g
 
 # 方式 2：npx degit 拷贝到你的 agent skills 目录
-npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/cf-temp-mail-agent-mail
+npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/cf-temp-mail-agent-mail
 
 # 方式 3：克隆后复制
 git clone --depth 1 https://github.com/dreamhunter2333/cloudflare_temp_email.git /tmp/cf-temp-mail
-cp -r /tmp/cf-temp-mail/.claude/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/
+cp -r /tmp/cf-temp-mail/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/
 ```
 
-详情见 [SKILL.md](https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/.claude/skills/cf-temp-mail-agent-mail/SKILL.md)。
+详情见 [SKILL.md](https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/skills/cf-temp-mail-agent-mail/SKILL.md)。
 
 ## 常见错误
 
