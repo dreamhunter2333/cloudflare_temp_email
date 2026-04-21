@@ -150,25 +150,31 @@
 - [x] Webhook 支持，消息推送集成
 - [x] 支持 `CF Turnstile` 人机验证
 - [x] 限流配置，防止滥用
-- [x] **Agent 友好**：提供服务端解析的 `/api/parsed_mails` / `/api/parsed_mail/:id`，配合仓库内的 `cf-temp-mail-usage` skill，OpenClaw / Codex / Cursor 等 AI agent 可直接使用用户提供的 JWT 读取验证码 / 链接，无需在客户端引入 MIME 解析器
+- [x] **Agent 友好**：提供服务端解析的 `/api/parsed_mails` / `/api/parsed_mail/:id`，配合仓库内的 `cf-temp-mail-agent-mail` skill，OpenClaw / Codex / Cursor 等 AI agent 可直接使用用户提供的 JWT 读取验证码 / 链接，无需在客户端引入 MIME 解析器
 
 </details>
 
-## 给 AI Agent 使用：`cf-temp-mail-usage` skill
+## 给 AI Agent 使用：`cf-temp-mail-agent-mail` skill
 
-仓库内置一个只读 skill：`.claude/skills/cf-temp-mail-usage/`，让 AI agent 用用户提供的 `Address JWT + API 地址`直接消费邮箱（列出邮件 / 取单封 / 轮询验证码），规避前端创建邮箱时的 Turnstile 人机验证。
+仓库内置一个只读 skill：`.claude/skills/cf-temp-mail-agent-mail/`，让 AI agent 用用户提供的 `Address JWT + API 地址`直接消费邮箱（列出邮件 / 取单封 / 轮询验证码），规避前端创建邮箱时的 Turnstile 人机验证。
 
-安装到当前项目的 Claude Code：
+安装方式任选其一：
 
 ```bash
-# 方式 1：degit 拷贝子目录
-npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-usage .claude/skills/cf-temp-mail-usage
+# 方式 1：npx skills（推荐，自动适配 Claude Code / Cursor / Codex / OpenClaw 等 agent）
+npx skills add dreamhunter2333/cloudflare_temp_email --skill cf-temp-mail-agent-mail
+# 加 -g 安装到全局（用户级，对所有项目生效）
+npx skills add dreamhunter2333/cloudflare_temp_email --skill cf-temp-mail-agent-mail -g
 
-# 方式 2：安装到全局
-npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-usage ~/.claude/skills/cf-temp-mail-usage
+# 方式 2：npx degit 拷贝子目录到你的 agent skills 目录
+npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/cf-temp-mail-agent-mail
+
+# 方式 3：直接从仓库克隆后复制
+git clone --depth 1 https://github.com/dreamhunter2333/cloudflare_temp_email.git /tmp/cf-temp-mail
+cp -r /tmp/cf-temp-mail/.claude/skills/cf-temp-mail-agent-mail <your-agent-skills-dir>/
 ```
 
-细节见 [.claude/skills/cf-temp-mail-usage/SKILL.md](.claude/skills/cf-temp-mail-usage/SKILL.md)。
+细节见 [.claude/skills/cf-temp-mail-agent-mail/SKILL.md](.claude/skills/cf-temp-mail-agent-mail/SKILL.md)。
 
 ## 技术架构
 

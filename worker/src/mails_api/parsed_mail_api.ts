@@ -9,7 +9,7 @@ const toParsedMailRow = async (row: Record<string, unknown>): Promise<Record<str
     const { raw: _raw, ...rest } = row;
     return {
         ...rest,
-        sender: parsed?.sender ?? '',
+        sender: parsed?.sender?.trim() ?? '',
         subject: parsed?.subject ?? '',
         text: parsed?.text ?? '',
         html: parsed?.html ?? '',

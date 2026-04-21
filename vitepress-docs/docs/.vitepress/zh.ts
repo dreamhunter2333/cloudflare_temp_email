@@ -171,6 +171,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: '新建邮箱地址 API', link: 'feature/new-address-api' },
                 { text: '查看邮件 API', link: 'feature/mail-api' },
+                { text: 'AI Agent 使用邮箱', link: 'feature/agent-email' },
                 { text: '发送邮件 API', link: 'feature/send-mail-api' },
                 { text: '删除邮箱地址 API', link: 'feature/delete-address' },
             ]

@@ -11,7 +11,8 @@
 ### Features
 
 - feat: |API| Add server-side parsed-mail endpoints `/api/parsed_mails` and `/api/parsed_mail/:id` that return `sender` / `subject` / `text` / `html` / `attachments` metadata directly (reuses `commonParseMail`), so AI agents no longer need a client-side MIME parser
-- feat: |Skill| Bundle a read-only skill `cf-temp-mail-usage` (`.claude/skills/cf-temp-mail-usage/`) so AI agents like OpenClaw / Codex / Cursor can consume a mailbox with a user-supplied Address JWT + API base URL — list mails, poll verification codes, etc. — sidestepping the Turnstile challenge required to create a mailbox. Install via `npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-usage`
+- feat: |Skill| Bundle a read-only skill `cf-temp-mail-agent-mail` (`.claude/skills/cf-temp-mail-agent-mail/`) so AI agents like OpenClaw / Codex / Cursor can consume a mailbox with a user-supplied Address JWT + API base URL — list mails, poll verification codes, etc. — sidestepping the Turnstile challenge required to create a mailbox. Install via `npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-agent-mail`
+- docs: |Docs| Add "AI Agent Mailbox Usage" doc (`guide/feature/agent-email`) covering the `parsed_mail` API and a local-parse fallback using `mail-parser-wasm` + `postal-mime` (mirrors the frontend) when parsed endpoints are unavailable
 
 ### Bug Fixes
 

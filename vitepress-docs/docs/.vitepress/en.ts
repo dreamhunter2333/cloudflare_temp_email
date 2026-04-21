@@ -171,6 +171,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: 'New Address API', link: 'feature/new-address-api' },
                 { text: 'View Email API', link: 'feature/mail-api' },
+                { text: 'AI Agent Mailbox Usage', link: 'feature/agent-email' },
                 { text: 'Send Email API', link: 'feature/send-mail-api' },
                 { text: 'Delete Address API', link: 'feature/delete-address' },
             ]
