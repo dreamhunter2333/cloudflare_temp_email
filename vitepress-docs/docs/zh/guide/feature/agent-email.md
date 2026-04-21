@@ -12,6 +12,20 @@
 2. **API 地址** — 与前端同源，如 `https://mail.example.com`
 3. *(可选)* **站点密码** — 仅当部署启用了 `x-custom-auth` 时需要
 
+### 凭证持久化
+
+为避免每次都要输入，Agent 会将凭证保存到 `~/.cf-temp-mail/credentials.json`：
+
+```json
+{
+  "base": "https://mail.example.com",
+  "jwt": "<ADDRESS_JWT>",
+  "site_password": ""
+}
+```
+
+首次使用时如果文件存在则直接读取，不存在则向用户索要后保存。每次请求前通过 `GET /api/settings` 校验 JWT，若返回 `401` 则提示用户 JWT 已过期并更新文件。
+
 ## 为什么需要 `parsed_mail` API
 
 `/api/mails` 与 `/api/mail/:id` 按设计返回原始 RFC822（`raw` 字段），Agent 侧需要自己解析 MIME 才能拿到 `subject`/`text`/`html`。
@@ -75,31 +89,37 @@ curl -s "$BASE/api/parsed_mails?limit=20&offset=0" \
   -H "Authorization: Bearer $JWT"
 ```
 
-### 3. 提取验证码（轮询 + 正则）
+### 3. 发送邮件
 
-```python
-import re, time, requests
+需要 `send_balance > 0`（通过 `/api/settings` 查看），且部署方已配置发送方式（Resend / SMTP / Cloudflare Email Routing binding）。
 
-BASE, JWT = "<BASE>", "<JWT>"
-H = {"Authorization": f"Bearer {JWT}"}
+| 任务             | 方法   | 路径                            | 请求体 / 返回                              |
+| ---------------- | ------ | ------------------------------- | ------------------------------------------ |
+| 申请发信权限     | POST   | `/api/request_send_mail_access` | `{}` → `{ status: "ok" }`                 |
+| 发送邮件         | POST   | `/api/send_mail`                | `sendMailBody` → `{ status: "ok" }`       |
+| 列出已发送       | GET    | `/api/sendbox?limit=&offset=`   | `{ results: [...], count }`               |
+| 删除已发送       | DELETE | `/api/sendbox/:id`              | `{ success: true }`                       |
 
-def wait_for_code(pattern=r"\b\d{4,8}\b", timeout=120, poll=3):
-    deadline = time.time() + timeout
-    seen = set()
-    while time.time() < deadline:
-        lst = requests.get(f"{BASE}/api/parsed_mails?limit=5&offset=0", headers=H).json()
-        for m in lst.get("results", []):
-            if m["id"] in seen:
-                continue
-            seen.add(m["id"])
-            body = (m.get("subject") or "") + "\n" + (m.get("text") or "") + "\n" + (m.get("html") or "")
-            hit = re.search(pattern, body)
-            if hit:
-                return hit.group(0)
-        time.sleep(poll)
-    raise TimeoutError("no matching mail within window")
+`sendMailBody`：
 
-print(wait_for_code())
+```json
+{
+  "from_name": "My Name",
+  "to_mail": "recipient@example.com",
+  "to_name": "Recipient",
+  "subject": "Hello",
+  "content": "<p>Hi</p>",
+  "is_html": true
+}
+```
+
+`from_name` 和 `to_name` 可选（空字符串即可）。`is_html: false` 发送纯文本。
+
+```bash
+curl -s -X POST "$BASE/api/send_mail" \
+  -H "Authorization: Bearer $JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"from_name":"","to_mail":"someone@example.com","to_name":"","subject":"Test","content":"Hello","is_html":false}'
 ```
 
 ## 回退方案：本地解析 raw

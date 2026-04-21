@@ -12,6 +12,20 @@ After creating or logging in, the **Address JWT** is displayed in the frontend U
 2. **API base URL** — same origin as the frontend, e.g. `https://mail.example.com`
 3. *(optional)* **Site password** — only if the deployment enabled `x-custom-auth`
 
+### Credential persistence
+
+To avoid entering credentials every time, the agent saves them to `~/.cf-temp-mail/credentials.json`:
+
+```json
+{
+  "base": "https://mail.example.com",
+  "jwt": "<ADDRESS_JWT>",
+  "site_password": ""
+}
+```
+
+On first use, the agent reads the file if it exists, otherwise asks the user and saves for next time. Before each request it validates the JWT via `GET /api/settings` — if it returns `401`, the agent informs the user the JWT is expired, asks for a fresh one, and updates the file.
+
 ## Why `parsed_mail` API
 
 By design, `/api/mails` and `/api/mail/:id` return raw RFC822 (`raw` field), so the agent must ship a MIME parser to obtain `subject` / `text` / `html`.
@@ -75,31 +89,37 @@ curl -s "$BASE/api/parsed_mails?limit=20&offset=0" \
   -H "Authorization: Bearer $JWT"
 ```
 
-### 3. Extract a verification code (poll + regex)
+### 3. Send mail
 
-```python
-import re, time, requests
+Requires `send_balance > 0` (check via `/api/settings`). The deployment must have a send method configured (Resend / SMTP / Cloudflare Email Routing binding).
 
-BASE, JWT = "<BASE>", "<JWT>"
-H = {"Authorization": f"Bearer {JWT}"}
+| Task                    | Method | Path                            | Body / Returns                              |
+| ----------------------- | ------ | ------------------------------- | ------------------------------------------- |
+| Request send access     | POST   | `/api/request_send_mail_access` | `{}` → `{ status: "ok" }`                  |
+| Send mail               | POST   | `/api/send_mail`                | `sendMailBody` → `{ status: "ok" }`        |
+| List sent (sendbox)     | GET    | `/api/sendbox?limit=&offset=`   | `{ results: [...], count }`                |
+| Delete sent item        | DELETE | `/api/sendbox/:id`              | `{ success: true }`                        |
 
-def wait_for_code(pattern=r"\b\d{4,8}\b", timeout=120, poll=3):
-    deadline = time.time() + timeout
-    seen = set()
-    while time.time() < deadline:
-        lst = requests.get(f"{BASE}/api/parsed_mails?limit=5&offset=0", headers=H).json()
-        for m in lst.get("results", []):
-            if m["id"] in seen:
-                continue
-            seen.add(m["id"])
-            body = (m.get("subject") or "") + "\n" + (m.get("text") or "") + "\n" + (m.get("html") or "")
-            hit = re.search(pattern, body)
-            if hit:
-                return hit.group(0)
-        time.sleep(poll)
-    raise TimeoutError("no matching mail within window")
+`sendMailBody`:
 
-print(wait_for_code())
+```json
+{
+  "from_name": "My Name",
+  "to_mail": "recipient@example.com",
+  "to_name": "Recipient",
+  "subject": "Hello",
+  "content": "<p>Hi</p>",
+  "is_html": true
+}
+```
+
+`from_name` and `to_name` are optional (empty string is fine). `is_html: false` sends plain text.
+
+```bash
+curl -s -X POST "$BASE/api/send_mail" \
+  -H "Authorization: Bearer $JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"from_name":"","to_mail":"someone@example.com","to_name":"","subject":"Test","content":"Hello","is_html":false}'
 ```
 
 ## Fallback: local parse of raw source

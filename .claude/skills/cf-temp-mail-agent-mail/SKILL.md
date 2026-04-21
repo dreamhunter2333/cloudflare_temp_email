@@ -1,9 +1,9 @@
 ---
 name: cf-temp-mail-agent-mail
-description: Read mails from a cloudflare_temp_email mailbox using a user-supplied Address JWT and API base URL. Use when the user (or an agent such as OpenClaw / Codex / Cursor) needs to list the inbox, fetch a specific message, or extract a verification code / magic link via the server-parsed /api/parsed_mails and /api/parsed_mail/:id endpoints. Falls back to local parsing of /api/mail/:id raw source with mail-parser-wasm + postal-mime if the parsed endpoints are unavailable. Does NOT handle mailbox creation — the user provides the JWT themselves.
+description: Read and send mails from a cloudflare_temp_email mailbox using a user-supplied Address JWT and API base URL. Use when the user (or an agent such as OpenClaw / Codex / Cursor) needs to list the inbox, fetch a specific message, or send an email via the server-parsed /api/parsed_mails, /api/parsed_mail/:id, and /api/send_mail endpoints. Falls back to local parsing of /api/mail/:id raw source with mail-parser-wasm + postal-mime if the parsed endpoints are unavailable. Does NOT handle mailbox creation — the user provides the JWT themselves.
 ---
 
-# Temp-Mail Read-Only Usage
+# Temp-Mail Agent Usage
 
 ## Prerequisites
 
@@ -16,6 +16,20 @@ The user must first **open the frontend** (e.g. `https://mail.example.com`) in a
 - *(optional)* `SITE_PASSWORD` — only if the deployment enabled `x-custom-auth`.
 
 If anything is missing, ask the user before making requests.
+
+## Credential persistence
+
+To avoid asking every time, save credentials to `~/.cf-temp-mail/credentials.json`:
+
+```json
+{
+  "base": "https://mail.example.com",
+  "jwt": "<ADDRESS_JWT>",
+  "site_password": ""
+}
+```
+
+On first use, if the file exists, read and use it. If not, ask the user and save for next time. Before each request, validate the JWT via `GET /api/settings` — if it returns `401`, inform the user the JWT is expired and ask for a fresh one, then update the file.
 
 ## Required headers
 
@@ -78,30 +92,39 @@ curl -s "$BASE/api/parsed_mails?limit=20&offset=0" \
 curl -s "$BASE/api/parsed_mail/<id>" -H "Authorization: Bearer $JWT"
 ```
 
-### 4. Extract a verification code (poll)
+## Send mail
 
-```python
-import re, time, requests
+Requires `send_balance > 0` (check via `/api/settings`). The deployment must have a send method configured (Resend / SMTP / Cloudflare Email Routing binding).
 
-BASE, JWT = "<BASE>", "<JWT>"
-H = {"Authorization": f"Bearer {JWT}"}
+| Task                    | Method | Path                            | Body / Returns                                    |
+| ----------------------- | ------ | ------------------------------- | ------------------------------------------------- |
+| Request send access     | POST   | `/api/request_send_mail_access` | `{}` → `{ status: "ok" }`                         |
+| Send mail               | POST   | `/api/send_mail`                | `sendMailBody` → `{ status: "ok" }`               |
+| List sent (sendbox)     | GET    | `/api/sendbox?limit=&offset=`   | `{ results: [...], count }`                       |
+| Delete sent item        | DELETE | `/api/sendbox/:id`              | `{ success: true }`                               |
 
-def wait_for_code(pattern=r"\b\d{4,8}\b", timeout=120, poll=3):
-    deadline = time.time() + timeout
-    seen = set()
-    while time.time() < deadline:
-        lst = requests.get(f"{BASE}/api/parsed_mails?limit=5&offset=0", headers=H).json()
-        for m in lst.get("results", []):
-            if m["id"] in seen: continue
-            seen.add(m["id"])
-            body = (m.get("subject") or "") + "\n" + (m.get("text") or "") + "\n" + (m.get("html") or "")
-            hit = re.search(pattern, body)
-            if hit:
-                return hit.group(0)
-        time.sleep(poll)
-    raise TimeoutError("no matching mail within window")
+`sendMailBody`:
 
-print(wait_for_code())
+```json
+{
+  "from_name": "My Name",
+  "to_mail": "recipient@example.com",
+  "to_name": "Recipient",
+  "subject": "Hello",
+  "content": "<p>Hi</p>",
+  "is_html": true
+}
+```
+
+`from_name` and `to_name` are optional (can be empty string). `is_html: false` sends plain text.
+
+### Send example
+
+```bash
+curl -s -X POST "$BASE/api/send_mail" \
+  -H "Authorization: Bearer $JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"from_name":"","to_mail":"someone@example.com","to_name":"","subject":"Test","content":"Hello","is_html":false}'
 ```
 
 ## Fallback: local parse of raw source
