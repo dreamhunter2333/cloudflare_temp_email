@@ -150,8 +150,25 @@
 - [x] Webhook 支持，消息推送集成
 - [x] 支持 `CF Turnstile` 人机验证
 - [x] 限流配置，防止滥用
+- [x] **Agent 友好**：提供服务端解析的 `/api/parsed_mails` / `/api/parsed_mail/:id`，配合仓库内的 `cf-temp-mail-usage` skill，OpenClaw / Codex / Cursor 等 AI agent 可直接使用用户提供的 JWT 读取验证码 / 链接，无需在客户端引入 MIME 解析器
 
 </details>
+
+## 给 AI Agent 使用：`cf-temp-mail-usage` skill
+
+仓库内置一个只读 skill：`.claude/skills/cf-temp-mail-usage/`，让 AI agent 用用户提供的 `Address JWT + API 地址`直接消费邮箱（列出邮件 / 取单封 / 轮询验证码），规避前端创建邮箱时的 Turnstile 人机验证。
+
+安装到当前项目的 Claude Code：
+
+```bash
+# 方式 1：degit 拷贝子目录
+npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-usage .claude/skills/cf-temp-mail-usage
+
+# 方式 2：安装到全局
+npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-usage ~/.claude/skills/cf-temp-mail-usage
+```
+
+细节见 [.claude/skills/cf-temp-mail-usage/SKILL.md](.claude/skills/cf-temp-mail-usage/SKILL.md)。
 
 ## 技术架构
 

@@ -1,216 +1,46 @@
-import { Context, Hono } from 'hono'
+import { Hono } from 'hono'
 
-import i18n from '../i18n';
-import { getBooleanValue, getJsonSetting, checkCfTurnstile, getStringValue, getSplitStringListValue, isAddressCountLimitReached } from '../utils';
-import { newAddress, handleMailListQuery, deleteAddressWithData, getAddressPrefix, getAllowDomains, updateAddressUpdatedAt, generateRandomName } from '../common'
-import { CONSTANTS } from '../constants'
-import { resolveRawEmailRow } from '../gzip'
+import parsed_mail_api from './parsed_mail_api';
+import mails_crud from './mails_crud';
+import new_address from './new_address';
 import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
 import s3_attachment from './s3_attachment';
 import address_auth from './address_auth';
-import { getSendBalanceState } from './send_balance';
 
 export const api = new Hono<HonoCustomType>()
 
+// auto reply
 api.get('/api/auto_reply', auto_reply.getAutoReply)
 api.post('/api/auto_reply', auto_reply.saveAutoReply)
+
+// webhook
 api.get('/api/webhook/settings', webhook_settings.getWebhookSettings)
 api.post('/api/webhook/settings', webhook_settings.saveWebhookSettings)
 api.post('/api/webhook/test', webhook_settings.testWebhookSettings)
+
+// attachment (S3)
 api.get('/api/attachment/list', s3_attachment.list)
 api.post('/api/attachment/delete', s3_attachment.deleteKey)
 api.post('/api/attachment/put_url', s3_attachment.getSignedPutUrl)
 api.post('/api/attachment/get_url', s3_attachment.getSignedGetUrl)
 
-api.get('/api/mails', async (c) => {
-    const { address } = c.get("jwtPayload")
-    if (!address) {
-        return c.json({ "error": "No address" }, 400)
-    }
-    const { limit, offset } = c.req.query();
-    if (Number.parseInt(offset) <= 0) updateAddressUpdatedAt(c, address);
-    return await handleMailListQuery(c,
-        `SELECT * FROM raw_mails where address = ?`,
-        `SELECT count(*) as count FROM raw_mails where address = ?`,
-        [address], limit, offset
-    );
-})
+// mail crud
+api.get('/api/mails', mails_crud.listMails)
+api.get('/api/mail/:mail_id', mails_crud.getMail)
+api.delete('/api/mails/:id', mails_crud.deleteMail)
 
-api.get('/api/mail/:mail_id', async (c) => {
-    const { address } = c.get("jwtPayload")
-    const { mail_id } = c.req.param();
-    const result = await c.env.DB.prepare(
-        `SELECT * FROM raw_mails where id = ? and address = ?`
-    ).bind(mail_id, address).first();
-    if (!result) return c.json(null);
-    return c.json(await resolveRawEmailRow(result));
-})
+// parsed mail (server-side parsed subject/text/html/attachments)
+api.get('/api/parsed_mails', parsed_mail_api.listParsedMails)
+api.get('/api/parsed_mail/:mail_id', parsed_mail_api.getParsedMail)
 
-api.delete('/api/mails/:id', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
-        return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
-    }
-    const { address } = c.get("jwtPayload")
-    const { id } = c.req.param();
-    // TODO: add toLowerCase() to handle old data
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM raw_mails WHERE address = ? and id = ? `
-    ).bind(address.toLowerCase(), id).run();
-    return c.json({
-        success: success
-    })
-})
+// address settings / lifecycle
+api.get('/api/settings', mails_crud.getSettings)
+api.post('/api/new_address', new_address.createNewAddress)
+api.delete('/api/delete_address', mails_crud.deleteAddress)
+api.delete('/api/clear_inbox', mails_crud.clearInbox)
+api.delete('/api/clear_sent_items', mails_crud.clearSentItems)
 
-api.get('/api/settings', async (c) => {
-    const { address, address_id } = c.get("jwtPayload")
-    const user_role = c.get("userRolePayload")
-    const msgs = i18n.getMessagesbyContext(c);
-    if (address_id && address_id > 0) {
-        try {
-            const db_address_id = await c.env.DB.prepare(
-                `SELECT id FROM address where id = ? `
-            ).bind(address_id).first("id");
-            if (!db_address_id) {
-                return c.text(msgs.InvalidAddressMsg, 400)
-            }
-        } catch (error) {
-            return c.text(msgs.InvalidAddressMsg, 400)
-        }
-    }
-    // check address id
-    try {
-        if (!address_id) {
-            const db_address_id = await c.env.DB.prepare(
-                `SELECT id FROM address where name = ? `
-            ).bind(address).first("id");
-            if (!db_address_id) {
-                return c.text(msgs.InvalidAddressMsg, 400)
-            }
-        }
-    } catch (error) {
-        return c.text(msgs.InvalidAddressMsg, 400)
-    }
-
-    updateAddressUpdatedAt(c, address);
-
-    const { balance } = await getSendBalanceState(c, address);
-    return c.json({
-        address: address,
-        send_balance: balance || 0,
-    });
-})
-
-api.post('/api/new_address', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    const userPayload = c.get("userPayload");
-
-    if (getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL)
-        && !userPayload
-    ) {
-        return c.text(msgs.NewAddressAnonymousDisabledMsg, 403)
-    }
-    if (!getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL)) {
-        return c.text(msgs.NewAddressDisabledMsg, 403)
-    }
-
-    // 如果启用了禁止匿名创建，且用户已登录，检查地址数量限制
-    if (getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL) && userPayload) {
-        const userRole = c.get("userRolePayload");
-        if (await isAddressCountLimitReached(c, userPayload.user_id, userRole)) {
-            return c.text(msgs.MaxAddressCountReachedMsg, 400)
-        }
-    }
-
-    // eslint-disable-next-line prefer-const
-    let { name, domain, cf_token, enableRandomSubdomain } = await c.req.json();
-    // check cf turnstile
-    try {
-        await checkCfTurnstile(c, cf_token);
-    } catch (error) {
-        return c.text(msgs.TurnstileCheckFailedMsg, 400)
-    }
-    // Check if custom email names are disabled from environment variable
-    const disableCustomAddressName = getBooleanValue(c.env.DISABLE_CUSTOM_ADDRESS_NAME);
-
-    // if no name or custom names are disabled, generate random name
-    if (!name || disableCustomAddressName) {
-        // Generate random name with context-based length configuration
-        name = generateRandomName(c);
-    }
-    // check name block list
-    try {
-        const value = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
-        const blockList = (value || []) as string[];
-        if (blockList.some((item) => name.includes(item))) {
-            return c.text(`Name[${name}]is blocked`, 400)
-        }
-    } catch (error) {
-        console.error(error);
-    }
-    try {
-        const addressPrefix = await getAddressPrefix(c);
-        // Get client IP for source tracking
-        const sourceMeta = c.req.header('CF-Connecting-IP')
-            || c.req.header('X-Forwarded-For')?.split(',')[0]?.trim()
-            || c.req.header('X-Real-IP')
-            || 'web:unknown';
-        const res = await newAddress(c, {
-            name, domain,
-            enablePrefix: true,
-            enableRandomSubdomain: getBooleanValue(enableRandomSubdomain),
-            checkLengthByConfig: true,
-            addressPrefix,
-            sourceMeta
-        });
-        return c.json(res);
-    } catch (e) {
-        return c.text(`${msgs.FailedCreateAddressMsg}: ${(e as Error).message}`, 400)
-    }
-})
-
-api.delete('/api/delete_address', async (c) => {
-    const { address, address_id } = c.get("jwtPayload")
-    const success = await deleteAddressWithData(c, address, address_id);
-    return c.json({
-        success: success
-    })
-})
-
-api.delete('/api/clear_inbox', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
-        return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
-    }
-    const { address } = c.get("jwtPayload")
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM raw_mails WHERE address = ?`
-    ).bind(address).run();
-    if (!success) {
-        return c.text(msgs.FailedClearInboxMsg, 500)
-    }
-    return c.json({
-        success: success
-    })
-})
-
-api.delete('/api/clear_sent_items', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
-        return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
-    }
-    const { address } = c.get("jwtPayload")
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM sendbox WHERE address = ?`
-    ).bind(address).run();
-    if (!success) {
-        return c.text(msgs.FailedClearSentItemsMsg, 500)
-    }
-    return c.json({
-        success: success
-    })
-})
-
+// address auth
 api.post('/api/address_change_password', address_auth.changePassword)
 api.post('/api/address_login', address_auth.login)

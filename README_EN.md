@@ -150,8 +150,25 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - [x] Webhook support and message push integration
 - [x] Support `CF Turnstile` CAPTCHA verification
 - [x] Rate limiting configuration to prevent abuse
+- [x] **Agent-friendly**: server-side parsed endpoints `/api/parsed_mails` / `/api/parsed_mail/:id`, plus the bundled `cf-temp-mail-usage` skill, let AI agents like OpenClaw / Codex / Cursor consume a mailbox with a user-supplied JWT to read verification codes / magic links — no client-side MIME parser needed, and it sidesteps the Turnstile challenge on mailbox creation
 
 </details>
+
+## For AI Agents: `cf-temp-mail-usage` skill
+
+A read-only skill is bundled at `.claude/skills/cf-temp-mail-usage/`. It lets an AI agent consume a mailbox using a user-supplied `Address JWT + API base URL` (list mails / fetch one / poll for verification codes), bypassing the Turnstile challenge required to create a mailbox in the UI.
+
+Install into a project's Claude Code:
+
+```bash
+# Option 1: degit the sub-directory into the current project
+npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-usage .claude/skills/cf-temp-mail-usage
+
+# Option 2: install globally for all projects
+npx degit dreamhunter2333/cloudflare_temp_email/.claude/skills/cf-temp-mail-usage ~/.claude/skills/cf-temp-mail-usage
+```
+
+See [.claude/skills/cf-temp-mail-usage/SKILL.md](.claude/skills/cf-temp-mail-usage/SKILL.md) for details.
 
 ## Technical Architecture
 

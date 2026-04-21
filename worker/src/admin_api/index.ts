@@ -1,10 +1,11 @@
-import { Hono } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
+import { Context, Hono } from 'hono'
 
-import i18n from '../i18n'
-import { sendAdminInternalMail, getJsonSetting, saveSetting, getUserRoles, getBooleanValue, hashPassword } from '../utils'
-import { newAddress, handleListQuery, getAddressCreationSettings, getAddressCreationSubdomainMatchStatus } from '../common'
-import { CONSTANTS } from '../constants'
+import { getUserRoles } from '../utils'
+import address_api from './address_api'
+import address_sender_api from './address_sender_api'
+import sendbox_api from './sendbox_api'
+import statistics_api from './statistics_api'
+import account_settings_api from './account_settings_api'
 import cleanup_api from './cleanup_api'
 import admin_user_api from './admin_user_api'
 import webhook_settings from './webhook_settings'
@@ -13,434 +14,42 @@ import oauth2_settings from './oauth2_settings'
 import worker_config from './worker_config'
 import admin_mail_api from './admin_mail_api'
 import { sendMailbyAdmin, sendMailByBindingAdmin } from './send_mail'
-import {
-    getSendMailLimitConfig,
-    getSendMailLimitConfigToSave,
-    validateSendMailLimitConfig
-} from '../mails_api/send_mail_limit_utils'
 import db_api from './db_api'
 import ip_blacklist_settings from './ip_blacklist_settings'
 import ai_extract_settings from './ai_extract_settings'
-import { EmailRuleSettings } from '../models'
 import e2e_test_api from './e2e_test_api'
 
 export const api = new Hono<HonoCustomType>()
 
-const normalizeAddressCreationSettingsUpdate = (
-    value: unknown
-): {
-    shouldUpdate: boolean,
-    shouldClear: boolean,
-    nextEnableSubdomainMatch?: boolean,
-} | null => {
-    if (typeof value === 'undefined') {
-        return {
-            shouldUpdate: false,
-            shouldClear: false,
-        };
-    }
-    if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-        return null;
-    }
-    const nextEnableSubdomainMatch = (value as Record<string, unknown>).enableSubdomainMatch;
-    if (typeof nextEnableSubdomainMatch === 'undefined') {
-        return {
-            shouldUpdate: false,
-            shouldClear: false,
-        };
-    }
-    // null 代表“清空后台覆盖，恢复为未设置并回退到 env”，这是给前端三态显式使用的正式路径。
-    if (nextEnableSubdomainMatch === null) {
-        return {
-            shouldUpdate: true,
-            shouldClear: true,
-        };
-    }
-    if (typeof nextEnableSubdomainMatch !== 'boolean') {
-        return null;
-    }
-    return {
-        shouldUpdate: true,
-        shouldClear: false,
-        nextEnableSubdomainMatch,
-    };
-}
-
-api.get('/admin/address', async (c) => {
-    const { limit, offset, query, sort_by, sort_order } = c.req.query();
-    const allowedSortColumns: Record<string, string> = {
-        'id': 'a.id',
-        'name': 'a.name',
-        'created_at': 'a.created_at',
-        'updated_at': 'a.updated_at',
-        'source_meta': 'a.source_meta',
-        'mail_count': 'mail_count',
-        'send_count': 'send_count',
-    };
-    const sortColumn = Object.hasOwn(allowedSortColumns, sort_by) ? allowedSortColumns[sort_by] : 'a.id';
-    const sortDirection = sort_order === 'ascend' ? 'asc' : 'desc';
-    const orderBy = `${sortColumn} ${sortDirection}`;
-    if (query) {
-        // D1 caps LIKE pattern length at 50 bytes; fall back to instr() for
-        // longer queries to avoid "LIKE or GLOB pattern too complex" (#956).
-        const useInstr = new TextEncoder().encode(query).length + 2 > 50;
-        const whereClause = useInstr ? `instr(name, ?) > 0` : `name like ?`;
-        const param = useInstr ? query : `%${query}%`;
-        return await handleListQuery(c,
-            `SELECT a.*,`
-            + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
-            + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
-            + ` FROM address a`
-            + ` where ${whereClause}`,
-            `SELECT count(*) as count FROM address where ${whereClause}`,
-            [param], limit, offset, orderBy
-        );
-    }
-    return await handleListQuery(c,
-        `SELECT a.*,`
-        + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
-        + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
-        + ` FROM address a`,
-        `SELECT count(*) as count FROM address`,
-        [], limit, offset, orderBy
-    );
-})
-
-api.post('/admin/new_address', async (c) => {
-    const { name, domain, enablePrefix, enableRandomSubdomain } = await c.req.json();
-    const msgs = i18n.getMessagesbyContext(c);
-    if (!name) {
-        return c.text(msgs.RequiredFieldMsg, 400)
-    }
-    try {
-        const res = await newAddress(c, {
-            name, domain, enablePrefix,
-            enableRandomSubdomain: getBooleanValue(enableRandomSubdomain),
-            checkLengthByConfig: false,
-            addressPrefix: null,
-            checkAllowDomains: false,
-            enableCheckNameRegex: false,
-            sourceMeta: 'admin'
-        });
-
-        return c.json(res);
-    } catch (e) {
-        return c.text(`${msgs.FailedCreateAddressMsg}: ${(e as Error).message}`, 400)
-    }
-})
-
-api.delete('/admin/delete_address/:id', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    const { id } = c.req.param();
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM address WHERE id = ? `
-    ).bind(id).run();
-    if (!success) {
-        return c.text(msgs.OperationFailedMsg, 500)
-    }
-    const { success: mailSuccess } = await c.env.DB.prepare(
-        `DELETE FROM raw_mails WHERE address IN`
-        + ` (select name from address where id = ?) `
-    ).bind(id).run();
-    if (!mailSuccess) {
-        return c.text(msgs.OperationFailedMsg, 500)
-    }
-    const { success: sendAccess } = await c.env.DB.prepare(
-        `DELETE FROM address_sender WHERE address IN`
-        + ` (select name from address where id = ?) `
-    ).bind(id).run();
-    const { success: usersAddressSuccess } = await c.env.DB.prepare(
-        `DELETE FROM users_address WHERE address_id = ?`
-    ).bind(id).run();
-    return c.json({
-        success: success && mailSuccess && sendAccess && usersAddressSuccess
-    })
-})
-
-api.delete('/admin/clear_inbox/:id', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    const { id } = c.req.param();
-    const { success: mailSuccess } = await c.env.DB.prepare(
-        `DELETE FROM raw_mails WHERE address IN`
-        + ` (select name from address where id = ?) `
-    ).bind(id).run();
-    if (!mailSuccess) {
-        return c.text(msgs.OperationFailedMsg, 500)
-    }
-    return c.json({
-        success: mailSuccess
-    })
-})
-
-api.delete('/admin/clear_sent_items/:id', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    const { id } = c.req.param();
-    const { success: sendboxSuccess } = await c.env.DB.prepare(
-        `DELETE FROM sendbox WHERE address IN`
-        + ` (select name from address where id = ?) `
-    ).bind(id).run();
-    if (!sendboxSuccess) {
-        return c.text(msgs.OperationFailedMsg, 500)
-    }
-    return c.json({
-        success: sendboxSuccess
-    })
-})
-
-api.get('/admin/show_password/:id', async (c) => {
-    const { id } = c.req.param();
-    const name = await c.env.DB.prepare(
-        `SELECT name FROM address WHERE id = ? `
-    ).bind(id).first("name");
-    const jwt = await Jwt.sign({
-        address: name,
-        address_id: id
-    }, c.env.JWT_SECRET, "HS256")
-    return c.json({
-        jwt: jwt
-    })
-})
-
-api.post('/admin/address/:id/reset_password', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    const { id } = c.req.param();
-    const { password } = await c.req.json();
-    // 检查功能是否启用
-    if (!getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)) {
-        return c.text(msgs.PasswordChangeDisabledMsg, 403);
-    }
-
-    if (!password) {
-        return c.text(msgs.NewPasswordRequiredMsg, 400);
-    }
-
-    const hashedPassword = await hashPassword(password);
-    const { success } = await c.env.DB.prepare(
-        `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
-    ).bind(hashedPassword, id).run();
-
-    if (!success) {
-        return c.text(msgs.FailedUpdatePasswordMsg, 500);
-    }
-
-    return c.json({ success: true });
-})
+// address
+api.get('/admin/address', address_api.listAddresses)
+api.post('/admin/new_address', address_api.createNewAddress)
+api.delete('/admin/delete_address/:id', address_api.deleteAddress)
+api.delete('/admin/clear_inbox/:id', address_api.clearInbox)
+api.delete('/admin/clear_sent_items/:id', address_api.clearSentItems)
+api.get('/admin/show_password/:id', address_api.showPassword)
+api.post('/admin/address/:id/reset_password', address_api.resetPassword)
 
 // mail api
-api.get('/admin/mails', admin_mail_api.getMails);
-api.get('/admin/mails_unknow', admin_mail_api.getUnknowMails);
+api.get('/admin/mails', admin_mail_api.getMails)
+api.get('/admin/mails_unknow', admin_mail_api.getUnknowMails)
 api.delete('/admin/mails/:id', admin_mail_api.deleteMail)
 
-api.get('/admin/address_sender', async (c) => {
-    const { address, limit, offset } = c.req.query();
-    if (address) {
-        return await handleListQuery(c,
-            `SELECT * FROM address_sender where address = ? `,
-            `SELECT count(*) as count FROM address_sender where address = ? `,
-            [address], limit, offset
-        );
-    }
-    return await handleListQuery(c,
-        `SELECT * FROM address_sender `,
-        `SELECT count(*) as count FROM address_sender `,
-        [], limit, offset
-    );
-})
+// address sender
+api.get('/admin/address_sender', address_sender_api.list)
+api.post('/admin/address_sender', address_sender_api.update)
+api.delete('/admin/address_sender/:id', address_sender_api.remove)
 
-api.post('/admin/address_sender', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    /* eslint-disable prefer-const */
-    let { address, address_id, balance, enabled } = await c.req.json();
-    /* eslint-enable prefer-const */
-    if (!address_id) {
-        return c.text(msgs.InvalidAddressIdMsg, 400)
-    }
-    enabled = enabled ? 1 : 0;
-    const { success } = await c.env.DB.prepare(
-        `UPDATE address_sender SET enabled = ?, balance = ? WHERE id = ? `
-    ).bind(enabled, balance, address_id).run();
-    if (!success) {
-        return c.text(msgs.OperationFailedMsg, 500)
-    }
-    await sendAdminInternalMail(
-        c, address, "Account Send Access Updated",
-        `Your send access has been ${enabled ? "enabled" : "disabled"}, balance: ${balance}`
-    );
-    return c.json({
-        success: success
-    })
-})
+// sendbox
+api.get('/admin/sendbox', sendbox_api.list)
+api.delete('/admin/sendbox/:id', sendbox_api.remove)
 
-api.delete('/admin/address_sender/:id', async (c) => {
-    const { id } = c.req.param();
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM address_sender WHERE id = ? `
-    ).bind(id).run();
-    return c.json({
-        success: success
-    })
-})
+// statistics
+api.get('/admin/statistics', statistics_api.get)
 
-api.get('/admin/sendbox', async (c) => {
-    const { address, limit, offset } = c.req.query();
-    if (address) {
-        return await handleListQuery(c,
-            `SELECT * FROM sendbox where address = ? `,
-            `SELECT count(*) as count FROM sendbox where address = ? `,
-            [address], limit, offset
-        );
-    }
-    return await handleListQuery(c,
-        `SELECT * FROM sendbox `,
-        `SELECT count(*) as count FROM sendbox `,
-        [], limit, offset
-    );
-})
-
-api.delete('/admin/sendbox/:id', async (c) => {
-    const { id } = c.req.param();
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM sendbox WHERE id = ? `
-    ).bind(id).run();
-    return c.json({
-        success: success
-    })
-})
-
-api.get('/admin/statistics', async (c) => {
-    const { count: mailCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM raw_mails`
-    ).first<{ count: number }>() || {};
-    const { count: addressCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM address`
-    ).first<{ count: number }>() || {};
-    const { count: activeAddressCount7days } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
-    ).first<{ count: number }>() || {};
-    const { count: activeAddressCount30days } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM address where updated_at > datetime('now', '-30 day')`
-    ).first<{ count: number }>() || {};
-    const { count: sendMailCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM sendbox`
-    ).first<{ count: number }>() || {};
-    const { count: userCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM users`
-    ).first<{ count: number }>() || {};
-    return c.json({
-        mailCount: mailCount,
-        addressCount: addressCount,
-        activeAddressCount7days: activeAddressCount7days,
-        activeAddressCount30days: activeAddressCount30days,
-        userCount: userCount,
-        sendMailCount: sendMailCount
-    })
-});
-
-api.get('/admin/account_settings', async (c) => {
-    try {
-        const blockList = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
-        const sendBlockList = await getJsonSetting(c, CONSTANTS.SEND_BLOCK_LIST_KEY);
-        const verifiedAddressList = await getJsonSetting(c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY);
-        const fromBlockList = c.env.KV ? await c.env.KV.get<string[]>(CONSTANTS.EMAIL_KV_BLACK_LIST, 'json') : [];
-        const emailRuleSettings = await getJsonSetting<EmailRuleSettings>(c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY);
-        const noLimitSendAddressList = await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY);
-        const addressCreationSettings = await getAddressCreationSettings(c);
-        const addressCreationSubdomainMatchStatus = await getAddressCreationSubdomainMatchStatus(c, addressCreationSettings);
-        const sendMailLimitConfig = await getSendMailLimitConfig(c);
-        return c.json({
-            blockList: blockList || [],
-            sendBlockList: sendBlockList || [],
-            verifiedAddressList: verifiedAddressList || [],
-            fromBlockList: fromBlockList || [],
-            noLimitSendAddressList: noLimitSendAddressList || [],
-            emailRuleSettings: emailRuleSettings || {},
-            addressCreationSettings: typeof addressCreationSettings.enableSubdomainMatch === 'boolean'
-                ? { enableSubdomainMatch: addressCreationSettings.enableSubdomainMatch }
-                : {},
-            addressCreationSubdomainMatchStatus,
-            sendMailLimitConfig,
-        })
-    } catch (error) {
-        console.error(error);
-        return c.json({})
-    }
-})
-
-api.post('/admin/account_settings', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    /** @type {{ blockList: Array<string>, sendBlockList: Array<string> }} */
-    const {
-        blockList, sendBlockList, noLimitSendAddressList,
-        verifiedAddressList, fromBlockList, emailRuleSettings, addressCreationSettings,
-        sendMailLimitConfig
-    } = await c.req.json();
-    if (!blockList || !sendBlockList || !verifiedAddressList) {
-        return c.text(msgs.InvalidInputMsg, 400)
-    }
-    const addressCreationSettingsUpdate = normalizeAddressCreationSettingsUpdate(addressCreationSettings);
-    if (!addressCreationSettingsUpdate) {
-        return c.text(msgs.InvalidInputMsg, 400)
-    }
-    if (!c.env.SEND_MAIL && verifiedAddressList.length > 0) {
-        return c.text(msgs.EnableSendMailMsg, 400)
-    }
-    // 所有输入依赖都先校验，再执行任意写入，避免接口返回 400 时出现部分设置已落库的半成功状态。
-    if (fromBlockList?.length > 0 && !c.env.KV) {
-        return c.text(msgs.EnableKVMsg, 400)
-    }
-    if (sendMailLimitConfig && !validateSendMailLimitConfig(sendMailLimitConfig)) {
-        return c.text(msgs.InvalidInputMsg, 400)
-    }
-    const sendMailLimitConfigToSave = sendMailLimitConfig
-        ? getSendMailLimitConfigToSave(sendMailLimitConfig)
-        : null;
-    await saveSetting(
-        c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY,
-        JSON.stringify(blockList)
-    );
-    await saveSetting(
-        c, CONSTANTS.SEND_BLOCK_LIST_KEY,
-        JSON.stringify(sendBlockList)
-    );
-    await saveSetting(
-        c, CONSTANTS.VERIFIED_ADDRESS_LIST_KEY,
-        JSON.stringify(verifiedAddressList)
-    )
-    if (fromBlockList?.length > 0 && c.env.KV) {
-        await c.env.KV.put(CONSTANTS.EMAIL_KV_BLACK_LIST, JSON.stringify(fromBlockList))
-    }
-    await saveSetting(
-        c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY,
-        JSON.stringify(noLimitSendAddressList || [])
-    )
-    await saveSetting(
-        c, CONSTANTS.EMAIL_RULE_SETTINGS_KEY,
-        JSON.stringify(emailRuleSettings || {})
-    )
-    if (addressCreationSettingsUpdate.shouldUpdate) {
-        if (addressCreationSettingsUpdate.shouldClear) {
-            await c.env.DB.prepare(
-                `DELETE FROM settings WHERE key = ?`
-            ).bind(CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY).run();
-        } else {
-            await saveSetting(
-                c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY,
-                JSON.stringify({
-                    enableSubdomainMatch: addressCreationSettingsUpdate.nextEnableSubdomainMatch
-                })
-            )
-        }
-    }
-    if (sendMailLimitConfigToSave) {
-        await saveSetting(
-            c, CONSTANTS.SEND_MAIL_LIMIT_CONFIG_KEY,
-            JSON.stringify(sendMailLimitConfigToSave)
-        )
-    }
-    return c.json({
-        success: true
-    })
-})
+// account settings
+api.get('/admin/account_settings', account_settings_api.get)
+api.post('/admin/account_settings', account_settings_api.save)
 
 // cleanup
 api.post('/admin/cleanup', cleanup_api.cleanup)
@@ -454,7 +63,7 @@ api.get('/admin/users', admin_user_api.getUsers)
 api.delete('/admin/users/:user_id', admin_user_api.deleteUser)
 api.post('/admin/users', admin_user_api.createUser)
 api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
-api.get('/admin/user_roles', async (c) => c.json(getUserRoles(c)))
+api.get('/admin/user_roles', async (c: Context<HonoCustomType>) => c.json(getUserRoles(c)))
 api.post('/admin/user_roles', admin_user_api.updateUserRoles)
 api.get('/admin/role_address_config', admin_user_api.getRoleAddressConfig)
 api.post('/admin/role_address_config', admin_user_api.saveRoleAddressConfig)
@@ -466,34 +75,34 @@ api.get('/admin/user_oauth2_settings', oauth2_settings.getUserOauth2Settings)
 api.post('/admin/user_oauth2_settings', oauth2_settings.saveUserOauth2Settings)
 
 // webhook settings
-api.get("/admin/webhook/settings", webhook_settings.getWebhookSettings);
-api.post("/admin/webhook/settings", webhook_settings.saveWebhookSettings);
+api.get('/admin/webhook/settings', webhook_settings.getWebhookSettings)
+api.post('/admin/webhook/settings', webhook_settings.saveWebhookSettings)
 
 // mail webhook settings
-api.get("/admin/mail_webhook/settings", mail_webhook_settings.getWebhookSettings);
-api.post("/admin/mail_webhook/settings", mail_webhook_settings.saveWebhookSettings);
-api.post("/admin/mail_webhook/test", mail_webhook_settings.testWebhookSettings);
+api.get('/admin/mail_webhook/settings', mail_webhook_settings.getWebhookSettings)
+api.post('/admin/mail_webhook/settings', mail_webhook_settings.saveWebhookSettings)
+api.post('/admin/mail_webhook/test', mail_webhook_settings.testWebhookSettings)
 
 // worker config
-api.get("/admin/worker/configs", worker_config.getConfig);
+api.get('/admin/worker/configs', worker_config.getConfig)
 
 // send mail by admin
-api.post("/admin/send_mail", sendMailbyAdmin);
-api.post("/admin/send_mail_by_binding", sendMailByBindingAdmin);
+api.post('/admin/send_mail', sendMailbyAdmin)
+api.post('/admin/send_mail_by_binding', sendMailByBindingAdmin)
 
 // db api
-api.get('admin/db_version', db_api.getVersion);
-api.post('admin/db_initialize', db_api.initialize);
-api.post('admin/db_migration', db_api.migrate);
+api.get('admin/db_version', db_api.getVersion)
+api.post('admin/db_initialize', db_api.initialize)
+api.post('admin/db_migration', db_api.migrate)
 
 // IP blacklist settings
-api.get("/admin/ip_blacklist/settings", ip_blacklist_settings.getIpBlacklistSettings);
-api.post("/admin/ip_blacklist/settings", ip_blacklist_settings.saveIpBlacklistSettings);
+api.get('/admin/ip_blacklist/settings', ip_blacklist_settings.getIpBlacklistSettings)
+api.post('/admin/ip_blacklist/settings', ip_blacklist_settings.saveIpBlacklistSettings)
 
 // AI extract settings
-api.get("/admin/ai_extract/settings", ai_extract_settings.getAiExtractSettings);
-api.post("/admin/ai_extract/settings", ai_extract_settings.saveAiExtractSettings);
+api.get('/admin/ai_extract/settings', ai_extract_settings.getAiExtractSettings)
+api.post('/admin/ai_extract/settings', ai_extract_settings.saveAiExtractSettings)
 
 // E2E test endpoints
-api.post('/admin/test/seed_mail', e2e_test_api.seedMail);
-api.post('/admin/test/receive_mail', e2e_test_api.receiveMail);
+api.post('/admin/test/seed_mail', e2e_test_api.seedMail)
+api.post('/admin/test/receive_mail', e2e_test_api.receiveMail)
