@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from "vue";
+import { ref, watch } from "vue";
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../store'
 const { openSettings, isDark } = useGlobalState()
@@ -77,11 +77,7 @@ const checkCfTurnstile = async (remove) => {
     }
 }
 
-watch([isDark, locale], rerenderTurnstile)
-
-onMounted(() => {
-    rerenderTurnstile();
-})
+watch([isDark, locale], rerenderTurnstile, { immediate: true })
 </script>
 
 <template>

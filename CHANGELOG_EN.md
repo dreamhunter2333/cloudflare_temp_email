@@ -11,12 +11,15 @@
 ### Features
 
 - feat: |Frontend| Add six-language frontend support (`zh` / `en` / `es` / `pt-BR` / `ja` / `de`) with first-visit browser-language detection, persisted manual language choice, and locale switching that preserves the current route and query parameters
+- feat: |Frontend| Change the default fallback locale from `zh` to `en`
 - feat: |API| Add server-side parsed-mail endpoints `/api/parsed_mails` and `/api/parsed_mail/:id` that return `sender` / `subject` / `text` / `html` / `attachments` metadata directly (reuses `commonParseMail`), so AI agents no longer need a client-side MIME parser
 - feat: |Skill| Bundle a read-only skill `cf-temp-mail-agent-mail` (`skills/cf-temp-mail-agent-mail/`) so AI agents like OpenClaw / Codex / Cursor can consume a mailbox with a user-supplied Address JWT + API base URL — list mails, poll verification codes, etc. — sidestepping the Turnstile challenge required to create a mailbox. Install via `npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail`
 - docs: |Docs| Add "AI Agent Mailbox Usage" doc (`guide/feature/agent-email`) covering the `parsed_mail` API and a local-parse fallback using `mail-parser-wasm` + `postal-mime` (mirrors the frontend) when parsed endpoints are unavailable
 
 ### Bug Fixes
 
+- fix: |Frontend| Fix Header locale switch not applying by using global locale as the single source of truth and syncing global locale state during language changes
+- fix: |Frontend| Fix Header language select vertical misalignment with nav items by centering controls in the header-right container
 - fix: |Frontend| Fix asymmetric `preferredLocale` updates in Header locale switching and normalize locale alias paths, with added locale-switch unit and browser E2E coverage
 
 ### Improvements

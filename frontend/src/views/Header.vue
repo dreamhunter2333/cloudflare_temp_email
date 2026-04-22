@@ -12,6 +12,7 @@ import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
+import i18n from '../i18n'
 import { getRouterPathWithLang, hashPassword } from '../utils'
 import { isSupportedLocale, replaceLocaleInFullPath } from '../i18n-utils'
 import Turnstile from '../components/Turnstile.vue'
@@ -62,7 +63,7 @@ const languageOptions = [
     { label: 'Deutsch', value: 'de' },
 ]
 
-const { locale, t } = useI18n({
+const { t } = useI18n({
     messages: {
         en: {
             title: 'Cloudflare Temp Email',
@@ -91,17 +92,20 @@ const { locale, t } = useI18n({
     }
 });
 
+const currentLocale = computed(() => i18n.global.locale.value)
+
 const changeLocale = async (lang) => {
     if (!isSupportedLocale(lang)) {
         return;
     }
 
-    if (lang === locale.value) {
+    if (lang === currentLocale.value) {
         showMobileMenu.value = false;
         return;
     }
 
     preferredLocale.value = lang;
+    i18n.global.locale.value = lang;
     await router.push(replaceLocaleInFullPath(route.fullPath, lang));
     showMobileMenu.value = false;
 }
@@ -117,7 +121,7 @@ const menuOptions = computed(() => [
                 type: menuValue.value == "home" ? "primary" : "default",
                 style: "width: 100%",
                 onClick: async () => {
-                    await router.push(getRouterPathWithLang('/', locale.value));
+                    await router.push(getRouterPathWithLang('/', currentLocale.value));
                     showMobileMenu.value = false;
                 }
             },
@@ -136,7 +140,7 @@ const menuOptions = computed(() => [
                 type: menuValue.value == "user" ? "primary" : "default",
                 style: "width: 100%",
                 onClick: async () => {
-                    await router.push(getRouterPathWithLang("/user", locale.value));
+                    await router.push(getRouterPathWithLang("/user", currentLocale.value));
                     showMobileMenu.value = false;
                 }
             },
@@ -158,7 +162,7 @@ const menuOptions = computed(() => [
                 style: "width: 100%",
                 onClick: async () => {
                     loading.value = true;
-                    await router.push(getRouterPathWithLang('/admin', locale.value));
+                    await router.push(getRouterPathWithLang('/admin', currentLocale.value));
                     loading.value = false;
                     showMobileMenu.value = false;
                 }
@@ -246,7 +250,7 @@ const logoClick = async () => {
         logoClickCount.value = 0;
         message.info("Change to admin Page");
         loading.value = true;
-        await router.push(getRouterPathWithLang('/admin', locale.value));
+        await router.push(getRouterPathWithLang('/admin', currentLocale.value));
         loading.value = false;
     } else {
         logoClickCount.value++;
@@ -275,7 +279,7 @@ onMounted(async () => {
                 </div>
             </template>
             <template #extra>
-                <n-space>
+                <n-space align="center">
                     <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" responsive />
                     <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu" style="margin-right: 10px;">
                         <template #icon>
@@ -284,7 +288,7 @@ onMounted(async () => {
                         {{ t('menu') }}
                     </n-button>
                     <n-select
-                        :value="locale"
+                        :value="currentLocale"
                         :options="languageOptions"
                         size="small"
                         style="min-width: 160px;"
@@ -297,7 +301,7 @@ onMounted(async () => {
             <n-drawer-content :title="t('menu')" closable>
                 <n-menu :options="menuOptions" />
                 <n-select
-                    :value="locale"
+                    :value="currentLocale"
                     :options="languageOptions"
                     style="margin-top: 12px;"
                     @update:value="changeLocale"

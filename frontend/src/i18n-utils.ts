@@ -2,7 +2,7 @@ export const SUPPORTED_LOCALES = ['zh', 'en', 'es', 'pt-BR', 'ja', 'de'] as cons
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
 
-export const DEFAULT_LOCALE: SupportedLocale = 'zh'
+export const DEFAULT_LOCALE: SupportedLocale = 'en'
 export const FALLBACK_LOCALE: SupportedLocale = 'en'
 export const PREFERRED_LOCALE_STORAGE_KEY = 'preferredLocale'
 export const EMPTY_LOCALE_MESSAGES = Object.fromEntries(

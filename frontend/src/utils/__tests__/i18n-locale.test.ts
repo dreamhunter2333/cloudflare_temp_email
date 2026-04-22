@@ -23,20 +23,21 @@ describe('locale matching', () => {
     expect(getPreferredLocale('', ['it-IT'])).toBe('en')
   })
 
-  it('keeps zh unprefixed and prefixes non-default locales', () => {
+  it('keeps en unprefixed and prefixes non-default locales', () => {
     expect(getPathWithLocale('/user', DEFAULT_LOCALE)).toBe('/user')
     expect(getPathWithLocale('/user', 'ja')).toBe('/ja/user')
   })
 
   it('preserves query and hash when switching locale', () => {
     expect(replaceLocaleInFullPath('/user?tab=mail#top', 'es')).toBe('/es/user?tab=mail#top')
-    expect(replaceLocaleInFullPath('/de/admin?mode=full', 'zh')).toBe('/admin?mode=full')
+    expect(replaceLocaleInFullPath('/de/admin?mode=full', 'zh')).toBe('/zh/admin?mode=full')
+    expect(replaceLocaleInFullPath('/de/admin?mode=full', 'en')).toBe('/admin?mode=full')
   })
 
   it('normalizes input paths when building locale aliases', () => {
     expect(buildLocaleAliases('user')).toEqual(buildLocaleAliases('/user'))
     expect(buildLocaleAliases('user')).toEqual([
-      '/en/user',
+      '/zh/user',
       '/es/user',
       '/pt-BR/user',
       '/ja/user',

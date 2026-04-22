@@ -11,12 +11,15 @@
 ### Features
 
 - feat: |Frontend| 前端新增 6 国语言支持（`zh` / `en` / `es` / `pt-BR` / `ja` / `de`），首次访问会根据浏览器语言自动切换，用户手动切换后会持久化语言选择，并保持当前页面路径与查询参数
+- feat: |Frontend| 将前端默认语言从 `zh` 修改为 `en`
 - feat: |API| 新增服务端解析邮件接口 `/api/parsed_mails` 与 `/api/parsed_mail/:id`，直接返回 `sender` / `subject` / `text` / `html` / `attachments` 元信息（复用 `commonParseMail`），AI agent 侧不再需要引入 MIME 解析器
 - feat: |Skill| 新增仓库内置只读 skill `cf-temp-mail-agent-mail`（`skills/cf-temp-mail-agent-mail/`），让 OpenClaw / Codex / Cursor 等 AI agent 凭用户提供的 Address JWT + API 地址读取邮箱、轮询验证码，绕开创建邮箱时的 Turnstile 人机验证；可通过 `npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail` 安装
 - docs: |文档| 新增"AI Agent 使用邮箱"文档（`guide/feature/agent-email`），说明 `parsed_mail` API 用法，并在 parsed API 不可用时给出对齐前端的 `mail-parser-wasm` + `postal-mime` 本地解析回退方案
 
 ### Bug Fixes
 
+- fix: |Frontend| 修复 Header 语言切换不生效问题，统一为全局 locale 单一来源并在切换时同步更新全局语言状态
+- fix: |Frontend| 修复 Header 顶部语言下拉与导航项的垂直对齐问题，统一头部右侧控件居中布局
 - fix: |Frontend| 修复 Header 语言切换时 `preferredLocale` 同步不对称与 locale alias 路径规范化问题，补充语言切换单元测试与浏览器 E2E 覆盖
 
 ### Improvements
