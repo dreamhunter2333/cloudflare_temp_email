@@ -1,5 +1,19 @@
 <script setup>
-import { darkTheme, NGlobalStyle, zhCN } from 'naive-ui'
+import {
+  darkTheme,
+  dateDeDE,
+  dateEnUS,
+  dateEsAR,
+  dateJaJP,
+  datePtBR,
+  dateZhCN,
+  deDE,
+  enUS,
+  esAR,
+  jaJP,
+  ptBR,
+  zhCN,
+} from 'naive-ui'
 import { computed, onMounted } from 'vue'
 import { useScript } from '@unhead/vue'
 import { useI18n } from 'vue-i18n'
@@ -16,7 +30,15 @@ const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
 const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
 const { locale } = useI18n({});
 const theme = computed(() => isDark.value ? darkTheme : null)
-const localeConfig = computed(() => locale.value == 'zh' ? zhCN : null)
+const localeMap = {
+  zh: { locale: zhCN, dateLocale: dateZhCN },
+  en: { locale: enUS, dateLocale: dateEnUS },
+  es: { locale: esAR, dateLocale: dateEsAR },
+  'pt-BR': { locale: ptBR, dateLocale: datePtBR },
+  ja: { locale: jaJP, dateLocale: dateJaJP },
+  de: { locale: deDE, dateLocale: dateDeDE },
+};
+const localeConfig = computed(() => localeMap[locale.value] || localeMap.en)
 const isMobile = useIsMobile()
 const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
 const showAd = computed(() => !isMobile.value && adClient && adSlot);
@@ -77,7 +99,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <n-config-provider :locale="localeConfig" :theme="theme">
+  <n-config-provider :locale="localeConfig.locale" :date-locale="localeConfig.dateLocale" :theme="theme">
     <n-global-style />
     <n-spin description="loading..." :show="loading">
       <n-notification-provider container-style="margin-top: 60px;">

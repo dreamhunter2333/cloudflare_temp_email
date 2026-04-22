@@ -6,6 +6,19 @@
   <a href="CHANGELOG_EN.md">English</a>
 </p>
 
+## v1.9.0(main)
+
+### Features
+
+- feat: |Frontend| 前端新增 6 国语言支持（`zh` / `en` / `es` / `pt-BR` / `ja` / `de`），首次访问会根据浏览器语言自动切换，用户手动切换后会持久化语言选择，并保持当前页面路径与查询参数
+
+### Bug Fixes
+
+### Improvements
+
+- refactor: |Frontend| 将新增语种的 locale 资源集中到 `frontend/src/locales/source/`，由 `frontend/src/i18n-messages.ts` 统一分发，便于后续继续补充语言与维护翻译
+- fix: |Frontend| 补齐西班牙语、葡萄牙语、日语、德语首页、登录弹窗与管理页高频文案，清理集中化过程中残留的混合英文和错误拼接，提升页面文案覆盖完整度
+
 ## v1.8.0(main)
 
 ### Features

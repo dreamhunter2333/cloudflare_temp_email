@@ -6,6 +6,19 @@
   <a href="CHANGELOG_EN.md">English</a>
 </p>
 
+## v1.9.0(main)
+
+### Features
+
+- feat: |Frontend| Add six-language frontend support (`zh` / `en` / `es` / `pt-BR` / `ja` / `de`) with first-visit browser-language detection, persisted manual language choice, and locale switching that preserves the current route and query parameters
+
+### Bug Fixes
+
+### Improvements
+
+- refactor: |Frontend| Centralize the new locale resources under `frontend/src/locales/source/` and route them through `frontend/src/i18n-messages.ts` for easier follow-up language expansion and translation maintenance
+- fix: |Frontend| Complete high-visibility Spanish, Portuguese, Japanese, and German copy across the homepage, login modal, and frequent admin views, removing mixed-English leftovers and broken generated strings to improve translation coverage
+
 ## v1.8.0(main)
 
 ### Features

@@ -20,6 +20,14 @@ const { locale, t } = useI18n({
 const containerId = `cf-turnstile-${Math.random().toString(36).slice(2, 9)}`
 const cfTurnstileId = ref("")
 const turnstileLoading = ref(false)
+const turnstileLanguageMap = {
+    zh: 'zh-CN',
+    en: 'en',
+    es: 'es',
+    'pt-BR': 'pt-BR',
+    ja: 'ja',
+    de: 'de',
+}
 
 const refresh = () => checkCfTurnstile(true)
 defineExpose({ refresh })
@@ -45,7 +53,7 @@ const checkCfTurnstile = async (remove) => {
             `#${containerId}`,
             {
                 sitekey: openSettings.value.cfTurnstileSiteKey,
-                language: locale.value == 'zh' ? 'zh-CN' : 'en-US',
+                language: turnstileLanguageMap[locale.value] || 'auto',
                 theme: isDark.value ? 'dark' : 'light',
                 callback: function (token) {
                     cfToken.value = token;
@@ -57,7 +65,7 @@ const checkCfTurnstile = async (remove) => {
     }
 }
 
-watch(isDark, async (isDark) => {
+watch([isDark, locale], async () => {
     checkCfTurnstile(true)
 }, { immediate: true })
 

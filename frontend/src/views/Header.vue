@@ -13,6 +13,7 @@ import { GithubAlt, Language, User, Home } from '@vicons/fa'
 import { useGlobalState } from '../store'
 import { api } from '../api'
 import { getRouterPathWithLang, hashPassword } from '../utils'
+import { replaceLocaleInFullPath } from '../i18n-utils'
 import Turnstile from '../components/Turnstile.vue'
 
 const message = useMessage()
@@ -20,7 +21,7 @@ const notification = useNotification()
 
 const {
     toggleDark, isDark, isTelegram, showAdminPage,
-    showAuth, auth, loading, openSettings, userSettings
+    showAuth, auth, loading, openSettings, preferredLocale, userSettings
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
@@ -52,12 +53,19 @@ const authFunc = async () => {
     }
 }
 
+const languageOptions = [
+    { label: '中文', value: 'zh' },
+    { label: 'English', value: 'en' },
+    { label: 'Español', value: 'es' },
+    { label: 'Português (Brasil)', value: 'pt-BR' },
+    { label: '日本語', value: 'ja' },
+    { label: 'Deutsch', value: 'de' },
+]
+
 const changeLocale = async (lang) => {
-    if (lang == 'zh') {
-        await router.push(route.fullPath.replace('/en', ''));
-    } else {
-        await router.push(`/${lang}${route.fullPath}`);
-    }
+    preferredLocale.value = lang;
+    await router.push(replaceLocaleInFullPath(route.fullPath, lang));
+    showMobileMenu.value = false;
 }
 
 const { locale, t } = useI18n({
@@ -179,27 +187,6 @@ const menuOptions = computed(() => [
                 text: true,
                 size: "small",
                 style: "width: 100%",
-                onClick: async () => {
-                    locale.value == 'zh' ? await changeLocale('en') : await changeLocale('zh');
-                    showMobileMenu.value = false;
-                }
-            },
-            {
-                default: () => locale.value == 'zh' ? "English" : "中文",
-                icon: () => h(
-                    NIcon, { component: Language }
-                )
-            }
-        ),
-        key: "lang"
-    },
-    {
-        label: () => h(
-            NButton,
-            {
-                text: true,
-                size: "small",
-                style: "width: 100%",
                 tag: "a",
                 target: "_blank",
                 href: openSettings.value?.statusUrl,
@@ -280,6 +267,13 @@ onMounted(async () => {
             </template>
             <template #extra>
                 <n-space>
+                    <n-select
+                        v-model:value="locale"
+                        :options="languageOptions"
+                        size="small"
+                        style="min-width: 160px;"
+                        @update:value="changeLocale"
+                    />
                     <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" responsive />
                     <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu" style="margin-right: 10px;">
                         <template #icon>
@@ -292,6 +286,12 @@ onMounted(async () => {
         </n-page-header>
         <n-drawer v-model:show="showMobileMenu" placement="top" style="height: 100vh;">
             <n-drawer-content :title="t('menu')" closable>
+                <n-select
+                    v-model:value="locale"
+                    :options="languageOptions"
+                    style="margin-bottom: 12px;"
+                    @update:value="changeLocale"
+                />
                 <n-menu :options="menuOptions" />
             </n-drawer-content>
         </n-drawer>

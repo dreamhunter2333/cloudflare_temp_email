@@ -1,3 +1,5 @@
+import { getPathWithLocale } from '../i18n-utils'
+
 export const hashPassword = async (password: string) => {
     // user crypto to hash password
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
@@ -6,10 +8,7 @@ export const hashPassword = async (password: string) => {
 }
 
 export const getRouterPathWithLang = (path: string, lang: string) => {
-    if (!lang || lang === 'zh') {
-        return path;
-    }
-    return `/${lang}${path}`;
+    return getPathWithLocale(path, lang as Parameters<typeof getPathWithLocale>[1]);
 }
 
 export const utcToLocalDate = (utcDate: string, useUTCDate: boolean) => {
