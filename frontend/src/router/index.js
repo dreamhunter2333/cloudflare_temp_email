@@ -4,14 +4,7 @@ import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
-import {
-    buildLocaleAliases,
-    DEFAULT_LOCALE,
-    getBrowserLocales,
-    getPreferredLocale,
-    isSupportedLocale,
-    replaceLocaleInFullPath,
-} from '../i18n-utils'
+import * as localeUtils from '../i18n-utils'
 
 const { jwt, preferredLocale } = useGlobalState()
 
@@ -20,27 +13,27 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            alias: buildLocaleAliases('/'),
+            alias: localeUtils.buildLocaleAliases('/'),
             component: Index
         },
         {
             path: '/user',
-            alias: buildLocaleAliases('/user'),
+            alias: localeUtils.buildLocaleAliases('/user'),
             component: User
         },
         {
             path: '/user/oauth2/callback',
-            alias: buildLocaleAliases('/user/oauth2/callback'),
+            alias: localeUtils.buildLocaleAliases('/user/oauth2/callback'),
             component: UserOauth2Callback
         },
         {
             path: '/admin',
-            alias: buildLocaleAliases('/admin'),
+            alias: localeUtils.buildLocaleAliases('/admin'),
             component: () => import('../views/Admin.vue')
         },
         {
             path: '/telegram_mail',
-            alias: buildLocaleAliases('/telegram_mail'),
+            alias: localeUtils.buildLocaleAliases('/telegram_mail'),
             component: () => import('../views/telegram/Mail.vue')
         },
         {
@@ -54,20 +47,22 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const pathLocale = to.path.split('/')[1]
-    const routeLocale = isSupportedLocale(pathLocale) ? pathLocale : null
-    const resolvedLocale = routeLocale || getPreferredLocale(preferredLocale.value, getBrowserLocales())
+    const routeLocale = localeUtils.isSupportedLocale(pathLocale) ? pathLocale : null
+    const resolvedLocale = routeLocale || localeUtils.getPreferredLocale(preferredLocale.value, localeUtils.getBrowserLocales())
 
-    if (routeLocale === DEFAULT_LOCALE) {
-        return next(replaceLocaleInFullPath(to.fullPath, DEFAULT_LOCALE))
+    if (routeLocale === localeUtils.DEFAULT_LOCALE) {
+        preferredLocale.value = localeUtils.DEFAULT_LOCALE
+        i18n.global.locale.value = localeUtils.DEFAULT_LOCALE
+        return next(localeUtils.replaceLocaleInFullPath(to.fullPath, localeUtils.DEFAULT_LOCALE))
     }
 
     i18n.global.locale.value = resolvedLocale
 
     if (routeLocale) {
         preferredLocale.value = routeLocale
-    } else if (resolvedLocale !== DEFAULT_LOCALE) {
+    } else if (resolvedLocale !== localeUtils.DEFAULT_LOCALE) {
         preferredLocale.value = resolvedLocale
-        return next(replaceLocaleInFullPath(to.fullPath, resolvedLocale))
+        return next(localeUtils.replaceLocaleInFullPath(to.fullPath, resolvedLocale))
     } else {
         preferredLocale.value = resolvedLocale
     }

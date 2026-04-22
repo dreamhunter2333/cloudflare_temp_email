@@ -20,6 +20,9 @@ const { locale, t } = useI18n({
 const containerId = `cf-turnstile-${Math.random().toString(36).slice(2, 9)}`
 const cfTurnstileId = ref("")
 const turnstileLoading = ref(false)
+let turnstileRenderQueue = Promise.resolve()
+// Cloudflare Turnstile supported language codes:
+// https://developers.cloudflare.com/turnstile/reference/supported-languages/
 const turnstileLanguageMap = {
     zh: 'zh-CN',
     en: 'en',
@@ -29,8 +32,17 @@ const turnstileLanguageMap = {
     de: 'de',
 }
 
-const refresh = () => checkCfTurnstile(true)
+const refresh = () => rerenderTurnstile()
 defineExpose({ refresh })
+
+const rerenderTurnstile = () => {
+    cfToken.value = "";
+    turnstileRenderQueue = turnstileRenderQueue
+        .catch(() => { })
+        .then(() => checkCfTurnstile(true))
+    turnstileRenderQueue.catch(() => { })
+    return turnstileRenderQueue
+}
 
 const checkCfTurnstile = async (remove) => {
     if (!openSettings.value.cfTurnstileSiteKey) return;
@@ -65,13 +77,10 @@ const checkCfTurnstile = async (remove) => {
     }
 }
 
-watch([isDark, locale], async () => {
-    checkCfTurnstile(true)
-}, { immediate: true })
+watch([isDark, locale], rerenderTurnstile)
 
 onMounted(() => {
-    cfToken.value = "";
-    checkCfTurnstile(true);
+    rerenderTurnstile();
 })
 </script>
 
@@ -81,7 +90,7 @@ onMounted(() => {
             <n-form-item-row>
                 <n-flex vertical>
                     <div :id="containerId"></div>
-                    <n-button text @click="checkCfTurnstile(true)">
+                    <n-button text @click="rerenderTurnstile">
                         {{ t('refresh') }}
                     </n-button>
                 </n-flex>

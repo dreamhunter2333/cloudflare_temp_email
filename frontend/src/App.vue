@@ -1,18 +1,6 @@
 <script setup>
 import {
   darkTheme,
-  dateDeDE,
-  dateEnUS,
-  dateEsAR,
-  dateJaJP,
-  datePtBR,
-  dateZhCN,
-  deDE,
-  enUS,
-  esAR,
-  jaJP,
-  ptBR,
-  zhCN,
 } from 'naive-ui'
 import { computed, onMounted } from 'vue'
 import { useScript } from '@unhead/vue'
@@ -22,6 +10,8 @@ import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
 import Footer from './views/Footer.vue';
 import { api } from './api'
+import { getNaiveLocaleConfig } from './naive-locale'
+import { DEFAULT_LOCALE, isSupportedLocale } from './i18n-utils'
 
 const {
   isDark, loading, useSideMargin, telegramApp, isTelegram
@@ -30,15 +20,7 @@ const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
 const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
 const { locale } = useI18n({});
 const theme = computed(() => isDark.value ? darkTheme : null)
-const localeMap = {
-  zh: { locale: zhCN, dateLocale: dateZhCN },
-  en: { locale: enUS, dateLocale: dateEnUS },
-  es: { locale: esAR, dateLocale: dateEsAR },
-  'pt-BR': { locale: ptBR, dateLocale: datePtBR },
-  ja: { locale: jaJP, dateLocale: dateJaJP },
-  de: { locale: deDE, dateLocale: dateDeDE },
-};
-const localeConfig = computed(() => localeMap[locale.value] || localeMap.en)
+const localeConfig = computed(() => getNaiveLocaleConfig(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE))
 const isMobile = useIsMobile()
 const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
 const showAd = computed(() => !isMobile.value && adClient && adSlot);

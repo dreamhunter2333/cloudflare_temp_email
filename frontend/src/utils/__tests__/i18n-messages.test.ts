@@ -1,5 +1,6 @@
 import fs from 'fs'
-import { execSync } from 'child_process'
+import path from 'path'
+import { execFileSync } from 'child_process'
 
 import { describe, expect, it } from 'vitest'
 
@@ -43,9 +44,10 @@ const extractMessages = (content: string) => {
 }
 
 const getEnglishSourceMessages = () => {
-  const files = execSync('rg -l "useI18n\\(\\{|messages:\\s*\\{" frontend/src', {
+  const repoRoot = path.resolve(process.cwd(), '..')
+  const files = execFileSync('rg', ['-l', 'useI18n\\(\\{|messages:\\s*\\{', 'frontend/src'], {
     encoding: 'utf8',
-    cwd: '/data/code/cloudflare_temp_email',
+    cwd: repoRoot,
   })
     .trim()
     .split('\n')
@@ -54,7 +56,7 @@ const getEnglishSourceMessages = () => {
   const messages = new Set<string>()
 
   for (const file of files) {
-    const content = fs.readFileSync(`/data/code/cloudflare_temp_email/${file}`, 'utf8')
+    const content = fs.readFileSync(path.join(repoRoot, file), 'utf8')
     const block = extractMessages(content)
     if (!block) continue
 

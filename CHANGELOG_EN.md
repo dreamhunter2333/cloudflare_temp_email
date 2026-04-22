@@ -6,23 +6,11 @@
   <a href="CHANGELOG_EN.md">English</a>
 </p>
 
-## v1.9.0(main)
-
-### Features
-
-- feat: |Frontend| Add six-language frontend support (`zh` / `en` / `es` / `pt-BR` / `ja` / `de`) with first-visit browser-language detection, persisted manual language choice, and locale switching that preserves the current route and query parameters
-
-### Bug Fixes
-
-### Improvements
-
-- refactor: |Frontend| Centralize the new locale resources under `frontend/src/locales/source/` and route them through `frontend/src/i18n-messages.ts` for easier follow-up language expansion and translation maintenance
-- fix: |Frontend| Complete high-visibility Spanish, Portuguese, Japanese, and German copy across the homepage, login modal, and frequent admin views, removing mixed-English leftovers and broken generated strings to improve translation coverage
-
 ## v1.8.0(main)
 
 ### Features
 
+- feat: |Frontend| Add six-language frontend support (`zh` / `en` / `es` / `pt-BR` / `ja` / `de`) with first-visit browser-language detection, persisted manual language choice, and locale switching that preserves the current route and query parameters
 - feat: |API| Add server-side parsed-mail endpoints `/api/parsed_mails` and `/api/parsed_mail/:id` that return `sender` / `subject` / `text` / `html` / `attachments` metadata directly (reuses `commonParseMail`), so AI agents no longer need a client-side MIME parser
 - feat: |Skill| Bundle a read-only skill `cf-temp-mail-agent-mail` (`skills/cf-temp-mail-agent-mail/`) so AI agents like OpenClaw / Codex / Cursor can consume a mailbox with a user-supplied Address JWT + API base URL — list mails, poll verification codes, etc. — sidestepping the Turnstile challenge required to create a mailbox. Install via `npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail`
 - docs: |Docs| Add "AI Agent Mailbox Usage" doc (`guide/feature/agent-email`) covering the `parsed_mail` API and a local-parse fallback using `mail-parser-wasm` + `postal-mime` (mirrors the frontend) when parsed endpoints are unavailable
@@ -31,6 +19,8 @@
 
 ### Improvements
 
+- refactor: |Frontend| Centralize the new locale resources under `frontend/src/locales/source/` and route them through `frontend/src/i18n-messages.ts` for easier follow-up language expansion and translation maintenance
+- fix: |Frontend| Complete high-visibility Spanish, Portuguese, Japanese, and German copy across the homepage, login modal, and frequent admin views, removing mixed-English leftovers and broken generated strings to improve translation coverage
 - refactor: |Worker| Split `mails_api/index.ts` and `admin_api/index.ts` so the index files only wire routes. Business logic moved into dedicated `*_api.ts` files (`mails_crud.ts` / `new_address.ts` / `parsed_mail_api.ts` / `address_api.ts` / `address_sender_api.ts` / `sendbox_api.ts` / `statistics_api.ts` / `account_settings_api.ts`). Paths and behavior unchanged
 
 ## v1.7.0(main)

@@ -13,7 +13,7 @@ import { GithubAlt, Language, User, Home } from '@vicons/fa'
 import { useGlobalState } from '../store'
 import { api } from '../api'
 import { getRouterPathWithLang, hashPassword } from '../utils'
-import { replaceLocaleInFullPath } from '../i18n-utils'
+import { DEFAULT_LOCALE, isSupportedLocale, replaceLocaleInFullPath } from '../i18n-utils'
 import Turnstile from '../components/Turnstile.vue'
 
 const message = useMessage()
@@ -63,7 +63,19 @@ const languageOptions = [
 ]
 
 const changeLocale = async (lang) => {
-    preferredLocale.value = lang;
+    if (!isSupportedLocale(lang)) {
+        return;
+    }
+
+    if (lang === locale.value) {
+        showMobileMenu.value = false;
+        return;
+    }
+
+    if (lang === DEFAULT_LOCALE) {
+        preferredLocale.value = DEFAULT_LOCALE;
+    }
+
     await router.push(replaceLocaleInFullPath(route.fullPath, lang));
     showMobileMenu.value = false;
 }
@@ -267,13 +279,6 @@ onMounted(async () => {
             </template>
             <template #extra>
                 <n-space>
-                    <n-select
-                        v-model:value="locale"
-                        :options="languageOptions"
-                        size="small"
-                        style="min-width: 160px;"
-                        @update:value="changeLocale"
-                    />
                     <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" responsive />
                     <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu" style="margin-right: 10px;">
                         <template #icon>
@@ -281,18 +286,25 @@ onMounted(async () => {
                         </template>
                         {{ t('menu') }}
                     </n-button>
+                    <n-select
+                        :value="locale"
+                        :options="languageOptions"
+                        size="small"
+                        style="min-width: 160px;"
+                        @update:value="changeLocale"
+                    />
                 </n-space>
             </template>
         </n-page-header>
         <n-drawer v-model:show="showMobileMenu" placement="top" style="height: 100vh;">
             <n-drawer-content :title="t('menu')" closable>
+                <n-menu :options="menuOptions" />
                 <n-select
-                    v-model:value="locale"
+                    :value="locale"
                     :options="languageOptions"
-                    style="margin-bottom: 12px;"
+                    style="margin-top: 12px;"
                     @update:value="changeLocale"
                 />
-                <n-menu :options="menuOptions" />
             </n-drawer-content>
         </n-drawer>
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"

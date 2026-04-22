@@ -1,23 +1,16 @@
 import { createI18n } from 'vue-i18n'
 
 import {
+    EMPTY_LOCALE_MESSAGES,
     FALLBACK_LOCALE,
-    getBrowserLocales,
-    getPreferredLocale,
-    getStoredLocale,
-    SUPPORTED_LOCALES,
+    getInitialLocale,
 } from './i18n-utils'
-
-const locale = getPreferredLocale(getStoredLocale(), getBrowserLocales())
-const messages = Object.fromEntries(
-    SUPPORTED_LOCALES.map((supportedLocale) => [supportedLocale, {}])
-)
 
 const i18n = createI18n({
     legacy: false, // you must set `false`, to use Composition API
-    locale,
+    locale: getInitialLocale(),
     fallbackLocale: FALLBACK_LOCALE,
-    messages,
+    messages: EMPTY_LOCALE_MESSAGES,
     missingWarn: false,
     fallbackWarn: false,
 })
