@@ -6,7 +6,8 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
-    AdminPanelSettingsFilled, MonitorHeartFilled
+    AdminPanelSettingsFilled, MonitorHeartFilled,
+    KeyboardArrowDownOutlined
 } from '@vicons/material'
 import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
@@ -55,13 +56,17 @@ const authFunc = async () => {
 }
 
 const languageOptions = [
-    { label: '中文', value: 'zh' },
-    { label: 'English', value: 'en' },
-    { label: 'Español', value: 'es' },
-    { label: 'Português (Brasil)', value: 'pt-BR' },
-    { label: '日本語', value: 'ja' },
-    { label: 'Deutsch', value: 'de' },
+    { label: '中文', value: 'zh', key: 'zh' },
+    { label: 'English', value: 'en', key: 'en' },
+    { label: 'Español', value: 'es', key: 'es' },
+    { label: 'Português (Brasil)', value: 'pt-BR', key: 'pt-BR' },
+    { label: '日本語', value: 'ja', key: 'ja' },
+    { label: 'Deutsch', value: 'de', key: 'de' },
 ]
+
+const currentLocaleLabel = computed(() => {
+    return languageOptions.find(opt => opt.value === currentLocale.value)?.label || 'Language';
+});
 
 const { t } = useI18n({
     messages: {
@@ -287,25 +292,24 @@ onMounted(async () => {
                         </template>
                         {{ t('menu') }}
                     </n-button>
-                    <n-select
-                        :value="currentLocale"
-                        :options="languageOptions"
-                        size="small"
-                        style="min-width: 160px;"
-                        @update:value="changeLocale"
-                    />
+                    <n-dropdown :options="languageOptions" @select="changeLocale" trigger="click">
+                        <n-button text size="small" style="padding: 0 10px;">
+                            {{ currentLocaleLabel }}
+                            <n-icon :component="KeyboardArrowDownOutlined" style="margin-left: 4px;" />
+                        </n-button>
+                    </n-dropdown>
                 </n-space>
             </template>
         </n-page-header>
         <n-drawer v-model:show="showMobileMenu" placement="top" style="height: 100vh;">
             <n-drawer-content :title="t('menu')" closable>
                 <n-menu :options="menuOptions" />
-                <n-select
-                    :value="currentLocale"
-                    :options="languageOptions"
-                    style="margin-top: 12px;"
-                    @update:value="changeLocale"
-                />
+                <n-dropdown :options="languageOptions" @select="changeLocale" trigger="click">
+                    <n-button text style="margin-top: 12px;">
+                        {{ currentLocaleLabel }}
+                        <n-icon :component="KeyboardArrowDownOutlined" style="margin-left: 4px;" />
+                    </n-button>
+                </n-dropdown>
             </n-drawer-content>
         </n-drawer>
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
