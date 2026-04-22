@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  buildLocaleAliases,
   DEFAULT_LOCALE,
   getPathWithLocale,
   getPreferredLocale,
@@ -30,5 +31,16 @@ describe('locale matching', () => {
   it('preserves query and hash when switching locale', () => {
     expect(replaceLocaleInFullPath('/user?tab=mail#top', 'es')).toBe('/es/user?tab=mail#top')
     expect(replaceLocaleInFullPath('/de/admin?mode=full', 'zh')).toBe('/admin?mode=full')
+  })
+
+  it('normalizes input paths when building locale aliases', () => {
+    expect(buildLocaleAliases('user')).toEqual(buildLocaleAliases('/user'))
+    expect(buildLocaleAliases('user')).toEqual([
+      '/en/user',
+      '/es/user',
+      '/pt-BR/user',
+      '/ja/user',
+      '/de/user',
+    ])
   })
 })

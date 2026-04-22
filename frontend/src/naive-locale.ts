@@ -17,7 +17,7 @@ import type { NDateLocale, NLocale } from 'naive-ui'
 
 import type { SupportedLocale } from './i18n-utils'
 
-type NaiveLocaleConfig = {
+export type NaiveLocaleConfig = {
   locale: NLocale
   dateLocale: NDateLocale
 }
@@ -31,6 +31,6 @@ const naiveLocaleMap: Record<SupportedLocale, NaiveLocaleConfig> = {
   de: { locale: deDE, dateLocale: dateDeDE },
 }
 
-export const getNaiveLocaleConfig = (locale: SupportedLocale) => {
+export const getNaiveLocaleConfig = (locale: SupportedLocale): NaiveLocaleConfig => {
   return naiveLocaleMap[locale] || naiveLocaleMap.en
 }

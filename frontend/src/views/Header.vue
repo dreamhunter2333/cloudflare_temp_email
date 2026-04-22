@@ -13,7 +13,7 @@ import { GithubAlt, Language, User, Home } from '@vicons/fa'
 import { useGlobalState } from '../store'
 import { api } from '../api'
 import { getRouterPathWithLang, hashPassword } from '../utils'
-import { DEFAULT_LOCALE, isSupportedLocale, replaceLocaleInFullPath } from '../i18n-utils'
+import { isSupportedLocale, replaceLocaleInFullPath } from '../i18n-utils'
 import Turnstile from '../components/Turnstile.vue'
 
 const message = useMessage()
@@ -62,24 +62,6 @@ const languageOptions = [
     { label: 'Deutsch', value: 'de' },
 ]
 
-const changeLocale = async (lang) => {
-    if (!isSupportedLocale(lang)) {
-        return;
-    }
-
-    if (lang === locale.value) {
-        showMobileMenu.value = false;
-        return;
-    }
-
-    if (lang === DEFAULT_LOCALE) {
-        preferredLocale.value = DEFAULT_LOCALE;
-    }
-
-    await router.push(replaceLocaleInFullPath(route.fullPath, lang));
-    showMobileMenu.value = false;
-}
-
 const { locale, t } = useI18n({
     messages: {
         en: {
@@ -108,6 +90,21 @@ const { locale, t } = useI18n({
         }
     }
 });
+
+const changeLocale = async (lang) => {
+    if (!isSupportedLocale(lang)) {
+        return;
+    }
+
+    if (lang === locale.value) {
+        showMobileMenu.value = false;
+        return;
+    }
+
+    preferredLocale.value = lang;
+    await router.push(replaceLocaleInFullPath(route.fullPath, lang));
+    showMobileMenu.value = false;
+}
 
 const version = import.meta.env.PACKAGE_VERSION ? `v${import.meta.env.PACKAGE_VERSION}` : "";
 

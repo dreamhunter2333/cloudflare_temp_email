@@ -113,7 +113,9 @@ export const replaceLocaleInFullPath = (fullPath: string, locale: SupportedLocal
 }
 
 export const buildLocaleAliases = (path: string): string[] => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+
   return SUPPORTED_LOCALES
     .map((locale) => getPathWithLocale(path, locale))
-    .filter((alias, index, aliases) => aliases.indexOf(alias) === index && alias !== path)
+    .filter((alias, index, aliases) => aliases.indexOf(alias) === index && alias !== normalizedPath)
 }

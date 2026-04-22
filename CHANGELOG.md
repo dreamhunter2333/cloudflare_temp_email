@@ -17,6 +17,8 @@
 
 ### Bug Fixes
 
+- fix: |Frontend| 修复 Header 语言切换时 `preferredLocale` 同步不对称与 locale alias 路径规范化问题，补充语言切换单元测试与浏览器 E2E 覆盖
+
 ### Improvements
 
 - refactor: |Frontend| 将新增语种的 locale 资源集中到 `frontend/src/locales/source/`，由 `frontend/src/i18n-messages.ts` 统一分发，便于后续继续补充语言与维护翻译

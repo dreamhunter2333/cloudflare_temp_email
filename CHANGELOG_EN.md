@@ -17,6 +17,8 @@
 
 ### Bug Fixes
 
+- fix: |Frontend| Fix asymmetric `preferredLocale` updates in Header locale switching and normalize locale alias paths, with added locale-switch unit and browser E2E coverage
+
 ### Improvements
 
 - refactor: |Frontend| Centralize the new locale resources under `frontend/src/locales/source/` and route them through `frontend/src/i18n-messages.ts` for easier follow-up language expansion and translation maintenance
