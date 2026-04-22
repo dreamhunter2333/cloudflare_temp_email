@@ -1,0 +1,39 @@
+# Cloudflare Temp Email
+
+> 基于 Cloudflare Workers / Pages / D1 / KV 搭建的免费开源临时邮箱服务,支持收发邮件、多用户、Telegram、Webhook、OAuth2、SMTP/IMAP 代理、AI 邮件内容提取等能力。
+
+- 文档站点: https://temp-mail-docs.awsl.uk/zh/
+- 项目仓库: https://github.com/dreamhunter2333/cloudflare_temp_email
+
+## 核心入口
+
+- Documentation Home: `https://temp-mail-docs.awsl.uk/zh/`。用于从目录快速定位具体主题页面与术语定义来源。
+- Architecture Overview: `https://temp-mail-docs.awsl.uk/zh/guide/what-is-temp-mail`。用于理解系统由 Workers/Pages/D1/KV 组成以及邮件流转的整体路径。
+- Quick Start (CLI/UI/Actions): `https://temp-mail-docs.awsl.uk/zh/guide/quick-start`。用于从零搭建最小可用环境并验证收件箱可用。
+- Worker Variables & Bindings Reference: `https://temp-mail-docs.awsl.uk/zh/guide/worker-vars`。用于核对所有后端环境变量、D1/KV/R2 绑定名称与含义。
+
+## 部署与配置
+
+- GitHub Actions Prerequisites: `https://temp-mail-docs.awsl.uk/zh/guide/actions/pre-requisite`。用于列清需要创建的 Cloudflare 资源、以及 Actions Secrets/变量应该填什么。
+- GitHub Actions Deployment Guide: `https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action`。用于按步骤完成前后端自动化部署与回滚排查。
+- Cloudflare Email Routing Setup: `https://temp-mail-docs.awsl.uk/zh/guide/email-routing`。用于配置域名收件、转发到 Worker,并解释常见收不到邮件的原因。
+- Outbound Email Configuration (DKIM/Resend/SMTP): `https://temp-mail-docs.awsl.uk/zh/guide/config-send-mail`。用于配置发信通道与鉴权(如 DKIM/Resend)并定位发信失败原因。
+- Troubleshooting / Common Issues: `https://temp-mail-docs.awsl.uk/zh/guide/common-issues`。用于排查部署后登录/收件/发信/附件等高频故障与对策。
+
+## 功能与集成
+
+- Webhook Integration: `https://temp-mail-docs.awsl.uk/zh/guide/feature/webhook`。用于配置收件触发的 HTTP 回调、签名/重试策略与事件字段解释。
+- Telegram Bot Integration: `https://temp-mail-docs.awsl.uk/zh/guide/feature/telegram`。用于配置 Telegram 推送/命令交互并解决 Bot 收不到消息或绑定失败问题。
+- AI Extract (LLM Content Extraction): `https://temp-mail-docs.awsl.uk/zh/guide/feature/ai-extract`。用于配置从邮件中提取验证码/链接等结构化字段并说明提示词/模型相关参数。
+- OAuth2 Login: `https://temp-mail-docs.awsl.uk/zh/guide/feature/user-oauth2`。用于接入第三方 OAuth2 作为登录方式并排查回调/权限配置问题。
+- SMTP/IMAP Proxy Configuration: `https://temp-mail-docs.awsl.uk/zh/guide/feature/config-smtp-proxy`。用于把邮箱接入到标准客户端,并解释代理服务部署与连接参数。
+
+## API
+
+- Mailbox Management & Inbox API: `https://temp-mail-docs.awsl.uk/zh/guide/feature/mail-api`。用于查询/管理邮箱地址、获取邮件列表与邮件详情的接口定义与示例。
+- Send Email API: `https://temp-mail-docs.awsl.uk/zh/guide/feature/send-mail-api`。用于通过 HTTP 发件(含鉴权/限流/错误码)并定位常见请求失败原因。
+
+## Optional
+
+- Source Code / Issues / Releases: `https://github.com/dreamhunter2333/cloudflare_temp_email`。用于定位实现细节、搜索已知问题与对照文档差异。
+- Release Notes: `https://github.com/dreamhunter2333/cloudflare_temp_email/releases`。用于确认版本变更点与升级可能引入的不兼容项。
