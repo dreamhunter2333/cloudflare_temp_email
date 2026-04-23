@@ -1,6 +1,6 @@
 <script setup>
 import { defineAsyncComponent, onMounted, watch } from 'vue'
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { useRoute } from 'vue-router'
 
 import { useGlobalState } from '../store'

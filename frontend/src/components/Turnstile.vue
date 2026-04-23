@@ -1,9 +1,9 @@
 <script setup>
 import { ref, watch } from "vue";
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
-import { getTurnstileLocale } from '../locale-registry'
-import { isSupportedLocale } from '../i18n-utils'
+import { getTurnstileLocale } from '../i18n/locale-registry'
+import { isSupportedLocale } from '../i18n/utils'
 const { openSettings, isDark } = useGlobalState()
 
 const cfToken = defineModel('value')

@@ -6,7 +6,8 @@ import {
   getPathWithLocale,
   getPreferredLocale,
   replaceLocaleInFullPath,
-} from '../../i18n-utils'
+  resolveSupportedLocale,
+} from '../../i18n/utils'
 
 describe('locale matching', () => {
   it('maps browser locales to supported locales', () => {
@@ -23,6 +24,13 @@ describe('locale matching', () => {
     expect(getPreferredLocale('', ['it-IT'])).toBe('en')
   })
 
+  it('normalizes supported locale casing', () => {
+    expect(resolveSupportedLocale('pt-br')).toBe('pt-BR')
+    expect(resolveSupportedLocale('PT-BR')).toBe('pt-BR')
+    expect(resolveSupportedLocale('de')).toBe('de')
+    expect(resolveSupportedLocale('unknown')).toBeNull()
+  })
+
   it('keeps en unprefixed and prefixes non-default locales', () => {
     expect(getPathWithLocale('/user', DEFAULT_LOCALE)).toBe('/user')
     expect(getPathWithLocale('/user', 'ja')).toBe('/ja/user')
@@ -32,6 +40,7 @@ describe('locale matching', () => {
     expect(replaceLocaleInFullPath('/user?tab=mail#top', 'es')).toBe('/es/user?tab=mail#top')
     expect(replaceLocaleInFullPath('/de/admin?mode=full', 'zh')).toBe('/zh/admin?mode=full')
     expect(replaceLocaleInFullPath('/de/admin?mode=full', 'en')).toBe('/admin?mode=full')
+    expect(replaceLocaleInFullPath('/pt-br/user?tab=mail#top', 'pt-BR')).toBe('/pt-BR/user?tab=mail#top')
   })
 
   it('normalizes input paths when building locale aliases', () => {

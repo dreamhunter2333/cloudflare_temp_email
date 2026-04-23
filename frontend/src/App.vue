@@ -4,14 +4,14 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, watchEffect } from 'vue'
 import { useScript } from '@unhead/vue'
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
 import Footer from './views/Footer.vue';
 import { api } from './api'
-import { getNaiveLocaleConfig } from './naive-locale'
-import { DEFAULT_LOCALE, isSupportedLocale } from './i18n-utils'
+import { getNaiveLocaleConfig } from './i18n/naive-locale'
+import { DEFAULT_LOCALE, isSupportedLocale } from './i18n/utils'
 
 const {
   isDark, loading, useSideMargin, telegramApp, isTelegram

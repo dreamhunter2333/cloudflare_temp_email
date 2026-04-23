@@ -4,7 +4,7 @@ import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
-import * as localeUtils from '../i18n-utils'
+import * as localeUtils from '../i18n/utils'
 import {
     applyLocaleNavigationState,
     getLocaleRedirectPath,

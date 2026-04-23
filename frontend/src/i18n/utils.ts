@@ -16,6 +16,19 @@ export const isSupportedLocale = (locale: unknown): locale is SupportedLocale =>
   return typeof locale === 'string' && SUPPORTED_LOCALES.includes(locale as SupportedLocale)
 }
 
+export const resolveSupportedLocale = (locale: string | null | undefined): SupportedLocale | null => {
+  if (!locale) return null
+  const normalizedLocale = locale.trim().toLowerCase()
+
+  for (const supportedLocale of SUPPORTED_LOCALES) {
+    if (supportedLocale.toLowerCase() === normalizedLocale) {
+      return supportedLocale
+    }
+  }
+
+  return null
+}
+
 export const matchSupportedLocale = (locale: string | null | undefined): SupportedLocale | null => {
   if (!locale) return null
   const normalizedLocale = locale.trim().toLowerCase()
@@ -73,14 +86,17 @@ const splitPathSuffix = (fullPath: string) => {
 export const stripLocaleFromPath = (path: string): string => {
   if (!path || path === '/') return '/'
 
-  for (const locale of SUPPORTED_LOCALES) {
-    const localePrefix = `/${locale}`
-    if (path === localePrefix || path === `${localePrefix}/`) {
-      return '/'
-    }
-    if (path.startsWith(`${localePrefix}/`)) {
-      return path.slice(localePrefix.length) || '/'
-    }
+  const pathLocale = resolveSupportedLocale(path.split('/')[1])
+  if (!pathLocale) {
+    return path
+  }
+
+  const localePrefix = `/${path.split('/')[1]}`
+  if (path === localePrefix || path === `${localePrefix}/`) {
+    return '/'
+  }
+  if (path.startsWith(`${localePrefix}/`)) {
+    return path.slice(localePrefix.length) || '/'
   }
 
   return path

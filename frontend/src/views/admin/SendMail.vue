@@ -1,7 +1,7 @@
 <script setup>
 import '@wangeditor/editor/dist/css/style.css'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { onBeforeUnmount, ref, shallowRef } from 'vue'
 import { useSessionStorage } from '@vueuse/core'
 import { api } from '../../api'

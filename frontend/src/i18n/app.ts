@@ -2,8 +2,8 @@ import { createI18n, useI18n as baseUseI18n } from 'vue-i18n'
 
 import type { ComposerAdditionalOptions, ComposerOptions } from 'vue-i18n'
 
-import { getLocalizedMessage } from './i18n-messages'
-import { resolveMessageNamespace } from './i18n-message-registry'
+import { getLocalizedMessage } from './messages'
+import { resolveMessageNamespace } from './message-registry'
 import { SUPPORTED_LOCALES } from './locale-registry'
 
 type LocaleMessages = Record<string, Record<string, unknown>>

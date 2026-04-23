@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";

@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, getPathWithLocale, isSupportedLocale } from '../i18n-utils'
+import { DEFAULT_LOCALE, getPathWithLocale, isSupportedLocale } from '../i18n/utils'
 
 export const hashPassword = async (password: string) => {
     // user crypto to hash password

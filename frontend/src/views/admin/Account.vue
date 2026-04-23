@@ -1,7 +1,7 @@
 <script setup>
 import { ref, h, onMounted, watch, computed } from 'vue';
 import { NBadge, useMessage } from 'naive-ui'
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'

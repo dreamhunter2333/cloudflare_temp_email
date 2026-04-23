@@ -1,10 +1,10 @@
-import { createAppI18n } from '@/app-i18n'
+import { createAppI18n } from '@/i18n/app'
 
 import {
     EMPTY_LOCALE_MESSAGES,
     FALLBACK_LOCALE,
     getInitialLocale,
-} from './i18n-utils'
+} from './utils'
 
 const i18n = createAppI18n({
     legacy: false, // you must set `false`, to use Composition API

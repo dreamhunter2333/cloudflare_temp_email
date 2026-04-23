@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, nextTick, ref } from 'vue'
-import { createAppI18n } from '@/app-i18n'
+import { createAppI18n } from '@/i18n/app'
 
 import Turnstile from '../Turnstile.vue'
 import { useGlobalState } from '../../store'

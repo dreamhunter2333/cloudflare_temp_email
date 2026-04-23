@@ -10,17 +10,12 @@
 
 ### Features
 
-- feat: |Frontend| Add six-language frontend support (`zh` / `en` / `es` / `pt-BR` / `ja` / `de`) with first-visit browser-language detection, persisted manual language choice, and locale switching that preserves the current route and query parameters
-- feat: |Frontend| Change the default fallback locale from `zh` to `en`
+- feat: |Frontend| Add six-language frontend support (`zh` / `en` / `es` / `pt-BR` / `ja` / `de`), switch the default locale to `en`, route first visits by browser language, persist explicit language choices, and keep the current route, query string, and canonical locale URL in sync during locale switches
 - feat: |API| Add server-side parsed-mail endpoints `/api/parsed_mails` and `/api/parsed_mail/:id` that return `sender` / `subject` / `text` / `html` / `attachments` metadata directly (reuses `commonParseMail`), so AI agents no longer need a client-side MIME parser
 - feat: |Skill| Bundle a read-only skill `cf-temp-mail-agent-mail` (`skills/cf-temp-mail-agent-mail/`) so AI agents like OpenClaw / Codex / Cursor can consume a mailbox with a user-supplied Address JWT + API base URL — list mails, poll verification codes, etc. — sidestepping the Turnstile challenge required to create a mailbox. Install via `npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail`
 - docs: |Docs| Add "AI Agent Mailbox Usage" doc (`guide/feature/agent-email`) covering the `parsed_mail` API and a local-parse fallback using `mail-parser-wasm` + `postal-mime` (mirrors the frontend) when parsed endpoints are unavailable
 
 ### Bug Fixes
-
-- fix: |Frontend| Unify the locale-switching state flow so first visits follow browser language, explicit user switches persist preference, and the current route, query string, and default-locale canonical URLs stay in sync
-- fix: |Frontend| Fix Turnstile failing to render when the site key arrives after mount, and rerender the widget when the active locale or theme changes
-- fix: |Frontend| Complete high-visibility Spanish, Portuguese, Japanese, and German copy across the homepage, login modal, and frequent admin views, removing mixed-English leftovers and broken strings
 
 ### Improvements
 

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, onMounted } from 'vue';
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { NBadge } from 'naive-ui'
 
 import { api } from '../../api'

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { getLocalizedMessage } from '../../i18n-messages'
-import { MESSAGE_REGISTRY } from '../../i18n-message-registry'
+import { getLocalizedMessage } from '../../i18n/messages'
+import { MESSAGE_REGISTRY } from '../../i18n/message-registry'
 
 describe('new locale coverage', () => {
   it('covers every registered locale message key', () => {

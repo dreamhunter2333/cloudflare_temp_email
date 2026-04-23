@@ -1,7 +1,7 @@
 <script setup>
 import { useMessage } from 'naive-ui'
 import { onMounted, ref } from "vue";
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { KeyFilled } from '@vicons/material'
 
 import { api } from '../../api';

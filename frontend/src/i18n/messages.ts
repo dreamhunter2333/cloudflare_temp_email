@@ -1,5 +1,5 @@
 import type { SupportedLocale } from './locale-registry'
-import type { MessageNamespace } from './i18n-message-registry'
+import type { MessageNamespace } from './message-registry'
 
 import { deMessages } from './locales/source/de'
 import { esMessages } from './locales/source/es'

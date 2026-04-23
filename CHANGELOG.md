@@ -10,17 +10,12 @@
 
 ### Features
 
-- feat: |Frontend| 前端新增 6 国语言支持（`zh` / `en` / `es` / `pt-BR` / `ja` / `de`），首次访问会根据浏览器语言自动切换，用户手动切换后会持久化语言选择，并保持当前页面路径与查询参数
-- feat: |Frontend| 将前端默认语言从 `zh` 修改为 `en`
+- feat: |Frontend| 前端新增 6 国语言支持（`zh` / `en` / `es` / `pt-BR` / `ja` / `de`），默认语言调整为 `en`，首次访问会按浏览器语言自动路由，用户手动切换后会持久化语言偏好，并保持当前页面路径、查询参数与 canonical locale URL 一致
 - feat: |API| 新增服务端解析邮件接口 `/api/parsed_mails` 与 `/api/parsed_mail/:id`，直接返回 `sender` / `subject` / `text` / `html` / `attachments` 元信息（复用 `commonParseMail`），AI agent 侧不再需要引入 MIME 解析器
 - feat: |Skill| 新增仓库内置只读 skill `cf-temp-mail-agent-mail`（`skills/cf-temp-mail-agent-mail/`），让 OpenClaw / Codex / Cursor 等 AI agent 凭用户提供的 Address JWT + API 地址读取邮箱、轮询验证码，绕开创建邮箱时的 Turnstile 人机验证；可通过 `npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail` 安装
 - docs: |文档| 新增"AI Agent 使用邮箱"文档（`guide/feature/agent-email`），说明 `parsed_mail` API 用法，并在 parsed API 不可用时给出对齐前端的 `mail-parser-wasm` + `postal-mime` 本地解析回退方案
 
 ### Bug Fixes
-
-- fix: |Frontend| 统一多语言切换状态流，首次访问按浏览器语言路由，用户手动切换后会持久化偏好，并保持当前页面路径、查询参数与默认语言 canonical URL 一致
-- fix: |Frontend| 修复 Turnstile 在站点 key 晚于组件挂载返回时不渲染的问题，并确保语言或主题切换后重新渲染对应 widget
-- fix: |Frontend| 补齐西班牙语、葡萄牙语、日语、德语首页、登录弹窗与管理页高频文案，清理混合英文和错误拼接
 
 ### Improvements
 

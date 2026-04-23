@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, computed, onMounted } from 'vue'
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { useHead } from '@unhead/vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
@@ -15,8 +15,8 @@ import { useGlobalState } from '../store'
 import { api } from '../api'
 import i18n from '../i18n'
 import { getRouterPathWithLang, hashPassword } from '../utils'
-import { isSupportedLocale, replaceLocaleInFullPath } from '../i18n-utils'
-import { getLocaleLabel, SUPPORTED_LOCALES } from '../locale-registry'
+import { isSupportedLocale, replaceLocaleInFullPath } from '../i18n/utils'
+import { getLocaleLabel, SUPPORTED_LOCALES } from '../i18n/locale-registry'
 import Turnstile from '../components/Turnstile.vue'
 import { NButton, NIcon } from 'naive-ui'
 

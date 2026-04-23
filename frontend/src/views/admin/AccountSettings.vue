@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, h } from 'vue';
-import { useAppI18n as useI18n } from '@/app-i18n'
+import { useAppI18n as useI18n } from '@/i18n/app'
 import { NButton, NPopconfirm, NInput, NSelect, NRadioGroup, NRadio } from 'naive-ui'
 
 import { useGlobalState } from '../../store'
