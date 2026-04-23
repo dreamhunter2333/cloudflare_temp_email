@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 
 import { api } from '../../api'
 import { useGlobalState } from '../../store'
@@ -9,18 +9,7 @@ import MailBox from '../../components/MailBox.vue';
 const message = useMessage()
 const { openSettings } = useGlobalState()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            addressQueryTip: 'Leave blank to query all addresses',
-            query: 'Query',
-        },
-        zh: {
-            addressQueryTip: '留空查询所有地址',
-            query: '查询',
-        }
-    }
-});
+const { t } = useScopedI18n('views.user.UserMailBox')
 
 const mailBoxKey = ref("")
 const addressFilter = ref();

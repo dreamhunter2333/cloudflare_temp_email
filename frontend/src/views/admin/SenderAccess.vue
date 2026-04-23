@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, onMounted, watch } from 'vue';
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
@@ -8,44 +8,7 @@ import { api } from '../../api'
 const { loading } = useGlobalState()
 const message = useMessage()
 
-const { t } = useI18n({
-  messages: {
-    en: {
-      address: 'Address',
-      success: 'Success',
-      is_enabled: 'Is Enabled',
-      enable: 'Enable',
-      disable: 'Disable',
-      modify: 'Modify',
-      delete: 'Delete',
-      deleteTip: 'Are you sure to delete this?',
-      created_at: 'Created At',
-      action: 'Action',
-      itemCount: 'itemCount',
-      modalTip: 'Please input the sender balance',
-      balance: 'Balance',
-      query: 'Query',
-      ok: 'OK'
-    },
-    zh: {
-      address: '地址',
-      success: '成功',
-      is_enabled: '是否启用',
-      enable: '启用',
-      disable: '禁用',
-      modify: '修改',
-      delete: '删除',
-      deleteTip: '确定删除吗？',
-      created_at: '创建时间',
-      action: '操作',
-      itemCount: '总数',
-      modalTip: '请输入发件额度',
-      balance: '余额',
-      query: '查询',
-      ok: '确定'
-    }
-  }
-});
+const { t } = useScopedI18n('views.admin.SenderAccess')
 const data = ref([])
 const count = ref(0)
 const page = ref(1)

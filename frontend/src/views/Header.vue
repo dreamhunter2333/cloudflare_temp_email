@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, computed, onMounted } from 'vue'
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { useHead } from '@unhead/vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
@@ -67,34 +67,7 @@ const currentLocaleLabel = computed(() => {
     return languageOptions.find(opt => opt.value === currentLocale.value)?.label || currentLocale.value;
 });
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            title: 'Cloudflare Temp Email',
-            dark: 'Dark',
-            light: 'Light',
-            accessHeader: 'Access Password',
-            accessTip: 'Please enter the correct access password',
-            home: 'Home',
-            menu: 'Menu',
-            user: 'User',
-            status: 'Status',
-            ok: 'OK',
-        },
-        zh: {
-            title: 'Cloudflare 临时邮件',
-            dark: '暗色',
-            light: '亮色',
-            accessHeader: '访问密码',
-            accessTip: '请输入站点访问密码',
-            home: '主页',
-            menu: '菜单',
-            user: '用户',
-            status: '状态',
-            ok: '确定',
-        }
-    }
-});
+const { t } = useScopedI18n('views.Header')
 
 const currentLocale = computed(() => i18n.global.locale.value)
 

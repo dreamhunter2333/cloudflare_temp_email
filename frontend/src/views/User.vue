@@ -1,5 +1,5 @@
 <script setup>
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../store'
 
@@ -13,22 +13,7 @@ const {
     userTab, globalTabplacement, userSettings
 } = useGlobalState()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            address_management: 'Address Management',
-            user_mail_box_tab: 'Mail Box',
-            user_settings: 'User Settings',
-            bind_address: 'Bind Mail Address',
-        },
-        zh: {
-            address_management: '地址管理',
-            user_mail_box_tab: '收件箱',
-            user_settings: '用户设置',
-            bind_address: '绑定邮箱地址',
-        }
-    }
-});
+const { t } = useScopedI18n('views.User')
 
 </script>
 

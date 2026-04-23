@@ -1,23 +1,14 @@
 <script setup>
 import { ref, watch } from "vue";
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
 import { getTurnstileLocale } from '../i18n/locale-registry'
-import { isSupportedLocale } from '../i18n/utils'
+import { DEFAULT_LOCALE, isSupportedLocale } from '../i18n/utils'
 const { openSettings, isDark } = useGlobalState()
 
 const cfToken = defineModel('value')
 
-const { locale, t } = useI18n({
-    messages: {
-        en: {
-            refresh: 'Refresh'
-        },
-        zh: {
-            refresh: '刷新'
-        }
-    }
-});
+const { locale, t } = useScopedI18n('components.Turnstile')
 
 const containerId = `cf-turnstile-${Math.random().toString(36).slice(2, 9)}`
 const cfTurnstileId = ref("")
@@ -61,7 +52,7 @@ const checkCfTurnstile = async (remove) => {
             `#${containerId}`,
             {
                 sitekey: openSettings.value.cfTurnstileSiteKey,
-                language: getTurnstileLocale(isSupportedLocale(locale.value) ? locale.value : 'en'),
+                language: getTurnstileLocale(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE),
                 theme: isDark.value ? 'dark' : 'light',
                 callback: function (token) {
                     cfToken.value = token;

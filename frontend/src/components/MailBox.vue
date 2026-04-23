@@ -1,7 +1,7 @@
 <script setup>
 import { watch, onMounted, ref, onBeforeUnmount, computed } from "vue";
 import { useMessage } from 'naive-ui'
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
 import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled, InboxRound } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
@@ -138,60 +138,7 @@ const showMultiActionDelete = ref(false)
 const multiActionDownloadZip = ref({})
 const multiActionDeleteProgress = ref({ percentage: 0, tip: '0/0' })
 
-const { t } = useI18n({
-  messages: {
-    en: {
-      success: 'Success',
-      autoRefresh: 'Auto Refresh',
-      refreshAfter: 'Refresh After {msg} Seconds',
-      refresh: 'Refresh',
-      attachments: 'Show Attachments',
-      downloadMail: 'Download Mail',
-      pleaseSelectMail: "Please select mail",
-      emptyInbox: "Your inbox is empty",
-      delete: 'Delete',
-      deleteMailTip: 'Are you sure you want to delete mail?',
-      reply: 'Reply',
-      forwardMail: 'Forward',
-      showTextMail: 'Show Text Mail',
-      showHtmlMail: 'Show Html Mail',
-      saveToS3: 'Save to S3',
-      multiAction: 'Multi Action',
-      cancelMultiAction: 'Cancel Multi Action',
-      selectAll: 'Select All of This Page',
-      unselectAll: 'Unselect All',
-      prevMail: 'Previous',
-      nextMail: 'Next',
-      keywordQueryTip: 'Filter current page',
-      query: 'Query',
-    },
-    zh: {
-      success: '成功',
-      autoRefresh: '自动刷新',
-      refreshAfter: '{msg}秒后刷新',
-      refresh: '刷新',
-      downloadMail: '下载邮件',
-      attachments: '查看附件',
-      pleaseSelectMail: "请选择邮件",
-      emptyInbox: "收件箱为空",
-      delete: '删除',
-      deleteMailTip: '确定要删除邮件吗?',
-      reply: '回复',
-      forwardMail: '转发',
-      showTextMail: '显示纯文本邮件',
-      showHtmlMail: '显示HTML邮件',
-      saveToS3: '保存到S3',
-      multiAction: '多选',
-      cancelMultiAction: '取消多选',
-      selectAll: '全选本页',
-      unselectAll: '取消全选',
-      prevMail: '上一封',
-      nextMail: '下一封',
-      keywordQueryTip: '过滤当前页',
-      query: '查询',
-    }
-  }
-});
+const { t } = useScopedI18n('components.MailBox')
 
 const setupAutoRefresh = async (autoRefresh) => {
   // auto refresh every configAutoRefreshInterval seconds

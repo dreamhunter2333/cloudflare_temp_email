@@ -36,15 +36,15 @@ const selectLanguage = async (page: Page, selectTrigger: Locator, optionLabel: s
 };
 
 test.describe('Locale switching', () => {
-  test('redirects first visit using browser language', async ({ page }) => {
+  test('keeps default route in Chinese while persisting browser language preference', async ({ page }) => {
     await installLocaleInitScript(page, ['es-ES', 'en-US']);
 
     await page.goto(`${FRONTEND_URL}/`);
 
-    await expect(page).toHaveURL(`${FRONTEND_URL}/es/`);
+    await expect(page).toHaveURL(`${FRONTEND_URL}/`);
     await expect.poll(() => page.evaluate(() => window.localStorage.getItem('preferredLocale'))).toBe('es');
-    await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('es');
-    await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('zh');
+    await expect(page.getByRole('button', { name: '登录' })).toBeVisible();
   });
 
   test('desktop header switch removes default locale prefix and keeps query/hash', async ({ page }) => {

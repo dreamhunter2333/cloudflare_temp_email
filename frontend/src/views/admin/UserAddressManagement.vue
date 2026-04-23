@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, onMounted } from 'vue';
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { NBadge } from 'naive-ui'
 
 import { api } from '../../api'
@@ -14,22 +14,7 @@ const props = defineProps({
 
 const message = useMessage()
 
-const { locale, t } = useI18n({
-    messages: {
-        en: {
-            success: 'success',
-            name: 'Name',
-            mail_count: 'Mail Count',
-            send_count: 'Send Count',
-        },
-        zh: {
-            success: '成功',
-            name: '名称',
-            mail_count: '邮件数量',
-            send_count: '发送数量',
-        }
-    }
-});
+const { locale, t } = useScopedI18n('views.admin.UserAddressManagement')
 
 const data = ref([])
 

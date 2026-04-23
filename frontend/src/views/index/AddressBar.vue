@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
 import { User, ExchangeAlt } from '@vicons/fa'
 
@@ -20,30 +20,7 @@ const {
     isTelegram, addressPassword
 } = useGlobalState()
 
-const { locale, t } = useI18n({
-    messages: {
-        en: {
-            ok: 'OK',
-            fetchAddressError: 'Mail address credential is invalid or account not exist, it may be network connection issue, please try again later.',
-            addressCredential: 'Mail Address Credential',
-            linkWithAddressCredential: 'Open to auto login email link',
-            addressCredentialTip: 'Please copy the Mail Address Credential and you can use it to login to your email account.',
-            addressPassword: 'Address Password',
-            userLogin: 'User Login',
-            addressManage: 'Manage',
-        },
-        zh: {
-            ok: '确定',
-            fetchAddressError: '邮箱地址凭证无效或邮箱地址不存在，也可能是网络连接异常，请稍后再尝试。',
-            addressCredential: '邮箱地址凭证',
-            linkWithAddressCredential: '打开即可自动登录邮箱的链接',
-            addressCredentialTip: '请复制邮箱地址凭证，你可以使用它登录你的邮箱。',
-            addressPassword: '地址密码',
-            userLogin: '用户登录',
-            addressManage: '地址管理',
-        }
-    }
-});
+const { locale, t } = useScopedI18n('views.index.AddressBar')
 
 const showAddressManage = ref(false)
 

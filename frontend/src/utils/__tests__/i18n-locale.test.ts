@@ -21,7 +21,7 @@ describe('locale matching', () => {
   })
 
   it('falls back to english when locale is unsupported', () => {
-    expect(getPreferredLocale('', ['it-IT'])).toBe('en')
+    expect(getPreferredLocale('', ['it-IT'])).toBe('zh')
   })
 
   it('normalizes supported locale casing', () => {
@@ -31,15 +31,15 @@ describe('locale matching', () => {
     expect(resolveSupportedLocale('unknown')).toBeNull()
   })
 
-  it('keeps en unprefixed and prefixes non-default locales', () => {
+  it('keeps zh unprefixed and prefixes non-default locales', () => {
     expect(getPathWithLocale('/user', DEFAULT_LOCALE)).toBe('/user')
     expect(getPathWithLocale('/user', 'ja')).toBe('/ja/user')
   })
 
   it('preserves query and hash when switching locale', () => {
     expect(replaceLocaleInFullPath('/user?tab=mail#top', 'es')).toBe('/es/user?tab=mail#top')
-    expect(replaceLocaleInFullPath('/de/admin?mode=full', 'zh')).toBe('/zh/admin?mode=full')
-    expect(replaceLocaleInFullPath('/de/admin?mode=full', 'en')).toBe('/admin?mode=full')
+    expect(replaceLocaleInFullPath('/de/admin?mode=full', 'zh')).toBe('/admin?mode=full')
+    expect(replaceLocaleInFullPath('/admin?mode=full', 'en')).toBe('/en/admin?mode=full')
     expect(replaceLocaleInFullPath('/pt-br/user?tab=mail#top', 'pt-BR')).toBe('/pt-BR/user?tab=mail#top')
   })
 

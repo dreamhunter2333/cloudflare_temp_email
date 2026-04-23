@@ -1,30 +1,13 @@
 <script setup>
 import { ref, h, onMounted } from 'vue';
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 
 import { api } from '../../api'
 import { NPopconfirm } from 'naive-ui';
 
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            download: 'Download',
-            action: 'Action',
-            delete: 'Delete',
-            deleteConfirm: 'Are you sure to delete this attachment?',
-            deleteSuccess: 'Deleted successfully',
-        },
-        zh: {
-            download: '下载',
-            action: '操作',
-            delete: '删除',
-            deleteConfirm: '确定要删除此附件吗？',
-            deleteSuccess: '删除成功',
-        }
-    }
-});
+const { t } = useScopedI18n('views.index.Attachment')
 const data = ref([])
 const showDownload = ref(false)
 const curRow = ref({})

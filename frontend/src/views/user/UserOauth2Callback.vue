@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { useRoute, useRouter } from 'vue-router';
 
 import { useGlobalState } from '../../store'
@@ -14,20 +14,7 @@ const message = useMessage();
 const route = useRoute()
 const router = useRouter()
 const errorInfo = ref('')
-const { t } = useI18n({
-    messages: {
-        en: {
-            logging: 'Logging in...',
-            stateNotMatch: 'state not match',
-            codeNotFound: 'code not found',
-        },
-        zh: {
-            logging: '登录中...',
-            stateNotMatch: 'state 不匹配',
-            codeNotFound: '未找到授权码',
-        }
-    }
-});
+const { t } = useScopedI18n('views.user.UserOauth2Callback')
 
 onMounted(async () => {
     try {

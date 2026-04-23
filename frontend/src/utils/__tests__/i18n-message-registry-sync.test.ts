@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-import { resolveMessageNamespace } from '../../i18n/message-registry'
+import { MESSAGE_REGISTRY } from '../../i18n/message-registry'
 
 const SRC_ROOT = fileURLToPath(new URL('../..', import.meta.url))
 const APP_I18N_IMPORT = '@/i18n/app'
@@ -23,78 +23,36 @@ const walkFiles = (dir: string): string[] => {
   })
 }
 
-const extractObjectLiteral = (source: string, marker: string): string | null => {
-  const markerIndex = source.indexOf(marker)
-  if (markerIndex === -1) return null
-
-  const braceStart = source.indexOf('{', markerIndex)
-  if (braceStart === -1) return null
-
-  let depth = 0
-  let quote: '"' | "'" | '`' | null = null
-  let escaped = false
-
-  for (let index = braceStart; index < source.length; index += 1) {
-    const char = source[index]
-
-    if (quote) {
-      if (escaped) {
-        escaped = false
-        continue
-      }
-
-      if (char === '\\') {
-        escaped = true
-        continue
-      }
-
-      if (char === quote) {
-        quote = null
-      }
-      continue
-    }
-
-    if (char === '"' || char === "'" || char === '`') {
-      quote = char
-      continue
-    }
-
-    if (char === '{') {
-      depth += 1
-    } else if (char === '}') {
-      depth -= 1
-      if (depth === 0) {
-        return source.slice(braceStart, index + 1)
-      }
-    }
-  }
-
-  return null
-}
-
-const extractMessagesFromVueFile = (filePath: string) => {
+const extractScopedNamespace = (filePath: string) => {
   const source = readFileSync(filePath, 'utf8')
-  if (!source.includes(APP_I18N_IMPORT) || !source.includes('messages:')) {
+  if (!source.includes(APP_I18N_IMPORT)) {
     return null
   }
 
-  const messagesLiteral = extractObjectLiteral(source, 'messages:')
-  if (!messagesLiteral) {
-    return null
-  }
-
-  return Function(`return (${messagesLiteral})`)() as Record<string, Record<string, unknown>>
+  const namespaceMatch = source.match(/useScopedI18n\('([^']+)'\)/)
+  return namespaceMatch?.[1] ?? null
 }
 
 describe('message registry sync', () => {
-  it('keeps every component-local messages object aligned with the registry', () => {
+  it('keeps every scoped i18n consumer aligned with the registry and removes component-local message blocks', () => {
     const unresolvedNamespaces: string[] = []
+    const filesWithLocalMessages: string[] = []
 
     for (const filePath of walkFiles(SRC_ROOT)) {
-      const messages = extractMessagesFromVueFile(filePath)
-      if (!messages) continue
+      const source = readFileSync(filePath, 'utf8')
+      if (!source.includes(APP_I18N_IMPORT)) continue
 
-      if (!resolveMessageNamespace(messages)) {
+      if (source.includes('messages:')) {
+        filesWithLocalMessages.push(filePath.replace(`${SRC_ROOT}/`, ''))
+      }
+
+      const namespace = extractScopedNamespace(filePath)
+      if (!namespace) {
+        unresolvedNamespaces.push(filePath.replace(`${SRC_ROOT}/`, ''))
+        continue
+      }
+
+      if (!(namespace in MESSAGE_REGISTRY)) {
         unresolvedNamespaces.push(filePath.replace(`${SRC_ROOT}/`, ''))
       }
     }
@@ -102,6 +60,11 @@ describe('message registry sync', () => {
     expect(
       unresolvedNamespaces,
       `Message registry drift detected in: ${unresolvedNamespaces.join(' | ')}`,
+    ).toEqual([])
+
+    expect(
+      filesWithLocalMessages,
+      `Component-local messages blocks should be removed from: ${filesWithLocalMessages.join(' | ')}`,
     ).toEqual([])
   })
 })

@@ -18,9 +18,9 @@ describe('locale guard', () => {
 
   it('redirects legacy default-locale aliases to the canonical unprefixed route', () => {
     expect(getLocaleRedirectPath({
-      fullPath: '/en/user?tab=mail#top',
-      routeLocale: 'en',
-      resolvedLocale: 'en',
+      fullPath: '/zh/user?tab=mail#top',
+      routeLocale: 'zh',
+      resolvedLocale: 'zh',
     })).toBe('/user?tab=mail#top')
   })
 })

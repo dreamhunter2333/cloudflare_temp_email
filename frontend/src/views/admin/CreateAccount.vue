@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
@@ -10,36 +10,7 @@ const {
 } = useGlobalState()
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            address: 'Address',
-            enablePrefix: 'If enable Prefix',
-            creatNewEmail: 'Create New Email',
-            fillInAllFields: 'Please fill in all fields',
-            successTip: 'Success Created',
-            addressCredential: 'Mail Address Credential',
-            addressCredentialTip: 'Please copy the Mail Address Credential and you can use it to login to your email account.',
-            addressPassword: 'Address Password',
-            linkWithAddressCredential: 'Open to auto login email link',
-            enableRandomSubdomain: 'Use Random Subdomain',
-            randomSubdomainTip: 'When enabled, the created address will use a random subdomain. Subdomain addresses are recommended for receiving only.',
-        },
-        zh: {
-            address: '地址',
-            enablePrefix: '是否启用前缀',
-            creatNewEmail: '创建新邮箱',
-            fillInAllFields: '请填写完整信息',
-            successTip: '创建成功',
-            addressCredential: '邮箱地址凭证',
-            addressCredentialTip: '请复制邮箱地址凭证，你可以使用它登录你的邮箱。',
-            addressPassword: '地址密码',
-            linkWithAddressCredential: '打开即可自动登录邮箱的链接',
-            enableRandomSubdomain: '启用随机子域名',
-            randomSubdomainTip: '启用后，创建出来的地址会自动挂在随机子域名下。子域名地址更建议仅用于收件。',
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.CreateAccount')
 
 const enablePrefix = ref(true)
 const enableRandomSubdomain = ref(false)

@@ -1,38 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { useMessage } from 'naive-ui'
 // @ts-ignore
 import { api } from '../../api'
 
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            title: 'AI Email Extraction Settings',
-            successTip: 'Success',
-            save: 'Save',
-            enableAllowList: 'Enable Address Allowlist',
-            enableAllowListTip: 'When enabled, AI extraction will only process emails sent to addresses in the allowlist',
-            allowList: 'Address Allowlist (Enter address and press Enter, wildcards supported)',
-            allowListTip: "Wildcard * matches any characters, e.g. *{'@'}example.com matches all addresses under example.com domain",
-            manualInputPrompt: 'Type and press Enter to add',
-            disabledTip: 'When disabled, AI extraction will process all email addresses',
-        },
-        zh: {
-            title: 'AI 邮件提取设置',
-            successTip: '成功',
-            save: '保存',
-            enableAllowList: '启用地址白名单',
-            enableAllowListTip: '启用后，AI 提取功能仅对白名单中的邮箱地址生效',
-            allowList: '地址白名单 (请输入地址并回车，支持通配符)',
-            allowListTip: "通配符 * 可匹配任意字符，如 *{'@'}example.com 可匹配 example.com 域名下的所有地址",
-            manualInputPrompt: '输入后按回车键添加',
-            disabledTip: '未启用时，所有邮箱地址都可使用 AI 提取功能',
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.AiExtractSettings')
 
 type AiExtractSettings = {
     enableAllowList: boolean

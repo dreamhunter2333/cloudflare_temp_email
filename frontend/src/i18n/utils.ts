@@ -5,8 +5,8 @@ export type { SupportedLocale } from './locale-registry'
 
 import type { SupportedLocale } from './locale-registry'
 
-export const DEFAULT_LOCALE: SupportedLocale = 'en'
-export const FALLBACK_LOCALE: SupportedLocale = 'en'
+export const DEFAULT_LOCALE: SupportedLocale = 'zh'
+export const FALLBACK_LOCALE: SupportedLocale = 'zh'
 export const PREFERRED_LOCALE_STORAGE_KEY = 'preferredLocale'
 export const EMPTY_LOCALE_MESSAGES = Object.fromEntries(
   SUPPORTED_LOCALES.map((supportedLocale) => [supportedLocale, {}]),
@@ -73,7 +73,7 @@ export const getPreferredLocale = (
   return FALLBACK_LOCALE
 }
 
-export const getInitialLocale = () => getPreferredLocale(getStoredLocale(), getBrowserLocales())
+export const getInitialLocale = () => DEFAULT_LOCALE
 
 const splitPathSuffix = (fullPath: string) => {
   const match = fullPath.match(/^([^?#]*)(.*)$/)

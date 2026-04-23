@@ -1,5 +1,5 @@
 <script setup>
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
@@ -7,18 +7,7 @@ import SendBox from '../../components/SendBox.vue';
 
 const { adminSendBoxTabAddress } = useGlobalState()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            query: 'Query',
-            queryTip: 'Please input address to query, leave blank to query all',
-        },
-        zh: {
-            query: '查询',
-            queryTip: '请输入地址查询, 留空则查询所有',
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.SendBox')
 
 const fetchData = async (limit, offset) => {
     adminSendBoxTabAddress.value = adminSendBoxTabAddress.value.trim();

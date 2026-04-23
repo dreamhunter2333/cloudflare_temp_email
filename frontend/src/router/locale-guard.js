@@ -5,8 +5,16 @@ export const getRouteLocale = (path) => {
   return localeUtils.resolveSupportedLocale(pathLocale)
 }
 
-export const resolveLocaleForNavigation = ({ routeLocale, preferredLocale, browserLocales }) => {
-  return routeLocale || localeUtils.getPreferredLocale(preferredLocale, browserLocales)
+export const getInitialPreferredLocale = ({ preferredLocale, browserLocales }) => {
+  if (localeUtils.isSupportedLocale(preferredLocale)) {
+    return preferredLocale
+  }
+
+  return localeUtils.getPreferredLocale('', browserLocales)
+}
+
+export const resolveLocaleForNavigation = ({ routeLocale }) => {
+  return routeLocale || localeUtils.DEFAULT_LOCALE
 }
 
 export const getLocaleRedirectPath = ({ fullPath, routeLocale, resolvedLocale }) => {
@@ -28,9 +36,20 @@ export const getLocaleRedirectPath = ({ fullPath, routeLocale, resolvedLocale })
   return null
 }
 
-export const applyLocaleNavigationState = ({ routeLocale, resolvedLocale, preferredLocaleRef, i18n }) => {
+export const applyLocaleNavigationState = ({ routeLocale, resolvedLocale, preferredLocaleRef, browserLocales, i18n }) => {
   i18n.global.locale.value = resolvedLocale
-  preferredLocaleRef.value = routeLocale || resolvedLocale
+
+  if (routeLocale) {
+    preferredLocaleRef.value = routeLocale
+    return
+  }
+
+  if (!preferredLocaleRef.value) {
+    preferredLocaleRef.value = getInitialPreferredLocale({
+      preferredLocale: preferredLocaleRef.value,
+      browserLocales,
+    })
+  }
 }
 
 export const syncJwtFromQuery = ({ query, jwtRef }) => {

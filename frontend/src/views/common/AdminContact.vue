@@ -1,18 +1,9 @@
 <script setup>
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../../store'
 const { openSettings } = useGlobalState()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            adminContact: 'If you need help, please contact the administrator ({msg})',
-        },
-        zh: {
-            adminContact: '如果你需要帮助，请联系管理员 ({msg})',
-        }
-    }
-});
+const { t } = useScopedI18n('views.common.AdminContact')
 </script>
 
 <template>

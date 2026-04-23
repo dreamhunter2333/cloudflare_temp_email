@@ -1,16 +1,16 @@
-import { createAppI18n } from '@/i18n/app'
+import { createI18n } from 'vue-i18n'
 
 import {
-    EMPTY_LOCALE_MESSAGES,
     FALLBACK_LOCALE,
     getInitialLocale,
 } from './utils'
+import { I18N_MESSAGES } from './messages'
 
-const i18n = createAppI18n({
+const i18n = createI18n({
     legacy: false, // you must set `false`, to use Composition API
     locale: getInitialLocale(),
     fallbackLocale: FALLBACK_LOCALE,
-    messages: EMPTY_LOCALE_MESSAGES,
+    messages: I18N_MESSAGES,
     missingWarn: false,
     fallbackWarn: false,
 })

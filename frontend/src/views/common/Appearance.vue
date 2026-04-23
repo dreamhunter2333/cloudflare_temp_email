@@ -1,5 +1,5 @@
 <script setup>
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 
 import { useIsMobile } from '../../utils/composables'
 import { useGlobalState } from '../../store'
@@ -16,38 +16,7 @@ const {
 } = useGlobalState()
 const isMobile = useIsMobile()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            useSimpleIndex: 'Use Simple Index',
-            mailboxSplitSize: 'Mailbox Split Size',
-            useIframeShowMail: 'Use iframe Show HTML Mail',
-            preferShowTextMail: 'Display text Mail by default',
-            useSideMargin: 'Turn on the side margins on the left and right sides of the page',
-            globalTabplacement: 'Global Tab Placement',
-            left: 'left',
-            top: 'top',
-            right: 'right',
-            bottom: 'bottom',
-            useUTCDate: 'Use UTC Date',
-            autoRefreshInterval: 'Auto Refresh Interval(Sec)',
-        },
-        zh: {
-            useSimpleIndex: '使用极简主页',
-            mailboxSplitSize: '邮箱界面分栏大小',
-            preferShowTextMail: '默认以文本显示邮件',
-            useIframeShowMail: '使用iframe显示HTML邮件',
-            globalTabplacement: '全局选项卡位置',
-            useSideMargin: '开启页面左右两侧侧边距',
-            left: '左侧',
-            top: '顶部',
-            right: '右侧',
-            bottom: '底部',
-            useUTCDate: '使用 UTC 时间',
-            autoRefreshInterval: '自动刷新间隔(秒)',
-        }
-    }
-});
+const { t } = useScopedI18n('views.common.Appearance')
 </script>
 
 <template>

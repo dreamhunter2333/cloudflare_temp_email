@@ -53,16 +53,16 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const routeLocale = getRouteLocale(to.path)
+    const browserLocales = localeUtils.getBrowserLocales()
     const resolvedLocale = resolveLocaleForNavigation({
         routeLocale,
-        preferredLocale: preferredLocale.value,
-        browserLocales: localeUtils.getBrowserLocales(),
     })
 
     applyLocaleNavigationState({
         routeLocale,
         resolvedLocale,
         preferredLocaleRef: preferredLocale,
+        browserLocales,
         i18n,
     })
 

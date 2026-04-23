@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, onMounted } from 'vue';
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router';
 import { NBadge, NPopconfirm, NButton } from 'naive-ui'
 
@@ -14,40 +14,7 @@ const { jwt } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
 
-const { locale, t } = useI18n({
-    messages: {
-        en: {
-            success: 'success',
-            name: 'Name',
-            mail_count: 'Mail Count',
-            send_count: 'Send Count',
-            actions: 'Actions',
-            changeMailAddress: 'Change Address',
-            unbindAddress: 'Unbind Address',
-            unbindAddressTip: 'Before unbinding, please switch to this email address and save the email address credential.',
-            transferAddress: 'Transfer Address',
-            targetUserEmail: 'Target User Email',
-            transferAddressTip: 'Transfer address to another user will remove the address from your account and transfer it to another user. Are you sure to transfer the address?',
-            address: 'Address',
-            create_or_bind: 'Create or Bind',
-        },
-        zh: {
-            success: '成功',
-            name: '名称',
-            mail_count: '邮件数量',
-            send_count: '发送数量',
-            actions: '操作',
-            changeMailAddress: '切换地址',
-            unbindAddress: '解绑地址',
-            unbindAddressTip: '解绑前请切换到此邮箱地址并保存邮箱地址凭证。',
-            transferAddress: '转移地址',
-            targetUserEmail: '目标用户邮箱',
-            transferAddressTip: '转移地址到其他用户将会从你的账户中移除此地址并转移给其他用户。确定要转移地址吗？',
-            address: '地址',
-            create_or_bind: '创建或绑定',
-        }
-    }
-});
+const { locale, t } = useScopedI18n('views.user.AddressManagement')
 
 const data = ref([])
 const showTranferAddress = ref(false)

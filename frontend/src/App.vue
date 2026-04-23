@@ -4,7 +4,7 @@ import {
 } from 'naive-ui'
 import { computed, onMounted, watchEffect } from 'vue'
 import { useScript } from '@unhead/vue'
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useI18n } from 'vue-i18n'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
@@ -18,7 +18,7 @@ const {
 } = useGlobalState()
 const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
 const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
-const { locale } = useI18n({});
+const { locale } = useI18n({ useScope: 'global' });
 const theme = computed(() => isDark.value ? darkTheme : null)
 const localeConfig = computed(() => getNaiveLocaleConfig(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE))
 const isMobile = useIsMobile()

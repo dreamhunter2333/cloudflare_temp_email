@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useAppI18n as useI18n } from '@/i18n/app'
+import { useScopedI18n } from '@/i18n/app'
 
 // @ts-ignore
 import { useGlobalState } from '../../store'
@@ -9,38 +9,7 @@ import { api } from '../../api'
 // @ts-ignore
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            init: 'Init',
-            successTip: 'Success',
-            status: 'Check Status',
-            enableTelegramAllowList: 'Enable Telegram Allow List(Manually input Chat ID)',
-            enable: 'Enable',
-            telegramAllowList: 'Telegram Allow List(Manually input telegram Chat ID)',
-            manualInputPrompt: 'Type and press Enter to add',
-            save: 'Save',
-            miniAppUrl: 'Telegram Mini App URL',
-            enableGlobalMailPush: 'Enable Global Mail Push(Manually input telegram Chat ID)',
-            globalMailPushList: 'Global Mail Push Chat ID List',
-            globalMailPushListTip: 'Support chat_id of private chat/group/channel. You can send a message to your bot, then visit this link to see chat_id, https://api.telegram.org/bot<Replace with your BOT TOKEN>/getUpdates',
-        },
-        zh: {
-            init: '初始化',
-            successTip: '成功',
-            status: '查看状态',
-            enableTelegramAllowList: '启用 Telegram 白名单(手动输入 Chat ID, 回车增加)',
-            enable: '启用',
-            telegramAllowList: 'Telegram 白名单(手动输入 Chat ID, 回车增加)',
-            manualInputPrompt: '输入后按回车键添加',
-            save: '保存',
-            miniAppUrl: '电报小程序 URL(请输入你部署的电报小程序网页地址)',
-            enableGlobalMailPush: '启用全局邮件推送(手动输入邮箱管理员的 telegram Chat ID, 回车增加)',
-            globalMailPushList: '全局邮件推送 Chat ID 列表',
-            globalMailPushListTip: '支持对话/群组/频道的 Chat ID, 您可以发送一条消息给您的机器人，然后访问此链接来查看 chat_id, https://api.telegram.org/bot<这里替换成您的 BOT TOKEN>/getUpdates',
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.Telegram')
 
 const status = ref({
     fetched: false,
