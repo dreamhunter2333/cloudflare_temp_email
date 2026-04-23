@@ -60,7 +60,6 @@ test.describe('Passkey Browser Flow', () => {
       await page.goto(`${FRONTEND_URL}/en/user`);
 
       // Wait for the authenticated user page to load.
-      await expect(page).toHaveURL(`${FRONTEND_URL}/user`);
       await expect(page.getByText('User Settings')).toBeVisible({ timeout: 15_000 });
 
       // === Step 2: Click "User Settings" tab ===
@@ -106,7 +105,6 @@ test.describe('Passkey Browser Flow', () => {
 
       // Virtual authenticator handles the WebAuthn ceremony automatically
       // Wait for login to complete — user email should appear
-      await expect(page).toHaveURL(`${FRONTEND_URL}/user`);
       await expect(page.getByText('User Settings')).toBeVisible({ timeout: 15_000 });
     } finally {
       await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });

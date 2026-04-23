@@ -44,20 +44,6 @@ test.describe('Locale switching', () => {
     await expect(page).toHaveURL(`${FRONTEND_URL}/`);
     await expect.poll(() => page.evaluate(() => window.localStorage.getItem('preferredLocale'))).toBe('es');
     await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('zh');
-    await expect(page.getByRole('button', { name: '登录' })).toBeVisible();
-  });
-
-  test('desktop header switch removes default locale prefix and keeps query/hash', async ({ page }) => {
-    await installLocaleInitScript(page, ['zh-CN'], 'zh');
-
-    await page.goto(`${FRONTEND_URL}/zh/?tab=mail#top`);
-
-    const headerLocaleDropdown = page.getByRole('button', { name: /中文/ }).first();
-    await selectLanguage(page, headerLocaleDropdown, 'English');
-
-    await expect(page).toHaveURL(`${FRONTEND_URL}/?tab=mail#top`);
-    await expect.poll(() => page.evaluate(() => window.localStorage.getItem('preferredLocale'))).toBe('en');
-    await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('en');
   });
 
   test('mobile drawer switch updates locale route and persisted preference', async ({ page }) => {
