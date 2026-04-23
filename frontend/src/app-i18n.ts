@@ -2,7 +2,8 @@ import { createI18n, useI18n as baseUseI18n } from 'vue-i18n'
 
 import type { ComposerAdditionalOptions, ComposerOptions } from 'vue-i18n'
 
-import { getLocalizedSourceMessage } from './i18n-messages'
+import { getLocalizedMessage } from './i18n-messages'
+import { resolveMessageNamespace } from './i18n-message-registry'
 import { SUPPORTED_LOCALES } from './locale-registry'
 
 type LocaleMessages = Record<string, Record<string, unknown>>
@@ -16,6 +17,7 @@ const withExtendedMessages = (messages: LocaleMessages) => {
 
   const englishMessages = messages.en || {}
   const chineseMessages = messages.zh || {}
+  const messageNamespace = resolveMessageNamespace(messages)
   const messageKeys = new Set([
     ...Object.keys(englishMessages),
     ...Object.keys(chineseMessages),
@@ -29,9 +31,18 @@ const withExtendedMessages = (messages: LocaleMessages) => {
     for (const key of messageKeys) {
       if (localeMessages[key] !== undefined) continue
 
+      const localizedMessage = messageNamespace
+        ? getLocalizedMessage(locale, messageNamespace, key)
+        : undefined
+
+      if (localizedMessage !== undefined) {
+        localeMessages[key] = localizedMessage
+        continue
+      }
+
       const sourceMessage = englishMessages[key]
       if (typeof sourceMessage === 'string') {
-        localeMessages[key] = getLocalizedSourceMessage(locale, sourceMessage) || sourceMessage
+        localeMessages[key] = sourceMessage
         continue
       }
 

@@ -18,20 +18,11 @@
 
 ### Bug Fixes
 
-- fix: |Frontend| 修复 Header 将语言切换下拉嵌入 `n-menu` 后导致首页首屏报错 `Cannot read properties of undefined (reading 'map')` 的问题，语言切换器恢复为独立控件，并为开放设置 `domains` 增加数组兜底
-- fix: |Frontend| 修复 Header 语言切换不生效问题，统一为全局 locale 单一来源并在切换时同步更新全局语言状态
-- fix: |Frontend| 修复 Header 顶部语言下拉与导航项的垂直对齐问题，统一头部右侧控件居中布局
-- fix: |Frontend| 修复 Header 语言切换器回退为独立下拉后再次出现的垂直未居中问题，为头部右侧控件容器与按钮内容统一补充 `flex` 居中样式
-- fix: |Frontend| 调整 Header 右侧控件顺序，将语言选择按钮放到版本按钮前面，桌面端与移动端保持一致
-- fix: |Frontend| 去除对 `vue-i18n` 的全局 alias，改为显式 `useAppI18n/createAppI18n` 入口，并将 locale 元数据集中到单一 registry，供 Header、Turnstile 与 naive-ui 统一消费
-- fix: |Frontend| 修复 Turnstile 在站点 key 后加载时不重渲染的问题，并更新 locale E2E 覆盖下拉切换与 `document.documentElement.lang`
-- fix: |Frontend| 修复 Header 语言切换时 `preferredLocale` 同步不对称与 locale alias 路径规范化问题，补充语言切换单元测试与浏览器 E2E 覆盖
+- fix: |Frontend| 统一多语言切换状态流，首次访问按浏览器语言路由，用户手动切换后会持久化偏好，并保持当前页面路径、查询参数与默认语言 canonical URL 一致
+- fix: |Frontend| 修复 Turnstile 在站点 key 晚于组件挂载返回时不渲染的问题，并确保语言或主题切换后重新渲染对应 widget
+- fix: |Frontend| 补齐西班牙语、葡萄牙语、日语、德语首页、登录弹窗与管理页高频文案，清理混合英文和错误拼接
 
 ### Improvements
-
-- feat: |Frontend| 将新增语种的 locale 资源集中到 `frontend/src/locales/source/`，由 `frontend/src/i18n-messages.ts` 统一分发，便于后续继续补充语言与维护翻译
-- fix: |Frontend| 补齐西班牙语、葡萄牙语、日语、德语首页、登录弹窗与管理页高频文案，清理集中化过程中残留的混合英文和错误拼接，提升页面文案覆盖完整度
-- refactor: |Worker| 拆分 `mails_api/index.ts` 与 `admin_api/index.ts`，入口只负责挂路由，业务拆到各自的 `*_api.ts` 文件（`mails_crud.ts` / `new_address.ts` / `parsed_mail_api.ts` / `address_api.ts` / `address_sender_api.ts` / `sendbox_api.ts` / `statistics_api.ts` / `account_settings_api.ts`），保持路径与行为不变
 
 ## v1.7.0(main)
 

@@ -5,6 +5,13 @@ import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
 import * as localeUtils from '../i18n-utils'
+import {
+    applyLocaleNavigationState,
+    getLocaleRedirectPath,
+    getRouteLocale,
+    resolveLocaleForNavigation,
+    syncJwtFromQuery,
+} from './locale-guard'
 
 const { jwt, preferredLocale } = useGlobalState()
 
@@ -44,33 +51,36 @@ const router = createRouter({
     ]
 });
 
-
 router.beforeEach((to, from, next) => {
-    const pathLocale = to.path.split('/')[1]
-    const routeLocale = localeUtils.isSupportedLocale(pathLocale) ? pathLocale : null
-    const resolvedLocale = routeLocale || localeUtils.getPreferredLocale(preferredLocale.value, localeUtils.getBrowserLocales())
+    const routeLocale = getRouteLocale(to.path)
+    const resolvedLocale = resolveLocaleForNavigation({
+        routeLocale,
+        preferredLocale: preferredLocale.value,
+        browserLocales: localeUtils.getBrowserLocales(),
+    })
 
-    if (routeLocale === localeUtils.DEFAULT_LOCALE) {
-        preferredLocale.value = localeUtils.DEFAULT_LOCALE
-        i18n.global.locale.value = localeUtils.DEFAULT_LOCALE
-        return next(localeUtils.replaceLocaleInFullPath(to.fullPath, localeUtils.DEFAULT_LOCALE))
+    applyLocaleNavigationState({
+        routeLocale,
+        resolvedLocale,
+        preferredLocaleRef: preferredLocale,
+        i18n,
+    })
+
+    syncJwtFromQuery({
+        query: to.query,
+        jwtRef: jwt,
+    })
+
+    const redirectPath = getLocaleRedirectPath({
+        fullPath: to.fullPath,
+        routeLocale,
+        resolvedLocale,
+    })
+
+    if (redirectPath) {
+        return next(redirectPath)
     }
 
-    i18n.global.locale.value = resolvedLocale
-
-    if (routeLocale) {
-        preferredLocale.value = routeLocale
-    } else if (resolvedLocale !== localeUtils.DEFAULT_LOCALE) {
-        preferredLocale.value = resolvedLocale
-        return next(localeUtils.replaceLocaleInFullPath(to.fullPath, resolvedLocale))
-    } else {
-        preferredLocale.value = resolvedLocale
-    }
-
-    // check if query parameter has jwt, set it to store
-    if (to.query.jwt) {
-        jwt.value = to.query.jwt;
-    }
     next()
 });
 

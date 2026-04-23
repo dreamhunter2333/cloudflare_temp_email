@@ -53,6 +53,10 @@ const checkCfTurnstile = async (remove) => {
         if (remove && cfTurnstileId.value) {
             window.turnstile.remove(cfTurnstileId.value);
         }
+        // Cloudflare documents sitekey/theme/language as render-time options and
+        // exposes remove()/render() for widget lifecycle updates, so recreate the
+        // widget when any of those inputs change:
+        // https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/
         cfTurnstileId.value = window.turnstile.render(
             `#${containerId}`,
             {

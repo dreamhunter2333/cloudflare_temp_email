@@ -18,20 +18,11 @@
 
 ### Bug Fixes
 
-- fix: |Frontend| Fix the homepage crash `Cannot read properties of undefined (reading 'map')` caused by embedding the Header language dropdown inside `n-menu`; restore the locale switcher as a standalone control and add an array fallback for open-settings `domains`
-- fix: |Frontend| Fix Header locale switch not applying by using global locale as the single source of truth and syncing global locale state during language changes
-- fix: |Frontend| Fix Header language select vertical misalignment with nav items by centering controls in the header-right container
-- fix: |Frontend| Fix the Header locale switcher becoming vertically misaligned again after rolling it back to a standalone dropdown by enforcing flex-centered alignment on the header-right container and button content
-- fix: |Frontend| Reorder the Header right-side controls so the locale switcher appears before the version button on both desktop and mobile
-- fix: |Frontend| Remove the global `vue-i18n` alias in favor of explicit `useAppI18n/createAppI18n` entry points, and centralize locale metadata into a single registry consumed by Header, Turnstile, and naive-ui
-- fix: |Frontend| Fix Turnstile not rerendering when the site key arrives after mount, and update locale E2E coverage for dropdown-based switching plus `document.documentElement.lang`
-- fix: |Frontend| Fix asymmetric `preferredLocale` updates in Header locale switching and normalize locale alias paths, with added locale-switch unit and browser E2E coverage
+- fix: |Frontend| Unify the locale-switching state flow so first visits follow browser language, explicit user switches persist preference, and the current route, query string, and default-locale canonical URLs stay in sync
+- fix: |Frontend| Fix Turnstile failing to render when the site key arrives after mount, and rerender the widget when the active locale or theme changes
+- fix: |Frontend| Complete high-visibility Spanish, Portuguese, Japanese, and German copy across the homepage, login modal, and frequent admin views, removing mixed-English leftovers and broken strings
 
 ### Improvements
-
-- feat: |Frontend| Centralize the new locale resources under `frontend/src/locales/source/` and route them through `frontend/src/i18n-messages.ts` for easier follow-up language expansion and translation maintenance
-- fix: |Frontend| Complete high-visibility Spanish, Portuguese, Japanese, and German copy across the homepage, login modal, and frequent admin views, removing mixed-English leftovers and broken generated strings to improve translation coverage
-- refactor: |Worker| Split `mails_api/index.ts` and `admin_api/index.ts` so the index files only wire routes. Business logic moved into dedicated `*_api.ts` files (`mails_crud.ts` / `new_address.ts` / `parsed_mail_api.ts` / `address_api.ts` / `address_sender_api.ts` / `sendbox_api.ts` / `statistics_api.ts` / `account_settings_api.ts`). Paths and behavior unchanged
 
 ## v1.7.0(main)
 
