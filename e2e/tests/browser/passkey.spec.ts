@@ -52,12 +52,12 @@ test.describe('Passkey Browser Flow', () => {
     try {
       // === Step 1: Login via localStorage injection ===
       // Inject JWT into localStorage to skip UI login flow.
-      await page.goto(`${FRONTEND_URL}/`);
+      await page.goto(`${FRONTEND_URL}/en/`);
       // VueUse's useStorage with string default stores raw strings (no JSON)
       await page.evaluate((jwt) => {
         localStorage.setItem('userJwt', jwt);
       }, userJwt);
-      await page.goto(`${FRONTEND_URL}/user`);
+      await page.goto(`${FRONTEND_URL}/en/user`);
 
       // Wait for the authenticated user page to load.
       await expect(page).toHaveURL(`${FRONTEND_URL}/user`);
@@ -97,7 +97,7 @@ test.describe('Passkey Browser Flow', () => {
 
       // Wait for logout to complete and navigate to user page
       await page.waitForTimeout(2000);
-      await page.goto(`${FRONTEND_URL}/user`);
+      await page.goto(`${FRONTEND_URL}/en/user`);
 
       // === Step 6: Login with passkey ===
       const passkeyBtn = page.getByRole('button', { name: 'Login with Passkey' });

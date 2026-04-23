@@ -122,10 +122,25 @@ export const replaceLocaleInFullPath = (fullPath: string, locale: SupportedLocal
   return `${getPathWithLocale(path, locale)}${suffix}`
 }
 
+const getLocaleAliasPath = (path: string, locale: SupportedLocale): string => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const basePath = stripLocaleFromPath(normalizedPath)
+
+  if (locale === DEFAULT_LOCALE) {
+    if (basePath === '/') {
+      return `/${locale}/`
+    }
+
+    return `/${locale}${basePath}`
+  }
+
+  return getPathWithLocale(basePath, locale)
+}
+
 export const buildLocaleAliases = (path: string): string[] => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
 
   return SUPPORTED_LOCALES
-    .map((locale) => getPathWithLocale(path, locale))
+    .map((locale) => getLocaleAliasPath(normalizedPath, locale))
     .filter((alias, index, aliases) => aliases.indexOf(alias) === index && alias !== normalizedPath)
 }

@@ -17,6 +17,8 @@
 
 ### Bug Fixes
 
+- fix: |Frontend| Fix the frontend settings bootstrap throwing an `undefined` error when `/open_api/settings` does not return a `domains` array by normalizing the field to an empty array before mapping it
+
 ### Improvements
 
 ## v1.7.0(main)

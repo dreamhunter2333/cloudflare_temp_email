@@ -47,6 +47,7 @@ describe('locale matching', () => {
     expect(buildLocaleAliases('user')).toEqual(buildLocaleAliases('/user'))
     expect(buildLocaleAliases('user')).toEqual([
       '/zh/user',
+      '/en/user',
       '/es/user',
       '/pt-BR/user',
       '/ja/user',

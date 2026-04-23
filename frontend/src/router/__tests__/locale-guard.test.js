@@ -15,4 +15,12 @@ describe('locale guard', () => {
       resolvedLocale: 'pt-BR',
     })).toBe('/pt-BR/user?tab=mail#top')
   })
+
+  it('redirects legacy default-locale aliases to the canonical unprefixed route', () => {
+    expect(getLocaleRedirectPath({
+      fullPath: '/en/user?tab=mail#top',
+      routeLocale: 'en',
+      resolvedLocale: 'en',
+    })).toBe('/user?tab=mail#top')
+  })
 })
