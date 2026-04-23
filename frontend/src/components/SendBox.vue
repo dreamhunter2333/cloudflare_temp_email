@@ -1,7 +1,7 @@
 <script setup>
 import { watch, onMounted, ref, computed } from "vue";
 import { useMessage } from 'naive-ui'
-import { useI18n } from 'vue-i18n'
+import { useAppI18n as useI18n } from '@/app-i18n'
 import { useGlobalState } from '../store'
 import { useIsMobile } from '../utils/composables'
 import { utcToLocalDate } from '../utils';

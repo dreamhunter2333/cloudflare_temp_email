@@ -1,7 +1,9 @@
 <script setup>
 import { ref, watch } from "vue";
-import { useI18n } from 'vue-i18n'
+import { useAppI18n as useI18n } from '@/app-i18n'
 import { useGlobalState } from '../store'
+import { getTurnstileLocale } from '../locale-registry'
+import { isSupportedLocale } from '../i18n-utils'
 const { openSettings, isDark } = useGlobalState()
 
 const cfToken = defineModel('value')
@@ -21,16 +23,6 @@ const containerId = `cf-turnstile-${Math.random().toString(36).slice(2, 9)}`
 const cfTurnstileId = ref("")
 const turnstileLoading = ref(false)
 let turnstileRenderQueue = Promise.resolve()
-// Cloudflare Turnstile supported language codes:
-// https://developers.cloudflare.com/turnstile/reference/supported-languages/
-const turnstileLanguageMap = {
-    zh: 'zh-CN',
-    en: 'en',
-    es: 'es',
-    'pt-BR': 'pt-BR',
-    ja: 'ja',
-    de: 'de',
-}
 
 const refresh = () => rerenderTurnstile()
 defineExpose({ refresh })
@@ -65,7 +57,7 @@ const checkCfTurnstile = async (remove) => {
             `#${containerId}`,
             {
                 sitekey: openSettings.value.cfTurnstileSiteKey,
-                language: turnstileLanguageMap[locale.value] || 'auto',
+                language: getTurnstileLocale(isSupportedLocale(locale.value) ? locale.value : 'en'),
                 theme: isDark.value ? 'dark' : 'light',
                 callback: function (token) {
                     cfToken.value = token;
@@ -77,7 +69,7 @@ const checkCfTurnstile = async (remove) => {
     }
 }
 
-watch([isDark, locale], rerenderTurnstile, { immediate: true })
+watch([isDark, locale, () => openSettings.value.cfTurnstileSiteKey], rerenderTurnstile, { immediate: true })
 </script>
 
 <template>

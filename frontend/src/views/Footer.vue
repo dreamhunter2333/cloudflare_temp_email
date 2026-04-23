@@ -1,5 +1,5 @@
 <script setup>
-import { useI18n } from 'vue-i18n'
+import { useAppI18n as useI18n } from '@/app-i18n'
 import { useGlobalState } from '../store'
 const { openSettings } = useGlobalState()
 

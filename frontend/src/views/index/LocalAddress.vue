@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, h, computed } from 'vue';
 import { useLocalStorage } from '@vueuse/core';
-import { useI18n } from 'vue-i18n'
+import { useAppI18n as useI18n } from '@/app-i18n'
 import { NPopconfirm, NButton } from 'naive-ui'
 
 // @ts-ignore

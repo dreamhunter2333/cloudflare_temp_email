@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, onMounted, watch, computed } from 'vue';
-import { useI18n } from 'vue-i18n'
+import { useAppI18n as useI18n } from '@/app-i18n'
 import { NMenu, NButton, NBadge, NTag } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 

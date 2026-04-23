@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, nextTick, ref } from 'vue'
-import { createI18n } from 'vue-i18n'
+import { createAppI18n } from '@/app-i18n'
 
 import Turnstile from '../Turnstile.vue'
 import { useGlobalState } from '../../store'
@@ -39,7 +39,7 @@ describe('Turnstile', () => {
     }
     window.turnstile = turnstileApi
 
-    i18n = createI18n({
+    i18n = createAppI18n({
       legacy: false,
       locale: 'en',
       messages: {

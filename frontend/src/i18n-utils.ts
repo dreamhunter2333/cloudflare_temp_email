@@ -1,6 +1,9 @@
-export const SUPPORTED_LOCALES = ['zh', 'en', 'es', 'pt-BR', 'ja', 'de'] as const
+import { LOCALE_REGISTRY, SUPPORTED_LOCALES } from './locale-registry'
 
-export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
+export { SUPPORTED_LOCALES } from './locale-registry'
+export type { SupportedLocale } from './locale-registry'
+
+import type { SupportedLocale } from './locale-registry'
 
 export const DEFAULT_LOCALE: SupportedLocale = 'en'
 export const FALLBACK_LOCALE: SupportedLocale = 'en'
@@ -8,15 +11,6 @@ export const PREFERRED_LOCALE_STORAGE_KEY = 'preferredLocale'
 export const EMPTY_LOCALE_MESSAGES = Object.fromEntries(
   SUPPORTED_LOCALES.map((supportedLocale) => [supportedLocale, {}]),
 ) as Record<SupportedLocale, Record<string, never>>
-
-const localeMatchers: Array<{ locale: SupportedLocale, matches: string[] }> = [
-  { locale: 'zh', matches: ['zh'] },
-  { locale: 'en', matches: ['en'] },
-  { locale: 'es', matches: ['es'] },
-  { locale: 'pt-BR', matches: ['pt'] },
-  { locale: 'ja', matches: ['ja'] },
-  { locale: 'de', matches: ['de'] },
-]
 
 export const isSupportedLocale = (locale: unknown): locale is SupportedLocale => {
   return typeof locale === 'string' && SUPPORTED_LOCALES.includes(locale as SupportedLocale)
@@ -26,9 +20,9 @@ export const matchSupportedLocale = (locale: string | null | undefined): Support
   if (!locale) return null
   const normalizedLocale = locale.trim().toLowerCase()
 
-  for (const matcher of localeMatchers) {
-    if (matcher.matches.some((prefix) => normalizedLocale === prefix || normalizedLocale.startsWith(`${prefix}-`))) {
-      return matcher.locale
+  for (const entry of LOCALE_REGISTRY) {
+    if (entry.browserMatches.some((prefix) => normalizedLocale === prefix || normalizedLocale.startsWith(`${prefix}-`))) {
+      return entry.locale
     }
   }
 

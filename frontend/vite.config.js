@@ -63,10 +63,6 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^vue-i18n$/,
-        replacement: fileURLToPath(new URL('./src/i18n-runtime.ts', import.meta.url))
-      },
-      {
         find: '@',
         replacement: fileURLToPath(new URL('./src', import.meta.url))
       }

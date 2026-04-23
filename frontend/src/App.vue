@@ -2,9 +2,9 @@
 import {
   darkTheme,
 } from 'naive-ui'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watchEffect } from 'vue'
 import { useScript } from '@unhead/vue'
-import { useI18n } from 'vue-i18n'
+import { useAppI18n as useI18n } from '@/app-i18n'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
@@ -25,6 +25,11 @@ const isMobile = useIsMobile()
 const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
 const showAd = computed(() => !isMobile.value && adClient && adSlot);
 const gridMaxCols = computed(() => showAd.value ? 8 : 12);
+
+watchEffect(() => {
+  if (typeof document === 'undefined') return
+  document.documentElement.lang = isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE
+})
 
 // Load Google Ad script at top level (not inside onMounted)
 if (showAd.value) {

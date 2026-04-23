@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useAppI18n as useI18n } from '@/app-i18n';
 import { ContentCopyOutlined, LinkRound, CodeRound } from '@vicons/material';
 import { useMessage } from 'naive-ui';
 import { useGlobalState } from '../store';

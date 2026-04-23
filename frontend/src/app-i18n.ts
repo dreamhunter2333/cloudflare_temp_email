@@ -1,12 +1,9 @@
-import {
-  createI18n,
-  useI18n as baseUseI18n,
-} from 'vue-i18n/dist/vue-i18n.mjs'
+import { createI18n, useI18n as baseUseI18n } from 'vue-i18n'
 
-import type { ComposerAdditionalOptions, ComposerOptions } from 'vue-i18n/dist/vue-i18n.mjs'
+import type { ComposerAdditionalOptions, ComposerOptions } from 'vue-i18n'
 
 import { getLocalizedSourceMessage } from './i18n-messages'
-import { SUPPORTED_LOCALES } from './i18n-utils'
+import { SUPPORTED_LOCALES } from './locale-registry'
 
 type LocaleMessages = Record<string, Record<string, unknown>>
 
@@ -49,7 +46,9 @@ const withExtendedMessages = (messages: LocaleMessages) => {
   return localizedMessages
 }
 
-export const useI18n = <
+export const createAppI18n = createI18n
+
+export const useAppI18n = <
   Schema extends object = object,
   Locales extends string = string,
   Options extends ComposerOptions<Schema, Locales> & ComposerAdditionalOptions = ComposerOptions<Schema, Locales> & ComposerAdditionalOptions,
@@ -65,6 +64,3 @@ export const useI18n = <
 
   return baseUseI18n(options)
 }
-
-export { createI18n }
-export * from 'vue-i18n/dist/vue-i18n.mjs'

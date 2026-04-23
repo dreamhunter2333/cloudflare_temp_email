@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, h } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useAppI18n as useI18n } from '@/app-i18n'
 import type { DropdownOption } from 'naive-ui'
 
 const props = defineProps({

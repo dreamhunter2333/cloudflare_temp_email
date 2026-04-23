@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n'
+import { useAppI18n as useI18n } from '@/app-i18n'
 
 import { api } from '../../api'
 import { NPopconfirm } from 'naive-ui';
