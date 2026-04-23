@@ -103,20 +103,29 @@ const changeLocale = async (lang) => {
         return;
     }
 
-    if (lang === currentLocale.value) {
+    const currentFullPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const targetFullPath = replaceLocaleInFullPath(currentFullPath, lang);
+
+    if (lang === currentLocale.value && targetFullPath === currentFullPath) {
         showMobileMenu.value = false;
         return;
     }
 
-    preferredLocale.value = lang;
-    i18n.global.locale.value = lang;
     try {
-        await router.push(replaceLocaleInFullPath(route.fullPath, lang));
+        await router.push(targetFullPath);
     } catch (error) {
         console.error('Failed to switch locale', error);
     } finally {
         showMobileMenu.value = false;
     }
+
+    const resolvedFullPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (resolvedFullPath !== targetFullPath) {
+        window.location.assign(targetFullPath);
+        return;
+    }
+
+    preferredLocale.value = lang;
 }
 
 const version = import.meta.env.PACKAGE_VERSION ? `v${import.meta.env.PACKAGE_VERSION}` : "";

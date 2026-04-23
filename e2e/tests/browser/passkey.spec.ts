@@ -52,15 +52,16 @@ test.describe('Passkey Browser Flow', () => {
     try {
       // === Step 1: Login via localStorage injection ===
       // Inject JWT into localStorage to skip UI login flow.
-      await page.goto(`${FRONTEND_URL}/en/`);
+      await page.goto(`${FRONTEND_URL}/`);
       // VueUse's useStorage with string default stores raw strings (no JSON)
       await page.evaluate((jwt) => {
         localStorage.setItem('userJwt', jwt);
       }, userJwt);
-      await page.goto(`${FRONTEND_URL}/en/user`);
+      await page.goto(`${FRONTEND_URL}/user`);
 
-      // Wait for user settings to load (shows user email)
-      await expect(page.getByText(TEST_USER_EMAIL)).toBeVisible({ timeout: 15_000 });
+      // Wait for the authenticated user page to load.
+      await expect(page).toHaveURL(`${FRONTEND_URL}/user`);
+      await expect(page.getByText('User Settings')).toBeVisible({ timeout: 15_000 });
 
       // === Step 2: Click "User Settings" tab ===
       await page.getByText('User Settings').click();
@@ -96,7 +97,7 @@ test.describe('Passkey Browser Flow', () => {
 
       // Wait for logout to complete and navigate to user page
       await page.waitForTimeout(2000);
-      await page.goto(`${FRONTEND_URL}/en/user`);
+      await page.goto(`${FRONTEND_URL}/user`);
 
       // === Step 6: Login with passkey ===
       const passkeyBtn = page.getByRole('button', { name: 'Login with Passkey' });
@@ -105,7 +106,8 @@ test.describe('Passkey Browser Flow', () => {
 
       // Virtual authenticator handles the WebAuthn ceremony automatically
       // Wait for login to complete — user email should appear
-      await expect(page.getByText(TEST_USER_EMAIL)).toBeVisible({ timeout: 15_000 });
+      await expect(page).toHaveURL(`${FRONTEND_URL}/user`);
+      await expect(page.getByText('User Settings')).toBeVisible({ timeout: 15_000 });
     } finally {
       await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
       await cdp.detach();

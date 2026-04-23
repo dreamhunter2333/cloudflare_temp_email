@@ -6,9 +6,13 @@ import { FRONTEND_URL } from '../../fixtures/test-helpers';
 const installLocaleInitScript = async (page: Page, locales: string[], preferredLocale: string | null = null) => {
   await page.addInitScript(
     ({ locales: initialLocales, preferredLocale: initialPreferredLocale }: { locales: string[]; preferredLocale: string | null }) => {
-      window.localStorage.removeItem('preferredLocale');
-      if (initialPreferredLocale) {
-        window.localStorage.setItem('preferredLocale', initialPreferredLocale);
+      const localeInitStorageKey = '__localeInitDone';
+      if (!window.sessionStorage.getItem(localeInitStorageKey)) {
+        window.localStorage.removeItem('preferredLocale');
+        if (initialPreferredLocale) {
+          window.localStorage.setItem('preferredLocale', initialPreferredLocale);
+        }
+        window.sessionStorage.setItem(localeInitStorageKey, '1');
       }
 
       Object.defineProperty(window.navigator, 'language', {
@@ -44,16 +48,16 @@ test.describe('Locale switching', () => {
   });
 
   test('desktop header switch removes default locale prefix and keeps query/hash', async ({ page }) => {
-    await installLocaleInitScript(page, ['en-US'], 'en');
+    await installLocaleInitScript(page, ['zh-CN'], 'zh');
 
-    await page.goto(`${FRONTEND_URL}/en/?tab=mail#top`);
+    await page.goto(`${FRONTEND_URL}/zh/?tab=mail#top`);
 
-    const headerLocaleDropdown = page.getByRole('button', { name: /English/ }).first();
-    await selectLanguage(page, headerLocaleDropdown, '中文');
+    const headerLocaleDropdown = page.getByRole('button', { name: /中文/ }).first();
+    await selectLanguage(page, headerLocaleDropdown, 'English');
 
     await expect(page).toHaveURL(`${FRONTEND_URL}/?tab=mail#top`);
-    await expect.poll(() => page.evaluate(() => window.localStorage.getItem('preferredLocale'))).toBe('zh');
-    await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('zh');
+    await expect.poll(() => page.evaluate(() => window.localStorage.getItem('preferredLocale'))).toBe('en');
+    await expect.poll(() => page.evaluate(() => document.documentElement.lang)).toBe('en');
   });
 
   test('mobile drawer switch updates locale route and persisted preference', async ({ page }) => {
