@@ -15,7 +15,7 @@ import { useGlobalState } from '../store'
 import { api } from '../api'
 import i18n from '../i18n'
 import { getRouterPathWithLang, hashPassword } from '../utils'
-import { isSupportedLocale, replaceLocaleInFullPath } from '../i18n/utils'
+import { DEFAULT_LOCALE, isSupportedLocale, replaceLocaleInFullPath } from '../i18n/utils'
 import { getLocaleLabel, SUPPORTED_LOCALES } from '../i18n/locale-registry'
 import Turnstile from '../components/Turnstile.vue'
 import { NButton, NIcon } from 'naive-ui'
@@ -109,6 +109,10 @@ const changeLocale = async (lang) => {
     if (lang === currentLocale.value && targetFullPath === currentFullPath) {
         showMobileMenu.value = false;
         return;
+    }
+
+    if (lang === DEFAULT_LOCALE) {
+        preferredLocale.value = DEFAULT_LOCALE;
     }
 
     try {
