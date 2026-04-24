@@ -87,10 +87,10 @@ const changeLocale = async (lang) => {
 
     let localeSwitched = false;
     try {
-        await router.push(targetFullPath);
+        await router.push({ path: targetFullPath, force: true });
         localeSwitched = router.currentRoute.value.fullPath === targetFullPath;
         if (!localeSwitched) {
-            await router.replace(targetFullPath);
+            await router.replace({ path: targetFullPath, force: true });
             localeSwitched = router.currentRoute.value.fullPath === targetFullPath;
         }
     } catch (error) {
