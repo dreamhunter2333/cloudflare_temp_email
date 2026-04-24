@@ -4,14 +4,13 @@ import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
-import { getBrowserLocales } from '../i18n/utils'
 import {
-    applyLocaleNavigationState,
-    getLocaleRedirectPath,
-    getRouteLocale,
-    resolveLocaleForNavigation,
-    syncJwtFromQuery,
-} from './locale-guard'
+    DEFAULT_LOCALE,
+    getBrowserLocales,
+    getPreferredLocale,
+    replaceLocaleInFullPath,
+    resolveSupportedLocale,
+} from '../i18n/utils'
 
 const { jwt, preferredLocale } = useGlobalState()
 
@@ -52,33 +51,29 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    const routeLocale = getRouteLocale(to.path)
-    const browserLocales = getBrowserLocales()
-    const resolvedLocale = resolveLocaleForNavigation({
-        routeLocale,
-    })
+    const routeLocale = resolveSupportedLocale(to.path.split('/')[1])
+    const resolvedLocale = routeLocale || DEFAULT_LOCALE
+    i18n.global.locale.value = resolvedLocale
 
-    applyLocaleNavigationState({
-        routeLocale,
-        resolvedLocale,
-        preferredLocaleRef: preferredLocale,
-        browserLocales,
-        i18n,
-    })
+    if (routeLocale) {
+        preferredLocale.value = routeLocale
+    } else if (!preferredLocale.value) {
+        preferredLocale.value = getPreferredLocale('', getBrowserLocales())
+    }
 
-    syncJwtFromQuery({
-        query: to.query,
-        jwtRef: jwt,
-    })
+    if (to.query.jwt) {
+        jwt.value = to.query.jwt
+    }
 
-    const redirectPath = getLocaleRedirectPath({
-        fullPath: to.fullPath,
-        routeLocale,
-        resolvedLocale,
-    })
+    if (routeLocale) {
+        const canonicalRoutePath = replaceLocaleInFullPath(to.fullPath, routeLocale)
+        if (canonicalRoutePath !== to.fullPath) {
+            return next(canonicalRoutePath)
+        }
+    }
 
-    if (redirectPath) {
-        return next(redirectPath)
+    if (routeLocale === DEFAULT_LOCALE) {
+        return next(replaceLocaleInFullPath(to.fullPath, DEFAULT_LOCALE))
     }
 
     next()
