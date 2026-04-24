@@ -13,7 +13,6 @@ import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-import i18n from '../i18n'
 import { getRouterPathWithLang, hashPassword } from '../utils'
 import { DEFAULT_LOCALE, isSupportedLocale, replaceLocaleInFullPath } from '../i18n/utils'
 import { getLocaleLabel, SUPPORTED_LOCALES } from '../i18n/locale-registry'
@@ -64,22 +63,20 @@ const languageOptions = SUPPORTED_LOCALES.map((locale) => ({
 }))
 
 const currentLocaleLabel = computed(() => {
-    return languageOptions.find(opt => opt.value === currentLocale.value)?.label || currentLocale.value;
+    return languageOptions.find(opt => opt.value === locale.value)?.label || locale.value;
 });
 
-const { t } = useScopedI18n('views.Header')
-
-const currentLocale = computed(() => i18n.global.locale.value)
+const { t, locale } = useScopedI18n('views.Header')
 
 const changeLocale = async (lang) => {
     if (!isSupportedLocale(lang)) {
         return;
     }
 
-    const currentFullPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const currentFullPath = route.fullPath;
     const targetFullPath = replaceLocaleInFullPath(currentFullPath, lang);
 
-    if (lang === currentLocale.value && targetFullPath === currentFullPath) {
+    if (lang === locale.value && targetFullPath === currentFullPath) {
         showMobileMenu.value = false;
         return;
     }
@@ -88,21 +85,21 @@ const changeLocale = async (lang) => {
         preferredLocale.value = DEFAULT_LOCALE;
     }
 
+    let localeSwitched = false;
     try {
         await router.push(targetFullPath);
+        localeSwitched = router.currentRoute.value.fullPath === targetFullPath;
+        if (!localeSwitched) {
+            await router.replace(targetFullPath);
+            localeSwitched = router.currentRoute.value.fullPath === targetFullPath;
+        }
     } catch (error) {
         console.error('Failed to switch locale', error);
     } finally {
         showMobileMenu.value = false;
     }
 
-    const resolvedFullPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    if (resolvedFullPath !== targetFullPath) {
-        window.location.assign(targetFullPath);
-        return;
-    }
-
-    preferredLocale.value = lang;
+    if (localeSwitched) preferredLocale.value = lang;
 }
 
 const version = import.meta.env.PACKAGE_VERSION ? `v${import.meta.env.PACKAGE_VERSION}` : "";
@@ -116,7 +113,7 @@ const menuOptions = computed(() => [
                 type: menuValue.value == "home" ? "primary" : "default",
                 style: "width: 100%",
                 onClick: async () => {
-                    await router.push(getRouterPathWithLang('/', currentLocale.value));
+                    await router.push(getRouterPathWithLang('/', locale.value));
                     showMobileMenu.value = false;
                 }
             },
@@ -135,7 +132,7 @@ const menuOptions = computed(() => [
                 type: menuValue.value == "user" ? "primary" : "default",
                 style: "width: 100%",
                 onClick: async () => {
-                    await router.push(getRouterPathWithLang("/user", currentLocale.value));
+                    await router.push(getRouterPathWithLang("/user", locale.value));
                     showMobileMenu.value = false;
                 }
             },
@@ -157,7 +154,7 @@ const menuOptions = computed(() => [
                 style: "width: 100%",
                 onClick: async () => {
                     loading.value = true;
-                    await router.push(getRouterPathWithLang('/admin', currentLocale.value));
+                    await router.push(getRouterPathWithLang('/admin', locale.value));
                     loading.value = false;
                     showMobileMenu.value = false;
                 }
@@ -226,7 +223,7 @@ const logoClick = async () => {
         logoClickCount.value = 0;
         message.info("Change to admin Page");
         loading.value = true;
-        await router.push(getRouterPathWithLang('/admin', currentLocale.value));
+        await router.push(getRouterPathWithLang('/admin', locale.value));
         loading.value = false;
     } else {
         logoClickCount.value++;
