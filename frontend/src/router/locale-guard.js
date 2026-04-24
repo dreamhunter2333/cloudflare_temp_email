@@ -1,36 +1,42 @@
-import * as localeUtils from '../i18n/utils'
+import {
+  DEFAULT_LOCALE,
+  getPreferredLocale,
+  isSupportedLocale,
+  replaceLocaleInFullPath,
+  resolveSupportedLocale,
+} from '../i18n/utils'
 
 export const getRouteLocale = (path) => {
   const pathLocale = path.split('/')[1]
-  return localeUtils.resolveSupportedLocale(pathLocale)
+  return resolveSupportedLocale(pathLocale)
 }
 
 export const getInitialPreferredLocale = ({ preferredLocale, browserLocales }) => {
-  if (localeUtils.isSupportedLocale(preferredLocale)) {
+  if (isSupportedLocale(preferredLocale)) {
     return preferredLocale
   }
 
-  return localeUtils.getPreferredLocale('', browserLocales)
+  return getPreferredLocale('', browserLocales)
 }
 
 export const resolveLocaleForNavigation = ({ routeLocale }) => {
-  return routeLocale || localeUtils.DEFAULT_LOCALE
+  return routeLocale || DEFAULT_LOCALE
 }
 
 export const getLocaleRedirectPath = ({ fullPath, routeLocale, resolvedLocale }) => {
   if (routeLocale) {
-    const canonicalRoutePath = localeUtils.replaceLocaleInFullPath(fullPath, routeLocale)
+    const canonicalRoutePath = replaceLocaleInFullPath(fullPath, routeLocale)
     if (canonicalRoutePath !== fullPath) {
       return canonicalRoutePath
     }
   }
 
-  if (routeLocale === localeUtils.DEFAULT_LOCALE) {
-    return localeUtils.replaceLocaleInFullPath(fullPath, localeUtils.DEFAULT_LOCALE)
+  if (routeLocale === DEFAULT_LOCALE) {
+    return replaceLocaleInFullPath(fullPath, DEFAULT_LOCALE)
   }
 
-  if (!routeLocale && resolvedLocale !== localeUtils.DEFAULT_LOCALE) {
-    return localeUtils.replaceLocaleInFullPath(fullPath, resolvedLocale)
+  if (!routeLocale && resolvedLocale !== DEFAULT_LOCALE) {
+    return replaceLocaleInFullPath(fullPath, resolvedLocale)
   }
 
   return null

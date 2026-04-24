@@ -4,7 +4,7 @@ import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
-import * as localeUtils from '../i18n/utils'
+import { getBrowserLocales } from '../i18n/utils'
 import {
     applyLocaleNavigationState,
     getLocaleRedirectPath,
@@ -20,27 +20,27 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            alias: localeUtils.buildLocaleAliases('/'),
+            alias: '/:lang/',
             component: Index
         },
         {
             path: '/user',
-            alias: localeUtils.buildLocaleAliases('/user'),
+            alias: '/:lang/user',
             component: User
         },
         {
             path: '/user/oauth2/callback',
-            alias: localeUtils.buildLocaleAliases('/user/oauth2/callback'),
+            alias: '/:lang/user/oauth2/callback',
             component: UserOauth2Callback
         },
         {
             path: '/admin',
-            alias: localeUtils.buildLocaleAliases('/admin'),
+            alias: '/:lang/admin',
             component: () => import('../views/Admin.vue')
         },
         {
             path: '/telegram_mail',
-            alias: localeUtils.buildLocaleAliases('/telegram_mail'),
+            alias: '/:lang/telegram_mail',
             component: () => import('../views/telegram/Mail.vue')
         },
         {
@@ -53,7 +53,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const routeLocale = getRouteLocale(to.path)
-    const browserLocales = localeUtils.getBrowserLocales()
+    const browserLocales = getBrowserLocales()
     const resolvedLocale = resolveLocaleForNavigation({
         routeLocale,
     })

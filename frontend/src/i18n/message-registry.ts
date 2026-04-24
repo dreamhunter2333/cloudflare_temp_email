@@ -2451,35 +2451,15 @@ export const MESSAGE_REGISTRY = {
   }
 } as const
 
-export type MessageNamespace = keyof typeof MESSAGE_REGISTRY
+type MessageRegistry = typeof MESSAGE_REGISTRY
 
-export const getMessageSource = (
-  namespace: MessageNamespace,
-  key: string,
+export type MessageNamespace = keyof MessageRegistry
+export type MessageKey<N extends MessageNamespace> = keyof MessageRegistry[N]
+
+export const getMessageSource = <N extends MessageNamespace>(
+  namespace: N,
+  key: MessageKey<N>,
   locale: 'en' | 'zh',
 ) => {
   return MESSAGE_REGISTRY[namespace]?.[key]?.[locale]
-}
-
-export const resolveMessageNamespace = (messages: Record<string, Record<string, unknown>>) => {
-  const englishMessages = messages.en || {}
-  const chineseMessages = messages.zh || {}
-
-  for (const namespace of Object.keys(MESSAGE_REGISTRY) as MessageNamespace[]) {
-    const registryMessages = MESSAGE_REGISTRY[namespace]
-    const registryKeys = Object.keys(registryMessages)
-    const messageKeys = [...new Set([...Object.keys(englishMessages), ...Object.keys(chineseMessages)])]
-
-    if (registryKeys.length !== messageKeys.length) continue
-    if (!messageKeys.every((key) => registryKeys.includes(key))) continue
-
-    const isMatch = messageKeys.every((key) => {
-      const registryEntry = registryMessages[key]
-      return registryEntry?.en === englishMessages[key] && registryEntry?.zh === chineseMessages[key]
-    })
-
-    if (isMatch) return namespace
-  }
-
-  return null
 }

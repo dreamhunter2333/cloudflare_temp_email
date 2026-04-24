@@ -136,11 +136,3 @@ const getLocaleAliasPath = (path: string, locale: SupportedLocale): string => {
 
   return getPathWithLocale(basePath, locale)
 }
-
-export const buildLocaleAliases = (path: string): string[] => {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
-
-  return SUPPORTED_LOCALES
-    .map((locale) => getLocaleAliasPath(normalizedPath, locale))
-    .filter((alias, index, aliases) => aliases.indexOf(alias) === index && alias !== normalizedPath)
-}

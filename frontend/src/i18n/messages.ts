@@ -1,6 +1,6 @@
 import { MESSAGE_REGISTRY, getMessageSource } from './message-registry'
 
-import type { MessageNamespace } from './message-registry'
+import type { MessageKey, MessageNamespace } from './message-registry'
 
 import { deMessages } from './locales/source/de'
 import { esMessages } from './locales/source/es'
@@ -42,7 +42,8 @@ const buildSourceLocaleMessages = (locale: SourceLocale) => {
   const messages: LocaleTree = {}
 
   for (const namespace of Object.keys(MESSAGE_REGISTRY) as MessageNamespace[]) {
-    for (const key of Object.keys(MESSAGE_REGISTRY[namespace])) {
+    const keys = Object.keys(MESSAGE_REGISTRY[namespace]) as MessageKey<typeof namespace>[]
+    for (const key of keys) {
       const message = getMessageSource(namespace, key, locale)
       if (message === undefined) continue
       setNestedValue(messages, `${namespace}.${key}`, message)
