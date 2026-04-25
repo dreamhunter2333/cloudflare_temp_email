@@ -1,19 +1,10 @@
 <script setup>
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
 const { openSettings } = useGlobalState()
 
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            copyright: "Copyright"
-        },
-        zh: {
-            copyright: "版权所有"
-        }
-    }
-});
+const { t } = useScopedI18n('views.Footer')
 
 </script>
 

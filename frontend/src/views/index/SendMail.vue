@@ -1,7 +1,7 @@
 <script setup>
 import '@wangeditor/editor/dist/css/style.css'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { onMounted, onBeforeUnmount, ref, shallowRef } from 'vue'
 import AdminContact from '../common/AdminContact.vue'
 
@@ -16,53 +16,7 @@ const sending = ref(false)
 
 const { settings, sendMailModel, indexTab, userSettings } = useGlobalState()
 
-const { t } = useI18n({
-    locale: 'zh',
-    messages: {
-        en: {
-            successSend: 'Please check your sendbox. If failed, please check your balance or try again later.',
-            fromName: 'Your Name and Address, leave Name blank to use email address',
-            toName: 'Recipient Name and Address, leave Name blank to use email address',
-            subject: 'Subject',
-            options: 'Options',
-            edit: 'Edit',
-            preview: 'Preview',
-            content: 'Content',
-            send: 'Send',
-            subjectEmpty: 'Subject is empty',
-            toMailEmpty: 'Recipient address is empty',
-            contentEmpty: 'Content is empty',
-            requestAccess: 'Request Access',
-            requestAccessTip: 'No send balance yet. If your admin enabled a default balance it should be assigned automatically; otherwise request access or contact the admin.',
-            send_balance: 'Send Mail Balance Left',
-            text: 'Text',
-            html: 'HTML',
-            'rich text': 'Rich Text',
-            tooLarge: 'Too large file, please upload file less than 1MB.',
-        },
-        zh: {
-            successSend: '请查看您的发件箱, 如果失败, 请检查您的余额或稍后重试。',
-            fromName: '你的名称和地址，名称不填写则使用邮箱地址',
-            toName: '收件人名称和地址，名称不填写则使用邮箱地址',
-            subject: '主题',
-            options: '选项',
-            edit: '编辑',
-            preview: '预览',
-            content: '内容',
-            send: '发送',
-            subjectEmpty: '主题不能为空',
-            toMailEmpty: '收件人地址不能为空',
-            contentEmpty: '内容不能为空',
-            requestAccess: '申请权限',
-            requestAccessTip: '当前还没有可用的发信额度。如果管理员启用了默认额度，会自动发放；否则请申请权限或联系管理员处理。',
-            send_balance: '剩余发送邮件额度',
-            text: '文本',
-            html: 'HTML',
-            'rich text': '富文本',
-            tooLarge: '文件过大, 请上传小于1MB的文件。',
-        }
-    }
-});
+const { t } = useScopedI18n('views.index.SendMail')
 
 const contentTypes = [
     { label: t('text'), value: 'text' },

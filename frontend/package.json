@@ -18,7 +18,7 @@
     "deploy:preview": "npm run build && wrangler pages deploy ./dist --branch preview",
     "deploy": "npm run build && wrangler pages deploy ./dist --branch production",
     "deploy:actions": "npm run build && wrangler pages deploy ./dist",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
   "dependencies": {

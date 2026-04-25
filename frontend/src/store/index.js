@@ -77,6 +77,7 @@ export const useGlobalState = createGlobalState(
         const useIframeShowMail = useStorage('useIframeShowMail', false);
         const preferShowTextMail = useStorage('preferShowTextMail', false);
         const userJwt = useStorage('userJwt', '');
+        const preferredLocale = useStorage('preferredLocale', '');
         const userTab = useSessionStorage('userTab', 'address_management');
         const indexTab = useSessionStorage('indexTab', 'mailbox');
         const globalTabplacement = useStorage('globalTabplacement', 'top');
@@ -148,6 +149,7 @@ export const useGlobalState = createGlobalState(
             useIframeShowMail,
             preferShowTextMail,
             userJwt,
+            preferredLocale,
             userTab,
             indexTab,
             userOpenSettings,

@@ -61,9 +61,12 @@ export default defineConfig({
     })
   ],
   resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+    alias: [
+      {
+        find: '@',
+        replacement: fileURLToPath(new URL('./src', import.meta.url))
+      }
+    ]
   },
   define: {
     'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version),

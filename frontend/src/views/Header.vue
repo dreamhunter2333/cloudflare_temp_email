@@ -1,26 +1,30 @@
 <script setup>
 import { ref, h, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { useHead } from '@unhead/vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
-    AdminPanelSettingsFilled, MonitorHeartFilled
+    AdminPanelSettingsFilled, MonitorHeartFilled,
+    KeyboardArrowDownOutlined
 } from '@vicons/material'
 import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
 import { getRouterPathWithLang, hashPassword } from '../utils'
+import { DEFAULT_LOCALE, isSupportedLocale, replaceLocaleInFullPath } from '../i18n/utils'
+import { getLocaleLabel, SUPPORTED_LOCALES } from '../i18n/locale-registry'
 import Turnstile from '../components/Turnstile.vue'
+import { NButton, NIcon } from 'naive-ui'
 
 const message = useMessage()
 const notification = useNotification()
 
 const {
     toggleDark, isDark, isTelegram, showAdminPage,
-    showAuth, auth, loading, openSettings, userSettings
+    showAuth, auth, loading, openSettings, preferredLocale, userSettings
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
@@ -52,42 +56,51 @@ const authFunc = async () => {
     }
 }
 
-const changeLocale = async (lang) => {
-    if (lang == 'zh') {
-        await router.push(route.fullPath.replace('/en', ''));
-    } else {
-        await router.push(`/${lang}${route.fullPath}`);
-    }
-}
+const languageOptions = SUPPORTED_LOCALES.map((locale) => ({
+    label: getLocaleLabel(locale),
+    value: locale,
+    key: locale,
+}))
 
-const { locale, t } = useI18n({
-    messages: {
-        en: {
-            title: 'Cloudflare Temp Email',
-            dark: 'Dark',
-            light: 'Light',
-            accessHeader: 'Access Password',
-            accessTip: 'Please enter the correct access password',
-            home: 'Home',
-            menu: 'Menu',
-            user: 'User',
-            status: 'Status',
-            ok: 'OK',
-        },
-        zh: {
-            title: 'Cloudflare 临时邮件',
-            dark: '暗色',
-            light: '亮色',
-            accessHeader: '访问密码',
-            accessTip: '请输入站点访问密码',
-            home: '主页',
-            menu: '菜单',
-            user: '用户',
-            status: '状态',
-            ok: '确定',
-        }
-    }
+const currentLocaleLabel = computed(() => {
+    return languageOptions.find(opt => opt.value === locale.value)?.label || locale.value;
 });
+
+const { t, locale } = useScopedI18n('views.Header')
+
+const changeLocale = async (lang) => {
+    if (!isSupportedLocale(lang)) {
+        return;
+    }
+
+    const currentFullPath = route.fullPath;
+    const targetFullPath = replaceLocaleInFullPath(currentFullPath, lang);
+
+    if (lang === locale.value && targetFullPath === currentFullPath) {
+        showMobileMenu.value = false;
+        return;
+    }
+
+    if (lang === DEFAULT_LOCALE) {
+        preferredLocale.value = DEFAULT_LOCALE;
+    }
+
+    let localeSwitched = false;
+    try {
+        await router.push({ path: targetFullPath, force: true });
+        localeSwitched = router.currentRoute.value.fullPath === targetFullPath;
+        if (!localeSwitched) {
+            await router.replace({ path: targetFullPath, force: true });
+            localeSwitched = router.currentRoute.value.fullPath === targetFullPath;
+        }
+    } catch (error) {
+        console.error('Failed to switch locale', error);
+    } finally {
+        showMobileMenu.value = false;
+    }
+
+    if (localeSwitched) preferredLocale.value = lang;
+}
 
 const version = import.meta.env.PACKAGE_VERSION ? `v${import.meta.env.PACKAGE_VERSION}` : "";
 
@@ -179,27 +192,6 @@ const menuOptions = computed(() => [
                 text: true,
                 size: "small",
                 style: "width: 100%",
-                onClick: async () => {
-                    locale.value == 'zh' ? await changeLocale('en') : await changeLocale('zh');
-                    showMobileMenu.value = false;
-                }
-            },
-            {
-                default: () => locale.value == 'zh' ? "English" : "中文",
-                icon: () => h(
-                    NIcon, { component: Language }
-                )
-            }
-        ),
-        key: "lang"
-    },
-    {
-        label: () => h(
-            NButton,
-            {
-                text: true,
-                size: "small",
-                style: "width: 100%",
                 tag: "a",
                 target: "_blank",
                 href: openSettings.value?.statusUrl,
@@ -211,25 +203,6 @@ const menuOptions = computed(() => [
         ),
         show: !!openSettings.value?.statusUrl,
         key: "status"
-    },
-    {
-        label: () => h(
-            NButton,
-            {
-                text: true,
-                size: "small",
-                style: "width: 100%",
-                tag: "a",
-                target: "_blank",
-                href: "https://github.com/dreamhunter2333/cloudflare_temp_email",
-            },
-            {
-                default: () => version || "Github",
-                icon: () => h(NIcon, { component: GithubAlt })
-            }
-        ),
-        show: openSettings.value?.showGithub,
-        key: "github"
     }
 ]);
 
@@ -279,7 +252,7 @@ onMounted(async () => {
                 </div>
             </template>
             <template #extra>
-                <n-space>
+                <n-space align="center" class="header-extra">
                     <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" responsive />
                     <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu" style="margin-right: 10px;">
                         <template #icon>
@@ -287,12 +260,58 @@ onMounted(async () => {
                         </template>
                         {{ t('menu') }}
                     </n-button>
+                    <n-dropdown :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
+                        <n-button text size="small" class="header-locale-button" style="padding: 0 10px;">
+                            <template #icon>
+                                <n-icon :component="Language" />
+                            </template>
+                            {{ currentLocaleLabel }}
+                            <n-icon :component="KeyboardArrowDownOutlined" style="margin-left: 4px;" />
+                        </n-button>
+                    </n-dropdown>
+                    <n-button
+                        v-if="openSettings.showGithub"
+                        text
+                        size="small"
+                        class="header-version-button"
+                        tag="a"
+                        target="_blank"
+                        href="https://github.com/dreamhunter2333/cloudflare_temp_email"
+                    >
+                        <template #icon>
+                            <n-icon :component="GithubAlt" />
+                        </template>
+                        {{ version || 'Github' }}
+                    </n-button>
                 </n-space>
             </template>
         </n-page-header>
         <n-drawer v-model:show="showMobileMenu" placement="top" style="height: 100vh;">
             <n-drawer-content :title="t('menu')" closable>
                 <n-menu :options="menuOptions" />
+                <n-dropdown :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
+                    <n-button text class="header-locale-button" style="margin-top: 12px;">
+                        <template #icon>
+                            <n-icon :component="Language" />
+                        </template>
+                        {{ currentLocaleLabel }}
+                        <n-icon :component="KeyboardArrowDownOutlined" style="margin-left: 4px;" />
+                    </n-button>
+                </n-dropdown>
+                <n-button
+                    v-if="openSettings.showGithub"
+                    text
+                    class="header-version-button"
+                    style="margin-top: 12px;"
+                    tag="a"
+                    target="_blank"
+                    href="https://github.com/dreamhunter2333/cloudflare_temp_email"
+                >
+                    <template #icon>
+                        <n-icon :component="GithubAlt" />
+                    </template>
+                    {{ version || 'Github' }}
+                </n-button>
             </n-drawer-content>
         </n-drawer>
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
@@ -314,6 +333,40 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+
+.header-extra {
+    align-items: center;
+}
+
+.header-extra :deep(.n-space-item) {
+    display: flex;
+    align-items: center;
+}
+
+.header-locale-button {
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-locale-button :deep(.n-button__content) {
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-locale-button :deep(.n-icon) {
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-version-button {
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-version-button :deep(.n-button__content) {
+    display: inline-flex;
+    align-items: center;
 }
 
 .n-alert {

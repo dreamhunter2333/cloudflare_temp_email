@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, onMounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { User, UserCheck, MailBulk } from '@vicons/fa'
 import { SendOutlined } from '@vicons/material'
 
@@ -8,26 +8,7 @@ import { api } from '../../api'
 
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            userCount: 'User Count',
-            addressCount: 'Address Count',
-            activeAddressCount7days: '7 days Active Address Count',
-            activeAddressCount30days: '30 days Active Address Count',
-            mailCount: 'Mail Count',
-            sendMailCount: 'Send Mail Count'
-        },
-        zh: {
-            userCount: '用户总数',
-            addressCount: '邮箱地址总数',
-            activeAddressCount7days: '7天活跃邮箱地址总数',
-            activeAddressCount30days: '30天活跃邮箱地址总数',
-            mailCount: '邮件总数',
-            sendMailCount: '发送邮件总数'
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.Statistics')
 
 const statistics = ref({
     addressCount: 0,

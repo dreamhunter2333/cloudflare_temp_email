@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../../store'
@@ -21,46 +21,7 @@ const showClearSentItems = ref(false)
 const showChangePassword = ref(false)
 const newPassword = ref('')
 const confirmPassword = ref('')
-const { locale, t } = useI18n({
-    messages: {
-        en: {
-            logout: "Logout",
-            deleteAccount: "Delete Account",
-            showAddressCredential: 'Show Address Credential',
-            logoutConfirm: 'Are you sure to logout?',
-            deleteAccount: "Delete Account",
-            deleteAccountConfirm: "Are you sure to delete your account and all emails for this account?",
-            clearInbox: "Clear Inbox",
-            clearSentItems: "Clear Sent Items",
-            clearInboxConfirm: "Are you sure to clear all emails in your inbox?",
-            clearSentItemsConfirm: "Are you sure to clear all emails in your sent items?",
-            success: "Success",
-            changePassword: "Change Password",
-            newPassword: "New Password",
-            confirmPassword: "Confirm Password",
-            passwordMismatch: "Passwords do not match",
-            passwordChanged: "Password changed successfully",
-        },
-        zh: {
-            logout: '退出登录',
-            deleteAccount: "删除账户",
-            showAddressCredential: '查看邮箱地址凭证',
-            logoutConfirm: '确定要退出登录吗？',
-            deleteAccount: "删除账户",
-            deleteAccountConfirm: "确定要删除你的账户和其中的所有邮件吗?",
-            clearInbox: "清空收件箱",
-            clearSentItems: "清空发件箱",
-            clearInboxConfirm: "确定要清空你收件箱中的所有邮件吗？",
-            clearSentItemsConfirm: "确定要清空你发件箱中的所有邮件吗？",
-            success: "成功",
-            changePassword: "修改密码",
-            newPassword: "新密码",
-            confirmPassword: "确认密码",
-            passwordMismatch: "密码不匹配",
-            passwordChanged: "密码修改成功",
-        }
-    }
-});
+const { locale, t } = useScopedI18n('views.index.AccountSettings')
 
 const logout = async () => {
     jwt.value = '';

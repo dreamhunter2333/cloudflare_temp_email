@@ -1,6 +1,5 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
