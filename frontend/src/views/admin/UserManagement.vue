@@ -344,7 +344,8 @@ onMounted(async () => {
                 </n-button>
             </template>
         </n-modal>
-        <n-modal v-model:show="showUserAddressManagement" preset="card" :title="t('userAddressManagement')">
+        <n-modal v-model:show="showUserAddressManagement" preset="card" :title="t('userAddressManagement')"
+            style="width: 720px;">
             <UserAddressManagement :user_id="curUserId" />
         </n-modal>
         <n-input-group>
