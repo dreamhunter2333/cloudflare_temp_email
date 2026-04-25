@@ -1,5 +1,14 @@
 # Cloudflare Email Routing
 
+> [!IMPORTANT] A domain is a hard prerequisite for deployment
+> Mail reception in this project is **entirely dependent on** Cloudflare Email Routing. Before deploying Worker / Pages, you must already have:
+>
+> - A domain whose DNS is hosted on Cloudflare.
+> - Email Routing enabled on that domain in the Cloudflare dashboard, with the `Email DNS records` provisioned.
+> - A Catch-all routing rule that delivers mail to your deployed Worker (this can only be selected after the Worker is deployed).
+>
+> Without all of the above, **no inbound mail and no verification code will ever be received**, even if the Worker / Pages deployment itself succeeds.
+
 1. In the CF console for the corresponding domain under `Email Routing`, configure the `Email DNS records`. If there are multiple domains, you need to configure `Email DNS records` for each domain.
 
 2. Before binding an email address to your Worker, you need to enable email routing and have at least one verified email address (destination address).
@@ -9,4 +18,4 @@
 ![email](/readme_assets/email.png)
 
 > [!WARNING] Subdomains must be configured separately
-> If you want to receive mail on a **subdomain** (e.g. `mail.example.com`), you must enable `Email Routing` on **that subdomain** in the CF dashboard and configure its email DNS records and Catch-all rule separately. Enabling Email Routing only on the apex domain **does not cover subdomains**.
+> If you want to receive mail on a **subdomain** (e.g. `mail.example.com`), you must enable `Email Routing` on **that subdomain** in the CF dashboard and configure its email DNS records and Catch-all rule separately. Enabling Email Routing only on the apex domain **does not cover subdomains**, and a subdomain **does not inherit** its parent domain's Email Routing configuration — mail to a subdomain that has not been individually enabled will **fail to deliver**.

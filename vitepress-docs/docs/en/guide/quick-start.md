@@ -2,6 +2,11 @@
 
 ## Before You Begin
 
+> [!IMPORTANT] A domain is required first
+> This project relies on Cloudflare Email Routing to receive emails, so **a domain is a hard prerequisite for deployment**.
+> You must already own a domain (apex or subdomain) hosted on Cloudflare DNS, with Email Routing enabled and the corresponding email DNS records (including a Catch-all rule) configured. Without it, **mail will not be received and verification flows will fail**.
+> See [Cloudflare Email Routing](/en/guide/email-routing) for the full setup.
+
 You need a `good network environment` and a `Cloudflare account`. Open the [Cloudflare Dashboard](https://dash.cloudflare.com/)
 
 Please choose one of the three deployment methods below:

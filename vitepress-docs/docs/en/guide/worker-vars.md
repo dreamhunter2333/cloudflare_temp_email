@@ -13,6 +13,10 @@
 | `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | Whether to allow users to create mailboxes, disabled if not configured | `true`                               |
 | `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | Whether to allow users to delete emails, disabled if not configured    | `true`                               |
 
+> [!IMPORTANT] `DOMAINS` and `DEFAULT_DOMAINS` must already be set up in Cloudflare
+> Every domain you put here (including `DEFAULT_DOMAINS`, `USER_ROLES.domains`, `RANDOM_SUBDOMAIN_DOMAINS` further below) **must already have Cloudflare Email Routing enabled with a Catch-all rule pointing at the Worker**, otherwise inbound mail will never reach the Worker.
+> See [Cloudflare Email Routing](/en/guide/email-routing) for the setup steps.
+
 ## Console Related Variables
 
 | Variable Name                  | Type      | Description                                             | Example          |
