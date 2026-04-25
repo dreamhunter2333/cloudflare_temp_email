@@ -14,7 +14,7 @@
 | `ENABLE_USER_DELETE_EMAIL` | 文本/JSON   | 是否允许用户删除邮件, 不配置则不允许       | `true`                               |
 
 > [!IMPORTANT] DOMAINS 与 DEFAULT_DOMAINS 必须先在 Cloudflare 配置好
-> 这里填写的所有域名（包括下文「邮箱相关变量」里的 `DEFAULT_DOMAINS`、`USER_ROLES.domains`、`RANDOM_SUBDOMAIN_DOMAINS` 等）必须是你**已经在 Cloudflare Email Routing 中启用并配置过 Catch-all 规则**的域名，否则邮件无法投递到 Worker。
+> 这里填写的所有域名（包括下文「邮箱相关变量」里的 `DEFAULT_DOMAINS`、`USER_ROLES.domains`、`RANDOM_SUBDOMAIN_DOMAINS` 等）必须是你**已经在 Cloudflare Email Routing 中启用并完成邮件 DNS 记录下发**的域名。Worker 部署完成后，还需要把该域名的 Catch-all 规则绑定到这个 Worker，否则邮件无法投递到 Worker。
 > 配置步骤见 [Cloudflare Email Routing](/zh/guide/email-routing)。
 
 ## 后台相关变量

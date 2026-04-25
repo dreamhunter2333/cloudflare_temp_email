@@ -4,7 +4,7 @@
 
 > [!IMPORTANT] A domain is required first
 > This project relies on Cloudflare Email Routing to receive emails, so **a domain is a hard prerequisite for deployment**.
-> You must already own a domain (apex or subdomain) hosted on Cloudflare DNS, with Email Routing enabled and the corresponding email DNS records (including a Catch-all rule) configured. Without it, **mail will not be received and verification flows will fail**.
+> You must already own a domain (apex or subdomain) hosted on Cloudflare DNS, with Email Routing enabled and the corresponding email DNS records provisioned. After the Worker is deployed, bind a Catch-all rule to that Worker. Without both steps, **mail will not be received and verification flows will fail**.
 > See [Cloudflare Email Routing](/en/guide/email-routing) for the full setup.
 
 You need a `good network environment` and a `Cloudflare account`. Open the [Cloudflare Dashboard](https://dash.cloudflare.com/)
