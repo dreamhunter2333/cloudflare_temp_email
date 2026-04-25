@@ -5,9 +5,8 @@
 >
 > - A domain whose DNS is hosted on Cloudflare.
 > - Email Routing enabled on that domain in the Cloudflare dashboard, with the `Email DNS records` provisioned.
-> - A Catch-all routing rule that delivers mail to your deployed Worker (this can only be selected after the Worker is deployed).
 >
-> Without all of the above, **no inbound mail and no verification code will ever be received**, even if the Worker / Pages deployment itself succeeds.
+> After the Worker is deployed, you must also configure a Catch-all routing rule that delivers mail to that Worker. Without completing both phases, **no inbound mail and no verification code will ever be received**, even if the Worker / Pages deployment itself succeeds.
 
 1. In the CF console for the corresponding domain under `Email Routing`, configure the `Email DNS records`. If there are multiple domains, you need to configure `Email DNS records` for each domain.
 

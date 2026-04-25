@@ -1,13 +1,12 @@
 # Cloudflare Email Routing
 
 > [!IMPORTANT] 域名是部署的前提条件
-> 本项目的收件能力**完全依赖** Cloudflare Email Routing。开始部署 Worker / Pages 之前，你必须先准备好域名并把 Email Routing 配通：
+> 本项目的收件能力**完全依赖** Cloudflare Email Routing。开始部署 Worker / Pages 之前，你必须先准备好域名并完成 Email Routing 的基础配置：
 >
 > - 域名 DNS 已托管在 Cloudflare。
 > - 已在 Cloudflare 控制台为该域名启用 Email Routing，并完成 `电子邮件 DNS 记录` 的下发。
-> - 已配置 Catch-all 路由规则，目标指向你部署的 Worker（部署完 Worker 之后才能选到）。
 >
-> 没有完成上述配置，即使 Worker / Pages 部署成功，也**收不到邮件、无法接收任何验证码**。
+> Worker 部署完成后，你还必须配置 Catch-all 路由规则，把邮件投递到这个 Worker。没有完成这两个阶段的配置，即使 Worker / Pages 部署成功，也**收不到邮件、无法接收任何验证码**。
 
 1. 在 CF 控制台网页的对应域名的 `Email Routing` 下，配置 `电子邮件 DNS 记录`, 如果是多个域名，需要配置多个域名的 `电子邮件 DNS 记录`
 

@@ -4,7 +4,7 @@
 
 > [!IMPORTANT] 必须先准备一个域名
 > 本项目依赖 Cloudflare Email Routing 接收邮件，**域名是部署前提条件**。
-> 你必须先准备一个域名（一级域名或子域名均可），并在 Cloudflare 中托管 DNS、配置 Email Routing 与对应的电子邮件 DNS 记录（至少包含 Catch-all 规则），否则将**无法接收邮件 / 无法完成验证码流程**。
+> 你必须先准备一个域名（一级域名或子域名均可），并在 Cloudflare 中托管 DNS、启用 Email Routing、完成对应的电子邮件 DNS 记录下发。Worker 部署完成后，再把 Catch-all 规则绑定到这个 Worker；两步缺一都会导致**无法接收邮件 / 无法完成验证码流程**。
 > 详细配置见 [Cloudflare Email Routing](/zh/guide/email-routing)。
 
 需要 `良好的网络环境` 和 `cloudflare 账号`， 打开 [cloudflare控制台](https://dash.cloudflare.com/)
