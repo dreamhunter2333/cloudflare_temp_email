@@ -133,7 +133,9 @@ onMounted(async () => {
     <div>
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
-                <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                <div class="address-table-scroll">
+                    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                </div>
             </n-tab-pane>
             <n-tab-pane name="bind" :tab="t('bind')">
                 <Login :newAddressPath="newAddressPath" :bindUserAddress="bindAddress" />
@@ -141,3 +143,14 @@ onMounted(async () => {
         </n-tabs>
     </div>
 </template>
+
+<style scoped>
+.n-data-table {
+    min-width: 640px;
+}
+
+.address-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+</style>
