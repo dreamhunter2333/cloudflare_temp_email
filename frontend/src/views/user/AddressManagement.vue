@@ -196,7 +196,7 @@ onMounted(async () => {
         </n-modal>
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
-                <div style="overflow: auto;">
+                <div class="address-table-scroll">
                     <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
                 </div>
             </n-tab-pane>
@@ -209,6 +209,11 @@ onMounted(async () => {
 
 <style scoped>
 .n-data-table {
-    min-width: 700px;
+    min-width: 640px;
+}
+
+.address-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
 }
 </style>

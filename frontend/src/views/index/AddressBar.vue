@@ -99,7 +99,8 @@ onMounted(async () => {
                 </n-collapse>
             </n-card>
         </n-modal>
-        <n-modal v-model:show="showAddressManage" preset="card" :title="t('addressManage')">
+        <n-modal v-model:show="showAddressManage" preset="card" :title="t('addressManage')"
+            style="width: 720px;">
             <TelegramAddress v-if="isTelegram" />
             <AddressManagement v-else-if="userJwt" />
             <LocalAddress v-else />
@@ -130,4 +131,5 @@ onMounted(async () => {
     flex: 0 0 auto;
     white-space: nowrap;
 }
+
 </style>
