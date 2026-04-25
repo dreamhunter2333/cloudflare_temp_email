@@ -138,6 +138,10 @@ const columns = [
 </template>
 
 <style scoped>
+.n-data-table {
+    min-width: 640px;
+}
+
 .address-table-scroll {
     max-width: 100%;
     overflow-x: auto;
