@@ -10,6 +10,7 @@
 | 使用 Cloudflare Workers 给已认证的转发邮箱发送邮件 | 使用 cf 的 API 进行发送，只支持绑定到 CF 上的收件地址，即 CF EMAIL 转发目的地址 |
 | 绑定多个域名                                       | 每个域名都需要设置 email 转发到 worker                                          |
 | 子域名收不到邮件                                   | 子域名需要在 CF 上**单独启用** Email Routing 并配置 DNS 与 Catch-all 规则，仅在一级域开启不会自动覆盖子域，详见 [Email Routing](/zh/guide/email-routing) |
+| 重新创建以前用过的邮箱提示地址已存在 | 这个地址可能在过期释放或解绑后已经被其他用户重新创建或绑定，普通用户不能直接抢回。若你有 admin 权限，可以在 admin 地址列表中找到该地址并获取邮箱地址凭据，然后用凭据重新绑定到目标用户 |
 
 ## Worker 相关
 
@@ -59,3 +60,4 @@
 | 问题                                       | 解决方案                                                                          |
 | ------------------------------------------ | --------------------------------------------------------------------------------- |
 | Github Action部署后，cf里始终是preview分支 | 到 cf pages 页面的设置中确认 前端的分支 和 Github Action 的 前端部署分支 是否相同 |
+| 想用 GitHub Actions 自动更新，同时通过 Page Functions 转发后端请求 | 启用 `Deploy Frontend with page function` workflow，并配置 `PAGE_TOML` secret；`PAGE_TOML` 复制 `pages/wrangler.toml` 内容后把 `service` 改成你的 Worker 后端名称。这个 workflow 走同域请求，不需要 `FRONTEND_ENV` |

@@ -57,6 +57,16 @@
 - 如果需要前后端分离并直连 Worker, 找到 `Deploy Frontend`，点击 `Run workflow` 选择分支手动部署
 - 如果需要通过 Page Functions 转发后端请求的 Pages 部署, 找到 `Deploy Frontend with page function`，点击 `Run workflow` 手动部署
 
+### 自动更新与 Page Functions 转发
+
+如果你既想通过 `Upstream Sync` 自动更新，又想让 Pages 通过 Page Functions 转发后端请求，请使用 `Deploy Frontend with page function` workflow，而不是 `Deploy Frontend`。
+
+- 先启用 `Upstream Sync`、`Deploy Backend` 和 `Deploy Frontend with page function`
+- 在仓库 `Secrets` 中配置 `PAGE_TOML`，内容复制 `pages/wrangler.toml`
+- 将 `PAGE_TOML` 里的 `service` 改成你的 Worker 后端名称
+- 这个 workflow 会执行 `pnpm build:pages`，前端走同域请求，不读取 `FRONTEND_ENV`
+- 每次 `Upstream Sync` 完成后，如果 `PAGE_TOML` 已配置，`Deploy Frontend with page function` 会自动部署前端
+
 ## 如何配置自动更新
 
 1. 打开仓库的 `Actions` 页面，找到 `Upstream Sync`，点击 `enable workflow` 启用 `workflow`

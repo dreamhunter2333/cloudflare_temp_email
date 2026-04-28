@@ -16,6 +16,7 @@
 - docs: |Docs| Add "AI Agent Mailbox Usage" doc (`guide/feature/agent-email`) covering the `parsed_mail` API and a local-parse fallback using `mail-parser-wasm` + `postal-mime` (mirrors the frontend) when parsed endpoints are unavailable
 - docs: |Docs| Make "a domain is a hard prerequisite" explicit at the top of `quick-start`, `worker-vars`, and `email-routing` (zh + en), spelling out that Cloudflare Email Routing must be enabled with email DNS records provisioned before deployment, the Catch-all rule must be bound after the Worker is deployed, and subdomains do not inherit the parent domain's Email Routing — so users no longer start deploying without a usable domain and end up unable to receive mail (issue #1004)
 - docs: |Deployment troubleshooting| Improve docs for recent UI-deployment and upgrade issues: document `nodejs_compat`, the required uppercase `DB` D1 binding, `/open_api/settings` verification, backend API URL entry, Cloudflare security challenges causing `Network Error`, D1 size limits and Cron Trigger cleanup, GitHub OAuth public email requirements, the difference between admin passwords and user accounts, and the `enableRandomSubdomain` API flag; move the Help/FAQ menu directly after Core Configuration so it is easier to find
+- docs: |Docs| Document how to handle the "address already exists" case when recreating an old mailbox, and clarify the GitHub Actions workflow for automatic updates with Page Functions forwarding backend requests (issues #947 #654)
 
 ### Bug Fixes
 
