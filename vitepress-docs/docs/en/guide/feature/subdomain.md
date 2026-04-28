@@ -30,8 +30,28 @@ RANDOM_SUBDOMAIN_LENGTH = 8
 - `RANDOM_SUBDOMAIN_DOMAINS`: base domains that allow optional random second-level subdomains
 - `RANDOM_SUBDOMAIN_LENGTH`: random string length, range `1-63`, default `8`
 
+The create-address APIs only generate a random subdomain when the request explicitly passes
+`enableRandomSubdomain: true`. The frontend sends this field when the "enable random subdomain"
+option is checked. If you call `/api/new_address` or `/admin/new_address` yourself, include it in
+the request body:
+
+```json
+{
+  "name": "test",
+  "domain": "abc.com",
+  "enableRandomSubdomain": true
+}
+```
+
+`domain` must be the base domain configured in `RANDOM_SUBDOMAIN_DOMAINS`, such as `abc.com`.
+If you want to create an address under a specific subdomain such as `team.abc.com`, do not pass
+`enableRandomSubdomain: true`; use the direct-subdomain flow below instead.
+
 > [!NOTE]
 > This feature only appends a random second-level subdomain when the mailbox is created.
+>
+> There is currently no backend switch that globally forces random subdomains; API calls that do
+> not pass `enableRandomSubdomain: true` will not randomize automatically.
 >
 > It does not automatically create Cloudflare-side subdomain mail routes or DNS records for you,
 > so make sure the base-domain/subdomain routing is already available first.

@@ -29,8 +29,22 @@ RANDOM_SUBDOMAIN_LENGTH = 8
 - `RANDOM_SUBDOMAIN_DOMAINS`：允许启用随机二级域名的基础域名列表
 - `RANDOM_SUBDOMAIN_LENGTH`：随机串长度，范围 `1-63`，默认 `8`
 
+创建地址 API 需要显式传入 `enableRandomSubdomain: true` 才会生成随机二级域名。前端勾选“启用随机二级域名”时会自动传这个字段；如果你自己调用 `/api/new_address` 或 `/admin/new_address`，也需要在请求体中传入：
+
+```json
+{
+  "name": "test",
+  "domain": "abc.com",
+  "enableRandomSubdomain": true
+}
+```
+
+`domain` 必须传 `RANDOM_SUBDOMAIN_DOMAINS` 中配置的基础域名，例如 `abc.com`。如果要创建 `team.abc.com` 这种指定子域名地址，请不要传 `enableRandomSubdomain: true`，而是使用下方“直接指定子域名”的流程。
+
 > [!NOTE]
 > 这个功能只是在“创建地址”时自动补一个随机二级域名。
+>
+> 当前没有“全局强制随机二级域名”的后端开关；未传 `enableRandomSubdomain: true` 的 API 调用不会自动随机。
 >
 > 它不会自动帮你创建 Cloudflare 侧的子域名收件路由或 DNS 配置，请先确保基础域名/子域名路由本身已经可用。
 
