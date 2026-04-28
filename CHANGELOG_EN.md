@@ -28,7 +28,6 @@
 ### Improvements
 
 - refactor: |Worker| Split `mails_api/index.ts` and `admin_api/index.ts` so the index files only wire routes. Business logic moved into dedicated `*_api.ts` files (`mails_crud.ts` / `new_address.ts` / `parsed_mail_api.ts` / `address_api.ts` / `address_sender_api.ts` / `sendbox_api.ts` / `statistics_api.ts` / `account_settings_api.ts`). Paths and behavior unchanged
-- chore: |CI| Change Codium PR Agent `CONFIG.MODEL` and `CONFIG.MODEL_TURBO` to `gpt-5.4-nano`
 
 ## v1.7.0
 
