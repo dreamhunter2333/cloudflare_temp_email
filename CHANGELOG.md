@@ -28,8 +28,9 @@
 ### Improvements
 
 - refactor: |Worker| 拆分 `mails_api/index.ts` 与 `admin_api/index.ts`，入口只负责挂路由，业务拆到各自的 `*_api.ts` 文件（`mails_crud.ts` / `new_address.ts` / `parsed_mail_api.ts` / `address_api.ts` / `address_sender_api.ts` / `sendbox_api.ts` / `statistics_api.ts` / `account_settings_api.ts`），保持路径与行为不变
+- chore: |CI| 将 Codium PR Agent 的 `CONFIG.MODEL` 与 `CONFIG.MODEL_TURBO` 调整为 `gpt-5.4-nano`
 
-## v1.7.0(main)
+## v1.7.0
 
 ### Breaking Changes
 
@@ -47,7 +48,7 @@
 
 ### Improvements
 
-## v1.6.0(main)
+## v1.6.0
 
 ### Features
 
@@ -71,7 +72,7 @@
 - docs: |发送邮件| 增强 SMTP_CONFIG 字段说明和多域名示例，新增发信余额机制说明
 - docs: |Email Routing| 补充子域名需单独启用 Email Routing 的说明，避免仅在一级域名开启导致子域收不到邮件（#969）
 
-## v1.5.0(main)
+## v1.5.0
 
 ### Features
 
