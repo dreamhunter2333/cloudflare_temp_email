@@ -43,9 +43,9 @@ the request body:
 }
 ```
 
-`domain` should be the base domain configured in `RANDOM_SUBDOMAIN_DOMAINS`, such as `abc.com`.
-If you pass `team.abc.com`, that is the "specify a subdomain directly" flow and no additional
-random subdomain will be generated.
+`domain` must be the base domain configured in `RANDOM_SUBDOMAIN_DOMAINS`, such as `abc.com`.
+If you want to create an address under a specific subdomain such as `team.abc.com`, do not pass
+`enableRandomSubdomain: true`; use the direct-subdomain flow below instead.
 
 > [!NOTE]
 > This feature only appends a random second-level subdomain when the mailbox is created.
