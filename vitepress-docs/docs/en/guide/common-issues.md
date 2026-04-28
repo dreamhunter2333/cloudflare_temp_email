@@ -10,6 +10,7 @@
 | Sending emails to authenticated forwarding addresses using Cloudflare Workers | Use CF's API for sending, only supports recipient addresses bound to CF, i.e., CF EMAIL forwarding destination addresses |
 | Binding multiple domains                               | Each domain needs to configure email forwarding to worker                                         |
 | Subdomain cannot receive email                         | Subdomains must have Email Routing **enabled separately** on Cloudflare with their own DNS records and Catch-all rule. Enabling it only on the apex domain does NOT cover subdomains. See [Email Routing](/en/guide/email-routing) |
+| Recreating a previously used mailbox shows that the address already exists | The address may have been recreated or bound by another user after it expired or was unbound, so a normal user cannot reclaim it directly. If you have admin access, find the address in the admin address list, get its address credential, and then bind it to the target user again |
 
 ## Worker Related
 
@@ -59,3 +60,4 @@
 | Issue                                                      | Solution                                                                                     |
 | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | After Github Action deployment, CF always shows preview branch | Go to CF pages settings to confirm that the frontend branch matches the Github Action frontend deployment branch |
+| Use GitHub Actions auto-update while forwarding backend requests through Page Functions | Enable the `Deploy Frontend with page function` workflow and configure the `PAGE_TOML` secret. Copy `pages/wrangler.toml` into `PAGE_TOML`, then change `service` to your Worker backend name. This workflow uses same-origin requests and does not need `FRONTEND_ENV` |
