@@ -144,6 +144,13 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             ]
         },
         {
+            text: '帮助',
+            collapsed: false,
+            items: [
+                { text: '常见问题 (FAQ)', link: 'common-issues' },
+            ]
+        },
+        {
             text: '通知与集成',
             collapsed: false,
             items: [
@@ -182,13 +189,6 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: 'Admin 控制台', link: 'feature/admin' },
                 { text: 'Admin 用户管理', link: 'feature/admin-user-management' },
-            ]
-        },
-        {
-            text: '帮助',
-            collapsed: false,
-            items: [
-                { text: '常见问题 (FAQ)', link: 'common-issues' },
             ]
         },
         { text: '参考', base: "/zh/", link: 'reference' }
