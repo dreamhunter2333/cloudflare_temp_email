@@ -40,7 +40,9 @@
 - **Completely Free** - Built on Cloudflare's free services with zero cost
 - **High Performance** - Rust WASM email parsing for extremely fast response
 - **Modern UI** - Responsive design with multi-language support and easy operation
-- **Address Password** - Support setting individual passwords for email addresses to enhance security (enabled via `ENABLE_ADDRESS_PASSWORD`)
+- **Address Password** - Support setting individual passwords for email addresses to enhance security
+- **Agent-friendly** - Built-in mailbox [`skill`](skills/cf-temp-mail-agent-mail/SKILL.md) for AI agents
+- **Mobile admin** - Community client [CloudMail](https://github.com/Lur1N77777/CloudMail) for Android admin and mailbox management
 
 ## Deployment Documentation - Quick Start
 
