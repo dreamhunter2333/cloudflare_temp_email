@@ -17,6 +17,18 @@
   an email field. If the returned value is not a standard email, use the "Email Format
   Transformation" section below.
 
+If you do not want to expose a public GitHub email, use the GitHub email list API instead:
+
+| Field | Value |
+|-------|-------|
+| User Info URL | `https://api.github.com/user/emails` |
+| User Email Key | `$[?(@.primary==true)].email` |
+| Scope | `user:email` |
+
+When a `Public email` is selected in the GitHub profile, the default `https://api.github.com/user`
+endpoint with `User Email Key = email` can still be used. Merely changing an email from private to
+visible without selecting it as the public email can still make the `/user` API return `email: null`.
+
 Reference: [Creating an OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
 
 ### Linux Do
