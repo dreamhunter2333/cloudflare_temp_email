@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -28,16 +28,16 @@
     "@vueuse/core": "^14.2.1",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
-    "axios": "^1.15.1",
-    "dompurify": "^3.4.0",
+    "axios": "^1.15.2",
+    "dompurify": "^3.4.1",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.2",
     "naive-ui": "^2.44.1",
     "postal-mime": "^2.7.4",
     "vooks": "^0.2.12",
-    "vue": "^3.5.32",
+    "vue": "^3.5.33",
     "vue-clipboard3": "^2.0.0",
-    "vue-i18n": "^11.3.2",
+    "vue-i18n": "^11.4.0",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
@@ -53,7 +53,7 @@
     "vitest": "^3.2.4",
     "workbox-build": "^7.4.0",
     "workbox-window": "^7.4.0",
-    "wrangler": "^4.83.0"
+    "wrangler": "^4.86.0"
   },
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }
