@@ -7,7 +7,7 @@ import { useIsMobile } from '../utils/composables'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
     AdminPanelSettingsFilled, MonitorHeartFilled,
-    KeyboardArrowDownOutlined
+    KeyboardArrowDownOutlined, OpenInNewOutlined
 } from '@vicons/material'
 import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
@@ -254,13 +254,13 @@ onMounted(async () => {
             <template #extra>
                 <n-space align="center" class="header-extra">
                     <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" responsive />
-                    <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu" style="margin-right: 10px;">
+                    <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu">
                         <template #icon>
                             <n-icon :component="MenuFilled" />
                         </template>
                         {{ t('menu') }}
                     </n-button>
-                    <n-dropdown :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
+                    <n-dropdown v-if="!isMobile" :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
                         <n-button text size="small" class="header-locale-button" style="padding: 0 10px;">
                             <template #icon>
                                 <n-icon :component="Language" />
@@ -270,7 +270,7 @@ onMounted(async () => {
                         </n-button>
                     </n-dropdown>
                     <n-button
-                        v-if="openSettings.showGithub"
+                        v-if="!isMobile && openSettings.showGithub"
                         text
                         size="small"
                         class="header-version-button"
@@ -289,29 +289,26 @@ onMounted(async () => {
         <n-drawer v-model:show="showMobileMenu" placement="top" style="height: 100vh;">
             <n-drawer-content :title="t('menu')" closable>
                 <n-menu :options="menuOptions" />
-                <n-dropdown :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
-                    <n-button text class="header-locale-button" style="margin-top: 12px;">
-                        <template #icon>
+                <div class="mobile-menu-actions">
+                    <n-dropdown :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
+                        <button type="button" class="mobile-menu-utility-button">
                             <n-icon :component="Language" />
-                        </template>
-                        {{ currentLocaleLabel }}
-                        <n-icon :component="KeyboardArrowDownOutlined" style="margin-left: 4px;" />
-                    </n-button>
-                </n-dropdown>
-                <n-button
-                    v-if="openSettings.showGithub"
-                    text
-                    class="header-version-button"
-                    style="margin-top: 12px;"
-                    tag="a"
-                    target="_blank"
-                    href="https://github.com/dreamhunter2333/cloudflare_temp_email"
-                >
-                    <template #icon>
+                            <span class="mobile-menu-action-label">{{ currentLocaleLabel }}</span>
+                            <n-icon :component="KeyboardArrowDownOutlined" class="mobile-menu-action-arrow" />
+                        </button>
+                    </n-dropdown>
+                    <a
+                        v-if="openSettings.showGithub"
+                        class="mobile-menu-utility-button"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href="https://github.com/dreamhunter2333/cloudflare_temp_email"
+                    >
                         <n-icon :component="GithubAlt" />
-                    </template>
-                    {{ version || 'Github' }}
-                </n-button>
+                        <span class="mobile-menu-action-label">{{ version || 'Github' }}</span>
+                        <n-icon :component="OpenInNewOutlined" class="mobile-menu-action-arrow" />
+                    </a>
+                </div>
             </n-drawer-content>
         </n-drawer>
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
@@ -337,6 +334,7 @@ onMounted(async () => {
 
 .header-extra {
     align-items: center;
+    flex-wrap: nowrap;
 }
 
 .header-extra :deep(.n-space-item) {
@@ -369,6 +367,46 @@ onMounted(async () => {
     align-items: center;
 }
 
+.mobile-menu-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(128, 128, 128, 0.16);
+}
+
+.mobile-menu-utility-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 100%;
+    min-width: 0;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-decoration: none;
+    opacity: 0.82;
+    cursor: pointer;
+}
+
+.mobile-menu-action-label {
+    margin: 0 6px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mobile-menu-action-arrow {
+    flex: 0 0 auto;
+    margin-left: 2px;
+}
+
 .n-alert {
     margin-top: 10px;
     margin-bottom: 10px;
@@ -389,5 +427,18 @@ onMounted(async () => {
 
 .n-form .n-button {
     margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+    :deep(.n-page-header__title) {
+        min-width: 0;
+    }
+
+    :deep(.n-page-header__title h3) {
+        max-width: calc(100vw - 136px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 </style>
