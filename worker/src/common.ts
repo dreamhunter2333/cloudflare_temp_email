@@ -611,7 +611,8 @@ export const handleListQuery = async (
     limit: string | number | undefined | null,
     offset: string | number | undefined | null,
     /** Must be pre-validated (e.g. whitelist), NOT raw user input. Interpolated directly into SQL. */
-    orderBy?: string
+    orderBy?: string,
+    hiddenFields: string[] = []
 ): Promise<Response> => {
     const msgs = i18n.getMessagesbyContext(c);
     if (typeof limit === "string") {
@@ -634,7 +635,18 @@ export const handleListQuery = async (
     const count = offset == 0 ? await c.env.DB.prepare(
         countQuery
     ).bind(...params).first("count") : 0;
-    return c.json({ results, count });
+    if (hiddenFields.length === 0) {
+        return c.json({ results, count });
+    }
+
+    const filteredResults = results.map((row) => {
+        const filteredRow = { ...row };
+        for (const field of hiddenFields) {
+            delete filteredRow[field];
+        }
+        return filteredRow;
+    });
+    return c.json({ results: filteredResults, count });
 }
 
 /**

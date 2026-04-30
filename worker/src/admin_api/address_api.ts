@@ -32,7 +32,7 @@ const listAddresses = async (c: Context<HonoCustomType>) => {
             + ` FROM address a`
             + ` where ${whereClause}`,
             `SELECT count(*) as count FROM address where ${whereClause}`,
-            [param], limit, offset, orderBy
+            [param], limit, offset, orderBy, ['password']
         );
     }
     return await handleListQuery(c,
@@ -41,7 +41,7 @@ const listAddresses = async (c: Context<HonoCustomType>) => {
         + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
         + ` FROM address a`,
         `SELECT count(*) as count FROM address`,
-        [], limit, offset, orderBy
+        [], limit, offset, orderBy, ['password']
     );
 };
 

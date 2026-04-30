@@ -87,4 +87,28 @@ test.describe('Address Password Login', () => {
       await deleteAddress(request, jwt);
     }
   });
+
+  test('admin address list does not expose stored password hash', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'pwd-list-hidden');
+    const passwordHash = hashPassword('list-hidden-password');
+
+    try {
+      const changePwdRes = await request.post(`${WORKER_URL}/api/address_change_password`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        data: { new_password: passwordHash },
+      });
+      expect(changePwdRes.ok()).toBe(true);
+
+      const listRes = await request.get(
+        `${WORKER_URL}/admin/address?limit=10&offset=0&query=${encodeURIComponent(address)}`
+      );
+      expect(listRes.ok()).toBe(true);
+      const listBody = await listRes.json();
+      const listedAddress = listBody.results.find((row: { name: string }) => row.name === address);
+      expect(listedAddress).toBeTruthy();
+      expect(listedAddress).not.toHaveProperty('password');
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
 });
