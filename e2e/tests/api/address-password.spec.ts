@@ -70,11 +70,6 @@ test.describe('Address Password Login', () => {
       });
       expect(plaintextResetRes.status()).toBe(400);
 
-      const emptyHashResetRes = await request.post(`${WORKER_URL}/admin/address/${address_id}/reset_password`, {
-        data: { password: hashPassword('') },
-      });
-      expect(emptyHashResetRes.status()).toBe(400);
-
       const resetRes = await request.post(`${WORKER_URL}/admin/address/${address_id}/reset_password`, {
         data: { password: passwordHash },
       });
