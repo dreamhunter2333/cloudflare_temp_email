@@ -608,7 +608,7 @@ export const ptBRMessages = {
   "components.AddressCredentialModal.security": "Segurança",
   "components.AddressCredentialModal.smtpHost": "Host SMTP",
   "components.AddressCredentialModal.smtpImapAccess": "SMTP / IMAP",
-  "components.AddressCredentialModal.smtpImapTip": "Use estes valores em clientes de e-mail depois que o administrador configurar o proxy SMTP/IMAP.",
+  "components.AddressCredentialModal.smtpImapTip": "Use estes valores em clientes de e-mail depois que o administrador configurar o proxy SMTP/IMAP. Como senha, use o Address JWT mostrado aqui ou a senha do endereço quando você a tiver.",
   "components.AddressCredentialModal.smtpPort": "Porta SMTP",
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "Use estas credenciais somente com clientes e agents confiáveis.",

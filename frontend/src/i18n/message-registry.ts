@@ -367,8 +367,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "SMTP / IMAP"
     },
     "smtpImapTip": {
-      "en": "Use these values in mail clients after the administrator configures the SMTP/IMAP proxy.",
-      "zh": "管理员配置 SMTP/IMAP 代理后，可在邮件客户端中使用这些信息。"
+      "en": "Use these values in mail clients after the administrator configures the SMTP/IMAP proxy. The password can be the Address JWT shown here, or the address password when you have it.",
+      "zh": "管理员配置 SMTP/IMAP 代理后，可在邮件客户端中使用这些信息。密码可使用这里展示的 Address JWT，也可使用你持有的地址密码。"
     },
     "smtpPort": {
       "en": "SMTP port",

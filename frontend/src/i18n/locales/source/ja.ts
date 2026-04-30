@@ -608,7 +608,7 @@ export const jaMessages = {
   "components.AddressCredentialModal.security": "セキュリティ",
   "components.AddressCredentialModal.smtpHost": "SMTP ホスト",
   "components.AddressCredentialModal.smtpImapAccess": "SMTP / IMAP",
-  "components.AddressCredentialModal.smtpImapTip": "管理者が SMTP/IMAP プロキシを設定した後、メールクライアントでこれらの値を使用できます。",
+  "components.AddressCredentialModal.smtpImapTip": "管理者が SMTP/IMAP プロキシを設定した後、メールクライアントでこれらの値を使用できます。パスワードにはここに表示される Address JWT、または手元にあるアドレスパスワードを使用できます。",
   "components.AddressCredentialModal.smtpPort": "SMTP ポート",
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "これらの認証情報は信頼できるクライアントと Agent でのみ使用してください。",

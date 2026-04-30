@@ -608,7 +608,7 @@ export const deMessages = {
   "components.AddressCredentialModal.security": "Sicherheit",
   "components.AddressCredentialModal.smtpHost": "SMTP-Host",
   "components.AddressCredentialModal.smtpImapAccess": "SMTP / IMAP",
-  "components.AddressCredentialModal.smtpImapTip": "Verwende diese Werte in Mail-Clients, nachdem der Administrator den SMTP/IMAP-Proxy konfiguriert hat.",
+  "components.AddressCredentialModal.smtpImapTip": "Verwende diese Werte in Mail-Clients, nachdem der Administrator den SMTP/IMAP-Proxy konfiguriert hat. Als Passwort kannst du den hier angezeigten Address JWT oder ein vorhandenes Adresspasswort verwenden.",
   "components.AddressCredentialModal.smtpPort": "SMTP-Port",
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "Verwende diese Zugangsdaten nur mit Clients und Agents, denen du vertraust.",

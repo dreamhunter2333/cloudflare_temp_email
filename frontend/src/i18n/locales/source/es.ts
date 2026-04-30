@@ -608,7 +608,7 @@ export const esMessages = {
   "components.AddressCredentialModal.security": "Seguridad",
   "components.AddressCredentialModal.smtpHost": "Host SMTP",
   "components.AddressCredentialModal.smtpImapAccess": "SMTP / IMAP",
-  "components.AddressCredentialModal.smtpImapTip": "Usa estos valores en clientes de correo después de que el administrador configure el proxy SMTP/IMAP.",
+  "components.AddressCredentialModal.smtpImapTip": "Usa estos valores en clientes de correo después de que el administrador configure el proxy SMTP/IMAP. Como contraseña puedes usar el Address JWT mostrado aquí o la contraseña de la dirección si la tienes.",
   "components.AddressCredentialModal.smtpPort": "Puerto SMTP",
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "Usa estas credenciales solo con clientes y agentes de confianza.",
