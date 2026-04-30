@@ -103,7 +103,8 @@ const clearSentItems = async () => {
 }
 
 const resetPassword = async () => {
-    if (!newPassword.value) {
+    const normalizedPassword = newPassword.value.trim()
+    if (!normalizedPassword) {
         message.error(t("newPassword"));
         return;
     }
@@ -111,7 +112,7 @@ const resetPassword = async () => {
         await api.fetch(`/admin/address/${curResetPasswordAddressId.value}/reset_password`, {
             method: 'POST',
             body: JSON.stringify({
-                password: await hashPassword(newPassword.value)
+                password: await hashPassword(normalizedPassword)
             })
         });
         message.success(t("passwordResetSuccess"));
