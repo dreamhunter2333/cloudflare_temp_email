@@ -2,7 +2,7 @@ import { Context } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n'
-import { getBooleanValue, hashPassword } from '../utils'
+import { getBooleanValue } from '../utils'
 import { newAddress, handleListQuery } from '../common'
 
 const listAddresses = async (c: Context<HonoCustomType>) => {
@@ -32,7 +32,7 @@ const listAddresses = async (c: Context<HonoCustomType>) => {
             + ` FROM address a`
             + ` where ${whereClause}`,
             `SELECT count(*) as count FROM address where ${whereClause}`,
-            [param], limit, offset, orderBy
+            [param], limit, offset, orderBy, ['password']
         );
     }
     return await handleListQuery(c,
@@ -41,7 +41,7 @@ const listAddresses = async (c: Context<HonoCustomType>) => {
         + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
         + ` FROM address a`,
         `SELECT count(*) as count FROM address`,
-        [], limit, offset, orderBy
+        [], limit, offset, orderBy, ['password']
     );
 };
 
@@ -137,16 +137,16 @@ const resetPassword = async (c: Context<HonoCustomType>) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
     const { password } = await c.req.json();
+    // NOTE: Keep the admin API field as password, but the value is a frontend SHA-256 hash.
     if (!getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)) {
         return c.text(msgs.PasswordChangeDisabledMsg, 403);
     }
     if (!password) {
         return c.text(msgs.NewPasswordRequiredMsg, 400);
     }
-    const hashedPassword = await hashPassword(password);
     const { success } = await c.env.DB.prepare(
         `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
-    ).bind(hashedPassword, id).run();
+    ).bind(password, id).run();
     if (!success) {
         return c.text(msgs.FailedUpdatePasswordMsg, 500);
     }

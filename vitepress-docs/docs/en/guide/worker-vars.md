@@ -43,6 +43,8 @@
 | `ENABLE_AUTO_REPLY`                   | Text/JSON | Allow automatic email replies. Sender filter (`source_prefix`) supports three modes: empty to match all senders, prefix for `startsWith` matching, or `/regex/` syntax for regex matching (e.g. `/@example\.com$/`) | `true`                                    |
 | `DEFAULT_SEND_BALANCE`                | Text/JSON | Default email sending balance. When greater than `0`, it is auto-initialized when users open the settings page or send mail for the first time. Defaults to `0` if unset                                                                                 | `1`                                       |
 | `ENABLE_ADDRESS_PASSWORD`             | Text/JSON | Enable address password feature, when enabled, passwords will be auto-generated for new addresses, supports password login and modification                                                                       | `true`                                    |
+| `ENABLE_AGENT_EMAIL_INFO`             | Text/JSON | Whether to show AI Agent access info in the frontend "Address Credentials & Connection Methods" dialog (Address JWT, parsed-mail APIs, skill link)                                      | `true`                                    |
+| `SMTP_IMAP_PROXY_CONFIG`              | JSON      | Show SMTP/IMAP proxy connection info in the frontend "Address Credentials & Connection Methods" dialog; display-only, does not start the proxy service, which must be deployed separately | See example below                         |
 | `SEND_MAIL_DOMAINS`                   | JSON      | Restrict which sender domains can use the `SEND_MAIL` binding; when unset or empty, all domains are allowed                                                                                                     | `["example.com", "mail.example.com"]`     |
 
 > [!NOTE]
@@ -66,6 +68,17 @@
 >
 > `SEND_MAIL_DOMAINS` only affects the `SEND_MAIL` binding fallback path and
 > `/admin/send_mail_by_binding`. It does not affect Resend, SMTP, or `verifiedAddressList`.
+>
+> `SMTP_IMAP_PROXY_CONFIG` example:
+>
+> ```json
+> {
+>   "smtp": { "host": "smtp.example.com", "port": 8025, "starttls": true },
+>   "imap": { "host": "imap.example.com", "port": 11143, "starttls": true }
+> }
+> ```
+>
+> SMTP and IMAP can use different hostnames, which is useful for reverse proxies or separate port mappings.
 
 ## Email Reception Related Variables
 

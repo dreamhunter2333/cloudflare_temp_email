@@ -92,7 +92,7 @@ const changePassword = async () => {
 
 <template>
     <div class="center" v-if="settings.address">
-        <n-card :bordered="false" embedded>
+        <n-card :bordered="false" embedded class="account-card">
             <n-button @click="showAddressCredential = true" type="primary" secondary block strong>
                 {{ t('showAddressCredential') }}
             </n-button>
@@ -110,11 +110,13 @@ const changePassword = async () => {
             <n-button @click="showLogout = true" secondary block strong>
                 {{ t('logout') }}
             </n-button>
+            <n-divider v-if="openSettings.enableUserDeleteEmail" />
             <n-button v-if="openSettings.enableUserDeleteEmail" @click="showDeleteAccount = true" type="error" secondary
                 block strong>
                 {{ t('deleteAccount') }}
             </n-button>
         </n-card>
+
         <n-modal v-model:show="showLogout" preset="dialog" :title="t('logout')">
             <p>{{ t('logoutConfirm') }}</p>
             <template #action>
@@ -151,10 +153,12 @@ const changePassword = async () => {
         <n-modal v-model:show="showChangePassword" preset="dialog" :title="t('changePassword')">
             <n-form :model="{ newPassword, confirmPassword }">
                 <n-form-item :label="t('newPassword')">
-                    <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click" />
+                    <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click"
+                        @keyup.enter="changePassword" />
                 </n-form-item>
                 <n-form-item :label="t('confirmPassword')">
-                    <n-input v-model:value="confirmPassword" type="password" placeholder="" show-password-on="click" />
+                    <n-input v-model:value="confirmPassword" type="password" placeholder="" show-password-on="click"
+                        @keyup.enter="changePassword" />
                 </n-form-item>
             </n-form>
             <template #action>
@@ -172,13 +176,13 @@ const changePassword = async () => {
     justify-content: center;
 }
 
-
-.n-card {
+.account-card {
     max-width: 800px;
     text-align: left;
 }
 
 .n-button {
-    margin-top: 10px;
+    margin-top: 14px;
 }
+
 </style>

@@ -105,6 +105,8 @@ const getOpenSettings = async (message, notification) => {
             enableWebhook: res["enableWebhook"] || false,
             isS3Enabled: res["isS3Enabled"] || false,
             enableAddressPassword: res["enableAddressPassword"] || false,
+            enableAgentEmailInfo: res["enableAgentEmailInfo"] || false,
+            smtpImapProxyConfig: res["smtpImapProxyConfig"] || openSettings.value.smtpImapProxyConfig,
             statusUrl: res["statusUrl"] || "",
             enableGlobalTurnstileCheck: res["enableGlobalTurnstileCheck"] || false,
         });

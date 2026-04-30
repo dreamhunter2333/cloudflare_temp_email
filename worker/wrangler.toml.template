@@ -81,6 +81,15 @@ ENABLE_AUTO_REPLY = false
 # ENABLE_WEBHOOK = true
 # Enable address password feature, if set true, will generate password for new address and support password login and change
 # ENABLE_ADDRESS_PASSWORD = false
+# Show AI Agent mailbox connection info in the address credential modal
+# ENABLE_AGENT_EMAIL_INFO = true
+# Show SMTP/IMAP client connection info in the address credential modal
+# SMTP_IMAP_PROXY_CONFIG = """
+# {
+#   "smtp": { "host": "smtp.example.com", "port": 8025, "starttls": true },
+#   "imap": { "host": "imap.example.com", "port": 11143, "starttls": true }
+# }
+# """
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # DISABLE_SHOW_GITHUB = true

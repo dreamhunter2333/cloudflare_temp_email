@@ -260,7 +260,8 @@ onMounted(async () => {
                             <n-input v-model:value="loginAddress" />
                         </n-form-item-row>
                         <n-form-item-row :label="t('password')" required>
-                            <n-input v-model:value="loginPassword" type="password" show-password-on="click" />
+                            <n-input v-model:value="loginPassword" type="password" show-password-on="click"
+                                @keyup.enter="login" />
                         </n-form-item-row>
                     </div>
 
