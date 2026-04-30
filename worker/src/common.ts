@@ -639,14 +639,19 @@ export const handleListQuery = async (
         return c.json({ results, count });
     }
 
-    const filteredResults = results.map((row) => {
-        const filteredRow = { ...row };
-        for (const field of hiddenFields) {
-            delete filteredRow[field];
-        }
-        return filteredRow;
-    });
+    const filteredResults = results.map((row) => hideObjectFields(row, hiddenFields));
     return c.json({ results: filteredResults, count });
+}
+
+export const hideObjectFields = <T extends Record<string, unknown>>(
+    row: T,
+    fields: string[]
+): T => {
+    const filteredRow = { ...row };
+    for (const field of fields) {
+        delete filteredRow[field];
+    }
+    return filteredRow;
 }
 
 /**

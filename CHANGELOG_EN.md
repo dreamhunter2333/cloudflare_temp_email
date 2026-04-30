@@ -15,7 +15,7 @@
 ### Bug Fixes
 
 - fix: |Admin| Hash address passwords in the frontend before admin reset requests, and make the backend accept and store only the hash instead of plaintext
-- fix: |Admin| Stop returning stored address password hashes from the admin address list API to avoid exposing sensitive fields
+- fix: |Address| Stop returning stored address password hashes from the admin address list and user bound-address list APIs to avoid exposing sensitive fields
 
 ### Improvements
 

@@ -111,4 +111,57 @@ test.describe('Address Password Login', () => {
       await deleteAddress(request, jwt);
     }
   });
+
+  test('user bind address list does not expose stored password hash', async ({ request }) => {
+    const userEmail = `pwd-bind-hidden-${Date.now()}@test.example.com`;
+    const userPasswordHash = hashPassword('bind-hidden-user-password');
+    const { jwt, address } = await createTestAddress(request, 'pwd-bind-hidden');
+    const addressPasswordHash = hashPassword('bind-hidden-address-password');
+
+    try {
+      const enableRes = await request.post(`${WORKER_URL}/admin/user_settings`, {
+        data: {
+          enable: true,
+          enableMailVerify: false,
+        },
+      });
+      expect(enableRes.ok()).toBe(true);
+
+      const registerRes = await request.post(`${WORKER_URL}/user_api/register`, {
+        data: { email: userEmail, password: userPasswordHash },
+      });
+      expect(registerRes.ok()).toBe(true);
+
+      const loginRes = await request.post(`${WORKER_URL}/user_api/login`, {
+        data: { email: userEmail, password: userPasswordHash },
+      });
+      expect(loginRes.ok()).toBe(true);
+      const { jwt: userJwt } = await loginRes.json();
+
+      const changePwdRes = await request.post(`${WORKER_URL}/api/address_change_password`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+        data: { new_password: addressPasswordHash },
+      });
+      expect(changePwdRes.ok()).toBe(true);
+
+      const bindRes = await request.post(`${WORKER_URL}/user_api/bind_address`, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          'x-user-token': userJwt,
+        },
+      });
+      expect(bindRes.ok()).toBe(true);
+
+      const listRes = await request.get(`${WORKER_URL}/user_api/bind_address`, {
+        headers: { 'x-user-token': userJwt },
+      });
+      expect(listRes.ok()).toBe(true);
+      const listBody = await listRes.json();
+      const listedAddress = listBody.results.find((row: { name: string }) => row.name === address);
+      expect(listedAddress).toBeTruthy();
+      expect(listedAddress).not.toHaveProperty('password');
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
 });
