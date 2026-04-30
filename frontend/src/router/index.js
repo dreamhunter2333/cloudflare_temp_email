@@ -62,7 +62,10 @@ router.beforeEach((to, from, next) => {
     }
 
     if (Object.prototype.hasOwnProperty.call(to.query, 'jwt')) {
-        jwt.value = Array.isArray(to.query.jwt) ? to.query.jwt[0] : to.query.jwt
+        const jwtQuery = Array.isArray(to.query.jwt) ? to.query.jwt[0] : to.query.jwt
+        if (typeof jwtQuery === 'string') {
+            jwt.value = jwtQuery
+        }
         const query = { ...to.query }
         delete query.jwt
         next({
