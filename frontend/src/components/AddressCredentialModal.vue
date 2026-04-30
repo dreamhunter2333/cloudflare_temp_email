@@ -41,7 +41,7 @@ const docLocale = computed(() => locale.value === 'zh' ? 'zh' : 'en')
 const agentDocUrl = computed(() => `https://temp-mail-docs.awsl.uk/${docLocale.value}/guide/feature/agent-email.html`)
 const smtpImapDocUrl = computed(() => `https://temp-mail-docs.awsl.uk/${docLocale.value}/guide/feature/config-smtp-proxy.html`)
 const agentSkillUrl = 'https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/skills/cf-temp-mail-agent-mail/SKILL.md'
-const autoLoginUrl = computed(() => `${frontendBaseUrl.value}/?jwt=${props.jwt}`)
+const autoLoginUrl = computed(() => `${frontendBaseUrl.value}/?jwt=${encodeURIComponent(props.jwt)}`)
 const showAgent = computed(() => !!openSettings.value.enableAgentEmailInfo)
 const smtpImapConfig = computed(() => openSettings.value.smtpImapProxyConfig || {})
 const smtpConfig = computed(() => smtpImapConfig.value.smtp || {})
@@ -82,15 +82,21 @@ const copyText = async (text) => {
     }
 
     const textarea = document.createElement('textarea')
-    textarea.value = text
-    textarea.setAttribute('readonly', '')
-    textarea.style.position = 'fixed'
-    textarea.style.opacity = '0'
-    document.body.appendChild(textarea)
-    textarea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textarea)
-    message.success(t('copySuccess'))
+    try {
+      textarea.value = text
+      textarea.setAttribute('readonly', '')
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      if (document.execCommand('copy')) {
+        message.success(t('copySuccess'))
+        return
+      }
+      message.error(t('copyFailed'))
+    } finally {
+      textarea.parentNode?.removeChild(textarea)
+    }
   } catch (error) {
     console.error(error)
     message.error(t('copyFailed'))

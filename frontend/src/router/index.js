@@ -61,7 +61,7 @@ router.beforeEach((to, from, next) => {
         preferredLocale.value = getPreferredLocale('', getBrowserLocales())
     }
 
-    if (to.query.jwt) {
+    if (Object.prototype.hasOwnProperty.call(to.query, 'jwt')) {
         jwt.value = Array.isArray(to.query.jwt) ? to.query.jwt[0] : to.query.jwt
         const query = { ...to.query }
         delete query.jwt
