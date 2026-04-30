@@ -12,6 +12,7 @@ import LocalAddress from './LocalAddress.vue'
 import AddressManagement from '../user/AddressManagement.vue'
 import { getRouterPathWithLang } from '../../utils'
 import AddressSelect from '../../components/AddressSelect.vue'
+import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 const router = useRouter()
 
@@ -23,10 +24,6 @@ const {
 const { locale, t } = useScopedI18n('views.index.AddressBar')
 
 const showAddressManage = ref(false)
-
-const getUrlWithJwt = () => {
-    return `${window.location.origin}/?jwt=${jwt.value}`
-}
 
 const onUserLogin = async () => {
     await router.push(getRouterPathWithLang("/user", locale.value))
@@ -78,27 +75,8 @@ onMounted(async () => {
                 </n-button>
             </n-card>
         </div>
-        <n-modal v-model:show="showAddressCredential" preset="dialog" :title="t('addressCredential')">
-            <span>
-                <p>{{ t("addressCredentialTip") }}</p>
-            </span>
-            <n-card embedded>
-                <b>{{ jwt }}</b>
-            </n-card>
-            <n-card embedded v-if="addressPassword">
-                <p><b>{{ settings.address }}</b></p>
-                <p>{{ t('addressPassword') }}: <b>{{ addressPassword }}</b></p>
-            </n-card>
-            <n-card embedded>
-                <n-collapse>
-                    <n-collapse-item :title='t("linkWithAddressCredential")'>
-                        <n-card embedded>
-                            <b>{{ getUrlWithJwt() }}</b>
-                        </n-card>
-                    </n-collapse-item>
-                </n-collapse>
-            </n-card>
-        </n-modal>
+        <AddressCredentialModal v-model:show="showAddressCredential" :address="settings.address" :jwt="jwt"
+            :address-password="addressPassword" />
         <n-modal v-model:show="showAddressManage" preset="card" :title="t('addressManage')"
             style="width: 720px;">
             <TelegramAddress v-if="isTelegram" />

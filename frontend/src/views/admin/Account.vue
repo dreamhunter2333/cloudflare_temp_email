@@ -7,6 +7,7 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
+import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 const {
     loading, adminTab, openSettings,
@@ -18,6 +19,7 @@ const { t } = useScopedI18n('views.admin.Account')
 
 const showEmailCredential = ref(false)
 const curEmailCredential = ref("")
+const curEmailAddress = ref("")
 const curDeleteAddressId = ref(0);
 const curClearInboxAddressId = ref(0);
 const curClearSentItemsAddressId = ref(0);
@@ -46,14 +48,16 @@ const showDeleteAccount = ref(false)
 const showClearInbox = ref(false)
 const showClearSentItems = ref(false)
 
-const showCredential = async (id) => {
+const showCredential = async (row) => {
     try {
-        curEmailCredential.value = await api.adminShowAddressCredential(id)
+        curEmailAddress.value = row.name
+        curEmailCredential.value = await api.adminShowAddressCredential(row.id)
         showEmailCredential.value = true
     } catch (error) {
         message.error(error.message || "error");
         showEmailCredential.value = false
         curEmailCredential.value = ""
+        curEmailAddress.value = ""
     }
 }
 
@@ -365,7 +369,7 @@ const columns = computed(() => [
                                     label: () => h(NButton,
                                         {
                                             text: true,
-                                            onClick: () => showCredential(row.id)
+                                            onClick: () => showCredential(row)
                                         },
                                         { default: () => t('showCredential') }
                                     ),
@@ -467,19 +471,8 @@ onMounted(async () => {
 
 <template>
     <div style="margin-top: 10px;">
-        <n-modal v-model:show="showEmailCredential" preset="dialog" title="Dialog">
-            <template #header>
-                <div>{{ t("addressCredential") }}</div>
-            </template>
-            <span>
-                <p>{{ t("addressCredentialTip") }}</p>
-            </span>
-            <n-card :bordered="false" embedded>
-                <b>{{ curEmailCredential }}</b>
-            </n-card>
-            <template #action>
-            </template>
-        </n-modal>
+        <AddressCredentialModal v-model:show="showEmailCredential" :address="curEmailAddress"
+            :jwt="curEmailCredential" />
         <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteAccount')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
@@ -507,7 +500,8 @@ onMounted(async () => {
 
         <n-modal v-model:show="showResetPassword" preset="dialog" :title="t('resetPassword')">
             <n-form-item :label="t('newPassword')">
-                <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click" />
+                <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click"
+                    @keyup.enter="resetPassword" />
             </n-form-item>
             <template #action>
                 <n-button :loading="loading" @click="resetPassword" size="small" tertiary type="info">

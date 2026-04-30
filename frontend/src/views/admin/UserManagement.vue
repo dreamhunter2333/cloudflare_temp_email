@@ -304,7 +304,8 @@ onMounted(async () => {
                     <n-input v-model:value="user.email" />
                 </n-form-item-row>
                 <n-form-item-row :label="t('password')" required>
-                    <n-input v-model:value="user.password" type="password" show-password-on="click" />
+                    <n-input v-model:value="user.password" type="password" show-password-on="click"
+                        @keyup.enter="createUser" />
                 </n-form-item-row>
             </n-form>
             <template #action>
@@ -315,7 +316,8 @@ onMounted(async () => {
         </n-modal>
         <n-modal v-model:show="showResetPassword" preset="dialog" :title="t('resetPassword')">
             <n-form-item-row :label="t('password')" required>
-                <n-input v-model:value="newResetPassword" type="password" show-password-on="click" />
+                <n-input v-model:value="newResetPassword" type="password" show-password-on="click"
+                    @keyup.enter="resetPassword" />
             </n-form-item-row>
             <template #action>
                 <n-button :loading="loading" @click="resetPassword" size="small" tertiary type="primary">

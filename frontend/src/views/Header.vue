@@ -314,7 +314,7 @@ onMounted(async () => {
         <n-modal v-model:show="showAuth" :closable="false" :closeOnEsc="false" :maskClosable="false" preset="dialog"
             :title="t('accessHeader')">
             <p>{{ t('accessTip') }}</p>
-            <n-input v-model:value="auth" type="password" show-password-on="click" />
+            <n-input v-model:value="auth" type="password" show-password-on="click" @keyup.enter="authFunc" />
             <Turnstile ref="turnstileRef" v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="cfToken" />
             <template #action>
                 <n-button :loading="loading" @click="authFunc" type="primary">

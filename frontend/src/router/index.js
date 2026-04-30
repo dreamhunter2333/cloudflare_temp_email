@@ -62,7 +62,16 @@ router.beforeEach((to, from, next) => {
     }
 
     if (to.query.jwt) {
-        jwt.value = to.query.jwt
+        jwt.value = Array.isArray(to.query.jwt) ? to.query.jwt[0] : to.query.jwt
+        const query = { ...to.query }
+        delete query.jwt
+        next({
+            path: to.path,
+            query,
+            hash: to.hash,
+            replace: true,
+        })
+        return
     }
 
     if (routeLocale) {
