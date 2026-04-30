@@ -1,15 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { WORKER_URL, createTestAddress, deleteAddress } from '../../fixtures/test-helpers';
+import { WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../fixtures/test-helpers';
 
 test.describe('Address Password Login', () => {
   test('set password then login with it', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'pwd-login');
+    const passwordHash = hashPassword('test-password-123');
 
     try {
       // Set a password on the address
       const changePwdRes = await request.post(`${WORKER_URL}/api/address_change_password`, {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: { new_password: 'test-password-123' },
+        data: { new_password: passwordHash },
       });
       expect(changePwdRes.ok()).toBe(true);
       const changePwdBody = await changePwdRes.json();
@@ -17,7 +18,7 @@ test.describe('Address Password Login', () => {
 
       // Login with the correct password
       const loginRes = await request.post(`${WORKER_URL}/api/address_login`, {
-        data: { email: address, password: 'test-password-123' },
+        data: { email: address, password: passwordHash },
       });
       expect(loginRes.ok()).toBe(true);
       const loginBody = await loginRes.json();
@@ -36,12 +37,13 @@ test.describe('Address Password Login', () => {
 
   test('login with wrong password returns 401', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'pwd-wrong');
+    const passwordHash = hashPassword('correct-password');
 
     try {
       // Set a password
       const changePwdRes = await request.post(`${WORKER_URL}/api/address_change_password`, {
         headers: { Authorization: `Bearer ${jwt}` },
-        data: { new_password: 'correct-password' },
+        data: { new_password: passwordHash },
       });
       expect(changePwdRes.ok()).toBe(true);
       const changePwdBody = await changePwdRes.json();
@@ -49,9 +51,48 @@ test.describe('Address Password Login', () => {
 
       // Login with wrong password
       const loginRes = await request.post(`${WORKER_URL}/api/address_login`, {
-        data: { email: address, password: 'wrong-password' },
+        data: { email: address, password: hashPassword('wrong-password') },
       });
       expect(loginRes.status()).toBe(401);
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
+
+  test('admin reset accepts only frontend-hashed address password', async ({ request }) => {
+    const { jwt, address, address_id } = await createTestAddress(request, 'pwd-admin-reset');
+    const plainPassword = `admin-reset-${Date.now()}`;
+    const passwordHash = hashPassword(plainPassword);
+
+    try {
+      const plaintextResetRes = await request.post(`${WORKER_URL}/admin/address/${address_id}/reset_password`, {
+        data: { password: plainPassword },
+      });
+      expect(plaintextResetRes.status()).toBe(400);
+
+      const emptyHashResetRes = await request.post(`${WORKER_URL}/admin/address/${address_id}/reset_password`, {
+        data: { password: hashPassword('') },
+      });
+      expect(emptyHashResetRes.status()).toBe(400);
+
+      const resetRes = await request.post(`${WORKER_URL}/admin/address/${address_id}/reset_password`, {
+        data: { password: passwordHash },
+      });
+      expect(resetRes.ok()).toBe(true);
+      await expect(resetRes.json()).resolves.toMatchObject({ success: true });
+
+      const plaintextLoginRes = await request.post(`${WORKER_URL}/api/address_login`, {
+        data: { email: address, password: plainPassword },
+      });
+      expect(plaintextLoginRes.status()).toBe(401);
+
+      const loginRes = await request.post(`${WORKER_URL}/api/address_login`, {
+        data: { email: address, password: passwordHash },
+      });
+      expect(loginRes.ok()).toBe(true);
+      const loginBody = await loginRes.json();
+      expect(loginBody.jwt).toBeTruthy();
+      expect(loginBody.address).toBe(address);
     } finally {
       await deleteAddress(request, jwt);
     }

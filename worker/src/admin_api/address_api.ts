@@ -2,8 +2,12 @@ import { Context } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n'
-import { getBooleanValue, hashPassword } from '../utils'
+import { getBooleanValue } from '../utils'
 import { newAddress, handleListQuery } from '../common'
+
+const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/;
+const EMPTY_SHA256_HASH = 'e3b0c44298fc1c149afbf4c8996fb924'
+    + '27ae41e4649b934ca495991b7852b855';
 
 const listAddresses = async (c: Context<HonoCustomType>) => {
     const { limit, offset, query, sort_by, sort_order } = c.req.query();
@@ -143,10 +147,12 @@ const resetPassword = async (c: Context<HonoCustomType>) => {
     if (!password) {
         return c.text(msgs.NewPasswordRequiredMsg, 400);
     }
-    const hashedPassword = await hashPassword(password);
+    if (!SHA256_HEX_REGEX.test(password) || password === EMPTY_SHA256_HASH) {
+        return c.text(msgs.InvalidInputMsg, 400);
+    }
     const { success } = await c.env.DB.prepare(
         `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
-    ).bind(hashedPassword, id).run();
+    ).bind(password, id).run();
     if (!success) {
         return c.text(msgs.FailedUpdatePasswordMsg, 500);
     }

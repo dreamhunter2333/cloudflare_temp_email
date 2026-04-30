@@ -5,6 +5,7 @@ import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import { hashPassword } from '../../utils'
 import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
@@ -102,11 +103,15 @@ const clearSentItems = async () => {
 }
 
 const resetPassword = async () => {
+    if (!newPassword.value) {
+        message.error(t("newPassword"));
+        return;
+    }
     try {
         await api.fetch(`/admin/address/${curResetPasswordAddressId.value}/reset_password`, {
             method: 'POST',
             body: JSON.stringify({
-                password: newPassword.value
+                password: await hashPassword(newPassword.value)
             })
         });
         message.success(t("passwordResetSuccess"));

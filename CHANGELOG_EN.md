@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |Admin| Hash address passwords in the frontend before admin reset requests, and make the backend accept and store only the hash instead of plaintext
+
 ### Improvements
 
 ## v1.8.0
