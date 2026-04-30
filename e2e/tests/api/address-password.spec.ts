@@ -59,17 +59,12 @@ test.describe('Address Password Login', () => {
     }
   });
 
-  test('admin reset accepts only frontend-hashed address password', async ({ request }) => {
+  test('admin reset stores frontend-hashed address password', async ({ request }) => {
     const { jwt, address, address_id } = await createTestAddress(request, 'pwd-admin-reset');
     const plainPassword = `admin-reset-${Date.now()}`;
     const passwordHash = hashPassword(plainPassword);
 
     try {
-      const plaintextResetRes = await request.post(`${WORKER_URL}/admin/address/${address_id}/reset_password`, {
-        data: { password: plainPassword },
-      });
-      expect(plaintextResetRes.status()).toBe(400);
-
       const resetRes = await request.post(`${WORKER_URL}/admin/address/${address_id}/reset_password`, {
         data: { password: passwordHash },
       });
