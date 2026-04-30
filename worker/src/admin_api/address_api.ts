@@ -137,6 +137,7 @@ const resetPassword = async (c: Context<HonoCustomType>) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
     const { password } = await c.req.json();
+    // NOTE: Keep the admin API field as password, but the value is a frontend SHA-256 hash.
     if (!getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)) {
         return c.text(msgs.PasswordChangeDisabledMsg, 403);
     }

@@ -23,7 +23,7 @@ export default {
             return c.text(msgs.InvalidAddressTokenMsg, 400);
         }
 
-        // 更新密码
+        // NOTE: new_password is the frontend SHA-256 hash, stored directly in address.password.
         const { success } = await c.env.DB.prepare(
             `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
         ).bind(new_password, address_id).run();
@@ -67,7 +67,7 @@ export default {
             return c.text(msgs.AddressNotFoundMsg, 404);
         }
 
-        // 验证密码
+        // NOTE: password is the frontend SHA-256 hash, compared directly with address.password.
         if (address.password !== password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 401);
         }
