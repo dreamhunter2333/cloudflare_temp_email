@@ -138,7 +138,8 @@ ENABLE_AUTO_REPLY = false
 # AI email extraction, automatically extract verification codes, auth links, etc.
 # ENABLE_AI_EMAIL_EXTRACT = true
 # AI model name, choose from https://developers.cloudflare.com/workers-ai/models/#text-generation
-# AI_EXTRACT_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+# Recommended: "@cf/meta/llama-3.1-8b-instruct-fp8-fast" or "@cf/zai-org/glm-4.7-flash"
+# AI_EXTRACT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast"
 # Calling other woker to process email
 # ENABLE_ANOTHER_WORKER = false
 # ANOTHER_WORKER_LIST = """

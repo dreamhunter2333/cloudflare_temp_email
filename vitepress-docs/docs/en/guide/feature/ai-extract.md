@@ -22,7 +22,9 @@ Extraction results are automatically saved to the `metadata` field in the databa
 | Variable Name              | Type      | Description                                                                                                                      | Example                          |
 | -------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
 | `ENABLE_AI_EMAIL_EXTRACT`  | Text/JSON | Whether to enable AI email recognition feature                                                                                   | `true`                           |
-| `AI_EXTRACT_MODEL`         | Text      | AI model name, choose from [models supporting JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models) | `@cf/meta/llama-3.1-8b-instruct` |
+| `AI_EXTRACT_MODEL`         | Text      | AI model name, choose from [models supporting JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models) | `@cf/meta/llama-3.1-8b-instruct-fp8-fast` |
+
+We recommend `@cf/meta/llama-3.1-8b-instruct-fp8-fast` as the default model because it is low-cost and suitable for verification-code/link extraction. You can also use Cloudflare's newer recommended model `@cf/zai-org/glm-4.7-flash` for multilingual scenarios. The previous default model `@cf/meta/llama-3.1-8b-instruct` will be deprecated by Cloudflare on 2026-05-30 and is no longer recommended.
 
 ## Content Length Limit
 
