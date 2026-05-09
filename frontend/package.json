@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.2.0",
-    "@simplewebauthn/browser": "13.2.2",
+    "@simplewebauthn/browser": "^13.3.0",
     "@unhead/vue": "^2.1.15",
     "@vueuse/core": "^14.3.0",
     "@wangeditor/editor": "^5.1.23",

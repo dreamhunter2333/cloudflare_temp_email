@@ -20,8 +20,8 @@ importers:
         specifier: 3.888.0
         version: 3.888.0
       '@simplewebauthn/server':
-        specifier: 13.2.3
-        version: 13.2.3
+        specifier: ^13.3.0
+        version: 13.3.0
       hono:
         specifier: ^4.12.18
         version: 4.12.18
@@ -730,8 +730,8 @@ packages:
   '@selderee/plugin-htmlparser2@0.11.0':
     resolution: {integrity: sha512-P33hHGdldxGabLFjPPpaTxVolMrzrcegejx+0GxjrIb9Zv48D8yAIA/QTDR2dFl7Uz7urX8aX6+5bCZslr+gWQ==}
 
-  '@simplewebauthn/server@13.2.3':
-    resolution: {integrity: sha512-ZhcVBOw63birYx9jVfbhK6rTehckVes8PeWV324zpmdxr0BUfylospwMzcrxrdMcOi48MHWj2LCA+S528LnGvg==}
+  '@simplewebauthn/server@13.3.0':
+    resolution: {integrity: sha512-MLHYFrYG8/wK2i+86XMhiecK72nMaHKKt4bo+7Q1TbuG9iGjlSdfkPWKO5ZFE/BX+ygCJ7pr8H/AJeyAj1EaTQ==}
     engines: {node: '>=20.0.0'}
 
   '@sindresorhus/is@7.2.0':
@@ -2588,7 +2588,7 @@ snapshots:
       selderee: 0.11.0
     optional: true
 
-  '@simplewebauthn/server@13.2.3':
+  '@simplewebauthn/server@13.3.0':
     dependencies:
       '@hexagon/base64': 1.1.28
       '@levischuck/tiny-cbor': 0.2.11
