@@ -22,7 +22,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.888.0",
     "@aws-sdk/s3-request-presigner": "3.888.0",
-    "@simplewebauthn/server": "13.2.3",
+    "@simplewebauthn/server": "^13.3.0",
     "hono": "^4.12.18",
     "jsonpath-plus": "^10.4.0",
     "mimetext": "^3.0.28",
