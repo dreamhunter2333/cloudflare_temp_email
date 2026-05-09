@@ -97,7 +97,7 @@ async function extractWithCloudflareAI(
     env: Bindings
 ): Promise<ExtractResult> {
     // Get the AI model name from environment variable or use default
-    const modelName = env.AI_EXTRACT_MODEL || '@cf/meta/llama-3.1-8b-instruct-fp8-fast';
+    const modelName = env.AI_EXTRACT_MODEL || '@cf/meta/llama-3.1-8b-instruct-fast';
 
     const result = await env.AI.run(modelName as keyof AiModels, {
         messages: [
