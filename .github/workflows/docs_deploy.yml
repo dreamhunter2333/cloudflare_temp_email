@@ -40,11 +40,17 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           cd vitepress-docs/
           wget https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/frontend.zip -O docs/public/ui_install/frontend.zip
           pnpm install --no-frozen-lockfile
-          TAG_NAME=$(gh release view --json tagName --jq '.tagName')
+          if TAG_NAME=$(gh release view --json tagName --jq '.tagName' 2>/dev/null); then
+            echo "Using release tag $TAG_NAME"
+          else
+            TAG_NAME="${WORKFLOW_RUN_HEAD_BRANCH:-${GITHUB_REF_NAME:-main}}"
+            echo "No GitHub release found for this repo; fallback TAG_NAME=$TAG_NAME"
+          fi
           echo "Deploying docs for tag $TAG_NAME"
           export TAG_NAME
           pnpm run deploy
