@@ -17,7 +17,7 @@
 - fix: |Admin| Hash address passwords in the frontend before admin reset requests, and make the backend accept and store only the hash instead of plaintext
 - fix: |Address| Stop returning stored address password hashes from the admin address list and user bound-address list APIs to avoid exposing sensitive fields
 - fix: |AI Extract| Switch the default Workers AI model for AI email recognition to the non-deprecated `@cf/meta/llama-3.1-8b-instruct-fp8-fast`, and document `@cf/zai-org/glm-4.7-flash` as an alternative recommendation (issue #1029)
-- fix: |CI| Upgrade the e2e Worker Docker image to Node.js 22 to satisfy Wrangler 4.90.0 runtime requirements
+- fix: |CI| Upgrade the e2e Worker Docker image to Node.js LTS to satisfy Wrangler 4.90.0 runtime requirements
 
 ### Improvements
 

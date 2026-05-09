@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM node:lts-slim
 
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
