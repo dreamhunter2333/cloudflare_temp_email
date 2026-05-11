@@ -14,6 +14,7 @@
 
 ### Bug Fixes
 
+- fix: |Telegram| Support falling back from HTML mail bodies to plain text in Telegram push messages, and surface 4-8 digit verification codes first, including common formats with spaces, separators, and HTML entities, instead of only showing “please open the mini app”
 - fix: |Admin| Hash address passwords in the frontend before admin reset requests, and make the backend accept and store only the hash instead of plaintext
 - fix: |Address| Stop returning stored address password hashes from the admin address list and user bound-address list APIs to avoid exposing sensitive fields
 - fix: |AI Extract| Switch the default Workers AI model for AI email recognition to the JSON Mode-compatible, non-deprecated `@cf/meta/llama-3.1-8b-instruct-fast`, and document structured-output compatibility guidance for `@cf/zai-org/glm-4.7-flash` (issue #1029)

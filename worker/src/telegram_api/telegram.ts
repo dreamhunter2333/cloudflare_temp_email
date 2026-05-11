@@ -14,6 +14,7 @@ import { RawMailRow } from "../models";
 import { UserFromGetMe } from "telegraf/types";
 import i18n from "../i18n";
 import { LocaleMessages } from "../i18n/type";
+import { buildSearchableMailText, extractVerificationCode, htmlToPlainText } from "./verification_code";
 
 
 // Helper to get messages by userId
@@ -388,17 +389,24 @@ const parseMail = async (
     }
     try {
         const parsedEmail = await commonParseMail(parsedEmailContext);
-        let parsedText = parsedEmail?.text || "";
+        const htmlText = parsedEmail?.html ? htmlToPlainText(parsedEmail.html) : "";
+        let parsedText = parsedEmail?.text || htmlText;
+        const verificationCode = extractVerificationCode(
+            buildSearchableMailText(parsedEmail?.subject, parsedEmail?.text, parsedEmail?.html)
+        );
         if (parsedText.length && parsedText.length > 1000) {
-            parsedText = parsedEmail?.text.substring(0, 1000) + `\n\n...\n${msgs.TgMsgTooLongMsg}`;
+            parsedText = parsedText.substring(0, 1000) + `\n\n...\n${msgs.TgMsgTooLongMsg}`;
         }
+        const content = verificationCode
+            ? `验证码：${verificationCode}` + (parsedText ? `\n\n${parsedText}` : "")
+            : (parsedText || msgs.TgParseFailedViewInAppMsg);
         return {
             isHtml: false,
             mail: `From: ${parsedEmail?.sender || msgs.TgNoSenderMsg}\n`
                 + `To: ${address}\n`
                 + (created_at ? `Date: ${created_at}\n` : "")
                 + `Subject: ${parsedEmail?.subject}\n`
-                + `Content:\n${parsedText || msgs.TgParseFailedViewInAppMsg}`
+                + `Content:\n${content}`
         };
     } catch (e) {
         return {
