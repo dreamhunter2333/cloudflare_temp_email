@@ -51,6 +51,13 @@
 > `RANDOM_SUBDOMAIN_DOMAINS` 只负责“创建地址时自动补随机子域名”，不会自动帮你创建 Cloudflare
 > 侧的子域名路由。
 >
+> 要让 `name@<随机>.abc.com` 这种随机子域名地址真的能收到邮件，**必须在基础域名的 DNS 中为
+> `*` 子域添加通配 MX 记录**：把基础域名上现有的每一条 MX 记录都复制到 `*` 主机名上，
+> 并保留 priority 与 target；Email Routing 子域不继承父域配置，详见 Cloudflare 的
+> [Email Routing — Subdomains](https://developers.cloudflare.com/email-routing/setup/subdomains/)
+> 文档、[#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035) 与
+> [配置子域名邮箱](/zh/guide/feature/subdomain)。
+>
 > 子域名地址通常更适合收件；如果要发件，仍建议优先使用主域名。
 >
 > `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` 与随机子域名功能不同：它允许 API 调用方**直接指定**

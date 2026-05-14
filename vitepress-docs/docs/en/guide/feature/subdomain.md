@@ -52,9 +52,30 @@ If you want to create an address under a specific subdomain such as `team.abc.co
 >
 > There is currently no backend switch that globally forces random subdomains; API calls that do
 > not pass `enableRandomSubdomain: true` will not randomize automatically.
+
+> [!IMPORTANT] A wildcard MX DNS record is required for random subdomains
+> The worker only generates addresses like `name@<random>.abc.com` — **whether mail actually
+> arrives depends entirely on DNS / Email Routing being configured for `*.abc.com`**, and
+> Cloudflare Email Routing does **not** propagate the base-domain configuration onto subdomains.
+> See Cloudflare's [Email Routing — Subdomains](https://developers.cloudflare.com/email-routing/setup/subdomains/)
+> documentation.
 >
-> It does not automatically create Cloudflare-side subdomain mail routes or DNS records for you,
-> so make sure the base-domain/subdomain routing is already available first.
+> There are two ways to make `*.abc.com` deliverable:
+>
+> 1. **DNS-only wildcard MX (simplest workaround)** — In your DNS, copy **every existing MX
+>    record on `abc.com`** to host `*`, preserving each record's **priority and target value**.
+>    This makes `*.abc.com` resolve to the same MX targets as the apex, so mail flows into the
+>    same Cloudflare Email Routing zone and is picked up by the apex Catch-all rule that points
+>    at the Worker. No extra Cloudflare-side action is needed.
+> 2. **Cloudflare dashboard "Add subdomain"** — Add the specific subdomain in the Email Routing
+>    dashboard and configure its DNS + Catch-all routing rule separately. This only covers the
+>    specific subdomain you add, so it is not suitable for arbitrary random subdomains.
+>
+> For random subdomain mailboxes, option **(1)** is the recommended path. Without it, the
+> random subdomain feature will appear to work in the UI but inbound mail will never reach the
+> Worker.
+>
+> Reference issue: [#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035)
 
 ## Let APIs Specify Subdomains Directly
 

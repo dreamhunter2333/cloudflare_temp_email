@@ -51,6 +51,15 @@
 > `RANDOM_SUBDOMAIN_DOMAINS` only controls automatic random subdomain generation during mailbox
 > creation. It does not create Cloudflare-side subdomain routing for you.
 >
+> To actually receive mail on addresses like `name@<random>.abc.com`, **you must add a wildcard
+> `*` MX record under the base domain in DNS** by copying the apex's existing MX records to
+> host `*` (preserving each record's priority and target). Cloudflare Email Routing does not
+> inherit the apex configuration onto subdomains — see the
+> [Cloudflare Email Routing — Subdomains](https://developers.cloudflare.com/email-routing/setup/subdomains/)
+> docs,
+> [#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035) and
+> [Configure Subdomain Email](/en/guide/feature/subdomain).
+>
 > Subdomain addresses are usually best used for receiving only; for sending, prefer the main
 > domain.
 >
