@@ -4,35 +4,42 @@ import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
+import {
+    DEFAULT_LOCALE,
+    getBrowserLocales,
+    getPreferredLocale,
+    replaceLocaleInFullPath,
+    resolveSupportedLocale,
+} from '../i18n/utils'
 
-const { jwt } = useGlobalState()
+const { jwt, preferredLocale } = useGlobalState()
 
 const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
             path: '/',
-            alias: "/:lang/",
+            alias: '/:lang/',
             component: Index
         },
         {
             path: '/user',
-            alias: "/:lang/user",
+            alias: '/:lang/user',
             component: User
         },
         {
             path: '/user/oauth2/callback',
-            alias: "/:lang/user/oauth2/callback",
+            alias: '/:lang/user/oauth2/callback',
             component: UserOauth2Callback
         },
         {
             path: '/admin',
-            alias: "/:lang/admin",
+            alias: '/:lang/admin',
             component: () => import('../views/Admin.vue')
         },
         {
             path: '/telegram_mail',
-            alias: "/:lang/telegram_mail",
+            alias: '/:lang/telegram_mail',
             component: () => import('../views/telegram/Mail.vue')
         },
         {
@@ -43,17 +50,44 @@ const router = createRouter({
     ]
 });
 
-
 router.beforeEach((to, from, next) => {
-    if (to.params.lang && ['en', 'zh'].includes(to.params.lang)) {
-        i18n.global.locale.value = to.params.lang
-    } else {
-        i18n.global.locale.value = 'zh'
+    const routeLocale = resolveSupportedLocale(to.path.split('/')[1])
+    const resolvedLocale = routeLocale || DEFAULT_LOCALE
+    i18n.global.locale.value = resolvedLocale
+
+    if (routeLocale) {
+        preferredLocale.value = routeLocale
+    } else if (!preferredLocale.value) {
+        preferredLocale.value = getPreferredLocale('', getBrowserLocales())
     }
-    // check if query parameter has jwt, set it to store
-    if (to.query.jwt) {
-        jwt.value = to.query.jwt;
+
+    if (Object.prototype.hasOwnProperty.call(to.query, 'jwt')) {
+        const jwtQuery = Array.isArray(to.query.jwt) ? to.query.jwt[0] : to.query.jwt
+        if (typeof jwtQuery === 'string') {
+            jwt.value = jwtQuery
+        }
+        const query = { ...to.query }
+        delete query.jwt
+        next({
+            path: to.path,
+            query,
+            hash: to.hash,
+            replace: true,
+        })
+        return
     }
+
+    if (routeLocale) {
+        const canonicalRoutePath = replaceLocaleInFullPath(to.fullPath, routeLocale)
+        if (canonicalRoutePath !== to.fullPath) {
+            return next(canonicalRoutePath)
+        }
+    }
+
+    if (routeLocale === DEFAULT_LOCALE) {
+        return next(replaceLocaleInFullPath(to.fullPath, DEFAULT_LOCALE))
+    }
+
     next()
 });
 

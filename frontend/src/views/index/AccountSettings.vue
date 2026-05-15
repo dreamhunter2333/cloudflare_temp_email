@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../../store'
@@ -21,46 +21,7 @@ const showClearSentItems = ref(false)
 const showChangePassword = ref(false)
 const newPassword = ref('')
 const confirmPassword = ref('')
-const { locale, t } = useI18n({
-    messages: {
-        en: {
-            logout: "Logout",
-            deleteAccount: "Delete Account",
-            showAddressCredential: 'Show Address Credential',
-            logoutConfirm: 'Are you sure to logout?',
-            deleteAccount: "Delete Account",
-            deleteAccountConfirm: "Are you sure to delete your account and all emails for this account?",
-            clearInbox: "Clear Inbox",
-            clearSentItems: "Clear Sent Items",
-            clearInboxConfirm: "Are you sure to clear all emails in your inbox?",
-            clearSentItemsConfirm: "Are you sure to clear all emails in your sent items?",
-            success: "Success",
-            changePassword: "Change Password",
-            newPassword: "New Password",
-            confirmPassword: "Confirm Password",
-            passwordMismatch: "Passwords do not match",
-            passwordChanged: "Password changed successfully",
-        },
-        zh: {
-            logout: '退出登录',
-            deleteAccount: "删除账户",
-            showAddressCredential: '查看邮箱地址凭证',
-            logoutConfirm: '确定要退出登录吗？',
-            deleteAccount: "删除账户",
-            deleteAccountConfirm: "确定要删除你的账户和其中的所有邮件吗?",
-            clearInbox: "清空收件箱",
-            clearSentItems: "清空发件箱",
-            clearInboxConfirm: "确定要清空你收件箱中的所有邮件吗？",
-            clearSentItemsConfirm: "确定要清空你发件箱中的所有邮件吗？",
-            success: "成功",
-            changePassword: "修改密码",
-            newPassword: "新密码",
-            confirmPassword: "确认密码",
-            passwordMismatch: "密码不匹配",
-            passwordChanged: "密码修改成功",
-        }
-    }
-});
+const { locale, t } = useScopedI18n('views.index.AccountSettings')
 
 const logout = async () => {
     jwt.value = '';
@@ -131,7 +92,7 @@ const changePassword = async () => {
 
 <template>
     <div class="center" v-if="settings.address">
-        <n-card :bordered="false" embedded>
+        <n-card :bordered="false" embedded class="account-card">
             <n-button @click="showAddressCredential = true" type="primary" secondary block strong>
                 {{ t('showAddressCredential') }}
             </n-button>
@@ -149,11 +110,13 @@ const changePassword = async () => {
             <n-button @click="showLogout = true" secondary block strong>
                 {{ t('logout') }}
             </n-button>
+            <n-divider v-if="openSettings.enableUserDeleteEmail" />
             <n-button v-if="openSettings.enableUserDeleteEmail" @click="showDeleteAccount = true" type="error" secondary
                 block strong>
                 {{ t('deleteAccount') }}
             </n-button>
         </n-card>
+
         <n-modal v-model:show="showLogout" preset="dialog" :title="t('logout')">
             <p>{{ t('logoutConfirm') }}</p>
             <template #action>
@@ -190,10 +153,12 @@ const changePassword = async () => {
         <n-modal v-model:show="showChangePassword" preset="dialog" :title="t('changePassword')">
             <n-form :model="{ newPassword, confirmPassword }">
                 <n-form-item :label="t('newPassword')">
-                    <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click" />
+                    <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click"
+                        @keyup.enter="changePassword" />
                 </n-form-item>
                 <n-form-item :label="t('confirmPassword')">
-                    <n-input v-model:value="confirmPassword" type="password" placeholder="" show-password-on="click" />
+                    <n-input v-model:value="confirmPassword" type="password" placeholder="" show-password-on="click"
+                        @keyup.enter="changePassword" />
                 </n-form-item>
             </n-form>
             <template #action>
@@ -211,13 +176,13 @@ const changePassword = async () => {
     justify-content: center;
 }
 
-
-.n-card {
+.account-card {
     max-width: 800px;
     text-align: left;
 }
 
 .n-button {
-    margin-top: 10px;
+    margin-top: 14px;
 }
+
 </style>

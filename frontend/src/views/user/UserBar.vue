@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../../store'
@@ -14,19 +14,7 @@ const {
     userSettings, userJwt, userOpenSettings
 } = useGlobalState()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            currentUser: 'Current Login User',
-            fetchUserSettingsError: 'Login password is invalid or account not exist, it may be network connection issue, please try again later.',
-        },
-        zh: {
-            currentUser: '当前登录用户',
-            fetchUserSettingsError: '登录信息已过期或账号不存在，也可能是网络连接异常，请稍后再尝试。',
-
-        }
-    }
-});
+const { t } = useScopedI18n('views.user.UserBar')
 
 
 onMounted(async () => {

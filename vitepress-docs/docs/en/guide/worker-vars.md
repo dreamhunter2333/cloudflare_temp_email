@@ -8,10 +8,14 @@
 | Variable Name              | Type        | Description                                                            | Example                              |
 | -------------------------- | ----------- | ---------------------------------------------------------------------- | ------------------------------------ |
 | `DOMAINS`                  | JSON        | All domains for temporary email, supports multiple domains             | `["awsl.uk", "dreamhunter2333.xyz"]` |
-| `JWT_SECRET`               | Text/Secret | Secret key for generating JWT, used for login and authentication       | `xxx`                                |
+| `JWT_SECRET`               | Text/Secret | Secret key for signing JWTs used in login and authentication. Use a random string, e.g. generated via `openssl rand -hex 32` | `a1b2c3d4...`                        |
 | `ADMIN_PASSWORDS`          | JSON        | Admin console passwords, console access disabled if not configured     | `["123", "456"]`                     |
 | `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | Whether to allow users to create mailboxes, disabled if not configured | `true`                               |
 | `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | Whether to allow users to delete emails, disabled if not configured    | `true`                               |
+
+> [!IMPORTANT] `DOMAINS` and `DEFAULT_DOMAINS` must already be set up in Cloudflare
+> Every domain you put here (including `DEFAULT_DOMAINS`, `USER_ROLES.domains`, `RANDOM_SUBDOMAIN_DOMAINS` further below) **must already have Cloudflare Email Routing enabled and its email DNS records provisioned**. After the Worker is deployed, bind the domain's Catch-all rule to that Worker; otherwise inbound mail will never reach the Worker.
+> See [Cloudflare Email Routing](/en/guide/email-routing) for the setup steps.
 
 ## Console Related Variables
 
@@ -37,12 +41,24 @@
 | `RANDOM_SUBDOMAIN_LENGTH`             | Number    | Random subdomain length, default `8`, valid range `1-63`                                                                                                                                                           | `8`                                       |
 | `DOMAIN_LABELS`                       | JSON      | For Chinese domains, you can use DOMAIN_LABELS to display Chinese names                                                                                                                                           | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
 | `ENABLE_AUTO_REPLY`                   | Text/JSON | Allow automatic email replies. Sender filter (`source_prefix`) supports three modes: empty to match all senders, prefix for `startsWith` matching, or `/regex/` syntax for regex matching (e.g. `/@example\.com$/`) | `true`                                    |
-| `DEFAULT_SEND_BALANCE`                | Text/JSON | Default email sending balance, will be 0 if not set                                                                                                                                                               | `1`                                       |
+| `DEFAULT_SEND_BALANCE`                | Text/JSON | Default email sending balance. When greater than `0`, it is auto-initialized when users open the settings page or send mail for the first time. Defaults to `0` if unset                                                                                 | `1`                                       |
 | `ENABLE_ADDRESS_PASSWORD`             | Text/JSON | Enable address password feature, when enabled, passwords will be auto-generated for new addresses, supports password login and modification                                                                       | `true`                                    |
+| `ENABLE_AGENT_EMAIL_INFO`             | Text/JSON | Whether to show AI Agent access info in the frontend "Address Credentials & Connection Methods" dialog (Address JWT, parsed-mail APIs, skill link)                                      | `true`                                    |
+| `SMTP_IMAP_PROXY_CONFIG`              | JSON      | Show SMTP/IMAP proxy connection info in the frontend "Address Credentials & Connection Methods" dialog; display-only, does not start the proxy service, which must be deployed separately | See example below                         |
+| `SEND_MAIL_DOMAINS`                   | JSON      | Restrict which sender domains can use the `SEND_MAIL` binding; when unset or empty, all domains are allowed                                                                                                     | `["example.com", "mail.example.com"]`     |
 
 > [!NOTE]
 > `RANDOM_SUBDOMAIN_DOMAINS` only controls automatic random subdomain generation during mailbox
 > creation. It does not create Cloudflare-side subdomain routing for you.
+>
+> To actually receive mail on addresses like `name@<random>.abc.com`, **you must add a wildcard
+> `*` MX record under the base domain in DNS** by copying the apex's existing MX records to
+> host `*` (preserving each record's priority and target). Cloudflare Email Routing does not
+> inherit the apex configuration onto subdomains — see the
+> [Cloudflare Email Routing — Subdomains](https://developers.cloudflare.com/email-routing/setup/subdomains/)
+> docs,
+> [#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035) and
+> [Configure Subdomain Email](/en/guide/feature/subdomain).
 >
 > Subdomain addresses are usually best used for receiving only; for sending, prefer the main
 > domain.
@@ -58,6 +74,20 @@
 > The admin panel exposes three explicit states: **Follow Environment Variable**, **Force Enable**,
 > and **Force Disable**. Saving **Follow Environment Variable** clears the admin override and returns
 > the feature to the "unset" fallback behavior.
+>
+> `SEND_MAIL_DOMAINS` only affects the `SEND_MAIL` binding fallback path and
+> `/admin/send_mail_by_binding`. It does not affect Resend, SMTP, or `verifiedAddressList`.
+>
+> `SMTP_IMAP_PROXY_CONFIG` example:
+>
+> ```json
+> {
+>   "smtp": { "host": "smtp.example.com", "port": 8025, "starttls": true },
+>   "imap": { "host": "imap.example.com", "port": 11143, "starttls": true }
+> }
+> ```
+>
+> SMTP and IMAP can use different hostnames, which is useful for reverse proxies or separate port mappings.
 
 ## Email Reception Related Variables
 

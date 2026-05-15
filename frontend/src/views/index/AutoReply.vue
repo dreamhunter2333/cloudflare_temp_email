@@ -1,5 +1,5 @@
 <script setup>
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { onMounted, ref } from 'vue'
 
 import { useGlobalState } from '../../store'
@@ -15,33 +15,7 @@ const name = ref("")
 const { settings } = useGlobalState()
 
 
-const { t } = useI18n({
-    locale: 'zh',
-    messages: {
-        en: {
-            success: 'Success',
-            settings: 'Settings',
-            sourcePrefix: 'Sender Filter',
-            sourcePrefixPlaceholder: 'Empty=all, prefix match, or /regex/',
-            name: 'Name',
-            enableAutoReply: 'Enable Auto Reply',
-            subject: 'Subject',
-            autoReply: 'Auto Reply',
-            save: 'Save',
-        },
-        zh: {
-            success: '成功',
-            settings: '设置',
-            sourcePrefix: '发件人过滤',
-            sourcePrefixPlaceholder: '留空=全部匹配，前缀匹配，或 /正则/',
-            name: '名称',
-            enableAutoReply: '启用自动回复',
-            subject: '主题',
-            autoReply: '自动回复',
-            save: '保存',
-        }
-    }
-});
+const { t } = useScopedI18n('views.index.AutoReply')
 
 const fetchData = async () => {
     try {

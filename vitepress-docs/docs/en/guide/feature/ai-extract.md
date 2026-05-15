@@ -22,7 +22,9 @@ Extraction results are automatically saved to the `metadata` field in the databa
 | Variable Name              | Type      | Description                                                                                                                      | Example                          |
 | -------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
 | `ENABLE_AI_EMAIL_EXTRACT`  | Text/JSON | Whether to enable AI email recognition feature                                                                                   | `true`                           |
-| `AI_EXTRACT_MODEL`         | Text      | AI model name, choose from [models supporting JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models) | `@cf/meta/llama-3.1-8b-instruct` |
+| `AI_EXTRACT_MODEL`         | Text      | AI model name, choose from [models supporting JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models) | `@cf/meta/llama-3.1-8b-instruct-fast` |
+
+We recommend `@cf/meta/llama-3.1-8b-instruct-fast` as the default model because it supports the JSON Mode used by this feature, and Cloudflare says `-fast` variants will remain active. The cheaper `@cf/meta/llama-3.1-8b-instruct-fp8-fast` is not currently listed as a JSON Mode supported model, so it is not recommended for this feature. Cloudflare's newer recommended model `@cf/zai-org/glm-4.7-flash` is suitable for multilingual scenarios, but confirm structured JSON output support in your account/region before using it for this feature. The previous default model `@cf/meta/llama-3.1-8b-instruct` will be deprecated by Cloudflare on 2026-05-30 and is no longer recommended.
 
 ## Content Length Limit
 

@@ -64,6 +64,16 @@ export const saveSetting = async (
     return true;
 }
 
+export const deleteSetting = async (
+    c: Context<HonoCustomType>,
+    key: string
+) => {
+    await c.env.DB.prepare(
+        `DELETE FROM settings WHERE key = ?`
+    ).bind(key).run();
+    return true;
+}
+
 export const getStringValue = (value: any): string => {
     if (typeof value === "string") {
         return value;
@@ -127,10 +137,16 @@ export const getStringArray = (
     return value;
 }
 
-export const normalizeDomain = (
+export const trimLower = (
     value: string | undefined | null
 ): string => {
     return getStringValue(value).trim().toLowerCase();
+}
+
+export const normalizeDomain = (
+    value: string | undefined | null
+): string => {
+    return trimLower(value);
 }
 
 export const normalizeDomains = (domains: string[]): string[] => {
@@ -139,31 +155,15 @@ export const normalizeDomains = (domains: string[]): string[] => {
         .filter((domain) => domain.length > 0);
 }
 
-export const normalizeEmailAddress = (
-    value: string | undefined | null
-): string => {
-    const address = getStringValue(value).trim();
-    if (!address) {
-        return "";
-    }
-    const atIndex = address.lastIndexOf("@");
-    if (atIndex < 0) {
-        return address;
-    }
-    const localPart = address.slice(0, atIndex);
-    const domain = normalizeDomain(address.slice(atIndex + 1));
-    return domain ? `${localPart}@${domain}` : localPart;
-}
-
 export const getMailDomain = (
     value: string | undefined | null
 ): string => {
-    const normalizedAddress = normalizeEmailAddress(value);
-    const atIndex = normalizedAddress.lastIndexOf("@");
+    const address = getStringValue(value).trim();
+    const atIndex = address.lastIndexOf("@");
     if (atIndex < 0) {
         return "";
     }
-    return normalizedAddress.slice(atIndex + 1);
+    return normalizeDomain(address.slice(atIndex + 1));
 }
 
 export const includesDomain = (
@@ -175,6 +175,19 @@ export const includesDomain = (
         return false;
     }
     return normalizeDomains(domains).includes(normalizedDomain);
+}
+
+export const isDomainOrSubdomain = (
+    domain: string | undefined | null,
+    allowDomain: string | undefined | null
+): boolean => {
+    const normalizedDomain = normalizeDomain(domain);
+    const normalizedAllowDomain = normalizeDomain(allowDomain);
+    if (!normalizedDomain || !normalizedAllowDomain) {
+        return false;
+    }
+    return normalizedDomain === normalizedAllowDomain
+        || normalizedDomain.endsWith(`.${normalizedAllowDomain}`);
 }
 
 export const getDomainMapValue = <T>(
@@ -198,7 +211,7 @@ export const getDefaultDomains = (c: Context<HonoCustomType>): string[] => {
         return getDomains(c);
     }
     const domains = normalizeDomains(getStringArray(c.env.DEFAULT_DOMAINS));
-    return domains || getDomains(c);
+    return domains.length > 0 ? domains : getDomains(c);
 }
 
 export const getDomains = (c: Context<HonoCustomType>): string[] => {
@@ -231,13 +244,11 @@ export const getUserRoles = (c: Context<HonoCustomType>): UserRole[] => {
     const normalizeRoles = (roles: UserRole[]): UserRole[] => {
         return roles.map((role) => ({
             ...role,
-            domains: normalizeDomains(
-                Array.isArray(role.domains)
-                    ? role.domains
-                    : typeof role.domains === "string"
-                        ? [role.domains]
-                        : []
-            ),
+            domains: Array.isArray(role.domains)
+                ? normalizeDomains(role.domains)
+                : typeof role.domains === "string"
+                    ? normalizeDomains([role.domains])
+                    : role.domains,
         }));
     };
     // check if USER_ROLES is an array, if not use json.parse
@@ -444,7 +455,7 @@ export const getMaxAddressCount = async (
     if (!roleConfigs) return settings.maxAddressCount;
     const roleMaxCount = roleConfigs[userRole]?.maxAddressCount;
     if (typeof roleMaxCount !== 'number') return settings.maxAddressCount;
-    if (roleMaxCount <= 0) return settings.maxAddressCount;
+    if (roleMaxCount < 0) return settings.maxAddressCount;
     return roleMaxCount;
 };
 
@@ -482,9 +493,9 @@ export default {
     getBooleanValue,
     getIntValue,
     getStringArray,
+    trimLower,
     normalizeDomain,
     normalizeDomains,
-    normalizeEmailAddress,
     getMailDomain,
     includesDomain,
     getDomainMapValue,

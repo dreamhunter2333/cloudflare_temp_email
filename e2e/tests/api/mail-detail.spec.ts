@@ -38,34 +38,6 @@ test.describe('Mail Detail', () => {
     }
   });
 
-  test('lists mail received via uppercase domain variant under the same mailbox', async ({ request }) => {
-    const { jwt, address } = await createTestAddress(request, 'detail-case');
-
-    try {
-      const [localPart, domain] = address.split('@');
-      const uppercaseDomainAddress = `${localPart}@${domain.toUpperCase()}`;
-
-      await seedTestMail(request, uppercaseDomainAddress, {
-        subject: 'Domain Case Test',
-        from: 'alice@test.example.com',
-        html: '<p>Hello case domain</p>',
-        text: 'Hello case domain',
-      });
-
-      const listRes = await request.get(`${WORKER_URL}/api/mails?limit=10&offset=0`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      });
-      expect(listRes.ok()).toBe(true);
-
-      const { results } = await listRes.json();
-      expect(results).toHaveLength(1);
-      expect(results[0].address).toBe(address);
-      expect(results[0].raw).toContain('Domain Case Test');
-    } finally {
-      await deleteAddress(request, jwt);
-    }
-  });
-
   test('fetch non-existent mail returns null', async ({ request }) => {
     const { jwt } = await createTestAddress(request, 'detail-404');
 

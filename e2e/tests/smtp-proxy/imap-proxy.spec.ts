@@ -132,8 +132,10 @@ test.describe('IMAP Proxy', () => {
     try {
       const results = await client.search({ all: true });
       expect(results.length).toBeGreaterThan(0);
-      const msg = await client.fetchOne(String(results[0]), { uid: true, flags: true }, { uid: true });
-      expect(msg.uid).toBe(results[0]);
+      const seqMsg = await client.fetchOne(String(results[0]), { uid: true, flags: true });
+      expect(seqMsg.uid).toBeGreaterThan(0);
+      const uidMsg = await client.fetchOne(String(seqMsg.uid), { uid: true, flags: true }, { uid: true });
+      expect(uidMsg.uid).toBe(seqMsg.uid);
     } finally {
       lock.release();
     }

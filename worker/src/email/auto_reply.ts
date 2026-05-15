@@ -1,5 +1,5 @@
 import { createMimeMessage } from "mimetext";
-import { getBooleanValue, normalizeEmailAddress } from "../utils";
+import { getBooleanValue } from "../utils";
 
 /**
  * Check if the sender matches the source_prefix filter.
@@ -21,19 +21,14 @@ function matchSender(from: string, sourcePrefix: string | undefined): boolean {
     return from.startsWith(sourcePrefix);
 }
 
-export const auto_reply = async (
-    message: ForwardableEmailMessage,
-    env: Bindings,
-    address: string = message.to
-): Promise<void> => {
+export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings): Promise<void> => {
     const message_id = message.headers.get("Message-ID");
-    const targetAddress = normalizeEmailAddress(address);
     // auto reply email
     if (getBooleanValue(env.ENABLE_AUTO_REPLY) && message_id) {
         try {
             const results = await env.DB.prepare(
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
-            ).bind(targetAddress).first<Record<string, string>>();
+            ).bind(message.to).first<Record<string, string>>();
             if (results && matchSender(message.from, results.source_prefix)) {
                 if (!results.subject || !results.message) {
                     console.log("auto-reply using defaults:", !results.subject ? "subject" : "", !results.message ? "message" : "");
@@ -55,7 +50,7 @@ export const auto_reply = async (
                 } else {
                     const { EmailMessage } = await import('cloudflare:email');
                     const replyMessage = new EmailMessage(
-                        results.address || targetAddress,
+                        message.to,
                         message.from,
                         msg.asRaw()
                     );

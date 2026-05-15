@@ -136,26 +136,39 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             ]
         },
         {
-            text: '通用',
+            text: '核心配置',
             collapsed: false,
             items: [
-                { text: 'worker变量说明', link: 'worker-vars' },
-                { text: '常见问题', link: 'common-issues' },
+                { text: 'Worker 变量说明', link: 'worker-vars' },
+                { text: '配置发送邮件', link: 'config-send-mail' },
             ]
         },
         {
-            text: '附加功能',
+            text: '帮助',
+            collapsed: false,
+            items: [
+                { text: '常见问题 (FAQ)', link: 'common-issues' },
+            ]
+        },
+        {
+            text: '通知与集成',
+            collapsed: false,
+            items: [
+                { text: '配置 Telegram Bot', link: 'feature/telegram' },
+                { text: '配置 webhook', link: 'feature/webhook' },
+                { text: '配置 SMTP/IMAP 邮件客户端', link: 'feature/config-smtp-proxy' },
+                { text: 'Oauth2 第三方登录', link: 'feature/user-oauth2' },
+            ]
+        },
+        {
+            text: '高级功能',
             collapsed: false,
             items: [
                 { text: 'AI 邮件识别', link: 'feature/ai-extract' },
-                { text: '配置 SMTP IMAP 代理服务', link: 'feature/config-smtp-proxy' },
                 { text: '配置子域名邮箱', link: 'feature/subdomain' },
-                { text: '配置 Telegram Bot', link: 'feature/telegram' },
                 { text: '配置 S3 附件', link: 'feature/s3-attachment' },
                 { text: '配置 worker 使用 wasm 解析邮件', link: 'feature/mail_parser_wasm_worker' },
-                { text: '配置 webhook', link: 'feature/webhook' },
-                { text: 'Oauth2 第三方登录', link: 'feature/user-oauth2' },
-                { text: '配置其他worker增强', link: 'feature/another-worker-enhanced' },
+                { text: '配置其他 worker 增强', link: 'feature/another-worker-enhanced' },
                 { text: '给网页增加 Google Ads', link: 'feature/google-ads.md' },
             ]
         },
@@ -165,12 +178,13 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: '新建邮箱地址 API', link: 'feature/new-address-api' },
                 { text: '查看邮件 API', link: 'feature/mail-api' },
+                { text: 'AI Agent 使用邮箱', link: 'feature/agent-email' },
                 { text: '发送邮件 API', link: 'feature/send-mail-api' },
                 { text: '删除邮箱地址 API', link: 'feature/delete-address' },
             ]
         },
         {
-            text: '功能简介',
+            text: '管理后台',
             collapsed: false,
             items: [
                 { text: 'Admin 控制台', link: 'feature/admin' },

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { useMessage } from 'naive-ui'
 import useClipboard from 'vue-clipboard3'
 import { Copy } from '@vicons/fa'
@@ -27,24 +27,7 @@ const {
     jwt, settings, userJwt, isTelegram, openSettings, telegramApp
 } = useGlobalState()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            userAddresses: 'User Addresses',
-            localAddresses: 'Local Addresses',
-            address: 'Address',
-            copy: 'Copy',
-            copied: 'Copied',
-        },
-        zh: {
-            userAddresses: '用户地址',
-            localAddresses: '本地地址',
-            address: '地址',
-            copy: '复制',
-            copied: '已复制',
-        }
-    }
-});
+const { t } = useScopedI18n('components.AddressSelect')
 
 const addressOptions = ref([])
 const addressValue = ref(null)

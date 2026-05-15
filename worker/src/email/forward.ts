@@ -1,6 +1,6 @@
 import { Context } from "hono";
 
-import { getEnvStringList, getJsonObjectValue, getJsonSetting, normalizeDomain, normalizeEmailAddress } from "../utils";
+import { getEnvStringList, getJsonObjectValue, getJsonSetting, getMailDomain, isDomainOrSubdomain, normalizeDomain } from "../utils";
 import { EmailRuleSettings } from "../models";
 import { CONSTANTS } from "../constants";
 
@@ -71,12 +71,9 @@ async function forwardToGlobalAddresses(
  */
 async function forwardByRules(
     message: ForwardableEmailMessage,
-    env: Bindings,
-    address: string = message.to
+    env: Bindings
 ): Promise<void> {
     try {
-        const targetAddress = normalizeEmailAddress(address);
-
         // 获取环境变量配置
         const subdomainForwardAddressList = getJsonObjectValue<SubdomainForwardAddressList[]>(
             env.SUBDOMAIN_FORWARD_ADDRESS_LIST
@@ -94,6 +91,7 @@ async function forwardByRules(
             ...(emailRuleSettings?.emailForwardingList || []),
         ];
 
+        const messageDomain = getMailDomain(message.to);
         for (const rule of allRules) {
             // 检查来源地址是否匹配正则
             if (!matchSourcePatterns(message.from, rule.sourcePatterns, rule.sourceMatchMode)) {
@@ -105,7 +103,7 @@ async function forwardByRules(
             if (rule.domains && rule.domains.length > 0) {
                 for (const domain of rule.domains) {
                     const normalizedDomain = normalizeDomain(domain);
-                    if (normalizedDomain && targetAddress.toLowerCase().endsWith(normalizedDomain) && rule.forward) {
+                    if (isDomainOrSubdomain(messageDomain, normalizedDomain) && rule.forward) {
                         await message.forward(rule.forward);
                     }
                 }
@@ -126,14 +124,13 @@ async function forwardByRules(
  */
 async function forwardEmail(
     message: ForwardableEmailMessage,
-    env: Bindings,
-    address: string = message.to
+    env: Bindings
 ): Promise<void> {
     // 全局转发
     await forwardToGlobalAddresses(message, env);
 
     // 规则转发
-    await forwardByRules(message, env, address);
+    await forwardByRules(message, env);
 }
 
 export {

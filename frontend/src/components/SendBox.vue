@@ -1,7 +1,7 @@
 <script setup>
 import { watch, onMounted, ref, computed } from "vue";
 import { useMessage } from 'naive-ui'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
 import { useIsMobile } from '../utils/composables'
 import { utcToLocalDate } from '../utils';
@@ -46,36 +46,7 @@ const multiActionMode = ref(false)
 const showMultiActionDelete = ref(false)
 const multiActionDeleteProgress = ref({ percentage: 0, tip: '0/0' })
 
-const { t } = useI18n({
-  messages: {
-    en: {
-      success: 'Success',
-      refresh: 'Refresh',
-      showCode: 'Change View Original Code',
-      pleaseSelectMail: "Please select a mail to view.",
-      emptySent: "No sent emails",
-      delete: 'Delete',
-      deleteMailTip: 'Are you sure you want to delete mail?',
-      multiAction: 'Multi Action',
-      cancelMultiAction: 'Cancel Multi Action',
-      selectAll: 'Select All of This Page',
-      unselectAll: 'Unselect All',
-    },
-    zh: {
-      success: '成功',
-      refresh: '刷新',
-      showCode: '切换查看元数据',
-      pleaseSelectMail: "请选择一封邮件查看。",
-      emptySent: "发件箱为空",
-      delete: '删除',
-      deleteMailTip: '确定要删除邮件吗?',
-      multiAction: '多选',
-      cancelMultiAction: '取消多选',
-      selectAll: '全选本页',
-      unselectAll: '取消全选',
-    }
-  }
-});
+const { t } = useScopedI18n('components.SendBox')
 
 watch([page, pageSize], async ([page, pageSize], [oldPage, oldPageSize]) => {
   if (page !== oldPage || pageSize !== oldPageSize) {

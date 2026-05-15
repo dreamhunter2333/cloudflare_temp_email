@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, includesDomain, normalizeDomain, normalizeEmailAddress } from './utils';
+import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
@@ -13,6 +13,10 @@ const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
 const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
 const MAX_DOMAIN_LENGTH = 253;
 const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+
+const normalizeDomainValue = (domain: string): string => {
+    return trimLower(domain);
+}
 
 const isValidDomainLabel = (label: string): boolean => {
     return DOMAIN_LABEL_RE.test(label);
@@ -29,22 +33,34 @@ export const isSendMailEnabled = (
     c: Context<HonoCustomType>,
     mailDomain: string
 ): boolean => {
-    const normalizedMailDomain = normalizeDomain(mailDomain);
-    if (!normalizedMailDomain) return false;
     // Check resend token for domain or global
     const resendEnabled = c.env.RESEND_TOKEN || c.env[
-        `RESEND_TOKEN_${normalizedMailDomain.replace(/\./g, "_").toUpperCase()}`
+        `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
     ];
     if (resendEnabled) return true;
 
     // Check SMTP config for domain
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    if (getDomainMapValue(smtpConfigMap, normalizedMailDomain)) return true;
+    if (getDomainMapValue(smtpConfigMap, mailDomain)) return true;
 
     // Check SEND_MAIL binding
-    if (c.env.SEND_MAIL) return true;
+    if (isSendMailBindingEnabled(c, mailDomain)) return true;
 
     return false;
+}
+
+export const isSendMailBindingEnabled = (
+    c: Context<HonoCustomType>,
+    mailDomain: string
+): boolean => {
+    if (!c.env.SEND_MAIL) {
+        return false;
+    }
+    const sendMailDomains = normalizeDomains(getStringArray(c.env.SEND_MAIL_DOMAINS));
+    if (sendMailDomains.length === 0) {
+        return true;
+    }
+    return sendMailDomains.includes(normalizeDomainValue(mailDomain));
 }
 
 /**
@@ -97,7 +113,10 @@ const allowRandomSubdomainForDomain = (
     c: Context<HonoCustomType>,
     domain: string
 ): boolean => {
-    return includesDomain(getRandomSubdomainDomains(c), domain);
+    const normalizedDomain = normalizeDomainValue(domain);
+    return getRandomSubdomainDomains(c)
+        .map((item) => normalizeDomainValue(item))
+        .includes(normalizedDomain);
 }
 
 const isCreateAddressSubdomainMatchEnvConfigured = (c: Context<HonoCustomType>): boolean => {
@@ -149,7 +168,7 @@ const findMatchedAllowedDomain = (
     allowDomains: string[],
     enableSubdomainMatch: boolean,
 ): string | null => {
-    const normalizedDomain = normalizeDomain(domain);
+    const normalizedDomain = normalizeDomainValue(domain);
     if (normalizedDomain.length > MAX_DOMAIN_LENGTH) {
         return null;
     }
@@ -157,7 +176,7 @@ const findMatchedAllowedDomain = (
     if (!areValidDomainLabels(domainLabels)) {
         return null;
     }
-    const normalizedAllowDomains = allowDomains.map((allowDomain) => normalizeDomain(allowDomain));
+    const normalizedAllowDomains = allowDomains.map((allowDomain) => normalizeDomainValue(allowDomain));
     if (normalizedAllowDomains.includes(normalizedDomain)) {
         return normalizedDomain;
     }
@@ -349,23 +368,22 @@ export const newAddress = async (
     }
     // create address with prefix
     if (typeof addressPrefix === "string") {
-        name = addressPrefix.trim() + name;
+        name = trimLower(addressPrefix) + name;
     } else if (enablePrefix) {
-        name = getStringValue(c.env.PREFIX).trim() + name;
+        name = trimLower(c.env.PREFIX) + name;
     }
-    domain = normalizeDomain(domain);
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
     // if domain is not set, select domain based on environment configuration
     if (!domain && allowDomains.length > 0) {
         const createAddressDefaultDomainFirst = getBooleanValue(c.env.CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST);
         if (createAddressDefaultDomainFirst) {
-            domain = normalizeDomain(allowDomains[0]);
+            domain = normalizeDomainValue(allowDomains[0]);
         } else {
-            domain = normalizeDomain(allowDomains[Math.floor(Math.random() * allowDomains.length)]);
+            domain = normalizeDomainValue(allowDomains[Math.floor(Math.random() * allowDomains.length)]);
         }
     } else if (typeof domain === "string") {
-        domain = normalizeDomain(domain);
+        domain = normalizeDomainValue(domain);
     }
     const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
     const matchedAllowDomain = domain
@@ -384,21 +402,9 @@ export const newAddress = async (
         const addressDomain = enableRandomSubdomain
             ? `${generateRandomSubdomain(c)}.${domain}`
             : domain;
-        const address = normalizeEmailAddress(`${name}@${addressDomain}`);
+        const address = `${name}@${addressDomain}`;
 
         try {
-            // Best-effort pre-check so random-subdomain retries can skip obvious duplicates
-            // before INSERT. A TOCTOU race with the INSERT below is acceptable because the
-            // UNIQUE-constraint handling in the catch block is the definitive guard.
-            const existingAddressId = await c.env.DB.prepare(
-                `SELECT id FROM address WHERE name = ?`
-            ).bind(address).first<number>("id");
-            if (existingAddressId) {
-                if (enableRandomSubdomain && attempt < maxAttempts - 1) {
-                    continue;
-                }
-                throw new Error(msgs.AddressAlreadyExistsMsg);
-            }
             await insertAddressRecord(c, address, sourceMeta, msgs);
             await updateAddressUpdatedAt(c, address);
 
@@ -604,7 +610,8 @@ export const handleListQuery = async (
     limit: string | number | undefined | null,
     offset: string | number | undefined | null,
     /** Must be pre-validated (e.g. whitelist), NOT raw user input. Interpolated directly into SQL. */
-    orderBy?: string
+    orderBy?: string,
+    hiddenFields: string[] = []
 ): Promise<Response> => {
     const msgs = i18n.getMessagesbyContext(c);
     if (typeof limit === "string") {
@@ -627,7 +634,23 @@ export const handleListQuery = async (
     const count = offset == 0 ? await c.env.DB.prepare(
         countQuery
     ).bind(...params).first("count") : 0;
-    return c.json({ results, count });
+    if (hiddenFields.length === 0) {
+        return c.json({ results, count });
+    }
+
+    const filteredResults = results.map((row) => hideObjectFields(row, hiddenFields));
+    return c.json({ results: filteredResults, count });
+}
+
+export const hideObjectFields = <T extends Record<string, unknown>>(
+    row: T,
+    fields: string[]
+): T => {
+    const filteredRow = { ...row };
+    for (const field of fields) {
+        delete filteredRow[field];
+    }
+    return filteredRow;
 }
 
 /**
@@ -736,13 +759,13 @@ export const commonGetUserRole = async (
 export const getAddressPrefix = async (c: Context<HonoCustomType>): Promise<string | undefined> => {
     const user = c.get("userPayload");
     if (!user) {
-        return getStringValue(c.env.PREFIX);
+        return trimLower(c.env.PREFIX);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
     if (typeof user_role?.prefix === "string") {
-        return user_role.prefix;
+        return trimLower(user_role.prefix);
     }
-    return getStringValue(c.env.PREFIX);
+    return trimLower(c.env.PREFIX);
 }
 
 export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<string[]> => {
@@ -751,8 +774,10 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
         return getDefaultDomains(c);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
-    const roleDomains = user_role?.domains;
-    return roleDomains && roleDomains.length > 0 ? roleDomains : getDefaultDomains(c);
+    if (user_role?.domains && user_role.domains.length > 0) {
+        return user_role.domains;
+    }
+    return getDefaultDomains(c);
 }
 
 export async function sendWebhook(

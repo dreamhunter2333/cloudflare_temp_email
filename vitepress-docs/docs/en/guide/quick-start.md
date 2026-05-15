@@ -2,6 +2,11 @@
 
 ## Before You Begin
 
+> [!IMPORTANT] A domain is required first
+> This project relies on Cloudflare Email Routing to receive emails, so **a domain is a hard prerequisite for deployment**.
+> You must already own a domain (apex or subdomain) hosted on Cloudflare DNS, with Email Routing enabled and the corresponding email DNS records provisioned. After the Worker is deployed, bind a Catch-all rule to that Worker. Without both steps, **mail will not be received and verification flows will fail**.
+> See [Cloudflare Email Routing](/en/guide/email-routing) for the full setup.
+
 You need a `good network environment` and a `Cloudflare account`. Open the [Cloudflare Dashboard](https://dash.cloudflare.com/)
 
 Please choose one of the three deployment methods below:
@@ -24,6 +29,13 @@ First, confirm your current version, then visit the [Release page](https://githu
 Then review all changes from your current version onwards. Note that `Breaking Changes` require `database SQL execution` or `configuration changes`, while other feature updates can be configured as needed.
 
 Then refer to the documentation below to use `CLI` or `UI` to redeploy the `worker` and `pages` over the previous deployment.
+
+Upgrading does not mean editing the old code already running in the Cloudflare console. It means redeploying the new version artifacts over the existing Worker and Pages deployment:
+
+- If you use UI deployment, download the latest release `worker.js` and `frontend.zip`, then upload them again using the same deployment method.
+- If you use GitHub Actions, sync your fork first and rerun the corresponding workflow.
+- If the changelog lists database changes, run the upgrade in `Admin -> Quick Setup -> Database`, or execute the corresponding SQL according to the D1 guide.
+- If the frontend still shows an old error after upgrading, test in an incognito window or clear browser cache so it stops loading the old frontend assets.
 
 ### CLI Deployment
 

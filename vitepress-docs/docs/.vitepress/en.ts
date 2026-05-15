@@ -136,25 +136,38 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             ]
         },
         {
-            text: 'General',
+            text: 'Core Configuration',
             collapsed: false,
             items: [
                 { text: 'Worker Variables', link: 'worker-vars' },
-                { text: 'Common Issues', link: 'common-issues' },
+                { text: 'Configure Email Sending', link: 'config-send-mail' },
             ]
         },
         {
-            text: 'Additional Features',
+            text: 'Help',
+            collapsed: false,
+            items: [
+                { text: 'FAQ', link: 'common-issues' },
+            ]
+        },
+        {
+            text: 'Notifications & Integrations',
+            collapsed: false,
+            items: [
+                { text: 'Configure Telegram Bot', link: 'feature/telegram' },
+                { text: 'Configure Webhook', link: 'feature/webhook' },
+                { text: 'Configure SMTP/IMAP Mail Client', link: 'feature/config-smtp-proxy' },
+                { text: 'OAuth2 Third-party Login', link: 'feature/user-oauth2' },
+            ]
+        },
+        {
+            text: 'Advanced Features',
             collapsed: false,
             items: [
                 { text: 'AI Email Recognition', link: 'feature/ai-extract' },
-                { text: 'Configure SMTP IMAP Proxy', link: 'feature/config-smtp-proxy' },
                 { text: 'Configure Subdomain Email', link: 'feature/subdomain' },
-                { text: 'Configure Telegram Bot', link: 'feature/telegram' },
                 { text: 'Configure S3 Attachments', link: 'feature/s3-attachment' },
                 { text: 'Configure WASM Email Parser', link: 'feature/mail_parser_wasm_worker' },
-                { text: 'Configure Webhook', link: 'feature/webhook' },
-                { text: 'OAuth2 Third-party Login', link: 'feature/user-oauth2' },
                 { text: 'Enhance with Other Workers', link: 'feature/another-worker-enhanced' },
                 { text: 'Add Google Ads', link: 'feature/google-ads.md' },
             ]
@@ -165,12 +178,13 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: 'New Address API', link: 'feature/new-address-api' },
                 { text: 'View Email API', link: 'feature/mail-api' },
+                { text: 'AI Agent Mailbox Usage', link: 'feature/agent-email' },
                 { text: 'Send Email API', link: 'feature/send-mail-api' },
                 { text: 'Delete Address API', link: 'feature/delete-address' },
             ]
         },
         {
-            text: 'Feature Overview',
+            text: 'Admin Console',
             collapsed: false,
             items: [
                 { text: 'Admin Console', link: 'feature/admin' },

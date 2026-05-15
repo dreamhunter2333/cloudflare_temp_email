@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 
 import { CONSTANTS } from '../constants';
-import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles, getMailDomain, includesDomain, normalizeEmailAddress } from '../utils';
+import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles, getMailDomain, includesDomain } from '../utils';
 import { UserSettings, GeoData, UserInfo, RoleAddressConfig } from "../models";
 import { handleListQuery } from '../common'
 import UserBindAddressModule from '../user_api/bind_address';
@@ -39,15 +39,21 @@ export default {
     getUsers: async (c: Context<HonoCustomType>) => {
         const { limit, offset, query } = c.req.query();
         if (query) {
+            // D1 caps LIKE pattern length at 50 bytes; fall back to instr()
+            // for longer queries to avoid "LIKE or GLOB pattern too complex" (#956).
+            const useInstr = new TextEncoder().encode(query).length + 2 > 50;
+            const param = useInstr ? query : `%${query}%`;
+            const userEmailWhere = useInstr ? `instr(u.user_email, ?) > 0` : `u.user_email like ?`;
+            const userEmailWhereCount = useInstr ? `instr(user_email, ?) > 0` : `user_email like ?`;
             return await handleListQuery(c,
                 `SELECT u.id as id, u.user_email, u.created_at, u.updated_at,`
                 + ` ur.role_text as role_text,`
                 + ` (SELECT COUNT(*) FROM users_address WHERE user_id = u.id) AS address_count`
                 + ` FROM users u`
                 + ` LEFT JOIN user_roles ur ON u.id = ur.user_id`
-                + ` where u.user_email like ?`,
-                `SELECT count(*) as count FROM users where user_email like ?`,
-                [`%${query}%`], limit, offset
+                + ` where ${userEmailWhere}`,
+                `SELECT count(*) as count FROM users where ${userEmailWhereCount}`,
+                [param], limit, offset
             );
         }
         return await handleListQuery(c,
@@ -157,10 +163,9 @@ export default {
         const db_user_id = user_id ?? await c.env.DB.prepare(
             `SELECT id FROM users WHERE user_email = ?`
         ).bind(user_email).first<number | undefined | null>("id");
-        const normalizedAddress = normalizeEmailAddress(address);
         const db_address_id = address_id ?? await c.env.DB.prepare(
             `SELECT id FROM address WHERE name = ?`
-        ).bind(normalizedAddress).first<number | undefined | null>("id");
+        ).bind(address).first<number | undefined | null>("id");
         return await UserBindAddressModule.bindByID(c, db_user_id, db_address_id);
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
@@ -176,7 +181,16 @@ export default {
         return c.json({ configs });
     },
     saveRoleAddressConfig: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
         const { configs } = await c.req.json<{ configs: RoleAddressConfig }>();
+        if (typeof configs !== "object" || configs === null || Array.isArray(configs)) {
+            return c.text(msgs.InvalidMaxAddressCountMsg, 400);
+        }
+        for (const config of Object.values(configs)) {
+            if (typeof config?.maxAddressCount === "number" && config.maxAddressCount < 0) {
+                return c.text(msgs.InvalidMaxAddressCountMsg, 400);
+            }
+        }
         await saveSetting(c, CONSTANTS.ROLE_ADDRESS_CONFIG_KEY, JSON.stringify(configs));
         return c.json({ success: true });
     },

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, h, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { NPopconfirm, NButton } from 'naive-ui'
 
 // @ts-ignore
@@ -14,28 +14,7 @@ const { jwt, telegramApp } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            success: 'success',
-            address: 'Address',
-            actions: 'Actions',
-            changeMailAddress: 'Change Mail Address',
-            unbindMailAddress: 'Unbind Mail Address',
-            bind: 'Bind',
-            bindAddressSuccess: 'Bind Address Success',
-        },
-        zh: {
-            success: '成功',
-            address: '地址',
-            actions: '操作',
-            changeMailAddress: '切换邮箱地址',
-            unbindMailAddress: '解绑邮箱地址',
-            bind: '绑定',
-            bindAddressSuccess: '绑定地址成功',
-        }
-    }
-});
+const { t } = useScopedI18n('views.index.TelegramAddress')
 
 const data = ref([]);
 
@@ -154,7 +133,9 @@ onMounted(async () => {
     <div>
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
-                <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                <div class="address-table-scroll">
+                    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                </div>
             </n-tab-pane>
             <n-tab-pane name="bind" :tab="t('bind')">
                 <Login :newAddressPath="newAddressPath" :bindUserAddress="bindAddress" />
@@ -162,3 +143,14 @@ onMounted(async () => {
         </n-tabs>
     </div>
 </template>
+
+<style scoped>
+.n-data-table {
+    min-width: 640px;
+}
+
+.address-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+</style>

@@ -113,7 +113,7 @@ export class UserSettings {
         this.verifyMailSender = verifyMailSender;
         this.enableMailAllowList = enableMailAllowList;
         this.mailAllowList = mailAllowList;
-        this.maxAddressCount = maxAddressCount || 5;
+        this.maxAddressCount = (typeof maxAddressCount === "number" && maxAddressCount >= 0) ? maxAddressCount : 5;
         this.enableEmailCheckRegex = enableEmailCheckRegex;
         this.emailCheckRegex = emailCheckRegex;
     }
@@ -182,6 +182,13 @@ export type UserOauth2Settings = {
 export type EmailRuleSettings = {
     blockReceiveUnknowAddressEmail: boolean;
     emailForwardingList: SubdomainForwardAddressList[]
+}
+
+export type SendMailLimitConfig = {
+    dailyEnabled: boolean;
+    monthlyEnabled: boolean;
+    dailyLimit: number | null;
+    monthlyLimit: number | null;
 }
 
 export type RoleConfig = {

@@ -40,7 +40,9 @@
 - **完全免费** - 基于 Cloudflare 免费服务构建，零成本运行
 - **高性能** - Rust WASM 邮件解析，响应速度极快
 - **现代化界面** - 响应式设计，支持多语言，操作简便
-- **地址密码** - 支持为邮箱地址设置独立密码，增强安全性 (通过 `ENABLE_ADDRESS_PASSWORD` 启用)
+- **地址密码** - 支持为邮箱地址设置独立密码，增强安全性
+- **Agent 友好** - 内置邮箱 [`skill`](skills/cf-temp-mail-agent-mail/SKILL.md)，方便 AI agent 使用邮箱
+- **移动端管理** - 社区客户端 [CloudMail](https://github.com/Lur1N77777/CloudMail)，支持 Android 管理后台和邮箱管理
 
 ## 部署文档 - 快速开始
 
@@ -150,6 +152,8 @@
 - [x] Webhook 支持，消息推送集成
 - [x] 支持 `CF Turnstile` 人机验证
 - [x] 限流配置，防止滥用
+- [x] **Agent 友好**：内置 [`cf-temp-mail-agent-mail`](skills/cf-temp-mail-agent-mail/SKILL.md) skill，AI agent 可直接消费邮箱，详见 [文档](vitepress-docs/docs/zh/guide/feature/agent-email.md)
+- [x] 社区移动端管理客户端：[CloudMail](https://github.com/Lur1N77777/CloudMail) 基于 Expo / React Native，面向本项目兼容 API，提供 Android 管理员后台、地址管理、收件/发件/未知邮件、验证码快捷复制、OLED 黑主题和本地分组。
 
 </details>
 

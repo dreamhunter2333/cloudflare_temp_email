@@ -1,6 +1,6 @@
 <script setup>
 import { ref, h, onMounted, watch, computed } from 'vue';
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { NMenu, NButton, NBadge, NTag } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 
@@ -13,56 +13,7 @@ import UserAddressManagement from './UserAddressManagement.vue'
 const { loading, openSettings } = useGlobalState()
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            success: 'Success',
-            user_email: 'User Email',
-            role: 'Role',
-            address_count: 'Address Count',
-            created_at: 'Created At',
-            actions: 'Actions',
-            query: 'Query',
-            itemCount: 'itemCount',
-            deleteUser: 'Delete User',
-            delete: 'Delete',
-            deleteUserTip: 'Are you sure you want to delete this user?',
-            resetPassword: 'Reset Password',
-            pleaseInput: 'Please input complete information',
-            createUser: 'Create User',
-            email: 'Email',
-            password: 'Password',
-            changeRole: 'Change Role',
-            prefix: 'Prefix',
-            domains: 'Domains',
-            roleDonotExist: 'Current Role does not exist',
-            userAddressManagement: 'Address Management',
-        },
-        zh: {
-            success: '成功',
-            user_email: '用户邮箱',
-            role: '角色',
-            address_count: '地址数量',
-            created_at: '创建时间',
-            actions: '操作',
-            query: '查询',
-            itemCount: '总数',
-            deleteUser: '删除用户',
-            delete: '删除',
-            deleteUserTip: '确定要删除此用户吗？',
-            resetPassword: '重置密码',
-            pleaseInput: '请输入完整信息',
-            createUser: '创建用户',
-            email: '邮箱',
-            password: '密码',
-            changeRole: '更改角色',
-            prefix: '前缀',
-            domains: '域名',
-            roleDonotExist: '当前角色不存在',
-            userAddressManagement: '地址管理',
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.UserManagement')
 const data = ref([])
 const count = ref(0)
 const page = ref(1)
@@ -353,7 +304,8 @@ onMounted(async () => {
                     <n-input v-model:value="user.email" />
                 </n-form-item-row>
                 <n-form-item-row :label="t('password')" required>
-                    <n-input v-model:value="user.password" type="password" show-password-on="click" />
+                    <n-input v-model:value="user.password" type="password" show-password-on="click"
+                        @keyup.enter="createUser" />
                 </n-form-item-row>
             </n-form>
             <template #action>
@@ -364,7 +316,8 @@ onMounted(async () => {
         </n-modal>
         <n-modal v-model:show="showResetPassword" preset="dialog" :title="t('resetPassword')">
             <n-form-item-row :label="t('password')" required>
-                <n-input v-model:value="newResetPassword" type="password" show-password-on="click" />
+                <n-input v-model:value="newResetPassword" type="password" show-password-on="click"
+                    @keyup.enter="resetPassword" />
             </n-form-item-row>
             <template #action>
                 <n-button :loading="loading" @click="resetPassword" size="small" tertiary type="primary">
@@ -393,7 +346,8 @@ onMounted(async () => {
                 </n-button>
             </template>
         </n-modal>
-        <n-modal v-model:show="showUserAddressManagement" preset="card" :title="t('userAddressManagement')">
+        <n-modal v-model:show="showUserAddressManagement" preset="card" :title="t('userAddressManagement')"
+            style="width: 720px;">
             <UserAddressManagement :user_id="curUserId" />
         </n-modal>
         <n-input-group>

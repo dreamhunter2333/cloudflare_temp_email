@@ -1,12 +1,14 @@
 <script setup>
 import { ref, h, onMounted, watch, computed } from 'vue';
 import { NBadge, useMessage } from 'naive-ui'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import { hashPassword } from '../../utils'
 import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
+import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 const {
     loading, adminTab, openSettings,
@@ -14,89 +16,11 @@ const {
 } = useGlobalState()
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            name: 'Name',
-            created_at: 'Created At',
-            updated_at: 'Update At',
-            mail_count: 'Mail Count',
-            send_count: 'Send Count',
-            source_meta: 'Source',
-            showCredential: 'Show Mail Address Credential',
-            addressCredential: 'Mail Address Credential',
-            addressCredentialTip: 'Please copy the Mail Address Credential and you can use it to login to your email account.',
-            delete: 'Delete',
-            deleteTip: 'Are you sure to delete this email?',
-            deleteAccount: 'Delete Account',
-            viewMails: 'View Mails',
-            viewSendBox: 'View SendBox',
-            itemCount: 'itemCount',
-            query: 'Query',
-            addressQueryTip: 'Leave blank to query all addresses',
-            clearInbox: 'Clear Inbox',
-            clearSentItems: 'Clear Sent Items',
-            clearInboxTip: 'Are you sure to clear inbox for this email?',
-            clearSentItemsTip: 'Are you sure to clear sent items for this email?',
-            actions: 'Actions',
-            success: 'Success',
-            resetPassword: 'Reset Password',
-            newPassword: 'New Password',
-            passwordResetSuccess: 'Password reset successfully',
-            selectAll: 'Select All of This Page',
-            unselectAll: 'Unselect All',
-            pleaseSelectAddress: 'Please select address',
-            selectedItems: 'Selected',
-            multiDelete: 'Multi Delete',
-            multiDeleteTip: 'Are you sure to delete selected addresses?',
-            multiClearInbox: 'Multi Clear Inbox',
-            multiClearInboxTip: 'Are you sure to clear inbox for selected addresses?',
-            multiClearSentItems: 'Multi Clear Sent Items',
-            multiClearSentItemsTip: 'Are you sure to clear sent items for selected addresses?',
-        },
-        zh: {
-            name: '名称',
-            created_at: '创建时间',
-            updated_at: '更新时间',
-            mail_count: '邮件数量',
-            send_count: '发送数量',
-            source_meta: '来源',
-            showCredential: '查看邮箱地址凭证',
-            addressCredential: '邮箱地址凭证',
-            addressCredentialTip: '请复制邮箱地址凭证，你可以使用它登录你的邮箱。',
-            delete: '删除',
-            deleteTip: '确定要删除这个邮箱吗？',
-            deleteAccount: '删除邮箱',
-            viewMails: '查看邮件',
-            viewSendBox: '查看发件箱',
-            itemCount: '总数',
-            query: '查询',
-            addressQueryTip: '留空查询所有地址',
-            clearInbox: '清空收件箱',
-            clearSentItems: '清空发件箱',
-            clearInboxTip: '确定要清空这个邮箱的收件箱吗？',
-            clearSentItemsTip: '确定要清空这个邮箱的发件箱吗？',
-            actions: '操作',
-            success: '成功',
-            resetPassword: '重置密码',
-            newPassword: '新密码',
-            passwordResetSuccess: '密码重置成功',
-            selectAll: '全选本页',
-            unselectAll: '取消全选',
-            pleaseSelectAddress: '请选择地址',
-            selectedItems: '已选择',
-            multiDelete: '批量删除',
-            multiDeleteTip: '确定要删除选中的邮箱吗？',
-            multiClearInbox: '批量清空收件箱',
-            multiClearInboxTip: '确定要清空选中邮箱的收件箱吗？',
-            multiClearSentItems: '批量清空发件箱',
-            multiClearSentItemsTip: '确定要清空选中邮箱的发件箱吗？',
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.Account')
 
 const showEmailCredential = ref(false)
 const curEmailCredential = ref("")
+const curEmailAddress = ref("")
 const curDeleteAddressId = ref(0);
 const curClearInboxAddressId = ref(0);
 const curClearSentItemsAddressId = ref(0);
@@ -125,14 +49,16 @@ const showDeleteAccount = ref(false)
 const showClearInbox = ref(false)
 const showClearSentItems = ref(false)
 
-const showCredential = async (id) => {
+const showCredential = async (row) => {
     try {
-        curEmailCredential.value = await api.adminShowAddressCredential(id)
+        curEmailAddress.value = row.name
+        curEmailCredential.value = await api.adminShowAddressCredential(row.id)
         showEmailCredential.value = true
     } catch (error) {
         message.error(error.message || "error");
         showEmailCredential.value = false
         curEmailCredential.value = ""
+        curEmailAddress.value = ""
     }
 }
 
@@ -177,11 +103,16 @@ const clearSentItems = async () => {
 }
 
 const resetPassword = async () => {
+    const normalizedPassword = newPassword.value.trim()
+    if (!normalizedPassword) {
+        message.error(t("newPassword"));
+        return;
+    }
     try {
         await api.fetch(`/admin/address/${curResetPasswordAddressId.value}/reset_password`, {
             method: 'POST',
             body: JSON.stringify({
-                password: newPassword.value
+                password: await hashPassword(normalizedPassword)
             })
         });
         message.success(t("passwordResetSuccess"));
@@ -444,7 +375,7 @@ const columns = computed(() => [
                                     label: () => h(NButton,
                                         {
                                             text: true,
-                                            onClick: () => showCredential(row.id)
+                                            onClick: () => showCredential(row)
                                         },
                                         { default: () => t('showCredential') }
                                     ),
@@ -546,19 +477,8 @@ onMounted(async () => {
 
 <template>
     <div style="margin-top: 10px;">
-        <n-modal v-model:show="showEmailCredential" preset="dialog" title="Dialog">
-            <template #header>
-                <div>{{ t("addressCredential") }}</div>
-            </template>
-            <span>
-                <p>{{ t("addressCredentialTip") }}</p>
-            </span>
-            <n-card :bordered="false" embedded>
-                <b>{{ curEmailCredential }}</b>
-            </n-card>
-            <template #action>
-            </template>
-        </n-modal>
+        <AddressCredentialModal v-model:show="showEmailCredential" :address="curEmailAddress"
+            :jwt="curEmailCredential" />
         <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteAccount')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
@@ -586,7 +506,8 @@ onMounted(async () => {
 
         <n-modal v-model:show="showResetPassword" preset="dialog" :title="t('resetPassword')">
             <n-form-item :label="t('newPassword')">
-                <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click" />
+                <n-input v-model:value="newPassword" type="password" placeholder="" show-password-on="click"
+                    @keyup.enter="resetPassword" />
             </n-form-item>
             <template #action>
                 <n-button :loading="loading" @click="resetPassword" size="small" tertiary type="info">

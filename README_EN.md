@@ -40,7 +40,9 @@
 - **Completely Free** - Built on Cloudflare's free services with zero cost
 - **High Performance** - Rust WASM email parsing for extremely fast response
 - **Modern UI** - Responsive design with multi-language support and easy operation
-- **Address Password** - Support setting individual passwords for email addresses to enhance security (enabled via `ENABLE_ADDRESS_PASSWORD`)
+- **Address Password** - Support setting individual passwords for email addresses to enhance security
+- **Agent-friendly** - Built-in mailbox [`skill`](skills/cf-temp-mail-agent-mail/SKILL.md) for AI agents
+- **Mobile admin** - Community client [CloudMail](https://github.com/Lur1N77777/CloudMail) for Android admin and mailbox management
 
 ## Deployment Documentation - Quick Start
 
@@ -150,6 +152,8 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 - [x] Webhook support and message push integration
 - [x] Support `CF Turnstile` CAPTCHA verification
 - [x] Rate limiting configuration to prevent abuse
+- [x] **Agent-friendly**: bundled [`cf-temp-mail-agent-mail`](skills/cf-temp-mail-agent-mail/SKILL.md) skill lets AI agents consume a mailbox directly, see [docs](vitepress-docs/docs/en/guide/feature/agent-email.md)
+- [x] Community mobile admin client: [CloudMail](https://github.com/Lur1N77777/CloudMail) is built with Expo / React Native for this project's compatible API, providing an Android admin console, address management, inbox/sent/unknown mail, quick verification-code copy, OLED black theme, and local grouping.
 
 </details>
 

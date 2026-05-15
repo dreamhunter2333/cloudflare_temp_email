@@ -6,15 +6,90 @@
   <a href="CHANGELOG_EN.md">English</a>
 </p>
 
-## v1.6.0(main)
+## v1.9.0(main)
 
 ### Features
 
+- feat: |Frontend| Upgrade the address credential dialog to "Address Credentials & Connection Methods" and reuse it for both normal users and admin-created addresses; support showing AI Agent access via `ENABLE_AGENT_EMAIL_INFO` and SMTP/IMAP client settings via `SMTP_IMAP_PROXY_CONFIG`
+- docs: |Random Subdomain| Clarify in the "Use Random Subdomain" frontend tip and the `subdomain` / `worker-vars` docs (zh & en) that receiving mail on `name@<random>.abc.com` requires a wildcard `*` MX record under the base domain in DNS, because Cloudflare Email Routing does not inherit the apex configuration onto subdomains (issue #1035)
+
 ### Bug Fixes
+
+- fix: |Admin| Hash address passwords in the frontend before admin reset requests, and make the backend accept and store only the hash instead of plaintext
+- fix: |Address| Stop returning stored address password hashes from the admin address list and user bound-address list APIs to avoid exposing sensitive fields
+- fix: |AI Extract| Switch the default Workers AI model for AI email recognition to the JSON Mode-compatible, non-deprecated `@cf/meta/llama-3.1-8b-instruct-fast`, and document structured-output compatibility guidance for `@cf/zai-org/glm-4.7-flash` (issue #1029)
+- fix: |CI| Upgrade GitHub Actions and e2e Docker images to Node.js 24 to satisfy Wrangler 4.90.0 runtime requirements
+- fix: |Frontend| Prevent iOS Safari from auto-zooming the page when focusing mobile form controls with small font sizes
 
 ### Improvements
 
-## v1.5.0(main)
+## v1.8.0
+
+### Features
+
+- feat: |Frontend| Add six-language frontend support (`zh` / `en` / `es` / `pt-BR` / `ja` / `de`), keep `zh` as the default locale; locale-unprefixed routes (for example `/` and `/user`) render in Chinese by default while still recording browser language as the stored preference. Explicit locale switches are persisted, and the current route, query string, and canonical locale URL stay in sync during switching
+- feat: |API| Add server-side parsed-mail endpoints `/api/parsed_mails` and `/api/parsed_mail/:id` that return `sender` / `subject` / `text` / `html` / `attachments` metadata directly (reuses `commonParseMail`), so AI agents no longer need a client-side MIME parser
+- feat: |Skill| Bundle a read-only skill `cf-temp-mail-agent-mail` (`skills/cf-temp-mail-agent-mail/`) so AI agents like OpenClaw / Codex / Cursor can consume a mailbox with a user-supplied Address JWT + API base URL — list mails, poll verification codes, etc. — sidestepping the Turnstile challenge required to create a mailbox. Install via `npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail`
+- docs: |Docs| Add "AI Agent Mailbox Usage" doc (`guide/feature/agent-email`) covering the `parsed_mail` API and a local-parse fallback using `mail-parser-wasm` + `postal-mime` (mirrors the frontend) when parsed endpoints are unavailable
+- docs: |Docs| Make "a domain is a hard prerequisite" explicit at the top of `quick-start`, `worker-vars`, and `email-routing` (zh + en), spelling out that Cloudflare Email Routing must be enabled with email DNS records provisioned before deployment, the Catch-all rule must be bound after the Worker is deployed, and subdomains do not inherit the parent domain's Email Routing — so users no longer start deploying without a usable domain and end up unable to receive mail (issue #1004)
+- docs: |Deployment troubleshooting| Improve docs for recent UI-deployment and upgrade issues: document `nodejs_compat`, the required uppercase `DB` D1 binding, `/open_api/settings` verification, backend API URL entry, Cloudflare security challenges causing `Network Error`, D1 size limits and Cron Trigger cleanup, GitHub OAuth public email requirements, the difference between admin passwords and user accounts, and the `enableRandomSubdomain` API flag; move the Help/FAQ menu directly after Core Configuration so it is easier to find
+- docs: |Docs| Document how to handle the "address already exists" case when recreating an old mailbox, and clarify the GitHub Actions workflow for automatic updates with Page Functions forwarding backend requests (issues #947 #654)
+- docs: |OAuth2| Document GitHub private-email login configuration using `https://api.github.com/user/emails`, a JSONPath email field, and the `user:email` scope to read the primary email (issue #655)
+
+### Bug Fixes
+
+- fix: |Frontend| Narrow address-management modal widths and keep address tables horizontally scrollable inside the modal to prevent multi-address lists from stretching the dialog
+- fix: |Frontend| Fix the frontend settings bootstrap throwing an `undefined` error when `/open_api/settings` does not return a `domains` array by normalizing the field to an empty array before mapping it
+- fix: |Frontend| Fix every API call crashing client-side with `Invalid character in header content ["Authorization"]` when stale localStorage credentials (`jwt` / `auth` / `adminAuth` / `userJwt` / `access_token`) are empty, the literal string `"undefined"`, or contain a stray newline or other control character (issue #1000). Adds `safeHeaderValue` / `safeBearerHeader` helpers that validate every auth header against RFC 7230 and omit the header entirely when unsafe, so the worker returns a clean 401 instead of the request being rejected by axios/undici
+- fix: |Frontend| Fix the multilingual header on mobile by keeping only the menu button in the top bar and moving language/version actions into the drawer to avoid horizontal crowding or overflow
+
+### Improvements
+
+- refactor: |Worker| Split `mails_api/index.ts` and `admin_api/index.ts` so the index files only wire routes. Business logic moved into dedicated `*_api.ts` files (`mails_crud.ts` / `new_address.ts` / `parsed_mail_api.ts` / `address_api.ts` / `address_sender_api.ts` / `sendbox_api.ts` / `statistics_api.ts` / `account_settings_api.ts`). Paths and behavior unchanged
+
+## v1.7.0
+
+### Breaking Changes
+
+- breaking: |send mail| `SEND_MAIL` semantics changed from a verified-address-only compatibility path to a normal fallback send channel. If an instance already binds `SEND_MAIL` and does not configure Resend/SMTP, recipients outside `verifiedAddressList` will now also be sent through the Cloudflare binding after upgrade, changing runtime behavior and cost routing
+
+### Features
+
+- feat: |send mail| Recommend Cloudflare `send_email` binding as the default send channel. Domains onboarded to Email Routing without Resend/SMTP now automatically use the binding to send to arbitrary addresses (Workers Paid includes 3,000 msgs/month, $0.35/1000 beyond); existing `verifiedAddressList` / Resend / SMTP configurations remain fully compatible (#964)
+
+### Bug Fixes
+
+- fix: |Send Mail| Auto-initialize the default send balance for addresses that have no `address_sender` row yet when `DEFAULT_SEND_BALANCE > 0`, on the first send-settings read or send API call (`ON CONFLICT DO NOTHING`). Existing rows — including admin-disabled or admin-edited ones — are never overwritten by the runtime path, so users no longer need to manually request send permission first (#925 #985)
+- fix: |User Mailbox| Fix an issue where the user center still showed delete actions and could still delete mail via `/user_api/mails/:id` when `ENABLE_USER_DELETE_EMAIL` was disabled (#978)
+- fix: |Address| Lowercase configured prefixes when creating addresses to avoid generating mixed-case mailbox names; existing data must be migrated to lowercase manually by the user (#930)
+
+### Improvements
+
+## v1.6.0
+
+### Features
+
+- feat: |Admin| Add **IP Whitelist (strict mode)** to IP blacklist settings: when enabled, ONLY whitelisted IPs can access rate-limited APIs (create address, send mail, external send mail, user register, verify code); all other IPs are denied (#920)
+- feat: |Address| Support setting max address count to `0` for unlimited (#968)
+
+### Bug Fixes
+
+- fix: |Admin| Fix `D1_ERROR: LIKE or GLOB pattern too complex` on `/admin/address` and `/admin/users` when searching by full email address (query length pushes the LIKE pattern over D1's 50-byte limit). Long queries now fall back to `instr()` to bypass the LIKE pattern length cap (#956)
+
+### Improvements
+
+- docs: |Send Mail API| Clarify authentication differences between `/api/send_mail` and `/external/api/send_mail`, add "Address JWT" concept explanation (#922)
+- docs: |Worker Variables| Add generation instructions for `JWT_SECRET` (`openssl rand -hex 32`) (#932)
+- docs: |CLI Deployment| Add usage explanation for `routes` custom domain configuration (#932)
+- docs: |Admin API| Add `address_id` field to `/admin/new_address` response documentation (#912)
+- docs: |Admin| Add account list sorting feature documentation (#918)
+- docs: |Pages Deployment| Add SPA mode instructions to avoid 404 when refreshing or accessing sub-paths directly (#813)
+- docs: |Sidebar| Restructure documentation sidebar into "Core Configuration", "Notifications & Integrations", "Advanced Features", "Admin Console" groups
+- docs: |FAQ| Significantly expand FAQ with SPA 404, send balance, SMTP_CONFIG, mail client login and more (#919, #925, #839, #715, #921, #609)
+- docs: |Email Sending| Enhance SMTP_CONFIG field reference and multi-domain examples, add send balance mechanism documentation
+- docs: |Email Routing| Note that subdomains require Email Routing to be enabled separately; enabling it only on the apex domain does not cover subdomains (#969)
+
+## v1.5.0
 
 ### Features
 

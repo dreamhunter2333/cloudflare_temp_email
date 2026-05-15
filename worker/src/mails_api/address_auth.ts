@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import i18n from '../i18n';
-import utils, { getBooleanValue, hashPassword, checkCfTurnstile, normalizeEmailAddress } from '../utils';
+import utils, { getBooleanValue, hashPassword, checkCfTurnstile } from '../utils';
 import { Jwt } from 'hono/utils/jwt';
 
 export default {
@@ -23,7 +23,7 @@ export default {
             return c.text(msgs.InvalidAddressTokenMsg, 400);
         }
 
-        // 更新密码
+        // NOTE: new_password is the frontend SHA-256 hash, stored directly in address.password.
         const { success } = await c.env.DB.prepare(
             `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
         ).bind(new_password, address_id).run();
@@ -59,16 +59,15 @@ export default {
         }
 
         // 查找地址
-        const domainNormalizedEmail = normalizeEmailAddress(email);
         const address = await c.env.DB.prepare(
             `SELECT * FROM address WHERE name = ?`
-        ).bind(domainNormalizedEmail).first();
+        ).bind(email).first();
 
         if (!address) {
             return c.text(msgs.AddressNotFoundMsg, 404);
         }
 
-        // 验证密码
+        // NOTE: password is the frontend SHA-256 hash, compared directly with address.password.
         if (address.password !== password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 401);
         }

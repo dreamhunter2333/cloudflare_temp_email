@@ -8,10 +8,14 @@
 | 变量名                     | 类型        | 说明                                       | 示例                                 |
 | -------------------------- | ----------- | ------------------------------------------ | ------------------------------------ |
 | `DOMAINS`                  | JSON        | 用于临时邮箱的所有域名, 支持多个域名       | `["awsl.uk", "dreamhunter2333.xyz"]` |
-| `JWT_SECRET`               | 文本/Secret | 用于生成 jwt 的密钥, jwt 用于登录以及鉴权  | `xxx`                                |
+| `JWT_SECRET`               | 文本/Secret | 用于签名 JWT 的密钥，JWT 用于登录鉴权。请使用随机字符串，例如通过 `openssl rand -hex 32` 生成  | `a1b2c3d4...`                        |
 | `ADMIN_PASSWORDS`          | JSON        | admin 控制台密码, 不配置则不允许访问控制台 | `["123", "456"]`                     |
 | `ENABLE_USER_CREATE_EMAIL` | 文本/JSON   | 是否允许用户创建邮箱, 不配置则不允许       | `true`                               |
 | `ENABLE_USER_DELETE_EMAIL` | 文本/JSON   | 是否允许用户删除邮件, 不配置则不允许       | `true`                               |
+
+> [!IMPORTANT] DOMAINS 与 DEFAULT_DOMAINS 必须先在 Cloudflare 配置好
+> 这里填写的所有域名（包括下文「邮箱相关变量」里的 `DEFAULT_DOMAINS`、`USER_ROLES.domains`、`RANDOM_SUBDOMAIN_DOMAINS` 等）必须是你**已经在 Cloudflare Email Routing 中启用并完成邮件 DNS 记录下发**的域名。Worker 部署完成后，还需要把该域名的 Catch-all 规则绑定到这个 Worker，否则邮件无法投递到 Worker。
+> 配置步骤见 [Cloudflare Email Routing](/zh/guide/email-routing)。
 
 ## 后台相关变量
 
@@ -37,12 +41,22 @@
 | `RANDOM_SUBDOMAIN_LENGTH`             | 数字      | 随机子域名长度，默认 `8`，范围 `1-63`                                                                                            | `8`                                       |
 | `DOMAIN_LABELS`                       | JSON      | 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称                                                                       | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
 | `ENABLE_AUTO_REPLY`                   | 文本/JSON | 允许自动回复邮件。发件人过滤（`source_prefix`）支持三种模式：留空匹配所有发件人、填写前缀进行 `startsWith` 匹配、使用 `/regex/` 语法进行正则匹配（如 `/@example\.com$/`） | `true`                                    |
-| `DEFAULT_SEND_BALANCE`                | 文本/JSON | 默认发送邮件余额，如果不设置，将为 0                                                                                              | `1`                                       |
+| `DEFAULT_SEND_BALANCE`                | 文本/JSON | 默认发送邮件余额；当值大于 `0` 时，用户打开前端设置页或首次发送邮件时会自动初始化该额度。如果不设置，将为 `0`                                                                                              | `1`                                       |
 | `ENABLE_ADDRESS_PASSWORD`             | 文本/JSON | 启用邮箱地址密码功能，启用后创建新地址时会自动生成密码，并支持密码登录和修改                                                      | `true`                                    |
+| `ENABLE_AGENT_EMAIL_INFO`             | 文本/JSON | 是否在前端“地址凭证与连接方式”弹窗中展示 AI Agent 接入信息（Address JWT、parsed-mail API、skill 链接）                         | `true`                                    |
+| `SMTP_IMAP_PROXY_CONFIG`              | JSON      | 在前端“地址凭证与连接方式”弹窗中展示 SMTP/IMAP 代理连接信息；仅用于展示给用户，不会启动代理服务，代理服务仍需单独部署           | 见下方示例                                |
+| `SEND_MAIL_DOMAINS`                   | JSON      | 限制 `SEND_MAIL` binding 可用于哪些发件域名；留空或不配置时允许所有域名                                                            | `["example.com", "mail.example.com"]`     |
 
 > [!NOTE]
 > `RANDOM_SUBDOMAIN_DOMAINS` 只负责“创建地址时自动补随机子域名”，不会自动帮你创建 Cloudflare
 > 侧的子域名路由。
+>
+> 要让 `name@<随机>.abc.com` 这种随机子域名地址真的能收到邮件，**必须在基础域名的 DNS 中为
+> `*` 子域添加通配 MX 记录**：把基础域名上现有的每一条 MX 记录都复制到 `*` 主机名上，
+> 并保留 priority 与 target；Email Routing 子域不继承父域配置，详见 Cloudflare 的
+> [Email Routing — Subdomains](https://developers.cloudflare.com/email-routing/setup/subdomains/)
+> 文档、[#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035) 与
+> [配置子域名邮箱](/zh/guide/feature/subdomain)。
 >
 > 子域名地址通常更适合收件；如果要发件，仍建议优先使用主域名。
 >
@@ -54,6 +68,20 @@
 >
 > 管理后台提供三种显式状态：**跟随环境变量**、**强制开启**、**强制关闭**。当你选择
 > “跟随环境变量”并保存时，会清空后台覆盖，恢复到“未设置”的回退行为。
+>
+> `SEND_MAIL_DOMAINS` 只影响 `SEND_MAIL` binding 的兜底发信路径和 `/admin/send_mail_by_binding`。
+> 它不影响 Resend、SMTP、`verifiedAddressList` 等其他发信通道。
+>
+> `SMTP_IMAP_PROXY_CONFIG` 示例：
+>
+> ```json
+> {
+>   "smtp": { "host": "smtp.example.com", "port": 8025, "starttls": true },
+>   "imap": { "host": "imap.example.com", "port": 11143, "starttls": true }
+> }
+> ```
+>
+> SMTP 与 IMAP 可以使用不同主机名，便于反向代理或不同端口映射。
 
 ## 接受邮件相关变量
 

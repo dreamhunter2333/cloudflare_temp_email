@@ -39,11 +39,8 @@ async function startWebhookReceiver(): Promise<{
   const addr = server.address();
   if (!addr || typeof addr === 'string') throw new Error('Failed to resolve webhook receiver port');
   const boundPort = addr.port;
-  // When the runner is inside Docker, the worker can reach it via the service name.
-  // For local Playwright runs against the Dockerized worker, use Docker's host alias.
-  const hostname = process.env.CI
-    ? 'e2e-runner'
-    : (process.env.WEBHOOK_RECEIVER_HOST || 'host.docker.internal');
+  // In Docker network, e2e-runner container hostname is "e2e-runner"
+  const hostname = process.env.CI ? 'e2e-runner' : 'localhost';
   return { server, firstRequest, url: `http://${hostname}:${boundPort}/webhook` };
 }
 

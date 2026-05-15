@@ -1,13 +1,22 @@
-import { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
+import { createHash } from 'crypto';
 import WebSocket from 'ws';
 
 export const WORKER_URL = process.env.WORKER_URL!;
 export const WORKER_URL_SUBDOMAIN = process.env.WORKER_URL_SUBDOMAIN || '';
 export const WORKER_URL_ENV_OFF = process.env.WORKER_URL_ENV_OFF || '';
 export const WORKER_GZIP_URL = process.env.WORKER_GZIP_URL || '';
+export const WORKER_URL_SEND_MAIL_DOMAIN = process.env.WORKER_URL_SEND_MAIL_DOMAIN || '';
 export const FRONTEND_URL = process.env.FRONTEND_URL!;
 export const MAILPIT_API = process.env.MAILPIT_API!;
 export const TEST_DOMAIN = 'test.example.com';
+
+/**
+ * SHA-256 hash matching the frontend hashPassword utility.
+ */
+export function hashPassword(password: string): string {
+  return createHash('sha256').update(password).digest('hex');
+}
 
 /**
  * Create a new email address via the worker API.
@@ -182,8 +191,9 @@ export function onMailpitMessage(
 
 /**
  * Request send mail access for an address.
- * Must be called before sending mail — creates the address_sender row
- * with the DEFAULT_SEND_BALANCE configured in the worker.
+ * Kept for backward compatibility and manual-request flows. When
+ * DEFAULT_SEND_BALANCE > 0, send balance may already be auto-initialized
+ * before this endpoint is called.
  */
 export async function requestSendAccess(
   ctx: APIRequestContext,
@@ -194,6 +204,62 @@ export async function requestSendAccess(
   });
   if (!res.ok()) {
     throw new Error(`Failed to request send access: ${res.status()} ${await res.text()}`);
+  }
+}
+
+/**
+ * Fetch the sender access row for an address from the admin API.
+ */
+export async function getAddressSender(
+  ctx: APIRequestContext,
+  address: string,
+  workerUrl: string = WORKER_URL
+): Promise<any> {
+  const res = await ctx.get(
+    `${workerUrl}/admin/address_sender?limit=1&offset=0&address=${encodeURIComponent(address)}`,
+  );
+  if (!res.ok()) {
+    throw new Error(`Failed to get address sender: ${res.status()} ${await res.text()}`);
+  }
+  const body = await res.json();
+  if (!Array.isArray(body.results) || body.results.length < 1) {
+    throw new Error(`address_sender row not found for ${address}`);
+  }
+  return body.results[0];
+}
+
+/**
+ * Update a sender access row through the admin API.
+ */
+export async function updateAddressSender(
+  ctx: APIRequestContext,
+  opts: {
+    address: string;
+    address_id: number;
+    balance: number;
+    enabled: boolean;
+  },
+  workerUrl: string = WORKER_URL
+): Promise<void> {
+  const res = await ctx.post(`${workerUrl}/admin/address_sender`, {
+    data: opts,
+  });
+  if (!res.ok()) {
+    throw new Error(`Failed to update address sender: ${res.status()} ${await res.text()}`);
+  }
+}
+
+/**
+ * Delete a sender access row through the admin API by its id.
+ */
+export async function deleteAddressSender(
+  ctx: APIRequestContext,
+  id: number,
+  workerUrl: string = WORKER_URL
+): Promise<void> {
+  const res = await ctx.delete(`${workerUrl}/admin/address_sender/${id}`);
+  if (!res.ok()) {
+    throw new Error(`Failed to delete address sender: ${res.status()} ${await res.text()}`);
   }
 }
 

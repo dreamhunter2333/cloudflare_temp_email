@@ -1,5 +1,5 @@
 export const CONSTANTS = {
-    VERSION: 'v' + '1.6.0',
+    VERSION: 'v' + '1.9.0',
 
     // DB Version
     DB_VERSION_KEY: 'db_version',
@@ -26,4 +26,6 @@ export const CONSTANTS = {
     WEBHOOK_KV_USER_SETTINGS_KEY: "temp-mail-webhook-user-settings",
     EMAIL_KV_BLACK_LIST: "temp-mail-email-black-list",
     WEBHOOK_KV_ADMIN_MAIL_SETTINGS_KEY: "temp-mail-webhook-admin-mail-settings",
+    SEND_MAIL_LIMIT_COUNT_KEY_PREFIX: "send_mail_limit_count:",
+    SEND_MAIL_LIMIT_CONFIG_KEY: "send_mail_limit_config",
 }

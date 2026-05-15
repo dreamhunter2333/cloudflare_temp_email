@@ -3,7 +3,6 @@ import {
   createTestAddress,
   deleteAddress,
   deleteAllMailpitMessages,
-  requestSendAccess,
   onMailpitMessage,
   WORKER_URL,
 } from '../../fixtures/test-helpers';
@@ -15,10 +14,6 @@ test.describe('Send Mail via SMTP', () => {
 
   test('send HTML email and verify in Mailpit', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'sender-test');
-
-    // Must request send access before sending (creates address_sender row)
-    await requestSendAccess(request, jwt);
-
     const subject = `E2E Test ${Date.now()}`;
     const htmlContent = '<h1>Hello</h1><p>This is an <b>E2E test</b> email.</p>';
 
@@ -44,6 +39,14 @@ test.describe('Send Mail via SMTP', () => {
     const mail = await listener.message;
     expect(mail.From.Address).toBe(address);
     expect(mail.To[0].Address).toBe('recipient@test.example.com');
+
+    // Balance should auto-initialize to 10 and then decrement to 9 after sending.
+    const settingsRes = await request.get(`${WORKER_URL}/api/settings`, {
+      headers: { Authorization: `Bearer ${jwt}` },
+    });
+    expect(settingsRes.ok()).toBe(true);
+    const settings = await settingsRes.json();
+    expect(settings.send_balance).toBe(9);
 
     // Cleanup
     await deleteAddress(request, jwt);
