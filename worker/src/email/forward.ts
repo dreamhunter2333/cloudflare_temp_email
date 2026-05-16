@@ -101,8 +101,15 @@ async function forwardByRules(
             // 检查目标地址是否匹配域名，并转发
             // 保持原始逻辑：每个匹配的 domain 都会触发一次转发
             if (rule.domains && rule.domains.length > 0) {
-                for (const domain of rule.domains) {
-                    const normalizedDomain = normalizeDomain(domain);
+                const normalizedDomains = rule.domains.map(normalizeDomain);
+                if (normalizedDomains.some(domain => domain.length === 0)) {
+                    if (rule.forward) {
+                        await message.forward(rule.forward);
+                    }
+                    continue;
+                }
+
+                for (const normalizedDomain of normalizedDomains) {
                     if (isDomainOrSubdomain(messageDomain, normalizedDomain) && rule.forward) {
                         await message.forward(rule.forward);
                     }

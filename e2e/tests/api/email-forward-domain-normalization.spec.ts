@@ -129,4 +129,47 @@ test.describe('Email forward domain normalization', () => {
       await deleteAddress(request, jwt);
     }
   });
+
+  test('keeps blank forwarding rule domain as catch-all', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'forward-catch-all');
+    const forwardAddress = 'forward-catch-all-target@test.example.com';
+
+    try {
+      const saveRes = await request.post(`${WORKER_URL}/admin/account_settings`, {
+        headers: ADMIN_HEADERS,
+        data: {
+          ...DEFAULT_ACCOUNT_SETTINGS,
+          emailRuleSettings: {
+            emailForwardingList: [{
+              domains: ['', 'not-the-domain.example.com'],
+              forward: forwardAddress,
+            }],
+          },
+        },
+      });
+      expect(saveRes.ok()).toBe(true);
+
+      const subject = `forward-catch-all-${Date.now()}`;
+      const raw = [
+        `From: sender@test.example.com`,
+        `To: ${address}`,
+        `Subject: ${subject}`,
+        `Message-ID: <${subject}@test>`,
+        `MIME-Version: 1.0`,
+        `Content-Type: text/plain; charset=utf-8`,
+        ``,
+        `Forward catch-all domain test`,
+      ].join('\r\n');
+
+      const res = await request.post(`${WORKER_URL}/admin/test/receive_mail`, {
+        data: { from: 'sender@test.example.com', to: address, raw },
+      });
+      expect(res.ok()).toBe(true);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.forwardedTo).toEqual([forwardAddress]);
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
 });
