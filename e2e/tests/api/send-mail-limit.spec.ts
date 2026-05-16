@@ -1,4 +1,5 @@
-import { test, expect, APIRequestContext } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
 import {
   WORKER_URL,
   WORKER_URL_SEND_MAIL_DOMAIN,
@@ -425,13 +426,27 @@ test.describe('Send Mail Limit', () => {
     expect(res.status()).toBe(400);
   });
 
-  test('/admin/send_mail_by_binding returns 200 when domain is allowed', async ({ request }) => {
+  test('/admin/send_mail_by_binding normalizes uppercase allowed domain', async ({ request }) => {
     const res = await request.post(`${WORKER_URL_SEND_MAIL_DOMAIN}/admin/send_mail_by_binding`, {
       headers: ADMIN_HEADERS,
       data: {
-        from: 'admin@test.example.com',
+        from: 'admin@TEST.EXAMPLE.COM',
         to: ['recipient@test.example.com'],
         subject: `send-mail-domain-ok-${Date.now()}`,
+        text: 'body',
+      },
+    });
+    expect(res.ok()).toBe(true);
+    expect(await res.json()).toEqual({ status: 'ok' });
+  });
+
+  test('/admin/send_mail_by_binding normalizes object-form from domain', async ({ request }) => {
+    const res = await request.post(`${WORKER_URL_SEND_MAIL_DOMAIN}/admin/send_mail_by_binding`, {
+      headers: ADMIN_HEADERS,
+      data: {
+        from: { email: 'admin@TEST.EXAMPLE.COM', name: 'Admin' },
+        to: ['recipient@test.example.com'],
+        subject: `send-mail-domain-object-ok-${Date.now()}`,
         text: 'body',
       },
     });

@@ -25,7 +25,7 @@ api.get('/open_api/settings', async (c) => {
         "title": c.env.TITLE,
         "announcement": utils.getStringValue(c.env.ANNOUNCEMENT),
         "alwaysShowAnnouncement": utils.getBooleanValue(c.env.ALWAYS_SHOW_ANNOUNCEMENT),
-        "prefix": utils.getStringValue(c.env.PREFIX),
+        "prefix": utils.trimLower(c.env.PREFIX),
         "addressRegex": utils.getStringValue(c.env.ADDRESS_REGEX),
         "minAddressLen": utils.getIntValue(c.env.MIN_ADDRESS_LEN, 1),
         "maxAddressLen": utils.getIntValue(c.env.MAX_ADDRESS_LEN, 30),

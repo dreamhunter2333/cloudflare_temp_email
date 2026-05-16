@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains } from './utils';
+import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
@@ -15,7 +15,7 @@ const MAX_DOMAIN_LENGTH = 253;
 const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 const normalizeDomainValue = (domain: string): string => {
-    return domain.trim().toLowerCase();
+    return trimLower(domain);
 }
 
 const isValidDomainLabel = (label: string): boolean => {
@@ -41,7 +41,7 @@ export const isSendMailEnabled = (
 
     // Check SMTP config for domain
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    if (smtpConfigMap && smtpConfigMap[mailDomain]) return true;
+    if (getDomainMapValue(smtpConfigMap, mailDomain)) return true;
 
     // Check SEND_MAIL binding
     if (isSendMailBindingEnabled(c, mailDomain)) return true;
@@ -56,8 +56,7 @@ export const isSendMailBindingEnabled = (
     if (!c.env.SEND_MAIL) {
         return false;
     }
-    const sendMailDomains = getStringArray(c.env.SEND_MAIL_DOMAINS)
-        .map((domain) => normalizeDomainValue(domain));
+    const sendMailDomains = normalizeDomains(getStringArray(c.env.SEND_MAIL_DOMAINS));
     if (sendMailDomains.length === 0) {
         return true;
     }
@@ -369,9 +368,9 @@ export const newAddress = async (
     }
     // create address with prefix
     if (typeof addressPrefix === "string") {
-        name = addressPrefix.trim() + name;
+        name = trimLower(addressPrefix) + name;
     } else if (enablePrefix) {
-        name = getStringValue(c.env.PREFIX).trim() + name;
+        name = trimLower(c.env.PREFIX) + name;
     }
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
@@ -760,13 +759,13 @@ export const commonGetUserRole = async (
 export const getAddressPrefix = async (c: Context<HonoCustomType>): Promise<string | undefined> => {
     const user = c.get("userPayload");
     if (!user) {
-        return getStringValue(c.env.PREFIX).trim().toLowerCase();
+        return trimLower(c.env.PREFIX);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
     if (typeof user_role?.prefix === "string") {
-        return user_role.prefix.trim().toLowerCase();
+        return trimLower(user_role.prefix);
     }
-    return getStringValue(c.env.PREFIX).trim().toLowerCase();
+    return trimLower(c.env.PREFIX);
 }
 
 export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<string[]> => {
@@ -775,7 +774,10 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
         return getDefaultDomains(c);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
-    return user_role?.domains || getDefaultDomains(c);;
+    if (user_role?.domains && user_role.domains.length > 0) {
+        return normalizeDomains(user_role.domains);
+    }
+    return getDefaultDomains(c);
 }
 
 export async function sendWebhook(

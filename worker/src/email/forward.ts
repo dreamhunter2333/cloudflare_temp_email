@@ -1,6 +1,6 @@
 import { Context } from "hono";
 
-import { getEnvStringList, getJsonObjectValue, getJsonSetting } from "../utils";
+import { getEnvStringList, getJsonObjectValue, getJsonSetting, getMailDomain, isDomainOrSubdomain, normalizeDomain } from "../utils";
 import { EmailRuleSettings } from "../models";
 import { CONSTANTS } from "../constants";
 
@@ -91,6 +91,7 @@ async function forwardByRules(
             ...(emailRuleSettings?.emailForwardingList || []),
         ];
 
+        const messageDomain = getMailDomain(message.to);
         for (const rule of allRules) {
             // 检查来源地址是否匹配正则
             if (!matchSourcePatterns(message.from, rule.sourcePatterns, rule.sourceMatchMode)) {
@@ -100,8 +101,16 @@ async function forwardByRules(
             // 检查目标地址是否匹配域名，并转发
             // 保持原始逻辑：每个匹配的 domain 都会触发一次转发
             if (rule.domains && rule.domains.length > 0) {
-                for (const domain of rule.domains) {
-                    if (message.to.endsWith(domain) && rule.forward) {
+                const normalizedDomains = rule.domains.map(normalizeDomain);
+                if (normalizedDomains.some(domain => domain.length === 0)) {
+                    if (rule.forward) {
+                        await message.forward(rule.forward);
+                    }
+                    continue;
+                }
+
+                for (const normalizedDomain of normalizedDomains) {
+                    if (isDomainOrSubdomain(messageDomain, normalizedDomain) && rule.forward) {
                         await message.forward(rule.forward);
                     }
                 }
