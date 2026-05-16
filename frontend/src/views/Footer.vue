@@ -1,6 +1,7 @@
 <script setup>
 import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
+import DOMPurify from 'dompurify'
 const { openSettings } = useGlobalState()
 
 
@@ -17,7 +18,7 @@ const { t } = useScopedI18n('views.Footer')
                     {{ t('copyright') }} © 2023-{{ new Date().getFullYear() }}
                 </n-text>
                 <n-text depth="3">
-                    <div v-html="openSettings.copyright"></div>
+                    <div v-html="DOMPurify.sanitize(openSettings.copyright)"></div>
                 </n-text>
             </n-space>
         </div>
