@@ -775,7 +775,7 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
     }
     const user_role = await commonGetUserRole(c, user.user_id);
     if (user_role?.domains && user_role.domains.length > 0) {
-        return user_role.domains;
+        return normalizeDomains(user_role.domains);
     }
     return getDefaultDomains(c);
 }

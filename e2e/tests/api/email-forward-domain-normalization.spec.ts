@@ -72,6 +72,15 @@ test.describe('Email forward domain normalization', () => {
       const body = await res.json();
       expect(body.success).toBe(true);
       expect(body.forwardedTo).toEqual([forwardAddress]);
+
+      const mailsRes = await request.get(`${WORKER_URL}/api/mails?limit=10&offset=0`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      expect(mailsRes.ok()).toBe(true);
+      const mailsBody = await mailsRes.json();
+      expect(mailsBody.results.some((mail: { address: string; raw: string }) => {
+        return mail.address === address && mail.raw.includes(subject);
+      })).toBe(true);
     } finally {
       await deleteAddress(request, jwt);
     }

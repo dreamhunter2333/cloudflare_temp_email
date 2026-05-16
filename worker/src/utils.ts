@@ -166,6 +166,22 @@ export const getMailDomain = (
     return normalizeDomain(address.slice(atIndex + 1));
 }
 
+export const normalizeAddressDomain = (
+    value: string | undefined | null
+): string => {
+    const address = getStringValue(value).trim();
+    const atIndex = address.lastIndexOf("@");
+    if (atIndex < 0) {
+        return address;
+    }
+    const localPart = address.slice(0, atIndex).trim();
+    const domain = normalizeDomain(address.slice(atIndex + 1));
+    if (!localPart || !domain) {
+        return address;
+    }
+    return `${localPart}@${domain}`;
+}
+
 export const includesDomain = (
     domains: string[] | undefined | null,
     domain: string | undefined | null
@@ -497,6 +513,7 @@ export default {
     normalizeDomain,
     normalizeDomains,
     getMailDomain,
+    normalizeAddressDomain,
     includesDomain,
     getDomainMapValue,
     getDefaultDomains,
