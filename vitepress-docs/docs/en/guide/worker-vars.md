@@ -48,6 +48,8 @@
 | `SEND_MAIL_DOMAINS`                   | JSON      | Restrict which sender domains can use the `SEND_MAIL` binding; when unset or empty, all domains are allowed                                                                                                     | `["example.com", "mail.example.com"]`     |
 
 > [!NOTE]
+> When `DEFAULT_DOMAINS` is unset or configured as an empty array, it falls back to `DOMAINS`.
+>
 > `RANDOM_SUBDOMAIN_DOMAINS` only controls automatic random subdomain generation during mailbox
 > creation. It does not create Cloudflare-side subdomain routing for you.
 >
@@ -137,7 +139,7 @@
 
 > [!NOTE] USER_ROLES User Role Configuration
 >
-> - If `domains` is empty, `DEFAULT_DOMAINS` will be used
+> - If `domains` is empty, `DEFAULT_DOMAINS` will be used; if `DEFAULT_DOMAINS` is also empty, it falls back to `DOMAINS`
 > - If prefix is null, the default prefix will be used, if prefix is an empty string, no prefix will be used
 >
 > When deploying through UI, configure `USER_ROLES` in this format: `[{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"vip","prefix":"vip"},{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"admin","prefix":""}]`

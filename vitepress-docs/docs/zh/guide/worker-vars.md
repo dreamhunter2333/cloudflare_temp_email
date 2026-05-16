@@ -48,6 +48,8 @@
 | `SEND_MAIL_DOMAINS`                   | JSON      | 限制 `SEND_MAIL` binding 可用于哪些发件域名；留空或不配置时允许所有域名                                                            | `["example.com", "mail.example.com"]`     |
 
 > [!NOTE]
+> `DEFAULT_DOMAINS` 未配置或配置为空数组时，会回退使用 `DOMAINS`。
+>
 > `RANDOM_SUBDOMAIN_DOMAINS` 只负责“创建地址时自动补随机子域名”，不会自动帮你创建 Cloudflare
 > 侧的子域名路由。
 >
@@ -131,7 +133,7 @@
 
 > [!NOTE] USER_ROLES 用户角色配置说明
 >
-> - 如果 `domains` 为空将使用 `DEFAULT_DOMAINS`
+> - 如果 `domains` 为空将使用 `DEFAULT_DOMAINS`；如果 `DEFAULT_DOMAINS` 也为空，则继续回退到 `DOMAINS`
 > - 如果 prefix 为 null 将使用默认前缀, 如果 prefix 为空字符串将不使用前缀
 >
 > 通过用户界面部署时 `USER_ROLES` 请配置为此格式 `[{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"vip","prefix":"vip"},{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"admin","prefix":""}]`
