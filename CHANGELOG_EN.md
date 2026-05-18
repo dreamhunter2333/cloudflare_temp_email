@@ -15,6 +15,7 @@
 
 ### Bug Fixes
 
+- fix: |Telegram| Support falling back from HTML mail bodies to plain text in Telegram push messages, and surface 4-8 digit verification codes first, including common formats with spaces, separators, and HTML entities, instead of only showing “please open the mini app”
 - fix: |Admin| Hash address passwords in the frontend before admin reset requests, and make the backend accept and store only the hash instead of plaintext
 - fix: |Address| Stop returning stored address password hashes from the admin address list and user bound-address list APIs to avoid exposing sensitive fields
 - fix: |Address| Normalize whitespace and casing for configured domains, inbound recipient domains, and prefixes across `DOMAINS`, `DEFAULT_DOMAINS`, `USER_ROLES.domains`, random subdomains, forwarding rules, SMTP, and `SEND_MAIL` domain matching, preserve blank-domain catch-all forwarding rules, and clarify that empty `DEFAULT_DOMAINS` / role domains fall back to `DOMAINS`, to avoid create, receive, forward, or send failures caused by mixed-case configuration or inbound recipient domains (issue #926)
