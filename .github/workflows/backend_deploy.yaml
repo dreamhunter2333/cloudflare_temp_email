@@ -57,6 +57,11 @@ jobs:
           
           pnpm install --no-frozen-lockfile
 
+          # ==================== 添加 Token ====================
+          echo "📌 Setting Telegram Bot Token..."
+          echo "$TELEGRAM_BOT_TOKEN" | pnpm wrangler secret put TELEGRAM_BOT_TOKEN --name cloudflare_temp_email
+          # =================================================================
+
           if [ -n "$use_mail_wasm_parser" ]; then
             echo "Using mail-parser-wasm-worker"
             pnpm add mail-parser-wasm-worker
@@ -81,3 +86,4 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           # ✅ 将 secret 映射到环境变量中
           WRANGLER_TOML_CONTENT: ${{ secrets.BACKEND_TOML }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
