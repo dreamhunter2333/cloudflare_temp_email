@@ -151,17 +151,17 @@ export async function extractEmailInfo(
     env: Bindings,
     message_id: string | null,
     address: string
-): Promise<void> {
+): Promise<ExtractResult | null> {
     try {
         // Check if AI extraction is enabled via environment variable
         if (!getBooleanValue(env.ENABLE_AI_EMAIL_EXTRACT)) {
-            return;
+            return null;
         }
 
         // Ensure AI binding is available
         if (!env.AI) {
             console.error('AI binding not available');
-            return;
+            return null;
         }
 
         // Check allowlist if enabled
@@ -187,7 +187,7 @@ export async function extractEmailInfo(
 
             if (!isAllowed) {
                 console.log(`AI extraction skipped for ${address}: not in allowlist`);
-                return;
+                return null;
             }
         }
 
@@ -196,7 +196,7 @@ export async function extractEmailInfo(
         const emailContent = parsedEmail?.text || parsedEmail?.html || "";
 
         if (!emailContent) {
-            return;
+            return null;
         }
 
         // Truncate content if too long (max 4000 characters to avoid token limits)
@@ -219,9 +219,12 @@ export async function extractEmailInfo(
             ).bind(metadata, message_id).run();
 
             console.log(`AI extraction completed for ${message_id}: ${result.type}`);
+            return result;
         }
+        return result;
     } catch (e) {
         console.error('AI email extraction error:', e);
+        return null;
     }
 }
 
