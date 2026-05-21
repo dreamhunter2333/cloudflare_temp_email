@@ -93,6 +93,7 @@ ENABLE_AUTO_REPLY = false
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # DISABLE_SHOW_GITHUB = true
+# DISABLE_SHOW_GITHUB_FOR_USER = true
 # Status monitoring page URL
 # STATUS_URL = "https://status.example.com"
 # default send balance, auto initialized when users open settings or send mail; if not set, it will be 0

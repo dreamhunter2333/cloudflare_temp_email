@@ -38,6 +38,7 @@ export const useGlobalState = createGlobalState(
             isS3Enabled: false,
             enableSendMail: false,
             showGithub: true,
+            showGithubForUser: true,
             disableAdminPasswordCheck: false,
             enableAddressPassword: false,
             enableAgentEmailInfo: false,
