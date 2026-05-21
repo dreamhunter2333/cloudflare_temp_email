@@ -123,6 +123,7 @@ ENABLE_AUTO_REPLY = false
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # DISABLE_SHOW_GITHUB = true # Disable Show GitHub link
+# DISABLE_SHOW_GITHUB_FOR_USER = true # Hide GitHub link for normal users only
 # default send balance, if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
 # the role which can send emails without limit, multiple roles can be separated by ,

@@ -67,6 +67,7 @@ type Bindings = {
     COPYRIGHT: string | undefined
     STATUS_URL: string | undefined
     DISABLE_SHOW_GITHUB: string | boolean | undefined
+    DISABLE_SHOW_GITHUB_FOR_USER: string | boolean | undefined
     FORWARD_ADDRESS_LIST: string | string[] | undefined
 
     ENABLE_CHECK_JUNK_MAIL: string | boolean | undefined

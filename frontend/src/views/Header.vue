@@ -103,6 +103,11 @@ const changeLocale = async (lang) => {
 }
 
 const version = import.meta.env.PACKAGE_VERSION ? `v${import.meta.env.PACKAGE_VERSION}` : "";
+const showGithubForCurrentUser = computed(() => {
+    if (!openSettings.value.showGithub) return false;
+    if (openSettings.value.showGithubForUser) return true;
+    return showAdminPage.value;
+});
 
 const menuOptions = computed(() => [
     {
@@ -270,7 +275,7 @@ onMounted(async () => {
                         </n-button>
                     </n-dropdown>
                     <n-button
-                        v-if="!isMobile && openSettings.showGithub"
+                        v-if="!isMobile && showGithubForCurrentUser"
                         text
                         size="small"
                         class="header-version-button"
@@ -298,7 +303,7 @@ onMounted(async () => {
                         </button>
                     </n-dropdown>
                     <a
-                        v-if="openSettings.showGithub"
+                        v-if="showGithubForCurrentUser"
                         class="mobile-menu-utility-button"
                         target="_blank"
                         rel="noopener noreferrer"

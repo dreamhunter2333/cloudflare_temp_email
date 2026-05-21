@@ -156,7 +156,8 @@
 | `ALWAYS_SHOW_ANNOUNCEMENT` | Text/JSON   | Whether to always show announcement (even if unchanged), default `false` | `true`                |
 | `COPYRIGHT`                | Text        | Custom frontend footer text, supports html                               | `Dream Hunter`        |
 | `ADMIN_CONTACT`            | Text        | Admin contact information, can be any string, hidden if not configured   | `xxx@gmail.com`       |
-| `DISABLE_SHOW_GITHUB`      | Text/JSON   | Whether to show GitHub link                                              | `true`                |
+| `DISABLE_SHOW_GITHUB`      | Text/JSON   | Globally hide the GitHub link                                            | `true`                |
+| `DISABLE_SHOW_GITHUB_FOR_USER` | Text/JSON | Hide the GitHub link for normal users while keeping it visible to admin users | `true`                |
 | `STATUS_URL`               | Text        | Status monitoring page URL, shows Status menu button when configured     | `https://status.example.com` |
 | `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
 | `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
