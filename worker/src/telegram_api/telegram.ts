@@ -14,6 +14,7 @@ import { RawMailRow } from "../models";
 import { UserFromGetMe } from "telegraf/types";
 import i18n from "../i18n";
 import { LocaleMessages } from "../i18n/type";
+import type { ExtractResult } from "../email/ai_extract";
 
 
 // Helper to get messages by userId
@@ -74,6 +75,62 @@ const COMMANDS = [
         description: "设置语言 /lang <zh|en> | Set language /lang <zh|en>"
     },
 ]
+
+const getAiExtractLabel = (
+    msgs: LocaleMessages,
+    type: ExtractResult["type"]
+): string => {
+    switch (type) {
+        case "auth_code":
+            return msgs.TgAiExtractAuthCodeMsg;
+        case "auth_link":
+            return msgs.TgAiExtractAuthLinkMsg;
+        case "service_link":
+            return msgs.TgAiExtractServiceLinkMsg;
+        case "subscription_link":
+            return msgs.TgAiExtractSubscriptionLinkMsg;
+        case "other_link":
+            return msgs.TgAiExtractOtherLinkMsg;
+        default:
+            return msgs.TgAiExtractResultMsg;
+    }
+}
+
+const parseAiExtractMetadata = (
+    metadata: string | undefined | null
+): ExtractResult | null => {
+    if (!metadata) return null;
+    try {
+        const parsed = JSON.parse(metadata);
+        const result = parsed?.ai_extract;
+        if (
+            result
+            && typeof result.type === "string"
+            && result.type !== "none"
+            && typeof result.result === "string"
+            && result.result
+        ) {
+            return result as ExtractResult;
+        }
+    } catch (error) {
+        console.warn("Failed to parse AI extraction metadata", error);
+    }
+    return null;
+}
+
+const formatAiExtractForTelegram = (
+    msgs: LocaleMessages,
+    aiExtract: ExtractResult | null | undefined
+): string => {
+    if (!aiExtract || aiExtract.type === "none" || !aiExtract.result) {
+        return "";
+    }
+    const label = getAiExtractLabel(msgs, aiExtract.type);
+    const displayText = aiExtract.type !== "auth_code" && aiExtract.result_text
+        ? ` (${aiExtract.result_text})`
+        : "";
+    return `${msgs.TgAiExtractResultMsg}\n${label}: ${aiExtract.result}${displayText}\n\n`;
+}
 
 export const getTelegramCommands = (c: Context<HonoCustomType>) => {
     return getBooleanValue(c.env.TG_ALLOW_USER_LANG)
@@ -312,7 +369,10 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         const raw = mailRow ? await resolveRawEmail(mailRow) : undefined;
         const mailId = mailRow?.id;
         const created_at = mailRow?.created_at;
-        const { mail } = raw ? await parseMail(msgs, { rawEmail: raw }, queryAddress, created_at) : { mail: msgs.TgNoMoreMailsMsg };
+        const aiExtract = parseAiExtractMetadata(mailRow?.metadata);
+        const { mail } = raw
+            ? await parseMail(msgs, { rawEmail: raw }, queryAddress, created_at, aiExtract)
+            : { mail: msgs.TgNoMoreMailsMsg };
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const miniAppButtons = []
         if (settings?.miniAppUrl && settings?.miniAppUrl?.length > 0 && mailId) {
@@ -381,7 +441,9 @@ export async function initTelegramBotCommands(c: Context<HonoCustomType>, bot: T
 const parseMail = async (
     msgs: LocaleMessages,
     parsedEmailContext: ParsedEmailContext,
-    address: string, created_at: string | undefined | null
+    address: string,
+    created_at: string | undefined | null,
+    aiExtract?: ExtractResult | null
 ) => {
     if (!parsedEmailContext.rawEmail) {
         return {};
@@ -394,7 +456,8 @@ const parseMail = async (
         }
         return {
             isHtml: false,
-            mail: `From: ${parsedEmail?.sender || msgs.TgNoSenderMsg}\n`
+            mail: formatAiExtractForTelegram(msgs, aiExtract)
+                + `From: ${parsedEmail?.sender || msgs.TgNoSenderMsg}\n`
                 + `To: ${address}\n`
                 + (created_at ? `Date: ${created_at}\n` : "")
                 + `Subject: ${parsedEmail?.subject}\n`
@@ -412,7 +475,8 @@ const parseMail = async (
 export async function sendMailToTelegram(
     c: Context<HonoCustomType>, address: string,
     parsedEmailContext: ParsedEmailContext,
-    message_id: string | null
+    message_id: string | null,
+    aiExtract?: ExtractResult | null
 ) {
     if (!c.env.TELEGRAM_BOT_TOKEN || !c.env.KV) {
         return;
@@ -429,7 +493,9 @@ export async function sendMailToTelegram(
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
 
     const buildAndSend = async (targetUserId: string, msgs: LocaleMessages) => {
-        const { mail } = await parseMail(msgs, parsedEmailContext, address, new Date().toUTCString());
+        const { mail } = await parseMail(
+            msgs, parsedEmailContext, address, new Date().toUTCString(), aiExtract
+        );
         if (!mail) return;
         const attachments = parsedEmailContext.parsedEmail?.attachments || [];
         const buttons = [];

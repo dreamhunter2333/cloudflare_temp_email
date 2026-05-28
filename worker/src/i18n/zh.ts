@@ -174,6 +174,12 @@ const messages: LocaleMessages = {
     TgNoPermissionViewMailMsg: "无权查看此邮件",
     TgBotTokenRequiredMsg: "需要设置 TELEGRAM_BOT_TOKEN",
     TgLangFeatureDisabledMsg: "语言设置功能已禁用，使用系统默认语言",
+    TgAiExtractResultMsg: "AI 提取",
+    TgAiExtractAuthCodeMsg: "验证码",
+    TgAiExtractAuthLinkMsg: "验证链接",
+    TgAiExtractServiceLinkMsg: "服务链接",
+    TgAiExtractSubscriptionLinkMsg: "订阅链接",
+    TgAiExtractOtherLinkMsg: "其他链接",
 }
 
 export default messages;
