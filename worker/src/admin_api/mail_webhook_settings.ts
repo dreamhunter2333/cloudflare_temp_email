@@ -37,7 +37,11 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
         subject: parsedEmail?.subject || "test subject",
         raw: raw || "test raw email",
         parsedText: parsedEmail?.text || "test parsed text",
-        parsedHtml: parsedEmail?.html || "test parsed html"
+        parsedHtml: parsedEmail?.html || "test parsed html",
+        aiExtract: null,
+        aiExtractType: "",
+        aiExtractResult: "",
+        aiExtractResultText: ""
     });
     if (!res.success) {
         return c.text(res.message || "send webhook error", 400);

@@ -11,6 +11,7 @@
 ### Features
 
 - feat: |Telegram| Show AI extraction results in Telegram new-mail notifications and `/mails` history views, including verification codes, auth links, service links, and subscription links
+- feat: |Webhook| Support AI extraction placeholders in mail webhook templates, including `aiExtractType`, `aiExtractResult`, and `aiExtractResultText`
 - feat: |Frontend| Add `DISABLE_SHOW_GITHUB_FOR_USER` to hide the Header GitHub/version entry from normal users while keeping it visible to admin users (issue #1041)
 - feat: |Frontend| Upgrade the address credential dialog to "Address Credentials & Connection Methods" and reuse it for both normal users and admin-created addresses; support showing AI Agent access via `ENABLE_AGENT_EMAIL_INFO` and SMTP/IMAP client settings via `SMTP_IMAP_PROXY_CONFIG`
 - docs: |Random Subdomain| Clarify in the "Use Random Subdomain" frontend tip and the `subdomain` / `worker-vars` docs (zh & en) that receiving mail on `name@<random>.abc.com` requires a wildcard `*` MX record under the base domain in DNS, because Cloudflare Email Routing does not inherit the apex configuration onto subdomains (issue #1035)

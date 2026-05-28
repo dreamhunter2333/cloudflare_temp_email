@@ -5,7 +5,7 @@ import { WorkerMailerOptions } from 'worker-mailer';
 import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
-import { AddressCreationSettings, AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
+import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
@@ -810,7 +810,8 @@ export async function triggerWebhook(
     c: Context<HonoCustomType>,
     address: string,
     parsedEmailContext: ParsedEmailContext,
-    message_id: string | null
+    message_id: string | null,
+    aiExtract?: ExtractResult | null
 ): Promise<void> {
     if (!c.env.KV || !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
         return
@@ -843,6 +844,9 @@ export async function triggerWebhook(
     ).bind(address, message_id).first<string>("id");
 
     const parsedEmail = await commonParseMail(parsedEmailContext);
+    const usableAiExtract = aiExtract?.type !== "none" && aiExtract?.result
+        ? aiExtract
+        : null;
     const webhookMail = {
         id: mailId || "",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
@@ -852,6 +856,10 @@ export async function triggerWebhook(
         raw: parsedEmailContext.rawEmail || "",
         parsedText: parsedEmail?.text || "",
         parsedHtml: parsedEmail?.html || "",
+        aiExtract: usableAiExtract,
+        aiExtractType: usableAiExtract?.type || "",
+        aiExtractResult: usableAiExtract?.result || "",
+        aiExtractResultText: usableAiExtract?.result_text || "",
     }
     for (const settings of webhookList) {
         const res = await sendWebhook(settings, webhookMail);

@@ -32,6 +32,10 @@ export type WebhookMail = {
     raw: string;
     parsedText: string;
     parsedHtml: string;
+    aiExtract: ExtractResult | null;
+    aiExtractType: string;
+    aiExtractResult: string;
+    aiExtractResultText: string;
 }
 
 export type CustomSqlCleanup = {
@@ -156,6 +160,9 @@ export class WebhookSettings {
         "raw": "${raw}",
         "parsedText": "${parsedText}",
         "parsedHtml": "${parsedHtml}",
+        "aiExtractType": "${aiExtractType}",
+        "aiExtractResult": "${aiExtractResult}",
+        "aiExtractResultText": "${aiExtractResultText}",
     }, null, 2)
 }
 
