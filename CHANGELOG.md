@@ -11,6 +11,7 @@
 ### Features
 
 - feat: |Telegram| Telegram 新邮件推送与 `/mails` 历史邮件查看支持展示 AI 提取结果，包含验证码、验证链接、服务链接、订阅链接等关键信息
+- feat: |Webhook| 邮件 Webhook 模板支持填充 AI 提取结果占位符，包括 `aiExtractType`、`aiExtractResult`、`aiExtractResultText`
 - feat: |Frontend| 新增 `DISABLE_SHOW_GITHUB_FOR_USER` 配置，可仅对普通用户隐藏 Header 的 GitHub/版本入口，admin 仍可见（issue #1041）
 - feat: |Frontend| 将邮箱地址凭证弹窗升级为“地址凭证与连接方式”，复用普通用户与 admin 创建邮箱结果弹窗；支持通过 `ENABLE_AGENT_EMAIL_INFO` 展示 AI Agent 接入信息，并通过 `SMTP_IMAP_PROXY_CONFIG` 展示 SMTP/IMAP 客户端连接信息
 - docs: |随机子域名| 在前端“启用随机子域名”提示与 `subdomain` / `worker-vars` 文档（中英）中明确说明：要让 `name@<随机>.abc.com` 真正收到邮件，必须在基础域名 DNS 中为 `*` 子域添加通配 MX 记录，Email Routing 子域不继承父域配置（issue #1035）

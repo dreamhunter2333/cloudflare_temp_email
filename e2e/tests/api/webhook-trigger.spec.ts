@@ -72,6 +72,9 @@ test.describe('Webhook — triggered on incoming mail', () => {
             from: '${from}',
             to: '${to}',
             subject: '${subject}',
+            aiExtractType: '${aiExtractType}',
+            aiExtractResult: '${aiExtractResult}',
+            aiExtractResultText: '${aiExtractResultText}',
           }),
         },
       });
@@ -93,7 +96,16 @@ test.describe('Webhook — triggered on incoming mail', () => {
       ].join('\r\n');
 
       const res = await request.post(`${WORKER_URL}/admin/test/receive_mail`, {
-        data: { from, to: address, raw },
+        data: {
+          from,
+          to: address,
+          raw,
+          ai_extract_result: {
+            type: 'auth_code',
+            result: '654321',
+            result_text: 'Login verification code',
+          },
+        },
       });
       expect(res.ok()).toBe(true);
 
@@ -106,6 +118,9 @@ test.describe('Webhook — triggered on incoming mail', () => {
       expect(payload.from).toContain('webhook-sender@test.example.com');
       expect(payload.to).toBe(address);
       expect(payload.subject).toBe(subject);
+      expect(payload.aiExtractType).toBe('auth_code');
+      expect(payload.aiExtractResult).toBe('654321');
+      expect(payload.aiExtractResultText).toBe('Login verification code');
     } finally {
       server.close();
     }
