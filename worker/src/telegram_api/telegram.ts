@@ -10,11 +10,10 @@ import { sendTelegramAttachments } from "./tg_file_upload";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 import { commonParseMail } from "../common";
 import { resolveRawEmail } from "../gzip";
-import { RawMailRow } from "../models";
 import { UserFromGetMe } from "telegraf/types";
 import i18n from "../i18n";
 import { LocaleMessages } from "../i18n/type";
-import type { ExtractResult } from "../email/ai_extract";
+import type { ExtractResult, RawMailRow } from "../models";
 
 
 // Helper to get messages by userId
@@ -76,60 +75,54 @@ const COMMANDS = [
     },
 ]
 
-const getAiExtractLabel = (
+const formatAiExtractForTelegram = (
     msgs: LocaleMessages,
-    type: ExtractResult["type"]
+    aiExtract?: ExtractResult | string | null
 ): string => {
-    switch (type) {
-        case "auth_code":
-            return msgs.TgAiExtractAuthCodeMsg;
-        case "auth_link":
-            return msgs.TgAiExtractAuthLinkMsg;
-        case "service_link":
-            return msgs.TgAiExtractServiceLinkMsg;
-        case "subscription_link":
-            return msgs.TgAiExtractSubscriptionLinkMsg;
-        case "other_link":
-            return msgs.TgAiExtractOtherLinkMsg;
-        default:
-            return msgs.TgAiExtractResultMsg;
+    if (!aiExtract) {
+        return "";
     }
-}
 
-const parseAiExtractMetadata = (
-    metadata: string | undefined | null
-): ExtractResult | null => {
-    if (!metadata) return null;
     try {
-        const parsed = JSON.parse(metadata);
-        const result = parsed?.ai_extract;
-        if (
-            result
-            && typeof result.type === "string"
-            && result.type !== "none"
-            && typeof result.result === "string"
-            && result.result
-        ) {
-            return result as ExtractResult;
+        if (typeof aiExtract === "string") {
+            const metadata = JSON.parse(aiExtract);
+            aiExtract = metadata?.ai_extract;
         }
     } catch (error) {
         console.warn("Failed to parse AI extraction metadata", error);
-    }
-    return null;
-}
-
-const formatAiExtractForTelegram = (
-    msgs: LocaleMessages,
-    aiExtract: ExtractResult | null | undefined
-): string => {
-    if (!aiExtract || aiExtract.type === "none" || !aiExtract.result) {
         return "";
     }
-    const label = getAiExtractLabel(msgs, aiExtract.type);
-    const displayText = aiExtract.type !== "auth_code" && aiExtract.result_text
-        ? ` (${aiExtract.result_text})`
+
+    if (!aiExtract || typeof aiExtract !== "object") {
+        return "";
+    }
+
+    const labels: Record<Exclude<ExtractResult["type"], "none">, string> = {
+        auth_code: msgs.TgAiExtractAuthCodeMsg,
+        auth_link: msgs.TgAiExtractAuthLinkMsg,
+        service_link: msgs.TgAiExtractServiceLinkMsg,
+        subscription_link: msgs.TgAiExtractSubscriptionLinkMsg,
+        other_link: msgs.TgAiExtractOtherLinkMsg,
+    };
+    const label = labels[aiExtract.type as keyof typeof labels];
+    const result = typeof aiExtract.result === "string"
+        ? aiExtract.result.replace(/\s+/g, " ").trim().slice(0, 600)
         : "";
-    return `${msgs.TgAiExtractResultMsg}\n${label}: ${aiExtract.result}${displayText}\n\n`;
+    if (!result) {
+        return "";
+    }
+
+    if (!label) {
+        return "";
+    }
+
+    const resultText = typeof aiExtract.result_text === "string"
+        ? aiExtract.result_text.replace(/\s+/g, " ").trim().slice(0, 120)
+        : "";
+    const displayText = aiExtract.type !== "auth_code" && resultText && resultText !== result
+        ? ` (${resultText})`
+        : "";
+    return `${msgs.TgAiExtractResultMsg}\n${label}: ${result}${displayText}\n\n`;
 }
 
 export const getTelegramCommands = (c: Context<HonoCustomType>) => {
@@ -369,9 +362,8 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         const raw = mailRow ? await resolveRawEmail(mailRow) : undefined;
         const mailId = mailRow?.id;
         const created_at = mailRow?.created_at;
-        const aiExtract = parseAiExtractMetadata(mailRow?.metadata);
         const { mail } = raw
-            ? await parseMail(msgs, { rawEmail: raw }, queryAddress, created_at, aiExtract)
+            ? await parseMail(msgs, { rawEmail: raw }, queryAddress, created_at, mailRow?.metadata)
             : { mail: msgs.TgNoMoreMailsMsg };
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const miniAppButtons = []
@@ -443,7 +435,7 @@ const parseMail = async (
     parsedEmailContext: ParsedEmailContext,
     address: string,
     created_at: string | undefined | null,
-    aiExtract?: ExtractResult | null
+    aiExtract?: ExtractResult | string | null
 ) => {
     if (!parsedEmailContext.rawEmail) {
         return {};

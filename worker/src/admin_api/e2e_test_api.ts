@@ -29,7 +29,7 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
     if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
         return c.text("Not available", 404);
     }
-    const { from, to, raw } = await c.req.json();
+    const { from, to, raw, ai_extract_result } = await c.req.json();
     if (!from || !to || !raw) {
         return c.text("from, to and raw are required", 400);
     }
@@ -54,7 +54,21 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
         reply: async () => { state.replyCalled = true; return { messageId: '' }; },
     };
     const { email: emailHandler } = await import('../email');
-    await emailHandler(mockMessage, c.env, { waitUntil: () => {}, passThroughOnException: () => {} });
+    const aiExtractEnvOverrides: Partial<Bindings> = {
+        ENABLE_AI_EMAIL_EXTRACT: true,
+        AI: {
+            run: async () => ({ response: ai_extract_result })
+        } as unknown as Ai,
+    };
+    const env = ai_extract_result
+        ? { ...c.env, ...aiExtractEnvOverrides }
+        : c.env;
+    const executionContext: ExecutionContext = {
+        waitUntil: () => {},
+        passThroughOnException: () => {},
+        props: {}
+    };
+    await emailHandler(mockMessage, env, executionContext);
 
     return c.json({
         success: !state.rejected,

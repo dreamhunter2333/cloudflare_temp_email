@@ -208,3 +208,9 @@ export type RawMailRow = {
     metadata?: string;
     created_at?: string;
 }
+
+export type ExtractResult = {
+    type: 'auth_code' | 'auth_link' | 'service_link' | 'subscription_link' | 'other_link' | 'none';
+    result: string;
+    result_text: string;
+}
