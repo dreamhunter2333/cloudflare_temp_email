@@ -43,6 +43,18 @@ binding = "AI"
 - **Variable name**: `AI`
 - **Type**: Workers AI
 
+## 无 Workers AI 绑定时的正则兜底
+
+如果启用了 `ENABLE_AI_EMAIL_EXTRACT` 但**没有配置 Workers AI 绑定**（例如自部署时未开通 Workers AI），系统会自动回退到内置的**正则验证码提取**：
+
+- 仅提取**验证码**（`auth_code`），不提取链接（链接提取依赖 AI）
+- 零依赖、零成本，在 Worker 内本地完成
+- 支持中文、英文、日文、韩文常见验证码格式
+- 自动排除年份（如 `2026`）与 `YYYYMMDD` 日期，降低误判
+- 提取结果同样写入 `metadata`，并复用 Telegram 推送与 Webhook 占位符（此时 `aiExtractType` 为 `auth_code`）
+
+当配置了 Workers AI 绑定时，仍优先使用 AI 提取（可识别验证码与各类链接），不受此回退影响。
+
 ## 地址白名单（可选）
 
 为了控制成本和资源使用，可以在 Admin 控制台的 **AI 提取设置** 页面配置地址白名单：
