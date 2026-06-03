@@ -28,6 +28,7 @@ Upgrade the version number of the cloudflare_temp_email project.
 4. Update the `VERSION` constant in `worker/src/constants.ts`.
 5. Insert a new version placeholder at the top of `CHANGELOG.md`.
 6. Insert a new version placeholder at the top of `CHANGELOG_EN.md`.
+7. Rename the previous version heading in both changelogs from `## v{OLD_VERSION}(main)` to `## v{OLD_VERSION}` so only the new active development version keeps `(main)`.
 
 ## CHANGELOG format
 
@@ -44,7 +45,14 @@ In `CHANGELOG.md`, insert before the existing `## v{OLD_VERSION}(main)` line (i.
 
 ```
 
-`CHANGELOG_EN.md` uses the same format.
+After inserting the new placeholder, update the old heading:
+
+```diff
+-## v{OLD_VERSION}(main)
++## v{OLD_VERSION}
+```
+
+`CHANGELOG_EN.md` uses the same format and must receive the same old-heading update.
 
 ## Commit message format
 
@@ -53,4 +61,5 @@ feat: upgrade version to v{VERSION}
 
 - Update version number to {VERSION} in all package.json files
 - Add v{VERSION} placeholder in CHANGELOG.md
+- Move (main) marker from v{OLD_VERSION} to v{VERSION}
 ```
