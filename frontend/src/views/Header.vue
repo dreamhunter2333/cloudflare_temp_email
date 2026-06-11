@@ -337,6 +337,10 @@ onMounted(async () => {
     justify-content: space-between;
 }
 
+:deep(.n-page-header) {
+    padding: 10px;
+}
+
 .header-extra {
     align-items: center;
     flex-wrap: nowrap;
