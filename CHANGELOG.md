@@ -12,6 +12,8 @@
 
 ### Bug Fixes
 
+- fix: |AI 提取| HTML-only 邮件在发送给 Workers AI 前会先压缩为可读文本，避免样式模板过长导致验证码位于 4000 字截断之后而无法识别
+
 ### Improvements
 
 ## v1.9.0
