@@ -12,6 +12,8 @@
 
 ### Bug Fixes
 
+- fix: |AI Extract| Convert HTML-only mail bodies into compact readable text before sending them to Workers AI, preventing long templates from pushing verification codes past the 4000-character truncation window
+
 ### Improvements
 
 ## v1.9.0
