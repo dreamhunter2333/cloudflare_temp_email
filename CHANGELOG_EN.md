@@ -13,6 +13,7 @@
 ### Bug Fixes
 
 - fix: |AI Extract| Convert HTML-only mail bodies into compact readable text before sending them to Workers AI, preventing long templates from pushing verification codes past the 4000-character truncation window
+- fix: |Frontend| Add mobile Header page padding so the title and menu button no longer sit too close to the screen edge
 
 ### Improvements
 
