@@ -435,6 +435,10 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
+    :deep(.n-page-header) {
+        padding: 10px;
+    }
+
     :deep(.n-page-header__title) {
         min-width: 0;
     }
