@@ -48,6 +48,12 @@ No additional env var is required.
 
 Register at `https://resend.com/domains` and add DNS records according to the instructions.
 
+> [!WARNING] DNS record proxy status on Cloudflare
+> Resend domain verification CNAME records **must be set to DNS-only** (gray cloud) in
+> the Cloudflare DNS dashboard. Proxied (orange cloud) records will prevent Resend from
+> completing verification, and a single failed attempt can take several hours before
+> Retry becomes available. See [#515](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/515).
+
 Create an `api key` on the `API KEYS` page.
 
 Then execute the following command to add `RESEND_TOKEN` to secrets:
