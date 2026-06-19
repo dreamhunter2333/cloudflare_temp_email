@@ -48,6 +48,12 @@ send_email = [
 
 注册 `https://resend.com/domains` 根据提示添加 DNS 记录,
 
+> [!WARNING] Cloudflare 上 DNS 记录的代理状态
+> Resend 域名验证的 CNAME 记录**必须设置为 仅 DNS**（灰云），在
+> Cloudflare DNS 控制面板中代理（橙云）记录会阻止 Resend
+> 完成验证，且一次失败的尝试可能需要数小时才能重试。
+> 参见 [#515](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/515)。
+
 `API KEYS` 页面创建 `api key`
 
 然后执行下面的命令，将 `RESEND_TOKEN` 添加到 secrets 中
