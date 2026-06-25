@@ -36,6 +36,22 @@ res = requests.post(
 )
 ```
 
+也可以用 curl 调试纯文本发送：
+
+```bash
+curl -X POST "https://你的worker域名/api/send_mail" \
+  -H "Authorization: Bearer $ADDRESS_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from_name": "我的临时邮箱",
+    "to_name": "收件人",
+    "to_mail": "friend@example.org",
+    "subject": "来自 Cloudflare Temp Email 的测试",
+    "is_html": false,
+    "content": "这是一封自部署临时邮箱发出的测试邮件。"
+  }'
+```
+
 ### 方式二：通过 Body Token 认证（`/external/api/send_mail`）
 
 适合外部系统调用，将地址 JWT 放在请求体的 `token` 字段中：
@@ -57,6 +73,28 @@ res = requests.post(
         "Content-Type": "application/json"
     }
 )
+```
+
+外部系统集成时可用 curl，把地址 JWT 放在请求体的 `token` 字段：
+
+```bash
+curl -X POST "https://你的worker域名/external/api/send_mail" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "'"$ADDRESS_JWT"'",
+    "from_name": "我的临时邮箱",
+    "to_mail": "friend@example.org",
+    "subject": "HTML 测试",
+    "is_html": true,
+    "content": "<h1>你好！</h1><p>这是一封 <b>HTML</b> 邮件。</p>"
+  }'
+```
+
+查看最近发件箱记录：
+
+```bash
+curl "https://你的worker域名/api/sendbox?limit=10&offset=0" \
+  -H "Authorization: Bearer $ADDRESS_JWT"
 ```
 
 ## 通过 SMTP 发送邮件
