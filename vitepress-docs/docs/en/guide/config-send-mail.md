@@ -86,7 +86,7 @@ For SMTP configuration format details, refer to [zou-yu/worker-mailer](https://g
 > The JSON key (e.g. `your-domain.com` in the example below) must be replaced with **your own domain** — the domain configured in your `DOMAINS` variable.
 > This is one of the most common configuration mistakes. Do not copy the example domain directly.
 >
-> The system normalizes both the `SMTP_CONFIG` top-level key and the current sender domain with `trim + toLowerCase`, then requires exact equality. It does not perform implicit subdomain or suffix matching. SMTP is used only when a matching `smtpConfig` exists; otherwise the request continues through the Resend, `SEND_MAIL` binding, or verified-address fallbacks and may ultimately return an error if no channel is available.
+> The verified address list is checked first: if the recipient is listed and `SEND_MAIL` is bound, the request sends through `SEND_MAIL` immediately. When that check does not match, the system continues through the available channels such as Resend, SMTP, or the `SEND_MAIL` binding fallback. For SMTP, the system normalizes both the `SMTP_CONFIG` top-level key and the current sender domain with `trim + toLowerCase`, then requires exact equality; it does not perform implicit subdomain or suffix matching.
 
 ```json
 {

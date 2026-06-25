@@ -86,7 +86,7 @@ SMTP 配置格式详情可以参考 [zou-yu/worker-mailer](https://github.com/zo
 > JSON 中的 key（如下面示例中的 `your-domain.com`）必须替换为**你自己的域名**，即 `DOMAINS` 变量中配置的域名。
 > 这是最常见的配置错误之一，请勿直接复制示例中的域名。
 >
-> 系统会对 `SMTP_CONFIG` 顶层 key 和当前发件域名都执行 `trim + toLowerCase` 归一化，然后做精确相等匹配；不会自动做子域名或后缀匹配。只有匹配到 `smtpConfig` 时才会使用 SMTP，否则会继续按优先级尝试 Resend、`SEND_MAIL` binding 或已验证地址列表，若没有任何可用通道则会返回错误。
+> 已验证地址列表会优先判断：如果收件人在列表中且已绑定 `SEND_MAIL`，请求会立即通过 `SEND_MAIL` 发出。未命中该检查时，系统才会继续按可用通道尝试 Resend、SMTP 或 `SEND_MAIL` binding 兜底。对于 SMTP，系统会对 `SMTP_CONFIG` 顶层 key 和当前发件域名都执行 `trim + toLowerCase` 归一化，然后做精确相等匹配；不会自动做子域名或后缀匹配。
 
 ```json
 {
