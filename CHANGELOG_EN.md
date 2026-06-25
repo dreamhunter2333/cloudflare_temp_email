@@ -17,6 +17,8 @@
 
 ### Improvements
 
+- docs: |Email Sending| Split the SMTP sending tutorial into the bilingual VitePress docs, adding Cloudflare Dashboard / CLI secret setup, Gmail / Outlook / self-hosted SMTP examples, HTTP send curl examples, and common troubleshooting notes (issue #609)
+
 ## v1.9.0
 
 ### Features

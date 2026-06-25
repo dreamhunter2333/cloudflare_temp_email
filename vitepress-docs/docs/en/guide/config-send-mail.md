@@ -85,6 +85,8 @@ For SMTP configuration format details, refer to [zou-yu/worker-mailer](https://g
 > [!warning] Important
 > The JSON key (e.g. `your-domain.com` in the example below) must be replaced with **your own domain** — the domain configured in your `DOMAINS` variable.
 > This is one of the most common configuration mistakes. Do not copy the example domain directly.
+>
+> The system normalizes both the `SMTP_CONFIG` top-level key and the current sender domain with `trim + toLowerCase`, then requires exact equality. It does not perform implicit subdomain or suffix matching. SMTP is used only when a matching `smtpConfig` exists; otherwise the request continues through the Resend, `SEND_MAIL` binding, or verified-address fallbacks and may ultimately return an error if no channel is available.
 
 ```json
 {
@@ -137,6 +139,10 @@ If you have **multiple domains** using different SMTP services, add multiple key
 }
 ```
 
+### Cloudflare Dashboard / CLI configuration location
+
+For Cloudflare Dashboard deployments, open **Workers & Pages → your Worker → Settings → Variables and Secrets**, add a **Secret** named `SMTP_CONFIG`, paste the full JSON into Value, then deploy.
+
 Then execute the following command to add `SMTP_CONFIG` to secrets:
 
 > [!NOTE]
@@ -149,6 +155,38 @@ If you deployed through the UI, you can add it under `Variables and Secrets` in 
 cd worker
 wrangler secret put SMTP_CONFIG
 ```
+
+### Common SMTP provider examples
+
+**Gmail** usually requires 2-Step Verification plus an [App Password](https://myaccount.google.com/apppasswords), then `smtp.gmail.com`:
+
+```json
+{
+    "your-domain.com": {
+        "host": "smtp.gmail.com",
+        "port": 465,
+        "secure": true,
+        "authType": ["plain", "login"],
+        "credentials": { "username": "you@gmail.com", "password": "your-app-password" }
+    }
+}
+```
+
+**Outlook / Microsoft 365** can use `smtp.office365.com:587` only when SMTP AUTH is allowed for the tenant. If you see `535 5.7.3 Authentication unsuccessful`, basic auth is usually disabled and Resend is the safer option.
+
+```json
+{
+    "your-domain.com": {
+        "host": "smtp.office365.com",
+        "port": 587,
+        "secure": false,
+        "authType": ["plain", "login"],
+        "credentials": { "username": "you@outlook.com", "password": "your-app-password" }
+    }
+}
+```
+
+For self-hosted SMTP, make sure Cloudflare Workers can reach your `host:port`. Many providers block cloud traffic on ports 25/465/587; if connections time out or are refused, use a relay such as Resend or Mailgun instead.
 
 ## Send Balance Mechanism
 
