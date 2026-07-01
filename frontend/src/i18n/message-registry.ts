@@ -2111,12 +2111,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "左侧"
     },
     "mailboxSplitSize": {
-      "en": "Mailbox Split Size",
-      "zh": "邮箱界面分栏大小"
+      "en": "Left list width in two-column mailbox view",
+      "zh": "邮箱双栏视图左侧列表宽度占比"
     },
     "mailListView": {
-      "en": "Mailbox List View",
-      "zh": "邮箱列表视图"
+      "en": "Full-width mailbox list view",
+      "zh": "邮箱全宽列表视图"
     },
     "mailListPreviewLineClamp": {
       "en": "Body Preview Lines",
