@@ -11,7 +11,7 @@ const props = defineProps({
 })
 
 const {
-    mailboxSplitSize, useIframeShowMail, preferShowTextMail, configAutoRefreshInterval,
+    mailboxSplitSize, mailListView, useIframeShowMail, preferShowTextMail, configAutoRefreshInterval,
     globalTabplacement, useSideMargin, useUTCDate, useSimpleIndex
 } = useGlobalState()
 const isMobile = useIsMobile()
@@ -23,11 +23,15 @@ const { t } = useScopedI18n('views.common.Appearance')
     <div class="center">
         <n-card :bordered="false" embedded>
             <n-form-item-row v-if="!isMobile" :label="t('mailboxSplitSize')">
-                <n-slider v-model:value="mailboxSplitSize" :min="0.25" :max="0.75" :step="0.01" :marks="{
+                <n-slider v-model:value="mailboxSplitSize" :min="0" :max="0.75" :step="0.01" :marks="{
+                    0: '0',
                     0.25: '0.25',
                     0.5: '0.5',
                     0.75: '0.75'
                 }" />
+            </n-form-item-row>
+            <n-form-item-row v-if="!isMobile" :label="t('mailListView')">
+                <n-switch v-model:value="mailListView" :round="false" />
             </n-form-item-row>
             <n-form-item-row :label="t('autoRefreshInterval')">
                 <n-slider v-model:value="configAutoRefreshInterval" :min="30" :max="300" :step="1" :marks="{
