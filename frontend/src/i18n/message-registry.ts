@@ -2118,6 +2118,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Mailbox List View",
       "zh": "邮箱列表视图"
     },
+    "mailListPreviewLineClamp": {
+      "en": "Body Preview Lines",
+      "zh": "正文预览行数"
+    },
+    "off": {
+      "en": "Off",
+      "zh": "关闭"
+    },
     "preferShowTextMail": {
       "en": "Display text Mail by default",
       "zh": "默认以文本显示邮件"

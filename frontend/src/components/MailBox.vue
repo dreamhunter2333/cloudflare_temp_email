@@ -60,7 +60,7 @@ const props = defineProps({
 const localFilterKeyword = ref('')
 
 const {
-  isDark, mailboxSplitSize, mailListView, indexTab, loading, useUTCDate,
+  isDark, mailboxSplitSize, mailListView, mailListPreviewLineClamp, indexTab, loading, useUTCDate,
   autoRefresh, configAutoRefreshInterval, sendMailModel
 } = useGlobalState()
 const autoRefreshInterval = ref(configAutoRefreshInterval.value)
@@ -70,6 +70,12 @@ const timer = ref(null)
 const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
+
+const mailListPreviewLineClampValue = computed(() => {
+  const value = Number(mailListPreviewLineClamp.value)
+  if (!Number.isFinite(value)) return 0
+  return Math.min(5, Math.max(0, Math.round(value)))
+})
 
 // Computed property for filtered data (only filter current page)
 const data = computed(() => {
@@ -500,7 +506,8 @@ onBeforeUnmount(() => {
                   <AiExtractInfo :metadata="row.metadata" compact />
                 </div>
               </template>
-              <n-ellipsis v-if="row.text" :line-clamp="2" class="mail-list-preview" :tooltip="false">
+              <n-ellipsis v-if="row.text && mailListPreviewLineClampValue > 0"
+                :line-clamp="mailListPreviewLineClampValue" class="mail-list-preview" :tooltip="false">
                 {{ row.text }}
               </n-ellipsis>
             </n-thing>

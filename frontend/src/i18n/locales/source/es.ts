@@ -302,6 +302,8 @@ export const esMessages = {
   "views.Admin.mailWebhook": "Webhook de correo",
   "views.common.Appearance.mailboxSplitSize": "Tamaño de división del buzón",
   "views.common.Appearance.mailListView": "Vista de lista del buzón",
+  "views.common.Appearance.mailListPreviewLineClamp": "Líneas de vista previa del cuerpo",
+  "views.common.Appearance.off": "Desactivado",
   "views.index.SimpleIndex.refreshSuccess": "Correos actualizados correctamente",
   "views.Admin.unknow": "Correos con destinatario desconocido",
   "views.Admin.maintenance": "Mantenimiento",

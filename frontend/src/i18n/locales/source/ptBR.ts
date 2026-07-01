@@ -302,6 +302,8 @@ export const ptBRMessages = {
   "views.Admin.mailWebhook": "Webhook de e-mail",
   "views.common.Appearance.mailboxSplitSize": "Tamanho da divisão da caixa de correio",
   "views.common.Appearance.mailListView": "Visualização de lista da caixa de correio",
+  "views.common.Appearance.mailListPreviewLineClamp": "Linhas da prévia do corpo",
+  "views.common.Appearance.off": "Desativado",
   "views.index.SimpleIndex.refreshSuccess": "E-mails atualizados com sucesso",
   "views.Admin.unknow": "E-mails com destinatário desconhecido",
   "views.Admin.maintenance": "Manutenção",

@@ -302,6 +302,8 @@ export const jaMessages = {
   "views.Admin.mailWebhook": "メールWebhook",
   "views.common.Appearance.mailboxSplitSize": "メールボックス分割サイズ",
   "views.common.Appearance.mailListView": "メールボックスリスト表示",
+  "views.common.Appearance.mailListPreviewLineClamp": "本文プレビュー行数",
+  "views.common.Appearance.off": "オフ",
   "views.index.SimpleIndex.refreshSuccess": "メールを更新しました",
   "views.Admin.unknow": "受信者不明のメール",
   "views.Admin.maintenance": "メンテナンス",

@@ -302,6 +302,8 @@ export const deMessages = {
   "views.Admin.mailWebhook": "Mail-Webhook",
   "views.common.Appearance.mailboxSplitSize": "Größe der Mailbox-Aufteilung",
   "views.common.Appearance.mailListView": "Postfach-Listenansicht",
+  "views.common.Appearance.mailListPreviewLineClamp": "Zeilen der Textvorschau",
+  "views.common.Appearance.off": "Aus",
   "views.index.SimpleIndex.refreshSuccess": "E-Mails erfolgreich aktualisiert",
   "views.Admin.unknow": "E-Mails mit unbekanntem Empfänger",
   "views.Admin.maintenance": "Wartung",
