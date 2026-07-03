@@ -75,7 +75,8 @@ If the extracted content is in markdown link format [text](url):
 2. **Single Selection**: Choose ONLY ONE type based on the highest priority match
 3. **Real Data Only**: Never invent, guess, or fabricate content
 4. **Complete URLs**: Links must be full, valid URLs as they appear in the email
-5. **Clean Extraction**: Return only the raw extracted content, no extra text
+5. **No Domain Modification**: Never modify, rewrite, or substitute URL domains. If the exact URL domain is uncertain, return none
+6. **Clean Extraction**: Return only the raw extracted content, no extra text
 
 # Output Format (JSON only)
 {
@@ -225,6 +226,70 @@ function getEmailContentForExtract(parsedEmail: Awaited<ReturnType<typeof common
     return htmlToTextForAi(parsedEmail.html) || parsedEmail.html;
 }
 
+const LINK_EXTRACT_TYPES = new Set<ExtractResult['type']>([
+    'auth_link',
+    'service_link',
+    'subscription_link',
+    'other_link',
+]);
+
+function normalizeHostname(hostname: string): string {
+    return hostname.toLowerCase().replace(/\.$/, '');
+}
+
+function trimUrlBoundaryPunctuation(value: string): string {
+    return value.replace(/[),.;!?]+$/g, '');
+}
+
+function getUrlHostname(value: string): string | null {
+    const match = value.match(/https?:\/\/[^\s<>"'`]+/i);
+    if (!match) {
+        return null;
+    }
+
+    try {
+        const url = new URL(trimUrlBoundaryPunctuation(match[0]));
+        return normalizeHostname(url.hostname);
+    } catch {
+        return null;
+    }
+}
+
+function extractHostnamesFromContent(content: string): Set<string> {
+    const hostnames = new Set<string>();
+    const matches = content.matchAll(/https?:\/\/[^\s<>"'`]+/gi);
+
+    for (const match of matches) {
+        try {
+            const url = new URL(trimUrlBoundaryPunctuation(match[0]));
+            hostnames.add(normalizeHostname(url.hostname));
+        } catch {
+            continue;
+        }
+    }
+
+    return hostnames;
+}
+
+function validateExtractedLinkDomain(result: ExtractResult, content: string): ExtractResult {
+    if (!LINK_EXTRACT_TYPES.has(result.type)) {
+        return result;
+    }
+
+    const resultHostname = getUrlHostname(result.result);
+    if (!resultHostname) {
+        return { type: 'none', result: '', result_text: '' };
+    }
+
+    const contentHostnames = extractHostnamesFromContent(content);
+    if (contentHostnames.has(resultHostname)) {
+        return result;
+    }
+
+    console.warn(`AI extraction discarded link with hallucinated domain: ${resultHostname}`);
+    return { type: 'none', result: '', result_text: '' };
+}
+
 /**
  * Main extraction function
  * Checks if extraction is enabled, processes the email content, and saves to database.
@@ -304,13 +369,14 @@ export async function extractEmailInfo(
             : emailContent;
 
         const result = await extractWithCloudflareAI(truncatedContent, env);
+        const validatedResult = validateExtractedLinkDomain(result, truncatedContent);
 
         // If extraction found something useful, save it to database
-        if (result.type !== 'none' && result.result) {
-            await saveExtractMetadata(env, message_id, result);
-            console.log(`AI extraction completed for ${message_id}: ${result.type}`);
+        if (validatedResult.type !== 'none' && validatedResult.result) {
+            await saveExtractMetadata(env, message_id, validatedResult);
+            console.log(`AI extraction completed for ${message_id}: ${validatedResult.type}`);
         }
-        return result;
+        return validatedResult;
     } catch (e) {
         console.error('AI email extraction error:', e);
         return null;
