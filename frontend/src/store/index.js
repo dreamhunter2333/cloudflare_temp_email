@@ -90,6 +90,7 @@ export const useGlobalState = createGlobalState(
         const mailboxSplitSize = useStorage('mailboxSplitSize', 0.25);
         const useIframeShowMail = useStorage('useIframeShowMail', false);
         const preferShowTextMail = useStorage('preferShowTextMail', false);
+        const autoLoadExternalImages = useStorage('autoLoadExternalImages', true);
         const userJwt = useStorage('userJwt', '');
         const preferredLocale = useStorage('preferredLocale', '');
         const userTab = useSessionStorage('userTab', 'address_management');
@@ -162,6 +163,7 @@ export const useGlobalState = createGlobalState(
             mailboxSplitSize,
             useIframeShowMail,
             preferShowTextMail,
+            autoLoadExternalImages,
             userJwt,
             preferredLocale,
             userTab,

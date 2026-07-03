@@ -186,6 +186,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Fullscreen",
       "zh": "全屏"
     },
+    "loadExternalImages": {
+      "en": "Load External Images",
+      "zh": "加载外部图片"
+    },
     "reply": {
       "en": "Reply",
       "zh": "回复"
@@ -2113,6 +2117,10 @@ export const MESSAGE_REGISTRY = {
     "preferShowTextMail": {
       "en": "Display text Mail by default",
       "zh": "默认以文本显示邮件"
+    },
+    "autoLoadExternalImages": {
+      "en": "Automatically load external images",
+      "zh": "自动加载外部图片"
     },
     "right": {
       "en": "right",

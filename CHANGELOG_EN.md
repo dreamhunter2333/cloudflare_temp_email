@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Frontend| Add an Appearance toggle for automatically loading external images; when disabled, HTML mail shows blocked-image placeholders by default with a per-mail manual load action (issue #1073)
+
 ### Bug Fixes
 
 - fix: |AI Extract| Convert HTML-only mail bodies into compact readable text before sending them to Workers AI, preventing long templates from pushing verification codes past the 4000-character truncation window

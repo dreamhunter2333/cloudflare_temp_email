@@ -1,14 +1,15 @@
 <script setup>
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
 import { getDownloadEmlUrl } from '../utils/email-parser';
+import { applyExternalImagePolicy } from '../utils/mail-html';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
 
-const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark } = useGlobalState();
+const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark, autoLoadExternalImages } = useGlobalState();
 
 const { t } = useScopedI18n('components.MailContentRenderer')
 
@@ -57,6 +58,13 @@ const showAttachments = ref(false);
 const curAttachments = ref([]);
 const attachmentLoding = ref(false);
 const showFullscreen = ref(false);
+const loadExternalImagesForCurrentMail = ref(false);
+const shouldLoadExternalImages = computed(() => autoLoadExternalImages.value || loadExternalImagesForCurrentMail.value);
+const mailHtmlContent = computed(() => applyExternalImagePolicy(props.mail.message, shouldLoadExternalImages.value));
+
+watch(() => props.mail.id, () => {
+  loadExternalImagesForCurrentMail.value = false;
+});
 
 const handleDelete = () => {
   props.onDelete();
@@ -149,6 +157,11 @@ const handleSaveToS3 = async (filename, blob) => {
         </template>
         {{ t('fullscreen') }}
       </n-button>
+
+      <n-button v-if="!showTextMail && !shouldLoadExternalImages" size="small" tertiary type="info"
+        @click="loadExternalImagesForCurrentMail = true">
+        {{ t('loadExternalImages') }}
+      </n-button>
     </n-space>
 
     <!-- AI 提取信息 -->
@@ -157,9 +170,9 @@ const handleSaveToS3 = async (filename, blob) => {
     <!-- 邮件内容 -->
     <div class="mail-content" :class="{ 'dark-mode': isDark }">
       <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-      <iframe v-else-if="useIframeShowMail" :srcdoc="mail.message" class="mail-iframe">
+      <iframe v-else-if="useIframeShowMail" :srcdoc="mailHtmlContent" class="mail-iframe">
       </iframe>
-      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mail.message" :isDark="isDark" class="mail-html" />
+      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mailHtmlContent" :isDark="isDark" class="mail-html" />
     </div>
   </div>
 
@@ -168,9 +181,9 @@ const handleSaveToS3 = async (filename, blob) => {
     <n-drawer-content :title="mail.subject" closable>
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-        <iframe v-else-if="useIframeShowMail" :srcdoc="mail.message" class="mail-iframe">
+        <iframe v-else-if="useIframeShowMail" :srcdoc="mailHtmlContent" class="mail-iframe">
         </iframe>
-        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mail.message" :isDark="isDark" class="mail-html" />
+        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mailHtmlContent" :isDark="isDark" class="mail-html" />
       </div>
     </n-drawer-content>
   </n-drawer>
