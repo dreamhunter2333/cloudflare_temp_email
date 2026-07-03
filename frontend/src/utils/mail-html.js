@@ -18,6 +18,31 @@ const srcsetHasExternalUrl = (value) => {
     return value.split(',').some((item) => isExternalImageUrl(item.trim().split(/\s+/)[0]));
 };
 
+const blockSourceSet = (element) => {
+    const srcset = element.getAttribute('srcset') || '';
+    if (!srcsetHasExternalUrl(srcset)) return;
+
+    element.setAttribute('data-blocked-srcset', srcset);
+    element.setAttribute('srcset', `${EXTERNAL_IMAGE_PLACEHOLDER} 1x`);
+};
+
+const blockStyleExternalImages = (element) => {
+    const style = element.getAttribute('style') || '';
+    if (!/url\(\s*(['"]?)(https?:|\/\/)/i.test(style)) return;
+
+    element.setAttribute('data-blocked-style', style);
+    element.removeAttribute('style');
+};
+
+const blockExternalHref = (element) => {
+    const href = element.getAttribute('href') || element.getAttribute('xlink:href') || '';
+    if (!isExternalImageUrl(href)) return;
+
+    element.setAttribute('data-blocked-href', href);
+    element.removeAttribute('href');
+    element.removeAttribute('xlink:href');
+};
+
 export const applyExternalImagePolicy = (html, autoLoadExternalImages) => {
     if (autoLoadExternalImages || !html) {
         return html || '';
@@ -30,17 +55,32 @@ export const applyExternalImagePolicy = (html, autoLoadExternalImages) => {
     const hasDocumentShell = /<!doctype|<html[\s>]/i.test(html);
     const doc = new DOMParser().parseFromString(html, 'text/html');
 
+    for (const base of doc.querySelectorAll('base')) {
+        base.remove();
+    }
+
+    for (const source of doc.querySelectorAll('source[srcset]')) {
+        blockSourceSet(source);
+    }
+
+    for (const element of doc.querySelectorAll('[style]')) {
+        blockStyleExternalImages(element);
+    }
+
+    for (const element of doc.querySelectorAll('image[href], image[xlink\\:href], use[href], use[xlink\\:href]')) {
+        blockExternalHref(element);
+    }
+
     for (const image of doc.querySelectorAll('img')) {
         const src = image.getAttribute('src') || '';
-        const srcset = image.getAttribute('srcset') || '';
 
-        if (!isExternalImageUrl(src) && !srcsetHasExternalUrl(srcset)) {
+        blockSourceSet(image);
+
+        if (!isExternalImageUrl(src) && !image.getAttribute('data-blocked-srcset')) {
             continue;
         }
 
         if (src) image.setAttribute('data-blocked-src', src);
-        if (srcset) image.setAttribute('data-blocked-srcset', srcset);
-        image.removeAttribute('srcset');
         image.setAttribute('src', EXTERNAL_IMAGE_PLACEHOLDER);
         image.setAttribute('loading', 'lazy');
         image.style.maxWidth = '100%';

@@ -180,6 +180,10 @@ const handleSaveToS3 = async (filename, blob) => {
     style="height: 100vh;">
     <n-drawer-content :title="mail.subject" closable>
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
+        <n-button v-if="!showTextMail && !shouldLoadExternalImages" size="small" tertiary type="info"
+          @click="loadExternalImagesForCurrentMail = true">
+          {{ t('loadExternalImages') }}
+        </n-button>
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
         <iframe v-else-if="useIframeShowMail" :srcdoc="mailHtmlContent" class="mail-iframe">
         </iframe>
