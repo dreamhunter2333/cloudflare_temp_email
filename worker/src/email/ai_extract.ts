@@ -369,7 +369,7 @@ export async function extractEmailInfo(
             : emailContent;
 
         const result = await extractWithCloudflareAI(truncatedContent, env);
-        const validatedResult = validateExtractedLinkDomain(result, truncatedContent);
+        const validatedResult = validateExtractedLinkDomain(result, emailContent);
 
         // If extraction found something useful, save it to database
         if (validatedResult.type !== 'none' && validatedResult.result) {
