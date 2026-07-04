@@ -12,7 +12,7 @@ const props = defineProps({
 
 const {
     mailboxSplitSize, useIframeShowMail, preferShowTextMail, configAutoRefreshInterval,
-    globalTabplacement, useSideMargin, useUTCDate, useSimpleIndex, autoLoadExternalImages
+    globalTabplacement, useSideMargin, useUTCDate, useSimpleIndex, autoLoadRemoteContent
 } = useGlobalState()
 const isMobile = useIsMobile()
 
@@ -43,8 +43,8 @@ const { t } = useScopedI18n('views.common.Appearance')
             <n-form-item-row :label="t('useIframeShowMail')">
                 <n-switch v-model:value="useIframeShowMail" :round="false" />
             </n-form-item-row>
-            <n-form-item-row :label="t('autoLoadExternalImages')">
-                <n-switch v-model:value="autoLoadExternalImages" :round="false" />
+            <n-form-item-row :label="t('autoLoadRemoteContent')">
+                <n-switch v-model:value="autoLoadRemoteContent" :round="false" />
             </n-form-item-row>
             <n-form-item-row :label="t('useUTCDate')">
                 <n-switch v-model:value="useUTCDate" :round="false" />

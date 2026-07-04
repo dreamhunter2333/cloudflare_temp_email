@@ -186,9 +186,9 @@ export const MESSAGE_REGISTRY = {
       "en": "Fullscreen",
       "zh": "全屏"
     },
-    "loadExternalImages": {
-      "en": "Load External Images",
-      "zh": "加载外部图片"
+    "loadRemoteContent": {
+      "en": "Load Remote Content",
+      "zh": "加载远程内容"
     },
     "reply": {
       "en": "Reply",
@@ -2118,9 +2118,9 @@ export const MESSAGE_REGISTRY = {
       "en": "Display text Mail by default",
       "zh": "默认以文本显示邮件"
     },
-    "autoLoadExternalImages": {
-      "en": "Automatically load external images",
-      "zh": "自动加载外部图片"
+    "autoLoadRemoteContent": {
+      "en": "Automatically load remote content",
+      "zh": "自动加载远程内容"
     },
     "right": {
       "en": "right",

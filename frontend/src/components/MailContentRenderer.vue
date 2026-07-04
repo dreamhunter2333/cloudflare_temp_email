@@ -5,11 +5,11 @@ import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound } from 
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
 import { getDownloadEmlUrl } from '../utils/email-parser';
-import { applyExternalImagePolicy } from '../utils/mail-html';
+import { applyRemoteContentPolicy } from '../utils/mail-html';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
 
-const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark, autoLoadExternalImages } = useGlobalState();
+const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark, autoLoadRemoteContent } = useGlobalState();
 
 const { t } = useScopedI18n('components.MailContentRenderer')
 
@@ -58,12 +58,12 @@ const showAttachments = ref(false);
 const curAttachments = ref([]);
 const attachmentLoding = ref(false);
 const showFullscreen = ref(false);
-const loadExternalImagesForCurrentMail = ref(false);
-const shouldLoadExternalImages = computed(() => autoLoadExternalImages.value || loadExternalImagesForCurrentMail.value);
-const mailHtmlContent = computed(() => applyExternalImagePolicy(props.mail.message, shouldLoadExternalImages.value));
+const loadRemoteContentForCurrentMail = ref(false);
+const shouldLoadRemoteContent = computed(() => autoLoadRemoteContent.value || loadRemoteContentForCurrentMail.value);
+const mailHtmlContent = computed(() => applyRemoteContentPolicy(props.mail.message, shouldLoadRemoteContent.value));
 
 watch(() => props.mail.id, () => {
-  loadExternalImagesForCurrentMail.value = false;
+  loadRemoteContentForCurrentMail.value = false;
 });
 
 const handleDelete = () => {
@@ -158,9 +158,9 @@ const handleSaveToS3 = async (filename, blob) => {
         {{ t('fullscreen') }}
       </n-button>
 
-      <n-button v-if="!showTextMail && !shouldLoadExternalImages" size="small" tertiary type="info"
-        @click="loadExternalImagesForCurrentMail = true">
-        {{ t('loadExternalImages') }}
+      <n-button v-if="!showTextMail && !shouldLoadRemoteContent" size="small" tertiary type="info"
+        @click="loadRemoteContentForCurrentMail = true">
+        {{ t('loadRemoteContent') }}
       </n-button>
 
     </n-space>
@@ -180,9 +180,9 @@ const handleSaveToS3 = async (filename, blob) => {
   <n-drawer v-model:show="showFullscreen" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
     style="height: 100vh;">
     <n-drawer-content :title="mail.subject" closable>
-      <n-space v-if="!showTextMail && !shouldLoadExternalImages" class="fullscreen-actions">
-        <n-button size="small" tertiary type="info" @click="loadExternalImagesForCurrentMail = true">
-          {{ t('loadExternalImages') }}
+      <n-space v-if="!showTextMail && !shouldLoadRemoteContent" class="fullscreen-actions">
+        <n-button size="small" tertiary type="info" @click="loadRemoteContentForCurrentMail = true">
+          {{ t('loadRemoteContent') }}
         </n-button>
       </n-space>
 
