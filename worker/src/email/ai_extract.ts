@@ -255,34 +255,14 @@ function getUrlHostname(value: string): string | null {
     }
 }
 
-function extractHostnamesFromContent(content: string): Set<string> {
-    const hostnames = new Set<string>();
-    const matches = content.matchAll(/https?:\/\/[^\s<>"'`]+/gi);
-
-    for (const match of matches) {
-        try {
-            const url = new URL(trimUrlBoundaryPunctuation(match[0]));
-            hostnames.add(normalizeHostname(url.hostname));
-        } catch {
-            continue;
-        }
-    }
-
-    return hostnames;
-}
-
-function validateExtractedLinkDomain(result: ExtractResult, content: string): ExtractResult {
+function discardRecipientDomainLink(result: ExtractResult, address: string): ExtractResult {
     if (!LINK_EXTRACT_TYPES.has(result.type)) {
         return result;
     }
 
     const resultHostname = getUrlHostname(result.result);
-    if (!resultHostname) {
-        return { type: 'none', result: '', result_text: '' };
-    }
-
-    const contentHostnames = extractHostnamesFromContent(content);
-    if (contentHostnames.has(resultHostname)) {
+    const recipientDomain = normalizeHostname(address.split('@').pop() || '');
+    if (!resultHostname || resultHostname !== recipientDomain) {
         return result;
     }
 
@@ -369,7 +349,7 @@ export async function extractEmailInfo(
             : emailContent;
 
         const result = await extractWithCloudflareAI(truncatedContent, env);
-        const validatedResult = validateExtractedLinkDomain(result, emailContent);
+        const validatedResult = discardRecipientDomainLink(result, address);
 
         // If extraction found something useful, save it to database
         if (validatedResult.type !== 'none' && validatedResult.result) {
