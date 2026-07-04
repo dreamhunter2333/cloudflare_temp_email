@@ -1,17 +1,45 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
 import { getDownloadEmlUrl } from '../utils/email-parser';
-import { applyRemoteContentPolicy } from '../utils/mail-html';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
 
 const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark, autoLoadRemoteContent } = useGlobalState();
 
 const { t } = useScopedI18n('components.MailContentRenderer')
+
+const blockedRemoteContentPlaceholder = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="80" viewBox="0 0 320 80">
+  <rect width="320" height="80" rx="8" fill="#f3f4f6"/>
+  <text x="160" y="45" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#6b7280">Remote content blocked</text>
+</svg>
+`)}`;
+
+const hasRemoteUrl = (value: string | null) => /(?:^|,)\s*(?:https?:)?\/\//i.test(value || '');
+
+const blockRemoteImages = (html?: string | null) => {
+  if (!html || typeof DOMParser !== 'function') return html || '';
+
+  const hasDocumentShell = /<!doctype|<html[\s>]/i.test(html);
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  for (const image of doc.querySelectorAll('img')) {
+    const src = image.getAttribute('src');
+    const srcset = image.getAttribute('srcset');
+    if (!hasRemoteUrl(src) && !hasRemoteUrl(srcset)) continue;
+
+    if (src) image.setAttribute('data-blocked-src', src);
+    if (srcset) image.setAttribute('data-blocked-srcset', srcset);
+    image.removeAttribute('srcset');
+    image.setAttribute('src', blockedRemoteContentPlaceholder);
+  }
+
+  return hasDocumentShell ? `<!doctype html>\n${doc.documentElement.outerHTML}` : doc.body.innerHTML;
+};
 
 const props = defineProps({
   mail: {
@@ -60,7 +88,9 @@ const attachmentLoding = ref(false);
 const showFullscreen = ref(false);
 const loadRemoteContentForCurrentMail = ref(false);
 const shouldLoadRemoteContent = computed(() => autoLoadRemoteContent.value || loadRemoteContentForCurrentMail.value);
-const mailHtmlContent = computed(() => applyRemoteContentPolicy(props.mail.message, shouldLoadRemoteContent.value));
+const mailHtmlContent = computed(() => shouldLoadRemoteContent.value
+  ? (props.mail.message || '')
+  : blockRemoteImages(props.mail.message));
 
 watch(() => props.mail.id, () => {
   loadRemoteContentForCurrentMail.value = false;
@@ -180,12 +210,6 @@ const handleSaveToS3 = async (filename, blob) => {
   <n-drawer v-model:show="showFullscreen" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
     style="height: 100vh;">
     <n-drawer-content :title="mail.subject" closable>
-      <n-space v-if="!showTextMail && !shouldLoadRemoteContent" class="fullscreen-actions">
-        <n-button size="small" tertiary type="info" @click="loadRemoteContentForCurrentMail = true">
-          {{ t('loadRemoteContent') }}
-        </n-button>
-      </n-space>
-
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
         <iframe v-else-if="useIframeShowMail" :srcdoc="mailHtmlContent" class="mail-iframe">
@@ -277,10 +301,6 @@ const handleSaveToS3 = async (filename, blob) => {
 .fullscreen-mail-content {
   height: calc(100vh - 120px);
   overflow: auto;
-}
-
-.fullscreen-actions {
-  margin-bottom: 10px;
 }
 
 .fullscreen-mail-content .mail-iframe {
