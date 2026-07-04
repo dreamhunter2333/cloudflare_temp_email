@@ -75,7 +75,8 @@ If the extracted content is in markdown link format [text](url):
 2. **Single Selection**: Choose ONLY ONE type based on the highest priority match
 3. **Real Data Only**: Never invent, guess, or fabricate content
 4. **Complete URLs**: Links must be full, valid URLs as they appear in the email
-5. **Clean Extraction**: Return only the raw extracted content, no extra text
+5. **No Domain Modification**: Never modify, rewrite, or substitute URL domains. If the exact URL domain is uncertain, return none
+6. **Clean Extraction**: Return only the raw extracted content, no extra text
 
 # Output Format (JSON only)
 {
