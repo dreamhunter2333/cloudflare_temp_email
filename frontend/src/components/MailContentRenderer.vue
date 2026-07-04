@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
@@ -58,7 +58,13 @@ const showAttachments = ref(false);
 const curAttachments = ref([]);
 const attachmentLoding = ref(false);
 const showFullscreen = ref(false);
-const mailHtmlContent = computed(() => applyExternalImagePolicy(props.mail.message, autoLoadExternalImages.value));
+const loadExternalImagesForCurrentMail = ref(false);
+const shouldLoadExternalImages = computed(() => autoLoadExternalImages.value || loadExternalImagesForCurrentMail.value);
+const mailHtmlContent = computed(() => applyExternalImagePolicy(props.mail.message, shouldLoadExternalImages.value));
+
+watch(() => props.mail.id, () => {
+  loadExternalImagesForCurrentMail.value = false;
+});
 
 const handleDelete = () => {
   props.onDelete();
@@ -152,6 +158,11 @@ const handleSaveToS3 = async (filename, blob) => {
         {{ t('fullscreen') }}
       </n-button>
 
+      <n-button v-if="!showTextMail && !shouldLoadExternalImages" size="small" tertiary type="info"
+        @click="loadExternalImagesForCurrentMail = true">
+        {{ t('loadExternalImages') }}
+      </n-button>
+
     </n-space>
 
     <!-- AI 提取信息 -->
@@ -169,6 +180,12 @@ const handleSaveToS3 = async (filename, blob) => {
   <n-drawer v-model:show="showFullscreen" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
     style="height: 100vh;">
     <n-drawer-content :title="mail.subject" closable>
+      <n-space v-if="!showTextMail && !shouldLoadExternalImages" class="fullscreen-actions">
+        <n-button size="small" tertiary type="info" @click="loadExternalImagesForCurrentMail = true">
+          {{ t('loadExternalImages') }}
+        </n-button>
+      </n-space>
+
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
         <iframe v-else-if="useIframeShowMail" :srcdoc="mailHtmlContent" class="mail-iframe">
@@ -260,6 +277,10 @@ const handleSaveToS3 = async (filename, blob) => {
 .fullscreen-mail-content {
   height: calc(100vh - 120px);
   overflow: auto;
+}
+
+.fullscreen-actions {
+  margin-bottom: 10px;
 }
 
 .fullscreen-mail-content .mail-iframe {

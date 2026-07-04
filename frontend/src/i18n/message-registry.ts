@@ -186,6 +186,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Fullscreen",
       "zh": "全屏"
     },
+    "loadExternalImages": {
+      "en": "Load External Images",
+      "zh": "加载外部图片"
+    },
     "reply": {
       "en": "Reply",
       "zh": "回复"

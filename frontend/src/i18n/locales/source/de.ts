@@ -238,6 +238,7 @@ export const deMessages = {
   "views.admin.AccountSettings.forward_address_required": "Eine Weiterleitungsadresse ist erforderlich",
   "views.admin.AccountSettings.forward_placeholder": "forward@example.com",
   "components.MailContentRenderer.fullscreen": "Vollbild",
+  "components.MailContentRenderer.loadExternalImages": "Externe Bilder laden",
   "views.common.Login.generateName": "Zufälligen Namen erzeugen",
   "views.admin.Telegram.globalMailPushList": "Globale Mail-Push-Chat-ID-Liste",
   "views.common.Appearance.globalTabplacement": "Globale Tab-Position",

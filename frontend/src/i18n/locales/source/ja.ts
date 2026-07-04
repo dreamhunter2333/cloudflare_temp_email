@@ -238,6 +238,7 @@ export const jaMessages = {
   "views.admin.AccountSettings.forward_address_required": "転送先アドレスは必須です",
   "views.admin.AccountSettings.forward_placeholder": "forward@example.com",
   "components.MailContentRenderer.fullscreen": "全画面",
+  "components.MailContentRenderer.loadExternalImages": "外部画像を読み込む",
   "views.common.Login.generateName": "ランダム名を生成",
   "views.admin.Telegram.globalMailPushList": "グローバルメール通知 Chat ID 一覧",
   "views.common.Appearance.globalTabplacement": "全体タブ位置",
