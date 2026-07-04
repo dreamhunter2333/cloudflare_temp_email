@@ -10,7 +10,7 @@
 
 ### Features
 
-- feat: |Frontend| Add an Appearance toggle for automatically loading external images; when disabled, HTML mail shows blocked-image placeholders by default with a per-mail manual load action (issue #1073)
+- feat: |Frontend| Add an Appearance toggle for automatically loading external images; when disabled, HTML mail shows blocked-image placeholders by default (issue #1073)
 
 ### Bug Fixes
 

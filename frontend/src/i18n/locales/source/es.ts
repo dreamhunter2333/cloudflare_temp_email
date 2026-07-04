@@ -238,7 +238,6 @@ export const esMessages = {
   "views.admin.AccountSettings.forward_address_required": "La dirección de reenvío es obligatoria",
   "views.admin.AccountSettings.forward_placeholder": "forward@example.com",
   "components.MailContentRenderer.fullscreen": "Pantalla completa",
-  "components.MailContentRenderer.loadExternalImages": "Cargar imágenes externas",
   "views.common.Login.generateName": "Generar nombre aleatorio",
   "views.admin.Telegram.globalMailPushList": "Lista global de chat ID para envío de correos",
   "views.common.Appearance.globalTabplacement": "Posición global de pestañas",
