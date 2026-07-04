@@ -226,50 +226,6 @@ function getEmailContentForExtract(parsedEmail: Awaited<ReturnType<typeof common
     return htmlToTextForAi(parsedEmail.html) || parsedEmail.html;
 }
 
-const LINK_EXTRACT_TYPES = new Set<ExtractResult['type']>([
-    'auth_link',
-    'service_link',
-    'subscription_link',
-    'other_link',
-]);
-
-function normalizeHostname(hostname: string): string {
-    return hostname.toLowerCase().replace(/\.$/, '');
-}
-
-function trimUrlBoundaryPunctuation(value: string): string {
-    return value.replace(/[),.;!?]+$/g, '');
-}
-
-function getUrlHostname(value: string): string | null {
-    const match = value.match(/https?:\/\/[^\s<>"'`]+/i);
-    if (!match) {
-        return null;
-    }
-
-    try {
-        const url = new URL(trimUrlBoundaryPunctuation(match[0]));
-        return normalizeHostname(url.hostname);
-    } catch {
-        return null;
-    }
-}
-
-function discardRecipientDomainLink(result: ExtractResult, address: string): ExtractResult {
-    if (!LINK_EXTRACT_TYPES.has(result.type)) {
-        return result;
-    }
-
-    const resultHostname = getUrlHostname(result.result);
-    const recipientDomain = normalizeHostname(address.split('@').pop() || '');
-    if (!resultHostname || resultHostname !== recipientDomain) {
-        return result;
-    }
-
-    console.warn(`AI extraction discarded link with hallucinated domain: ${resultHostname}`);
-    return { type: 'none', result: '', result_text: '' };
-}
-
 /**
  * Main extraction function
  * Checks if extraction is enabled, processes the email content, and saves to database.
@@ -349,14 +305,13 @@ export async function extractEmailInfo(
             : emailContent;
 
         const result = await extractWithCloudflareAI(truncatedContent, env);
-        const validatedResult = discardRecipientDomainLink(result, address);
 
         // If extraction found something useful, save it to database
-        if (validatedResult.type !== 'none' && validatedResult.result) {
-            await saveExtractMetadata(env, message_id, validatedResult);
-            console.log(`AI extraction completed for ${message_id}: ${validatedResult.type}`);
+        if (result.type !== 'none' && result.result) {
+            await saveExtractMetadata(env, message_id, result);
+            console.log(`AI extraction completed for ${message_id}: ${result.type}`);
         }
-        return validatedResult;
+        return result;
     } catch (e) {
         console.error('AI email extraction error:', e);
         return null;
