@@ -186,6 +186,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Fullscreen",
       "zh": "全屏"
     },
+    "loadRemoteContent": {
+      "en": "Load Remote Content",
+      "zh": "加载远程内容"
+    },
     "reply": {
       "en": "Reply",
       "zh": "回复"
@@ -2113,6 +2117,10 @@ export const MESSAGE_REGISTRY = {
     "preferShowTextMail": {
       "en": "Display text Mail by default",
       "zh": "默认以文本显示邮件"
+    },
+    "autoLoadRemoteContent": {
+      "en": "Automatically load remote content",
+      "zh": "自动加载远程内容"
     },
     "right": {
       "en": "right",

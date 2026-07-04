@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Frontend| Add an Appearance toggle for automatically loading remote content, disabled by default; when disabled, HTML mail shows blocked-image placeholders by default and supports temporarily loading remote content for a single mail (issue #1073)
+
 ### Bug Fixes
 
 - fix: |AI Extract| Strengthen the prompt to keep original link domains from the email, preventing small models from rewriting verification-link domains (issue #1072)

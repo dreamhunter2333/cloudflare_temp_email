@@ -1,5 +1,5 @@
-<script setup>
-import { ref } from "vue";
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
 import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
@@ -8,9 +8,38 @@ import { getDownloadEmlUrl } from '../utils/email-parser';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
 
-const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark } = useGlobalState();
+const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark, autoLoadRemoteContent } = useGlobalState();
 
 const { t } = useScopedI18n('components.MailContentRenderer')
+
+const blockedRemoteContentPlaceholder = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="80" viewBox="0 0 320 80">
+  <rect width="320" height="80" rx="8" fill="#f3f4f6"/>
+  <text x="160" y="45" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#6b7280">Remote content blocked</text>
+</svg>
+`)}`;
+
+const hasRemoteUrl = (value: string | null) => /(?:^|,)\s*(?:https?:)?\/\//i.test(value || '');
+
+const blockRemoteImages = (html?: string | null) => {
+  if (!html || typeof DOMParser !== 'function') return html || '';
+
+  const hasDocumentShell = /<!doctype|<html[\s>]/i.test(html);
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  for (const image of doc.querySelectorAll('img')) {
+    const src = image.getAttribute('src');
+    const srcset = image.getAttribute('srcset');
+    if (!hasRemoteUrl(src) && !hasRemoteUrl(srcset)) continue;
+
+    if (src) image.setAttribute('data-blocked-src', src);
+    if (srcset) image.setAttribute('data-blocked-srcset', srcset);
+    image.removeAttribute('srcset');
+    image.setAttribute('src', blockedRemoteContentPlaceholder);
+  }
+
+  return hasDocumentShell ? `<!doctype html>\n${doc.documentElement.outerHTML}` : doc.body.innerHTML;
+};
 
 const props = defineProps({
   mail: {
@@ -57,6 +86,15 @@ const showAttachments = ref(false);
 const curAttachments = ref([]);
 const attachmentLoding = ref(false);
 const showFullscreen = ref(false);
+const loadRemoteContentForCurrentMail = ref(false);
+const shouldLoadRemoteContent = computed(() => autoLoadRemoteContent.value || loadRemoteContentForCurrentMail.value);
+const mailHtmlContent = computed(() => shouldLoadRemoteContent.value
+  ? (props.mail.message || '')
+  : blockRemoteImages(props.mail.message));
+
+watch(() => props.mail.id, () => {
+  loadRemoteContentForCurrentMail.value = false;
+});
 
 const handleDelete = () => {
   props.onDelete();
@@ -149,6 +187,12 @@ const handleSaveToS3 = async (filename, blob) => {
         </template>
         {{ t('fullscreen') }}
       </n-button>
+
+      <n-button v-if="!showTextMail && !shouldLoadRemoteContent" size="small" tertiary type="info"
+        @click="loadRemoteContentForCurrentMail = true">
+        {{ t('loadRemoteContent') }}
+      </n-button>
+
     </n-space>
 
     <!-- AI 提取信息 -->
@@ -157,9 +201,9 @@ const handleSaveToS3 = async (filename, blob) => {
     <!-- 邮件内容 -->
     <div class="mail-content" :class="{ 'dark-mode': isDark }">
       <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-      <iframe v-else-if="useIframeShowMail" :srcdoc="mail.message" class="mail-iframe">
+      <iframe v-else-if="useIframeShowMail" :srcdoc="mailHtmlContent" class="mail-iframe">
       </iframe>
-      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mail.message" :isDark="isDark" class="mail-html" />
+      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mailHtmlContent" :isDark="isDark" class="mail-html" />
     </div>
   </div>
 
@@ -168,9 +212,9 @@ const handleSaveToS3 = async (filename, blob) => {
     <n-drawer-content :title="mail.subject" closable>
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-        <iframe v-else-if="useIframeShowMail" :srcdoc="mail.message" class="mail-iframe">
+        <iframe v-else-if="useIframeShowMail" :srcdoc="mailHtmlContent" class="mail-iframe">
         </iframe>
-        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mail.message" :isDark="isDark" class="mail-html" />
+        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="mailHtmlContent" :isDark="isDark" class="mail-html" />
       </div>
     </n-drawer-content>
   </n-drawer>
