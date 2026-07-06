@@ -40,7 +40,12 @@
 | --------------- | --------------------------------------------------------- |
 | Set `DEFAULT_SEND_BALANCE` but still getting `No balance` | Refresh the settings page or try sending again first. When `DEFAULT_SEND_BALANCE > 0`, the system only auto-initializes the default quota for addresses that have **no `address_sender` row yet**; existing rows — including legacy `balance = 0 && enabled = 0` rows, admin-disabled rows, and admin-edited rows — are never modified by the runtime and must be manually restored by an admin (enable + set balance). Alternatively, add the address to the "No Limit Send Address List" in the admin console, or configure `NO_LIMIT_SEND_ROLE` |
 | Error: `Please enable resend or smtp for this domain` | You need to configure `RESEND_TOKEN` or `SMTP_CONFIG` first. See [Configure Email Sending](/en/guide/config-send-mail) |
-| `SMTP_CONFIG` configured but sending fails | Make sure the JSON key is **your own sending domain** (e.g. `your-domain.com`), not the example `awsl.uk`. See [Configure Email Sending](/en/guide/config-send-mail#send-emails-using-smtp) |
+| `SMTP_CONFIG` configured but sending fails | Make sure the JSON key is **your own sending domain** (e.g. `your-domain.com`), not the example `awsl.uk`. The system applies `trim + toLowerCase` to both the key and sender domain, then requires exact equality; it does not match subdomains or suffixes automatically. See [Configure Email Sending](/en/guide/config-send-mail#send-emails-using-smtp) |
+| Gmail / Outlook returns `535`, `Username and Password not accepted`, or `Authentication unsuccessful` | For Gmail, use an App Password instead of the account password. For Microsoft 365, the tenant must allow SMTP AUTH; otherwise use Resend |
+| SMTP connection fails with `ECONNREFUSED` / `ETIMEDOUT` | Check that `host`, `port`, and `secure` match the provider requirements. If a self-hosted or ISP SMTP server blocks Cloudflare Workers outbound traffic, use a relay such as Resend or Mailgun |
+| SMTP returns `self signed certificate` | The SMTP server certificate is not trusted. Fix the server certificate, or use port 587 with STARTTLS |
+| SMTP returns `getaddrinfo ENOTFOUND` | The `host` is wrong or DNS cannot resolve it. Re-check the provider SMTP hostname |
+| Mail is sent but lands in spam | Check SPF / DKIM / DMARC for the sending domain, and keep the `From` domain aligned with the verified SMTP/Resend domain when possible |
 
 ## Mail Client Related
 

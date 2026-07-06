@@ -18,6 +18,8 @@
 
 ### Improvements
 
+- docs: |发送邮件| 将 SMTP 发信教程拆分到 VitePress 中英文文档，补充 Cloudflare Dashboard / CLI secret 配置位置、Gmail / Outlook / 自建 SMTP 示例、HTTP 发信 curl 示例和常见错误排查（issue #609）
+
 ## v1.9.0
 
 ### Features

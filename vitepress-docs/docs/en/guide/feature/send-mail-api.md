@@ -36,6 +36,22 @@ res = requests.post(
 )
 ```
 
+You can also use curl to debug a plain-text send:
+
+```bash
+curl -X POST "https://your_worker_domain/api/send_mail" \
+  -H "Authorization: Bearer $ADDRESS_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "from_name": "My Temp Mail",
+    "to_name": "Recipient",
+    "to_mail": "friend@example.org",
+    "subject": "Hello from Cloudflare Temp Email",
+    "is_html": false,
+    "content": "Hi! This is a test from my self-hosted temp mail."
+  }'
+```
+
 ### Method 2: Body Token Authentication (`/external/api/send_mail`)
 
 Suitable for external system calls, place the Address JWT in the `token` field of the request body:
@@ -57,6 +73,28 @@ res = requests.post(
         "Content-Type": "application/json"
     }
 )
+```
+
+For server-to-server integrations, curl can put the Address JWT in the request body:
+
+```bash
+curl -X POST "https://your_worker_domain/external/api/send_mail" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "'"$ADDRESS_JWT"'",
+    "from_name": "My Temp Mail",
+    "to_mail": "friend@example.org",
+    "subject": "HTML test",
+    "is_html": true,
+    "content": "<h1>Hi!</h1><p>This is <b>HTML</b>.</p>"
+  }'
+```
+
+Check recent sendbox records:
+
+```bash
+curl "https://your_worker_domain/api/sendbox?limit=10&offset=0" \
+  -H "Authorization: Bearer $ADDRESS_JWT"
 ```
 
 ## Send Email via SMTP

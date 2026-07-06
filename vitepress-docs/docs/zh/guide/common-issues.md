@@ -40,7 +40,12 @@
 | --------------- | ---------------------------------------- |
 | 设置了 `DEFAULT_SEND_BALANCE` 但仍提示 `No balance` | 先刷新前端设置页或重试发送。当 `DEFAULT_SEND_BALANCE > 0` 时，系统只会为**尚无 `address_sender` 记录**的地址自动初始化默认额度；已有记录（包括历史 `balance = 0 且 enabled = 0` 的行、管理员禁用或手动设置的行）不会被 runtime 修改，需要管理员在后台手动启用并设置余额。也可以将地址加入「无限制发送地址列表」或配置 `NO_LIMIT_SEND_ROLE` |
 | 提示 `请先为此域名启用 resend 或 smtp` | 需要先配置 `RESEND_TOKEN` 或 `SMTP_CONFIG`，详见 [配置发送邮件](/zh/guide/config-send-mail) |
-| `SMTP_CONFIG` 配置了但发送失败 | 请确认 JSON 中的 key 是**你自己的发信域名**（如 `your-domain.com`），不要直接复制示例 key。详见 [配置发送邮件](/zh/guide/config-send-mail#使用-smtp-发送邮件) |
+| `SMTP_CONFIG` 配置了但发送失败 | 请确认 JSON 中的 key 是**你自己的发信域名**（如 `your-domain.com`），不要直接复制示例 key。系统会对 key 和发件域名做 `trim + toLowerCase` 后精确匹配，不会自动匹配子域名或后缀。详见 [配置发送邮件](/zh/guide/config-send-mail#使用-smtp-发送邮件) |
+| Gmail / Outlook 返回 `535`、`Username and Password not accepted` 或 `Authentication unsuccessful` | Gmail 请使用 App Password，不要使用账号登录密码；Microsoft 365 需要租户允许 SMTP AUTH，否则建议改用 Resend |
+| SMTP 连接 `ECONNREFUSED` / `ETIMEDOUT` | 检查 `host`、`port`、`secure` 是否匹配服务商要求。若自建或 ISP SMTP 阻断 Cloudflare Workers 出站连接，建议改用 Resend、Mailgun 等中继服务 |
+| SMTP 报 `self signed certificate` | SMTP 服务器证书不被信任。请修复服务端证书，或使用 587 + STARTTLS 配置 |
+| SMTP 报 `getaddrinfo ENOTFOUND` | `host` 填写错误或 DNS 无法解析，请重新确认服务商 SMTP 主机名 |
+| 邮件已发送但进入垃圾箱 | 检查发信域名的 SPF / DKIM / DMARC，并尽量让 `From` 域名与已验证的 SMTP/Resend 域名一致 |
 
 ## 邮件客户端相关
 

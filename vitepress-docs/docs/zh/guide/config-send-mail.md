@@ -85,6 +85,8 @@ SMTP 配置格式详情可以参考 [zou-yu/worker-mailer](https://github.com/zo
 > [!warning] 重要
 > JSON 中的 key（如下面示例中的 `your-domain.com`）必须替换为**你自己的域名**，即 `DOMAINS` 变量中配置的域名。
 > 这是最常见的配置错误之一，请勿直接复制示例中的域名。
+>
+> 已验证地址列表会优先判断：如果收件人在列表中且已绑定 `SEND_MAIL`，请求会立即通过 `SEND_MAIL` 发出。未命中该检查时，系统才会继续按可用通道尝试 Resend、SMTP 或 `SEND_MAIL` binding 兜底。对于 SMTP，系统会对 `SMTP_CONFIG` 顶层 key 和当前发件域名都执行 `trim + toLowerCase` 归一化，然后做精确相等匹配；不会自动做子域名或后缀匹配。
 
 ```json
 {
@@ -137,6 +139,10 @@ SMTP 配置格式详情可以参考 [zou-yu/worker-mailer](https://github.com/zo
 }
 ```
 
+### Cloudflare Dashboard / CLI 配置位置
+
+如果通过 Cloudflare Dashboard 配置，进入 **Workers & Pages → 你的 Worker → Settings → Variables and Secrets**，新增一个名为 `SMTP_CONFIG` 的 **Secret**，并把完整 JSON 粘贴到 Value 中后部署。
+
 然后执行下面的命令，将 `SMTP_CONFIG` 添加到 secrets 中
 
 > [!NOTE]
@@ -149,6 +155,38 @@ SMTP 配置格式详情可以参考 [zou-yu/worker-mailer](https://github.com/zo
 cd worker
 wrangler secret put SMTP_CONFIG
 ```
+
+### 常见 SMTP 服务商示例
+
+**Gmail** 通常需要开启两步验证后创建 [App Password](https://myaccount.google.com/apppasswords)，再使用 `smtp.gmail.com`：
+
+```json
+{
+    "your-domain.com": {
+        "host": "smtp.gmail.com",
+        "port": 465,
+        "secure": true,
+        "authType": ["plain", "login"],
+        "credentials": { "username": "you@gmail.com", "password": "your-app-password" }
+    }
+}
+```
+
+**Outlook / Microsoft 365** 可在租户允许 SMTP AUTH 时使用 `smtp.office365.com:587`。如果出现 `535 5.7.3 Authentication unsuccessful`，通常表示租户禁用了基础认证，建议改用 Resend。
+
+```json
+{
+    "your-domain.com": {
+        "host": "smtp.office365.com",
+        "port": 587,
+        "secure": false,
+        "authType": ["plain", "login"],
+        "credentials": { "username": "you@outlook.com", "password": "your-app-password" }
+    }
+}
+```
+
+自建 SMTP 请确认 Cloudflare Workers 能访问你的 `host:port`。许多服务商会阻断来自云平台的 25/465/587 端口，连接超时或拒绝时建议换用 Resend、Mailgun 等中继服务。
 
 ## 发信余额机制
 
