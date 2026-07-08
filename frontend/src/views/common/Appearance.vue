@@ -33,7 +33,7 @@ const { t } = useScopedI18n('views.common.Appearance')
             <n-form-item-row v-if="!isMobile" :label="t('mailListView')">
                 <n-switch v-model:value="mailListView" :round="false" />
             </n-form-item-row>
-            <n-form-item-row :label="t('mailListPreviewLineClamp')">
+            <n-form-item-row v-if="!isMobile" :label="t('mailListPreviewLineClamp')">
                 <n-slider v-model:value="mailListPreviewLineClamp" :min="0" :max="5" :step="1" :marks="{
                     0: t('off'),
                     1: '1',
