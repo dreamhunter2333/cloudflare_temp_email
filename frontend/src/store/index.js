@@ -88,6 +88,8 @@ export const useGlobalState = createGlobalState(
         const adminMailTabAddress = ref("");
         const adminSendBoxTabAddress = ref("");
         const mailboxSplitSize = useStorage('mailboxSplitSize', 0.25);
+        const mailListView = useStorage('mailListView', false);
+        const mailListPreviewLineClamp = useStorage('mailListPreviewLineClamp', 2);
         const useIframeShowMail = useStorage('useIframeShowMail', false);
         const preferShowTextMail = useStorage('preferShowTextMail', false);
         const userJwt = useStorage('userJwt', '');
@@ -160,6 +162,8 @@ export const useGlobalState = createGlobalState(
             adminMailTabAddress,
             adminSendBoxTabAddress,
             mailboxSplitSize,
+            mailListView,
+            mailListPreviewLineClamp,
             useIframeShowMail,
             preferShowTextMail,
             userJwt,
