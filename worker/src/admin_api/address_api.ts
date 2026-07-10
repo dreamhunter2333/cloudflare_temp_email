@@ -2,7 +2,7 @@ import { Context } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n'
-import { getBooleanValue } from '../utils'
+import { getBooleanValue, hashPasswordWithSalt } from '../utils'
 import { newAddress, handleListQuery } from '../common'
 
 const listAddresses = async (c: Context<HonoCustomType>) => {
@@ -144,9 +144,10 @@ const resetPassword = async (c: Context<HonoCustomType>) => {
     if (!password) {
         return c.text(msgs.NewPasswordRequiredMsg, 400);
     }
+    const { hash, salt } = await hashPasswordWithSalt(password);
     const { success } = await c.env.DB.prepare(
-        `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
-    ).bind(password, id).run();
+        `UPDATE address SET password = ?, password_salt = ?, updated_at = datetime('now') WHERE id = ?`
+    ).bind(hash, salt, id).run();
     if (!success) {
         return c.text(msgs.FailedUpdatePasswordMsg, 500);
     }

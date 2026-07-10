@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
+import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, hashPasswordWithSalt, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, WebhookMail, WebhookSettings } from './models';
@@ -276,10 +276,10 @@ const generatePasswordForAddress = async (
     }
 
     const plainPassword = generateRandomPassword();
-    const hashedPassword = await hashPassword(plainPassword);
+    const { hash, salt } = await hashPasswordWithSalt(await hashPassword(plainPassword));
     const { success } = await c.env.DB.prepare(
-        `UPDATE address SET password = ?, updated_at = datetime('now') WHERE name = ?`
-    ).bind(hashedPassword, address).run();
+        `UPDATE address SET password = ?, password_salt = ?, updated_at = datetime('now') WHERE name = ?`
+    ).bind(hash, salt, address).run();
 
     if (!success) {
         console.warn("Failed to set generated password for address:", address);
