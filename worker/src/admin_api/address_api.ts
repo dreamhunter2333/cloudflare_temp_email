@@ -70,12 +70,8 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
 const deleteAddress = async (c: Context<HonoCustomType>) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM address WHERE id = ? `
-    ).bind(id).run();
-    if (!success) {
-        return c.text(msgs.OperationFailedMsg, 500)
-    }
+    // delete dependent rows first: the subqueries resolve the address name,
+    // which is gone once the address row itself is deleted
     const { success: mailSuccess } = await c.env.DB.prepare(
         `DELETE FROM raw_mails WHERE address IN`
         + ` (select name from address where id = ?) `
@@ -87,11 +83,26 @@ const deleteAddress = async (c: Context<HonoCustomType>) => {
         `DELETE FROM address_sender WHERE address IN`
         + ` (select name from address where id = ?) `
     ).bind(id).run();
+    const { success: sendboxSuccess } = await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE address IN`
+        + ` (select name from address where id = ?) `
+    ).bind(id).run();
+    const { success: autoReplySuccess } = await c.env.DB.prepare(
+        `DELETE FROM auto_reply_mails WHERE address IN`
+        + ` (select name from address where id = ?) `
+    ).bind(id).run();
     const { success: usersAddressSuccess } = await c.env.DB.prepare(
         `DELETE FROM users_address WHERE address_id = ?`
     ).bind(id).run();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM address WHERE id = ? `
+    ).bind(id).run();
+    if (!success) {
+        return c.text(msgs.OperationFailedMsg, 500)
+    }
     return c.json({
-        success: success && mailSuccess && sendAccess && usersAddressSuccess
+        success: success && mailSuccess && sendAccess && sendboxSuccess
+            && autoReplySuccess && usersAddressSuccess
     })
 };
 
