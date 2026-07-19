@@ -141,9 +141,9 @@ ENABLE_AUTO_REPLY = false
 # FRONTEND_URL = "https://xxxx.xxx"
 # Enable check junk mail
 # ENABLE_CHECK_JUNK_MAIL = false
-# junk mail check list, if status exists and status is not pass, will be marked as junk mail
-# JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
-# junk mail force check pass list, if no status or status is not pass, will be marked as junk mail
+# junk mail check list: reject registered failure/error results; none and SPF/DKIM neutral are treated as absent
+# JUNK_MAIL_CHECK_LIST = ["spf", "dkim", "dmarc"]
+# junk mail force pass list: every configured method must explicitly return pass
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
 # remove attachment if size exceed 2MB, mail maybe mising some information due to parsing
 # REMOVE_EXCEED_SIZE_ATTACHMENT = true
