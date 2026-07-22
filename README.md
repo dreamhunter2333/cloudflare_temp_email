@@ -40,7 +40,9 @@
 - **完全免费** - 基于 Cloudflare 免费服务构建，零成本运行
 - **高性能** - Rust WASM 邮件解析，响应速度极快
 - **现代化界面** - 响应式设计，支持多语言，操作简便
-- **地址密码** - 支持为邮箱地址设置独立密码，增强安全性 (通过 `ENABLE_ADDRESS_PASSWORD` 启用)
+- **地址密码** - 支持为邮箱地址设置独立密码，增强安全性
+- **Agent 友好** - 内置邮箱 [`skill`](skills/cf-temp-mail-agent-mail/SKILL.md)，方便 AI agent 使用邮箱
+- **移动端管理** - 社区客户端 [CloudMail](https://github.com/Lur1N77777/CloudMail)，支持 Android 管理后台和邮箱管理
 
 ## 部署文档 - 快速开始
 
@@ -109,6 +111,7 @@
 
 - [x] 使用 `rust wasm` 解析邮件，解析速度快，几乎所有邮件都能解析，node 的解析模块解析邮件失败的邮件，rust wasm 也能解析成功
 - [x] **AI 邮件识别** - 使用 Cloudflare Workers AI 自动提取邮件中的验证码、认证链接、服务链接等重要信息
+- [x] 支持为指定基础域名创建随机二级域名邮箱地址，更适合收件隔离场景
 - [x] 支持发送邮件，支持 `DKIM` 验证
 - [x] 支持 `SMTP` 和 `Resend` 等多种发送方式 
 - [x] 增加查看 `附件` 功能，支持附件图片显示
@@ -149,6 +152,8 @@
 - [x] Webhook 支持，消息推送集成
 - [x] 支持 `CF Turnstile` 人机验证
 - [x] 限流配置，防止滥用
+- [x] **Agent 友好**：内置 [`cf-temp-mail-agent-mail`](skills/cf-temp-mail-agent-mail/SKILL.md) skill，AI agent 可直接消费邮箱，详见 [文档](vitepress-docs/docs/zh/guide/feature/agent-email.md)
+- [x] 社区移动端管理客户端：[CloudMail](https://github.com/Lur1N77777/CloudMail) 基于 Expo / React Native，面向本项目兼容 API，提供 Android 管理员后台、地址管理、收件/发件/未知邮件、验证码快捷复制、OLED 黑主题和本地分组。
 
 </details>
 

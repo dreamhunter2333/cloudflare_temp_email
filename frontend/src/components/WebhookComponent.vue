@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, h } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import type { DropdownOption } from 'naive-ui'
 
 const props = defineProps({
@@ -24,30 +24,7 @@ const props = defineProps({
 // @ts-ignore
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            successTip: 'Success',
-            test: 'Test',
-            save: 'Save',
-            notEnabled: 'Webhook is not enabled for you',
-            urlMissing: 'URL is required',
-            enable: 'Enable',
-            presets: 'Presets',
-            fillInDemoTip: 'Please modify the URL and other settings to your own',
-        },
-        zh: {
-            successTip: '成功',
-            test: '测试',
-            save: '保存',
-            notEnabled: 'Webhook 未开启，请联系管理员开启',
-            urlMissing: 'URL 不能为空',
-            enable: '启用',
-            presets: '示例模板',
-            fillInDemoTip: '请修改URL和其他设置为您自己的配置',
-        }
-    }
-});
+const { t } = useScopedI18n('components.WebhookComponent')
 
 class WebhookSettings {
     enabled: boolean = false

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, h, computed } from 'vue';
 import { useLocalStorage } from '@vueuse/core';
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { NPopconfirm, NButton } from 'naive-ui'
 
 // @ts-ignore
@@ -13,30 +13,7 @@ const { jwt } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            tip: 'These addresses are stored in your browser, maybe loss if you clear the browser cache.',
-            success: 'success',
-            address: 'Address',
-            actions: 'Actions',
-            changeMailAddress: 'Change Mail Address',
-            unbindMailAddress: 'Unbind Mail Address credential',
-            create_or_bind: 'Create or Bind',
-            bindAddressSuccess: 'Bind Address Success',
-        },
-        zh: {
-            tip: '这些地址存储在您的浏览器中，如果您清除浏览器缓存，可能会丢失。',
-            success: '成功',
-            address: '地址',
-            actions: '操作',
-            changeMailAddress: '切换邮箱地址',
-            unbindMailAddress: '解绑邮箱地址',
-            create_or_bind: '创建或绑定',
-            bindAddressSuccess: '绑定地址成功',
-        }
-    }
-});
+const { t } = useScopedI18n('views.index.LocalAddress')
 
 const tabValue = ref('address')
 const localAddressCache = useLocalStorage("LocalAddressCache", []);
@@ -149,7 +126,9 @@ const columns = [
         </n-alert>
         <n-tabs type="segment" v-model:value="tabValue">
             <n-tab-pane name="address" :tab="t('address')">
-                <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                <div class="address-table-scroll">
+                    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                </div>
             </n-tab-pane>
             <n-tab-pane name="create_or_bind" :tab="t('create_or_bind')">
                 <Login :bindUserAddress="bindAddress" />
@@ -157,3 +136,14 @@ const columns = [
         </n-tabs>
     </div>
 </template>
+
+<style scoped>
+.n-data-table {
+    min-width: 640px;
+}
+
+.address-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+</style>

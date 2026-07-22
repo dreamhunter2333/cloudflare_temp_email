@@ -1,4 +1,4 @@
-# Gihub Actions 部署准备
+# GitHub Actions 部署准备
 
 ## GitHub 账户
 

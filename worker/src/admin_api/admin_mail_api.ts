@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { handleListQuery } from "../common";
+import { handleMailListQuery } from "../common";
 
 export default {
     getMails: async (c: Context<HonoCustomType>) => {
@@ -9,7 +9,7 @@ export default {
         const filterQuerys = [addressQuery].filter((item) => item).join(" and ");
         const finalQuery = filterQuerys.length > 0 ? `where ${filterQuerys}` : "";
         const filterParams = [...addressParams]
-        return await handleListQuery(c,
+        return await handleMailListQuery(c,
             `SELECT * FROM raw_mails ${finalQuery}`,
             `SELECT count(*) as count FROM raw_mails ${finalQuery}`,
             filterParams, limit, offset
@@ -17,7 +17,7 @@ export default {
     },
     getUnknowMails: async (c: Context<HonoCustomType>) => {
         const { limit, offset } = c.req.query();
-        return await handleListQuery(c,
+        return await handleMailListQuery(c,
             `SELECT * FROM raw_mails where address NOT IN (select name from address) `,
             `SELECT count(*) as count FROM raw_mails`
             + ` where address NOT IN (select name from address) `,

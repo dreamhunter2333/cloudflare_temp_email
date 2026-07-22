@@ -57,6 +57,7 @@ const messages: LocaleMessages = {
     NameTooShortMsg: "名称太短",
     NameTooLongMsg: "名称太长",
     InvalidDomainMsg: "无效的域名",
+    RandomSubdomainNotAllowedMsg: "当前域名未启用随机子域名",
     AddressAlreadyExistsMsg: "邮箱地址已存在",
     MaxAddressCountReachedMsg: "已达到最大地址数量限制",
     AddressNotBindedMsg: "邮箱地址未绑定",
@@ -70,13 +71,16 @@ const messages: LocaleMessages = {
     ContentEmptyMsg: "内容不能为空",
     AlreadyRequestedMsg: "已经申请过了",
     EnableResendOrSmtpMsg: "请先为此域名启用 resend 或 smtp",
-    EnableResendOrSmtpWithVerifiedMsg: "请先为此域名启用 resend 或 smtp，或将收件人添加到已验证地址列表",
+    EnableResendOrSmtpOrSendMailMsg: "请先为此域名启用 resend、smtp 或 SEND_MAIL",
+    ServerSendMailDailyLimitMsg: "服务器今日发信次数已达上限",
+    ServerSendMailMonthlyLimitMsg: "服务器本月发信次数已达上限",
     InvalidToMailMsg: "收件人地址无效",
 
     // Admin related
     InvalidAddressIdMsg: "无效的 address_id",
     EnableKVMsg: "请先启用 KV",
     EnableSendMailMsg: "请先启用 SEND_MAIL",
+    EnableSendMailForDomainMsg: "请先为此域名启用 SEND_MAIL",
     InvalidCleanupConfigMsg: "无效的 cleanType 或 cleanDays",
     InvalidCleanTypeMsg: "无效的 cleanType",
     EnableKVForMailVerifyMsg: "如果要启用邮件验证，请先启用 KV",
@@ -170,6 +174,12 @@ const messages: LocaleMessages = {
     TgNoPermissionViewMailMsg: "无权查看此邮件",
     TgBotTokenRequiredMsg: "需要设置 TELEGRAM_BOT_TOKEN",
     TgLangFeatureDisabledMsg: "语言设置功能已禁用，使用系统默认语言",
+    TgAiExtractResultMsg: "AI 提取",
+    TgAiExtractAuthCodeMsg: "验证码",
+    TgAiExtractAuthLinkMsg: "验证链接",
+    TgAiExtractServiceLinkMsg: "服务链接",
+    TgAiExtractSubscriptionLinkMsg: "订阅链接",
+    TgAiExtractOtherLinkMsg: "其他链接",
 }
 
 export default messages;

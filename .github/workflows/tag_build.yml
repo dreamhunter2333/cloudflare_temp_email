@@ -15,9 +15,9 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           version: 10
@@ -30,7 +30,7 @@ jobs:
         run: cd frontend/dist/ && zip -r frontend.zip * && mv frontend.zip ../
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend
           path: frontend/frontend.zip
@@ -44,9 +44,9 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           version: 10
@@ -59,7 +59,7 @@ jobs:
         run: cd frontend/dist/ && zip -r telegram-frontend.zip * && mv telegram-frontend.zip ../
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: telegram-frontend
           path: frontend/telegram-frontend.zip
@@ -73,9 +73,9 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           version: 10
@@ -101,13 +101,13 @@ jobs:
           zip -r worker-with-wasm-mail-parser.zip dist/worker.js dist/*.wasm
 
       - name: Upload worker.js
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: worker-js
           path: worker/worker.js
 
       - name: Upload wasm worker
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: worker-wasm
           path: worker/worker-with-wasm-mail-parser.zip
@@ -118,16 +118,21 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            artifacts/frontend/frontend.zip
-            artifacts/telegram-frontend/telegram-frontend.zip
-            artifacts/worker-js/worker.js
-            artifacts/worker-wasm/worker-with-wasm-mail-parser.zip
+      - name: Upload Assets to Release
+        run: |
+          gh release upload "${{ github.ref_name }}" \
+            artifacts/frontend/frontend.zip \
+            artifacts/telegram-frontend/telegram-frontend.zip \
+            artifacts/worker-js/worker.js \
+            artifacts/worker-wasm/worker-with-wasm-mail-parser.zip \
+            --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

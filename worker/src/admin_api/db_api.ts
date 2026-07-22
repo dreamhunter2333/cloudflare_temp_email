@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     source TEXT,
     address TEXT,
     raw TEXT,
+    raw_blob BLOB,
     metadata TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -183,6 +184,18 @@ export default {
         if (version && version <= "v0.0.5") {
             // migration to v0.0.6: add message_id index on raw_mails
             await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);`);
+        }
+        if (version && version <= "v0.0.6") {
+            // migration to v0.0.7: add raw_blob column for gzip compressed email storage
+            const tableInfo = await c.env.DB.prepare(
+                `PRAGMA table_info(raw_mails)`
+            ).all();
+            const hasRawBlob = tableInfo.results?.some(
+                (col: any) => col.name === 'raw_blob'
+            );
+            if (!hasRawBlob) {
+                await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_blob BLOB;`);
+            }
         }
         if (version != CONSTANTS.DB_VERSION) {
             // remove all \r and \n characters from the query string

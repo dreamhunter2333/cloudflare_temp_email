@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { CleaningServicesFilled, AddFilled, DeleteFilled } from '@vicons/material'
 
 import { useGlobalState } from '../../store'
@@ -26,60 +26,7 @@ const cleanupModel = ref({
     customSqlCleanupList: []
 })
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            tip: 'Please input the days',
-            mailBoxLabel: 'Cleanup the inbox before n days',
-            mailUnknowLabel: "Cleanup the unknow mail before n days",
-            sendBoxLabel: "Cleanup the sendbox before n days",
-            addressCreateLabel: "Cleanup the address created before n days",
-            inactiveAddressLabel: "Cleanup the inactive address before n days",
-            unboundAddressLabel: "Cleanup the unbound address before n days",
-            emptyAddressLabel: "Cleanup the empty address before n days",
-            cleanupNow: "Cleanup now",
-            autoCleanup: "Auto cleanup",
-            cleanupSuccess: "Cleanup success",
-            saveSuccess: "Save success",
-            save: "Save",
-            cronTip: "Enable cron cleanup, need to configure [crons] in worker, please refer to the document, setting 0 days means clear all",
-            basicCleanup: "Basic Cleanup",
-            customSqlCleanup: "Custom SQL Cleanup",
-            customSqlTip: "Add custom DELETE SQL statements for scheduled cleanup. Only single DELETE statement is allowed per entry.",
-            addCustomSql: "Add Custom SQL",
-            sqlName: "Name",
-            sqlStatement: "SQL Statement (DELETE only)",
-            sqlNamePlaceholder: "e.g. Clean old logs",
-            sqlPlaceholder: "e.g. DELETE FROM raw_mails WHERE source GLOB '*{'@'}example.com' AND created_at < datetime('now', '-3 day')",
-            deleteCustomSql: "Delete",
-        },
-        zh: {
-            tip: '请输入天数',
-            mailBoxLabel: '清理 n 天前的收件箱',
-            mailUnknowLabel: "清理 n 天前的无收件人邮件",
-            sendBoxLabel: "清理 n 天前的发件箱",
-            addressCreateLabel: "清理 n 天前创建的地址",
-            inactiveAddressLabel: "清理 n 天前的未活跃地址",
-            unboundAddressLabel: "清理 n 天前的未绑定用户地址",
-            emptyAddressLabel: "清理 n 天前空邮件的邮箱地址",
-            autoCleanup: "自动清理",
-            cleanupSuccess: "清理成功",
-            saveSuccess: "保存成功",
-            cleanupNow: "立即清理",
-            save: "保存",
-            cronTip: "启用定时清理, 需在 worker 配置 [crons] 参数, 请参考文档, 配置为 0 天表示全部清空",
-            basicCleanup: "基础清理",
-            customSqlCleanup: "自定义 SQL 清理",
-            customSqlTip: "添加自定义 DELETE SQL 语句进行定时清理。每条记录仅允许单条 DELETE 语句。",
-            addCustomSql: "添加自定义 SQL",
-            sqlName: "名称",
-            sqlStatement: "SQL 语句 (仅限 DELETE)",
-            sqlNamePlaceholder: "例如: 清理旧日志",
-            sqlPlaceholder: "例如: DELETE FROM raw_mails WHERE source GLOB '*{'@'}example.com' AND created_at < datetime('now', '-3 day')",
-            deleteCustomSql: "删除",
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.Maintenance')
 
 const cleanup = async (cleanType, cleanDays) => {
     try {

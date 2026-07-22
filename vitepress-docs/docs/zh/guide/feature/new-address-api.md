@@ -1,5 +1,19 @@
 # 新建邮箱地址 API
 
+::: warning 注意：地址 JWT vs 用户 JWT
+本页面介绍的是**地址 JWT**，与**用户 JWT** 是两种不同的认证方式：
+
+- **地址 JWT**：通过 `/api/new_address` 或 `/admin/new_address` 创建邮箱时返回
+  - 使用 `Authorization: Bearer <jwt>` header
+  - 用于访问 `/api/*` 接口（查看邮件、删除邮件等）
+
+- **用户 JWT**：通过 `/user_api/login` 或 `/user_api/register` 获得
+  - 使用 `x-user-token: <jwt>` header
+  - 用于访问 `/user_api/*` 接口（用户账户管理）
+
+**请勿混淆两种 JWT 的使用方式！**
+:::
+
 ## 通过 admin API 新建邮箱地址
 
 这是一个 `python` 的例子，使用 `requests` 库发送邮件。
@@ -21,9 +35,34 @@ res = requests.post(
     }
 )
 
-# 返回值 {"jwt": "<Jwt>"}
+# 返回值 {"jwt": "<Jwt>", "address": "<邮箱地址>", "address_id": 123}
 print(res.json())
 ```
+
+### 创建子域名邮箱地址
+
+如果你已经把基础域名配置进 `DOMAINS` / `DEFAULT_DOMAINS` / `USER_ROLES`，并且开启了
+`ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH`（管理后台也可单独开关），那么创建地址 API 可以直接接收子域名：
+
+```python
+res = requests.post(
+    "https://xxxx.xxxx/admin/new_address",
+    json={
+        "enablePrefix": True,
+        "name": "project001",
+        "domain": "team.example.com",
+    },
+    headers={
+        'x-admin-auth': "<你的网站admin密码>",
+        "Content-Type": "application/json"
+    }
+)
+```
+
+- 如果允许域名里有 `example.com`，则 `team.example.com`、`dev.team.example.com` 都可以匹配成功
+- `badexample.com` 这种**不是点分后缀**的域名不会被误判为 `example.com`
+- 这与 `RANDOM_SUBDOMAIN_DOMAINS` 不同：这里是**由调用方显式指定子域名**，不是系统自动生成随机子域名
+- 管理后台可以把该能力设置为“跟随环境变量 / 强制开启 / 强制关闭”；其中“跟随环境变量”会清空后台覆盖，恢复到未设置后按 env 回退
 
 ## 批量创建随机用户名邮箱地址 API 示例
 

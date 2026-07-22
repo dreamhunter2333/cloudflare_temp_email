@@ -35,6 +35,8 @@ compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat" ]
 
 # If you want to use a custom domain, you need to add routes configuration
+# Replace pattern with your own domain, which must already be added to your Cloudflare account
+# Once configured, the Worker will serve via this custom domain instead of the default *.workers.dev domain
 # routes = [
 #  { pattern = "temp-email-api.xxxxx.xyz", custom_domain = true },
 # ]
@@ -59,7 +61,8 @@ compatibility_flags = [ "nodejs_compat" ]
 PREFIX = "tmp"
 # All domains used for temporary email, supports multiple domains
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"]
-# Secret key for generating JWT, JWT is used for user login and authentication
+# Secret key for signing JWTs used in login and authentication
+# Use a random string, e.g. generated via: openssl rand -hex 32
 JWT_SECRET = "xxx"
 
 # Admin console password, if not configured, console access is not allowed

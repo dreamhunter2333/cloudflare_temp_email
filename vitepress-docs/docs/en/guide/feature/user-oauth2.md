@@ -10,6 +10,24 @@
 ### GitHub
 
 - Please first create an OAuth App, then obtain the `Client ID` and `Client Secret`
+- The default GitHub template uses `https://api.github.com/user` as the user info endpoint and reads
+  the `email` field from the returned JSON. If the GitHub account hides its public email, this field
+  is `null`, and login returns `[400]: Failed to get user email from OAuth2 provider`.
+- Fix it by making the email public in the GitHub profile, or by using a provider/API that returns
+  an email field. If the returned value is not a standard email, use the "Email Format
+  Transformation" section below.
+
+If you do not want to expose a public GitHub email, use the GitHub email list API instead:
+
+| Field | Value |
+|-------|-------|
+| User Info URL | `https://api.github.com/user/emails` |
+| User Email Key | `$[?(@.primary==true)].email` |
+| Scope | `user:email` |
+
+When a `Public email` is selected in the GitHub profile, the default `https://api.github.com/user`
+endpoint with `User Email Key = email` can still be used. Merely changing an email from private to
+visible without selecting it as the public email can still make the `/user` API return `email: null`.
 
 Reference: [Creating an OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)
 
@@ -40,6 +58,17 @@ Reference: [Creating an OAuth App](https://docs.github.com/en/apps/oauth-apps/bu
 | User Email Key | Key for email field in user info, supports JSONPath (e.g., `$[0].email`) |
 | Redirect URL | OAuth2 callback URL |
 | Scope | OAuth2 permission scope |
+
+`Redirect URL` must exactly match the callback URL configured in the third-party OAuth App. The
+default frontend callback path is:
+
+```text
+https://your-frontend-domain/user/oauth2/callback
+```
+
+Even if your site uses locale-prefixed routes, it is still recommended to configure the OAuth
+provider with the callback URL without a locale prefix to avoid callback mismatches between
+languages.
 
 ### Email Format Transformation
 

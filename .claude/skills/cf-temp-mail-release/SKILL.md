@@ -1,5 +1,5 @@
 ---
-name: release
+name: cf-temp-mail-release
 description: Create a GitHub release for cloudflare_temp_email project. Use when the user asks to create a release, publish a version, tag a release, or make a new release. Reads CHANGELOG.md for release content, collects merged PRs via `gh` CLI, and creates a properly formatted GitHub release.
 ---
 
@@ -17,7 +17,8 @@ description: Create a GitHub release for cloudflare_temp_email project. Use when
    ```
    Sort by PR number ascending.
 4. **Compose release body**: Follow the template in [references/release-template.md](references/release-template.md). Key rules:
-   - Copy changelog sections verbatim (Features, Bug Fixes, Testing, Improvements). Omit empty sections.
+   - Write release body in **bilingual format**: Chinese sections first (from `CHANGELOG.md`), then wrap the English sections (from `CHANGELOG_EN.md`) in `<details><summary>English</summary>...</details>`.
+   - Copy changelog sections verbatim from both files. Omit empty sections.
    - Wrap PRs list in `<details><summary>PRs</summary>...</details>`.
    - Always include the cache-clearing discussion link.
    - End with `**Full Changelog**` comparison link.

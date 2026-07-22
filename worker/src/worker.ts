@@ -14,7 +14,7 @@ import { api as telegramApi } from './telegram_api'
 import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
-import { getPasswords, getBooleanValue, getStringArray, checkIsAdmin } from './utils';
+import { getPasswords, getBooleanValue, getDomains, checkIsAdmin } from './utils';
 import { checkAccessControl } from './ip_blacklist';
 
 const API_PATHS = [
@@ -270,7 +270,7 @@ const health_check = async (c: Context<HonoCustomType>) => {
 	if (!c.env.JWT_SECRET) {
 		return c.text(msgs.JWTSecretNotSetMsg, 400);
 	}
-	if (getStringArray(c.env.DOMAINS).length === 0) {
+	if (getDomains(c).length === 0) {
 		return c.text(msgs.DomainsNotSetMsg, 400);
 	}
 	return c.text("OK");

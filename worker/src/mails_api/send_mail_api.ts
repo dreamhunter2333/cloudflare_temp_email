@@ -6,9 +6,11 @@ import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getIntValue, getBooleanValue, getStringValue, getJsonObjectValue, getSplitStringListValue } from '../utils';
+import { getJsonSetting, getDomains, getBooleanValue, getJsonObjectValue, getDomainMapValue, getMailDomain, includesDomain } from '../utils';
 import { GeoData } from '../models'
-import { handleListQuery, updateAddressUpdatedAt } from '../common'
+import { handleListQuery, isSendMailBindingEnabled, updateAddressUpdatedAt } from '../common'
+import { getSendBalanceState, requestSendMailAccess } from './send_balance';
+import { ensureSendMailLimit, increaseSendMailLimitCount } from './send_mail_limit_utils';
 
 
 export const api = new Hono<HonoCustomType>()
@@ -19,24 +21,14 @@ api.post('/api/request_send_mail_access', async (c) => {
     if (!address) {
         return c.text(msgs.AddressNotFoundMsg, 400)
     }
-    try {
-        const default_balance = getIntValue(c.env.DEFAULT_SEND_BALANCE, 0);
-        const { success } = await c.env.DB.prepare(
-            `INSERT INTO address_sender (address, balance, enabled) VALUES (?, ?, ?)`
-        ).bind(
-            address, default_balance, default_balance > 0 ? 1 : 0
-        ).run();
-        if (!success) {
-            return c.text(msgs.OperationFailedMsg, 500)
-        }
-    } catch (e) {
-        const message = (e as Error).message;
-        if (message && message.includes("UNIQUE")) {
-            return c.text(msgs.AlreadyRequestedMsg, 400)
-        }
-        return c.text(msgs.OperationFailedMsg, 500)
+    const result = await requestSendMailAccess(c, address);
+    if (result.status === "ok") {
+        return c.json({ status: "ok" })
     }
-    return c.json({ status: "ok" })
+    if (result.status === "already_requested") {
+        return c.text(msgs.AlreadyRequestedMsg, 400)
+    }
+    return c.text(msgs.OperationFailedMsg, 500)
 })
 
 export const sendMailToVerifyAddress = async (
@@ -63,6 +55,25 @@ export const sendMailToVerifyAddress = async (
     await c.env.SEND_MAIL.send(message);
 }
 
+export const sendMailByBinding = async (
+    c: Context<HonoCustomType>, address: string,
+    reqJson: {
+        from_name: string, to_mail: string, to_name: string,
+        subject: string, content: string, is_html: boolean
+    }
+): Promise<void> => {
+    const {
+        from_name, to_mail, to_name,
+        subject, content, is_html
+    } = reqJson;
+    await c.env.SEND_MAIL.send({
+        from: from_name ? { email: address, name: from_name } : address,
+        to: to_name ? [`${to_name} <${to_mail}>`] : [to_mail],
+        subject,
+        ...(is_html ? { html: content } : { text: content }),
+    });
+}
+
 const sendMailByResend = async (
     c: Context<HonoCustomType>, address: string,
     reqJson: {
@@ -70,7 +81,7 @@ const sendMailByResend = async (
         subject: string, content: string, is_html: boolean
     }
 ): Promise<void> => {
-    const mailDomain = address.split("@")[1];
+    const mailDomain = getMailDomain(address);
     const token = c.env[
         `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
     ] || c.env.RESEND_TOKEN;
@@ -132,26 +143,16 @@ export const sendMail = async (
         throw new Error(msgs.AddressNotFoundMsg)
     }
     // check domain
-    const mailDomain = address.split("@")[1];
+    const mailDomain = getMailDomain(address);
     const domains = getDomains(c);
-    if (!domains.includes(mailDomain)) {
+    if (!includesDomain(domains, mailDomain)) {
         throw new Error(msgs.InvalidDomainMsg)
     }
-    const user_role = c.get("userRolePayload");
-    const no_limit_roles = getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE);
-    const is_no_limit_send_balance = user_role && no_limit_roles.includes(user_role);
-    // no need find noLimitSendAddressList if is_no_limit_send_balance
-    const noLimitSendAddressList = is_no_limit_send_balance ?
-        [] : await getJsonSetting(c, CONSTANTS.NO_LIMIT_SEND_ADDRESS_LIST_KEY) || [];
-    const isNoLimitSendAddress = noLimitSendAddressList?.includes(address);
-    const needCheckBalance = !is_no_limit_send_balance && !options?.isAdmin && !isNoLimitSendAddress;
-    if (needCheckBalance) {
-        // check permission
-        const balance = await c.env.DB.prepare(
-            `SELECT balance FROM address_sender
-            where address = ? and enabled = 1`
-        ).bind(address).first<number>("balance");
-        if (!balance || balance <= 0) {
+    const sendBalanceState = await getSendBalanceState(c, address, {
+        isAdmin: options?.isAdmin,
+    });
+    if (sendBalanceState.needCheckBalance) {
+        if (!sendBalanceState.balance || sendBalanceState.balance <= 0) {
             throw new Error(msgs.NoBalanceMsg)
         }
     }
@@ -173,6 +174,7 @@ export const sendMail = async (
     if (!content) {
         throw new Error(msgs.ContentEmptyMsg)
     }
+    await ensureSendMailLimit(c);
 
     // send to verified address list, do not update balance
     const resendEnabled = c.env.RESEND_TOKEN || c.env[
@@ -180,7 +182,7 @@ export const sendMail = async (
     ];
     // send by smtp
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    const smtpConfig = smtpConfigMap ? smtpConfigMap[mailDomain] : null;
+    const smtpConfig = getDomainMapValue(smtpConfigMap, mailDomain);
     // send by verified address list
     let sendByVerifiedAddressList = false;
     if (c.env.SEND_MAIL) {
@@ -190,6 +192,7 @@ export const sendMail = async (
             sendByVerifiedAddressList = true;
         }
     }
+    const sendMailBindingEnabled = isSendMailBindingEnabled(c, mailDomain);
 
     // send mail workflow
     if (sendByVerifiedAddressList) {
@@ -202,15 +205,16 @@ export const sendMail = async (
     else if (smtpConfig) {
         await sendMailBySmtp(c, address, reqJson, smtpConfig);
     }
-    else {
-        if (c.env.SEND_MAIL) {
-            throw new Error(`${msgs.EnableResendOrSmtpWithVerifiedMsg} (${mailDomain})`);
-        }
-        throw new Error(`${msgs.EnableResendOrSmtpMsg} (${mailDomain})`);
+    else if (sendMailBindingEnabled) {
+        await sendMailByBinding(c, address, reqJson);
     }
+    else {
+        throw new Error(`${msgs.EnableResendOrSmtpOrSendMailMsg} (${mailDomain})`);
+    }
+    await increaseSendMailLimitCount(c);
 
     // update balance
-    if (!sendByVerifiedAddressList && needCheckBalance) {
+    if (!sendByVerifiedAddressList && sendBalanceState.needCheckBalance) {
         try {
             const { success } = await c.env.DB.prepare(
                 `UPDATE address_sender SET balance = balance - 1 where address = ?`

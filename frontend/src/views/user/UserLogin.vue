@@ -1,7 +1,7 @@
 <script setup>
 import { useMessage } from 'naive-ui'
 import { onMounted, ref } from "vue";
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { KeyFilled } from '@vicons/material'
 
 import { api } from '../../api';
@@ -17,50 +17,7 @@ const {
 } = useGlobalState()
 const message = useMessage();
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            login: 'Login',
-            register: 'Register',
-            email: 'Email',
-            password: 'Password',
-            verifyCode: 'Verification Code',
-            verifyCodeSent: 'Verification Code Sent, expires in {timeout} seconds',
-            waitforVerifyCode: 'Wait for {timeout} seconds',
-            sendVerificationCode: 'Send Verification Code',
-            forgotPassword: 'Forgot Password',
-            cannotForgotPassword: 'Mail verification is disabled or register is disabled, cannot reset password, please contact administrator',
-            resetPassword: 'Reset Password',
-            pleaseInput: 'Please input email and password',
-            pleaseInputEmail: 'Please input email',
-            pleaseInputCode: 'Please input code',
-            pleaseCompleteTurnstile: 'Please complete turnstile',
-            pleaseLogin: 'Please login',
-            loginWithPasskey: 'Login with Passkey',
-            loginWith: 'Login with {provider}',
-        },
-        zh: {
-            login: '登录',
-            register: '注册',
-            email: '邮箱',
-            password: '密码',
-            verifyCode: '验证码',
-            sendVerificationCode: '发送验证码',
-            verifyCodeSent: '验证码已发送, {timeout} 秒后失效',
-            waitforVerifyCode: '等待{timeout}秒',
-            forgotPassword: '忘记密码',
-            cannotForgotPassword: '未开启邮箱验证或未开启注册功能，无法重置密码，请联系管理员',
-            resetPassword: '重置密码',
-            pleaseInput: '请输入邮箱和密码',
-            pleaseInputEmail: '请输入邮箱',
-            pleaseInputCode: '请输入验证码',
-            pleaseCompleteTurnstile: '请完成人机验证',
-            pleaseLogin: '请登录',
-            loginWithPasskey: '使用 Passkey 登录',
-            loginWith: '使用 {provider} 登录',
-        }
-    }
-});
+const { t } = useScopedI18n('views.user.UserLogin')
 
 const tabValue = ref("signin");
 const showModal = ref(false);
@@ -230,7 +187,8 @@ onMounted(async () => {
                         <n-input v-model:value="user.email" />
                     </n-form-item-row>
                     <n-form-item-row :label="t('password')" required>
-                        <n-input v-model:value="user.password" type="password" show-password-on="click" />
+                        <n-input v-model:value="user.password" type="password" show-password-on="click"
+                            @keyup.enter="emailLogin" />
                     </n-form-item-row>
                     <Turnstile ref="loginTurnstileRef" v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="loginCfToken" />
                     <n-button @click="emailLogin" type="primary" block secondary strong>
@@ -261,7 +219,8 @@ onMounted(async () => {
                         <n-input v-model:value="user.email" />
                     </n-form-item-row>
                     <n-form-item-row :label="t('password')" required>
-                        <n-input v-model:value="user.password" type="password" show-password-on="click" />
+                        <n-input v-model:value="user.password" type="password" show-password-on="click"
+                            @keyup.enter="emailSignup" />
                     </n-form-item-row>
                     <Turnstile ref="signupTurnstileRef" v-if="userOpenSettings.enableMailVerify" v-model:value="signupCfToken" />
                     <n-form-item-row v-if="userOpenSettings.enableMailVerify" :label="t('verifyCode')" required>
@@ -287,7 +246,8 @@ onMounted(async () => {
                     <n-input v-model:value="user.email" />
                 </n-form-item-row>
                 <n-form-item-row :label="t('password')" required>
-                    <n-input v-model:value="user.password" type="password" show-password-on="click" />
+                    <n-input v-model:value="user.password" type="password" show-password-on="click"
+                        @keyup.enter="emailSignup" />
                 </n-form-item-row>
                 <Turnstile ref="resetTurnstileRef" v-model:value="resetCfToken" />
                 <n-form-item-row :label="t('verifyCode')" required>

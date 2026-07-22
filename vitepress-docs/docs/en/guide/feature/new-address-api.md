@@ -1,5 +1,19 @@
 # Create New Email Address API
 
+::: warning Note: Address JWT vs User JWT
+This page describes **Address JWT**, which is different from **User JWT**:
+
+- **Address JWT**: Returned when creating a mailbox via `/api/new_address` or `/admin/new_address`
+  - Use `Authorization: Bearer <jwt>` header
+  - Access `/api/*` endpoints (view mails, delete mails, etc.)
+
+- **User JWT**: Obtained via `/user_api/login` or `/user_api/register`
+  - Use `x-user-token: <jwt>` header
+  - Access `/user_api/*` endpoints (user account management)
+
+**Do not confuse these two JWT types!**
+:::
+
 ## Create Email Address via Admin API
 
 This is a `python` example using the `requests` library to send emails.
@@ -21,9 +35,35 @@ res = requests.post(
     }
 )
 
-# Returns {"jwt": "<Jwt>"}
+# Returns {"jwt": "<Jwt>", "address": "<email_address>", "address_id": 123}
 print(res.json())
 ```
+
+### Create a Subdomain Mailbox Address
+
+If your base domain is already configured in `DOMAINS` / `DEFAULT_DOMAINS` / `USER_ROLES`, and
+`ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` is enabled (it can also be toggled in the admin panel),
+the create-address APIs can accept subdomains directly:
+
+```python
+res = requests.post(
+    "https://xxxx.xxxx/admin/new_address",
+    json={
+        "enablePrefix": True,
+        "name": "project001",
+        "domain": "team.example.com",
+    },
+    headers={
+        'x-admin-auth': "<your_website_admin_password>",
+        "Content-Type": "application/json"
+    }
+)
+```
+
+- If `example.com` is an allowed base domain, `team.example.com` and `dev.team.example.com` can match successfully
+- Lookalike domains such as `badexample.com` will **not** be treated as `example.com`
+- This is different from `RANDOM_SUBDOMAIN_DOMAINS`: here the caller **explicitly specifies** the subdomain, instead of the system generating a random one
+- In the admin panel, this can be set to **Follow Environment Variable / Force Enable / Force Disable**. Choosing **Follow Environment Variable** clears the admin override and returns to env fallback behavior.
 
 ## Batch Create Random Username Email Addresses API Example
 

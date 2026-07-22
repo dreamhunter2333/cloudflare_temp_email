@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n'
+import { useScopedI18n } from '@/i18n/app'
 import { CleaningServicesFilled } from '@vicons/material'
 
 import { api } from '../../api'
@@ -14,30 +14,7 @@ const dbVersionData = ref({
     code_db_version: ''
 })
 
-const { t } = useI18n({
-    messages: {
-        en: {
-            need_initialization_tip: 'Database initialization is required. Please initialize the database.',
-            need_migration_tip: 'Database migration is required. Please migrate the database.',
-            current_db_version: 'Current DB Version',
-            code_db_version: 'Code Needed DB Version',
-            init: 'Initialize Database',
-            migration: 'Migrate Database',
-            initializationSuccess: 'Database initialized successfully',
-            migrationSuccess: 'Database migrated successfully',
-        },
-        zh: {
-            need_initialization_tip: '需要初始化数据库，请初始化数据库',
-            need_migration_tip: '需要迁移数据库，请迁移数据库',
-            current_db_version: '当前数据库版本',
-            code_db_version: '需要的数据库版本',
-            init: '初始化数据库',
-            migration: '升级数据库 Schema',
-            initializationSuccess: '数据库初始化成功',
-            migrationSuccess: '数据库升级成功',
-        }
-    }
-});
+const { t } = useScopedI18n('views.admin.DatabaseManager')
 
 const fetchData = async () => {
     try {

@@ -16,6 +16,9 @@
 
     ![worker-runtime](/ui_install/worker-runtime.png)
 
+    > [!IMPORTANT]
+    > `nodejs_compat` 必须添加成功后再部署 `worker.js`。如果缺少该兼容标记，常见错误是 `No such module "path"`、`No such module "node:stream"`，前端也可能只显示 `Network Error`。
+
 4. 下载 [worker.js](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/worker.js)
 
 5. 回到 `Overview`，找到刚刚创建的 worker，点击 `Edit Code`, 删除原来的文件，上传 `worker.js`, 点击 `Deploy`
@@ -23,7 +26,7 @@
     > [!NOTE]
     > 上传需要先点击左侧菜单的 Explorer,
     > 在文件列表的窗口里点击鼠标右键，在右键菜单里找到 `Upload`,
-    > 请参考下面的截图
+    > 请参考下面的截图。不要在编辑器中手动创建 `\worker.js` 这类带反斜杠的路径；如果保存时报 `No file system handle registered (\worker.js)`，请回到 Explorer 文件列表右键上传根目录的 `worker.js`，然后再点击 `Deploy`。
     >
     > 参考: [issues156](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/156#issuecomment-2079453822)
 
@@ -56,7 +59,7 @@
 7. 点击 `Settings` -> `Bindings`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 D1 数据库，点击 `Add Binding`
 
     > [!NOTE] 重要
-    > 注意此处 `D1 Database` 的绑定名称必须为 `DB`
+    > 注意此处 `D1 Database` 的绑定名称必须为 `DB`，必须是大写。绑定名写成 `db`、`DATABASE` 或其他值时，`/open_api/settings`、`/admin/*` 等接口会异常，前端常见表现是页面初始化报 `map` 错误或 `Network Error`。
 
     ![worker-bindings](/ui_install/worker-bindings.png)
 
@@ -64,12 +67,14 @@
 
     ![worker-d1-2](/ui_install/worker-d1-2.png)
 
-8. 点击 `Settings` -> `Trggers`, 这里可以添加自己的域名，你也可以使用自动生成的 `*.workers.dev` 的域名。记录下这个域名，后面部署前端会用到。
+8. 点击 `Settings` -> `Triggers`, 这里可以添加自己的域名，你也可以使用自动生成的 `*.workers.dev` 的域名。记录下这个域名，后面部署前端会用到。
 
     > [!NOTE]
     > 打开 `worker` 的 `url`，如果显示 `OK` 说明部署成功
     >
     > 打开 `/health_check`，如果显示 `OK` 说明部署成功
+    >
+    > 打开 `/open_api/settings`，如果返回 JSON，说明前端初始化依赖的公开配置接口可用。部署 Pages 前建议先确认这个地址正常。
 
     ![worker3](/ui_install/worker-3.png)
 
@@ -105,3 +110,5 @@
 
     > [!NOTE]
     > 选择 `cron` 表达式，输入 `0 0 * * *`（此表达式表示每天午夜运行），点击 `Add` 增加。请根据您的需求调整此表达式。
+    >
+    > 只在 admin 页面开启自动清理配置还不够，必须添加 Cron Trigger 后 Worker 的 `scheduled` 事件才会运行。D1 到达容量上限后会出现 `D1_ERROR: Exceeded maximum DB size`，新邮件无法继续写入，表现为“突然收不到邮件；删除几封后恢复”。

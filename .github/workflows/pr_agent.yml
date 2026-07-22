@@ -21,7 +21,7 @@ jobs:
           PR_REVIEWER.REQUIRE_TESTS_REVIEW: "false"
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
-          CONFIG.MODEL: "gpt-4o"
-          CONFIG.MODEL_TURBO: "gpt-4o"
+          CONFIG.MODEL: "gpt-5.4-nano"
+          CONFIG.MODEL_TURBO: "gpt-5.4-nano"
           OPENAI.API_BASE: ${{ secrets.OPENAI_API_BASE }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 
 import { CONSTANTS } from '../constants';
-import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles } from '../utils';
+import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles, getMailDomain, includesDomain } from '../utils';
 import { UserSettings, GeoData, UserInfo, RoleAddressConfig } from "../models";
 import { handleListQuery } from '../common'
 import UserBindAddressModule from '../user_api/bind_address';
@@ -24,9 +24,9 @@ export default {
             return c.text(msgs.VerifyMailSenderNotSetMsg, 400)
         }
         if (settings.enableMailVerify && settings.verifyMailSender) {
-            const mailDomain = settings.verifyMailSender.split("@")[1];
+            const mailDomain = getMailDomain(settings.verifyMailSender);
             const domains = getDomains(c);
-            if (!domains.includes(mailDomain)) {
+            if (!includesDomain(domains, mailDomain)) {
                 return c.text(`${msgs.VerifyMailDomainInvalidMsg} ${JSON.stringify(domains, null, 2)}`, 400)
             }
         }
@@ -39,15 +39,21 @@ export default {
     getUsers: async (c: Context<HonoCustomType>) => {
         const { limit, offset, query } = c.req.query();
         if (query) {
+            // D1 caps LIKE pattern length at 50 bytes; fall back to instr()
+            // for longer queries to avoid "LIKE or GLOB pattern too complex" (#956).
+            const useInstr = new TextEncoder().encode(query).length + 2 > 50;
+            const param = useInstr ? query : `%${query}%`;
+            const userEmailWhere = useInstr ? `instr(u.user_email, ?) > 0` : `u.user_email like ?`;
+            const userEmailWhereCount = useInstr ? `instr(user_email, ?) > 0` : `user_email like ?`;
             return await handleListQuery(c,
                 `SELECT u.id as id, u.user_email, u.created_at, u.updated_at,`
                 + ` ur.role_text as role_text,`
                 + ` (SELECT COUNT(*) FROM users_address WHERE user_id = u.id) AS address_count`
                 + ` FROM users u`
                 + ` LEFT JOIN user_roles ur ON u.id = ur.user_id`
-                + ` where u.user_email like ?`,
-                `SELECT count(*) as count FROM users where user_email like ?`,
-                [`%${query}%`], limit, offset
+                + ` where ${userEmailWhere}`,
+                `SELECT count(*) as count FROM users where ${userEmailWhereCount}`,
+                [param], limit, offset
             );
         }
         return await handleListQuery(c,
@@ -175,7 +181,16 @@ export default {
         return c.json({ configs });
     },
     saveRoleAddressConfig: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
         const { configs } = await c.req.json<{ configs: RoleAddressConfig }>();
+        if (typeof configs !== "object" || configs === null || Array.isArray(configs)) {
+            return c.text(msgs.InvalidMaxAddressCountMsg, 400);
+        }
+        for (const config of Object.values(configs)) {
+            if (typeof config?.maxAddressCount === "number" && config.maxAddressCount < 0) {
+                return c.text(msgs.InvalidMaxAddressCountMsg, 400);
+            }
+        }
         await saveSetting(c, CONSTANTS.ROLE_ADDRESS_CONFIG_KEY, JSON.stringify(configs));
         return c.json({ success: true });
     },

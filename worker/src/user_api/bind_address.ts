@@ -4,7 +4,7 @@ import { Jwt } from 'hono/utils/jwt'
 import { isAddressCountLimitReached } from "../utils"
 import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
-import { updateAddressUpdatedAt, commonGetUserRole } from '../common';
+import { updateAddressUpdatedAt, commonGetUserRole, hideObjectFields } from '../common';
 
 const UserBindAddressModule = {
     bind: async (c: Context<HonoCustomType>) => {
@@ -140,7 +140,7 @@ const UserBindAddressModule = {
             created_at: string;
             updated_at: string;
         }>();
-        return results || [];
+        return (results || []).map((row) => hideObjectFields(row, ['password']));
     },
     getBindedAddressJwt: async (c: Context<HonoCustomType>) => {
         const msgs = i18n.getMessagesbyContext(c);

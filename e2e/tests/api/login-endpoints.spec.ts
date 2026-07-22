@@ -1,13 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { WORKER_URL, createTestAddress, deleteAddress } from '../../fixtures/test-helpers';
-import * as crypto from 'crypto';
-
-/**
- * SHA-256 hash matching frontend hashPassword utility.
- */
-function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex');
-}
+import { WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../fixtures/test-helpers';
 
 test.describe('Turnstile Login Endpoints (ENABLE_GLOBAL_TURNSTILE_CHECK disabled)', () => {
 
@@ -110,14 +102,14 @@ test.describe('Turnstile Login Endpoints (ENABLE_GLOBAL_TURNSTILE_CHECK disabled
         // Set a password
         await request.post(`${WORKER_URL}/api/address_change_password`, {
           headers: { Authorization: `Bearer ${jwt}` },
-          data: { new_password: 'addr-pass-123' },
+          data: { new_password: hashPassword('addr-pass-123') },
         });
 
         // Login with cf_token field present but empty
         const loginRes = await request.post(`${WORKER_URL}/api/address_login`, {
           data: {
             email: address,
-            password: 'addr-pass-123',
+            password: hashPassword('addr-pass-123'),
             cf_token: ''
           },
         });

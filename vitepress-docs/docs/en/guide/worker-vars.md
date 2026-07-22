@@ -8,10 +8,14 @@
 | Variable Name              | Type        | Description                                                            | Example                              |
 | -------------------------- | ----------- | ---------------------------------------------------------------------- | ------------------------------------ |
 | `DOMAINS`                  | JSON        | All domains for temporary email, supports multiple domains             | `["awsl.uk", "dreamhunter2333.xyz"]` |
-| `JWT_SECRET`               | Text/Secret | Secret key for generating JWT, used for login and authentication       | `xxx`                                |
+| `JWT_SECRET`               | Text/Secret | Secret key for signing JWTs used in login and authentication. Use a random string, e.g. generated via `openssl rand -hex 32` | `a1b2c3d4...`                        |
 | `ADMIN_PASSWORDS`          | JSON        | Admin console passwords, console access disabled if not configured     | `["123", "456"]`                     |
 | `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | Whether to allow users to create mailboxes, disabled if not configured | `true`                               |
 | `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | Whether to allow users to delete emails, disabled if not configured    | `true`                               |
+
+> [!IMPORTANT] `DOMAINS` and `DEFAULT_DOMAINS` must already be set up in Cloudflare
+> Every domain you put here (including `DEFAULT_DOMAINS`, `USER_ROLES.domains`, `RANDOM_SUBDOMAIN_DOMAINS` further below) **must already have Cloudflare Email Routing enabled and its email DNS records provisioned**. After the Worker is deployed, bind the domain's Catch-all rule to that Worker; otherwise inbound mail will never reach the Worker.
+> See [Cloudflare Email Routing](/en/guide/email-routing) for the setup steps.
 
 ## Console Related Variables
 
@@ -32,10 +36,60 @@
 | `ADDRESS_REGEX`                       | Text      | Regular expression to replace illegal symbols in `email address` name, symbols not in the regex will be replaced. Default is `[^a-z0-9]` if not set. Use with caution as some symbols may prevent email reception | `[^a-z0-9]`                               |
 | `DEFAULT_DOMAINS`                     | JSON      | Default domains available to users (not logged in or users without assigned roles)                                                                                                                                | `["awsl.uk", "dreamhunter2333.xyz"]`      |
 | `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` | Text/JSON | Whether to prioritize default domain when creating new addresses, if set to true, will use the first domain when no domain is specified, mainly for telegram bot scenarios                                        | `false`                                   |
+| `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` | Text/JSON | Whether to allow create-address APIs to use base-domain suffix matching. When enabled, if `example.com` is allowed, `/api/new_address` and `/admin/new_address` can also accept `foo.example.com` or `a.b.example.com` | `true` |
+| `RANDOM_SUBDOMAIN_DOMAINS`            | JSON      | Base domains that allow optional random subdomain creation, so `name@abc.com` can become `name@<random>.abc.com`                                                                                                   | `["abc.com"]`                             |
+| `RANDOM_SUBDOMAIN_LENGTH`             | Number    | Random subdomain length, default `8`, valid range `1-63`                                                                                                                                                           | `8`                                       |
 | `DOMAIN_LABELS`                       | JSON      | For Chinese domains, you can use DOMAIN_LABELS to display Chinese names                                                                                                                                           | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
 | `ENABLE_AUTO_REPLY`                   | Text/JSON | Allow automatic email replies. Sender filter (`source_prefix`) supports three modes: empty to match all senders, prefix for `startsWith` matching, or `/regex/` syntax for regex matching (e.g. `/@example\.com$/`) | `true`                                    |
-| `DEFAULT_SEND_BALANCE`                | Text/JSON | Default email sending balance, will be 0 if not set                                                                                                                                                               | `1`                                       |
+| `DEFAULT_SEND_BALANCE`                | Text/JSON | Default email sending balance. When greater than `0`, it is auto-initialized when users open the settings page or send mail for the first time. Defaults to `0` if unset                                                                                 | `1`                                       |
 | `ENABLE_ADDRESS_PASSWORD`             | Text/JSON | Enable address password feature, when enabled, passwords will be auto-generated for new addresses, supports password login and modification                                                                       | `true`                                    |
+| `ENABLE_AGENT_EMAIL_INFO`             | Text/JSON | Whether to show AI Agent access info in the frontend "Address Credentials & Connection Methods" dialog (Address JWT, parsed-mail APIs, skill link)                                      | `true`                                    |
+| `SMTP_IMAP_PROXY_CONFIG`              | JSON      | Show SMTP/IMAP proxy connection info in the frontend "Address Credentials & Connection Methods" dialog; display-only, does not start the proxy service, which must be deployed separately | See example below                         |
+| `SEND_MAIL_DOMAINS`                   | JSON      | Restrict which sender domains can use the `SEND_MAIL` binding; when unset or empty, all domains are allowed                                                                                                     | `["example.com", "mail.example.com"]`     |
+
+> [!NOTE]
+> When `DEFAULT_DOMAINS` is unset or configured as an empty array, it falls back to `DOMAINS`.
+>
+> `RANDOM_SUBDOMAIN_DOMAINS` only controls automatic random subdomain generation during mailbox
+> creation. It does not create Cloudflare-side subdomain routing for you.
+>
+> To actually receive mail on addresses like `name@<random>.abc.com`, **you must add a wildcard
+> `*` MX record under the base domain in DNS** by copying the apex's existing MX records to
+> host `*` (preserving each record's priority and target). Cloudflare Email Routing does not
+> inherit the apex configuration onto subdomains — see the
+> [Cloudflare Email Routing — Subdomains](https://developers.cloudflare.com/email-routing/setup/subdomains/)
+> docs,
+> [#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035) and
+> [Configure Subdomain Email](/en/guide/feature/subdomain).
+>
+> Subdomain addresses are usually best used for receiving only; for sending, prefer the main
+> domain.
+>
+> `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` is different from random subdomain generation: it lets
+> API callers **directly specify** a subdomain such as `foo.example.com`, while random subdomain
+> generation appends one automatically during creation.
+>
+> `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` precedence: if the env is explicitly set to `false`, the
+> feature is globally forced off; otherwise the persisted admin setting takes precedence, and the env
+> value is only used as a fallback when no admin setting has been saved.
+>
+> The admin panel exposes three explicit states: **Follow Environment Variable**, **Force Enable**,
+> and **Force Disable**. Saving **Follow Environment Variable** clears the admin override and returns
+> the feature to the "unset" fallback behavior.
+>
+> `SEND_MAIL_DOMAINS` only affects the `SEND_MAIL` binding fallback path and
+> `/admin/send_mail_by_binding`. It does not affect Resend, SMTP, or `verifiedAddressList`.
+>
+> `SMTP_IMAP_PROXY_CONFIG` example:
+>
+> ```json
+> {
+>   "smtp": { "host": "smtp.example.com", "port": 8025, "starttls": true },
+>   "imap": { "host": "imap.example.com", "port": 11143, "starttls": true }
+> }
+> ```
+>
+> SMTP and IMAP can use different hostnames, which is useful for reverse proxies or separate port mappings.
 
 ## Email Reception Related Variables
 
@@ -43,13 +97,18 @@
 | ------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------- |
 | `BLACK_LIST`                    | Text      | Blacklist for filtering senders, comma separated                                                                       | `gov.cn,edu.cn`            |
 | `ENABLE_CHECK_JUNK_MAIL`        | Text/JSON | Whether to enable junk mail checking, used with the following two lists                                                | `false`                    |
-| `JUNK_MAIL_CHECK_LIST`          | JSON      | Junk mail check configuration, marked as junk if any item `exists` and `fails`                                         | `["spf", "dkim", "dmarc"]` |
-| `JUNK_MAIL_FORCE_PASS_LIST`     | JSON      | Junk mail check configuration, marked as junk if any item `does not exist` or `fails`                                  | `["spf", "dkim", "dmarc"]` |
+| `JUNK_MAIL_CHECK_LIST`          | JSON      | Existence check; registered failure/error results are junk, while `none` and SPF/DKIM `neutral` are treated as absent  | `["spf", "dkim", "dmarc"]` |
+| `JUNK_MAIL_FORCE_PASS_LIST`     | JSON      | Strict pass check; every item must explicitly return `pass`, otherwise it is treated as junk                           | `["spf", "dkim", "dmarc"]` |
 | `FORWARD_ADDRESS_LIST`          | JSON      | Global forward address list, disabled if not configured, all emails will be forwarded to listed addresses when enabled | `["xxx@xxx.com"]`          |
 | `REMOVE_EXCEED_SIZE_ATTACHMENT` | Text/JSON | If attachment exceeds 2MB, remove it, email may lose some information due to parsing                                   | `true`                     |
 | `REMOVE_ALL_ATTACHMENT`         | Text/JSON | Remove all attachments, email may lose some information due to parsing                                                 | `true`                     |
+| `ENABLE_MAIL_GZIP`             | Text/JSON | When enabled, new emails are gzip-compressed and stored in `raw_blob` column to save D1 database space. Existing plaintext `raw` data is automatically compatible for reading. **Run database migration first (`Admin -> Quick Setup -> Database -> Migrate Database` or `POST /admin/db_migration`) to ensure the `raw_blob` column exists before enabling. This feature adds compression/decompression CPU overhead, so enabling it on a paid Cloudflare Worker plan is recommended.** | `true`                     |
 
 > [!NOTE]
+> Authentication results follow their standards: SPF `none` means no usable domain or SPF record was found, and SPF `neutral` must be treated like `none`; DKIM `none` means the message was unsigned, and DKIM `neutral` is also treated as unsigned; DMARC `none` means no applicable DMARC policy was found. Unregistered results and unsupported method versions are ignored. `JUNK_MAIL_CHECK_LIST` treats these results as absent, while `JUNK_MAIL_FORCE_PASS_LIST` still requires an explicit supported `pass`
+>
+> `ENABLE_MAIL_GZIP` adds CPU cost for gzip compression on write and decompression on read. Free-tier Workers are more likely to hit CPU limits, so a paid plan is recommended before enabling it
+>
 > `Junk mail checking` and `attachment removal` require email parsing, free tier CPU is limited, may cause large email parsing timeout
 >
 > If you want stronger email parsing capabilities
@@ -82,7 +141,7 @@
 
 > [!NOTE] USER_ROLES User Role Configuration
 >
-> - If `domains` is empty, `DEFAULT_DOMAINS` will be used
+> - If `domains` is empty, `DEFAULT_DOMAINS` will be used; if `DEFAULT_DOMAINS` is also empty, it falls back to `DOMAINS`
 > - If prefix is null, the default prefix will be used, if prefix is an empty string, no prefix will be used
 >
 > When deploying through UI, configure `USER_ROLES` in this format: `[{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"vip","prefix":"vip"},{"domains":["awsl.uk","dreamhunter2333.xyz"],"role":"admin","prefix":""}]`
@@ -99,7 +158,8 @@
 | `ALWAYS_SHOW_ANNOUNCEMENT` | Text/JSON   | Whether to always show announcement (even if unchanged), default `false` | `true`                |
 | `COPYRIGHT`                | Text        | Custom frontend footer text, supports html                               | `Dream Hunter`        |
 | `ADMIN_CONTACT`            | Text        | Admin contact information, can be any string, hidden if not configured   | `xxx@gmail.com`       |
-| `DISABLE_SHOW_GITHUB`      | Text/JSON   | Whether to show GitHub link                                              | `true`                |
+| `DISABLE_SHOW_GITHUB`      | Text/JSON   | Globally hide the GitHub link                                            | `true`                |
+| `DISABLE_SHOW_GITHUB_FOR_USER` | Text/JSON | Hide the GitHub link for normal users while keeping it visible to admin users | `true`                |
 | `STATUS_URL`               | Text        | Status monitoring page URL, shows Status menu button when configured     | `https://status.example.com` |
 | `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
 | `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |

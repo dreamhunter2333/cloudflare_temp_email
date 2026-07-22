@@ -7,14 +7,67 @@ import JSZip from 'jszip';
 const domain = ref("")
 const downloadUrl = ref("")
 const tip = ref("下载")
+const errorMessage = ref("")
+
+const resetDownloadUrl = () => {
+    if (!downloadUrl.value) {
+        return
+    }
+    window.URL.revokeObjectURL(downloadUrl.value)
+    downloadUrl.value = ""
+}
+
+const validateDomain = (value) => {
+    const normalizedValue = value.trim()
+    if (!normalizedValue) {
+        return "请输入以 https:// 开头的后端 API 地址"
+    }
+    if (/\s/.test(normalizedValue)) {
+        return "后端 API 地址不能包含空白字符"
+    }
+    if (!normalizedValue.startsWith("https://")) {
+        return "后端 API 地址必须以 https:// 开头"
+    }
+    if (normalizedValue.endsWith("/")) {
+        return "后端 API 地址末尾不要带 /"
+    }
+    try {
+        const url = new URL(normalizedValue)
+        if (url.protocol !== "https:") {
+            return "后端 API 地址必须以 https:// 开头"
+        }
+        if (url.pathname !== "/" || url.search || url.hash) {
+            return "请填写后端 API 根地址，不要带路径、参数或锚点"
+        }
+    } catch {
+        return "后端 API 地址格式不正确"
+    }
+    return ""
+}
 
 const generate = async () => {
+    const normalizedDomain = domain.value.trim()
+    const validationError = validateDomain(normalizedDomain)
+    errorMessage.value = validationError
+    resetDownloadUrl()
+    if (validationError) {
+        return
+    }
+    domain.value = normalizedDomain
+    let timeoutId = 0
     try {
-        const response = await fetch("/ui_install/frontend.zip");
+        const controller = new AbortController()
+        timeoutId = window.setTimeout(() => controller.abort(), 10000)
+        const response = await fetch("/ui_install/frontend.zip", {
+            signal: controller.signal
+        });
+        if (!response.ok) {
+            errorMessage.value = "下载前端压缩包失败，请稍后重试"
+            return
+        }
         const arrayBuffer = await response.arrayBuffer();
         var zip = new JSZip();
         await zip.loadAsync(arrayBuffer);
-        let target_content = ""
         let target_path = ""
         const directory = zip.folder("assets");
         if (directory) {
@@ -22,7 +75,7 @@ const generate = async () => {
                 console.log(relativePath);
                 if (relativePath.startsWith("assets/index-") && relativePath.endsWith(".js")){
                     let content = await zipEntry.async("string");
-                    content = content.replace("https://temp-email-api.xxx.xxx", domain.value);
+                    content = content.replaceAll("https://temp-email-api.xxx.xxx", normalizedDomain);
                     target_path = relativePath;
                     zip.file(relativePath, content);
                     break;
@@ -30,14 +83,22 @@ const generate = async () => {
             }
         }
         if (!target_path) {
-            tip.value = "生成失败";
-            downloadUrl.value = '';
+            errorMessage.value = "没有找到前端入口文件，生成失败"
+            return
         }
         const blob = await zip.generateAsync({ type: "blob" });
         const url = window.URL.createObjectURL(blob);
+        errorMessage.value = ""
         downloadUrl.value = url;
     } catch (error) {
         console.error("Error: ", error);
+        if (error instanceof DOMException && error.name === "AbortError") {
+            errorMessage.value = "下载超时，请刷新页面后重试"
+            return
+        }
+        errorMessage.value = "生成失败，请刷新页面后重试"
+    } finally {
+        window.clearTimeout(timeoutId)
     }
 }
 </script>
@@ -50,27 +111,43 @@ const generate = async () => {
 
     ![pages](/ui_install/pages.png)
 
-3. 输入部署的 worker 的地址, 地址不要带 `/`，点击生成，成功会出现下载按钮，你会得到一个 zip 包
+3. 输入部署的 worker 地址，必须填写后端 API 根地址，并且以 `https://` 开头，地址不要带 `/`，点击生成，成功会出现下载按钮，你会得到一个 zip 包
     - 此处 worker 域名为后端 api 的域名，比如我部署在 `https://temp-email-api.awsl.uk`，则填写 `https://temp-email-api.awsl.uk`
     - 如果你的域名是 `https://temp-email-api.xxx.workers.dev`，则填写 `https://temp-email-api.xxx.workers.dev`
+    - 不要填写前端 `Pages` 自己的域名，也不要带 `/admin`、`/api` 等路径，否则前端请求会打到错误地址，可能出现 `Cannot read properties of undefined (reading 'map')` 或 `405 Method Not Allowed`
+    - 填写前请先在浏览器打开 `https://你的worker域名/open_api/settings`，确认返回 JSON；如果返回 HTML、404、405 或 Cloudflare 挑战页，请先修复 Worker 绑定、变量或安全策略
 
     > [!warning] 注意
     > `worker.dev` 域名在中国无法访问，请自定义域名
+    >
+    > 不要给后端 API 域名开启 Under Attack、Bot Fight、Managed Challenge 等会返回浏览器挑战页的安全策略。前端 XHR 请求无法完成这些挑战，常见表现是 `Network Error`。
 
     <div :class="$style.container">
-        <input :class="$style.input" type="text" v-model="domain" placeholder="请输入地址"></input>
+        <input :class="$style.input" type="text" v-model="domain" placeholder="请输入以 https:// 开头的后端 API 地址"></input>
         <button :class="$style.button" @click="generate">生成</button>
         <a v-if="downloadUrl" :href="downloadUrl" download="frontend.zip">{{ tip }}</a>
     </div>
+    <p :class="$style.hint">示例：`https://temp-email-api.example.com`，不要填写前端 Pages 域名，也不要带结尾 `/`。</p>
+    <p v-if="errorMessage" :class="$style.error">{{ errorMessage }}</p>
 
     > [!NOTE]
     > 你也可以手动部署，从这里下载 zip, [frontend.zip](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/frontend.zip)
     >
     > 修改压缩包里面的 index-xxx.js 文件 ，xx 是随机的字符串
     >
-    > 搜索 `https://temp-email-api.xxx.xxx` ，替换成你worker 的域名，然后部署新的zip文件
+    > 搜索 `https://temp-email-api.xxx.xxx` ，替换成你 worker 的后端 API 根地址，然后部署新的 zip 文件。如果填成前端 Pages 域名，常见现象就是页面报 `map` 错误或接口返回 `405`
+    >
+    > 如果第一次填错后重新部署仍然报错，请用无痕窗口测试或清理浏览器缓存，避免浏览器继续使用旧的前端资源。
 
-4. 选择 `Pages`，点击 `Create Pages`, 修改名称，上传下载的 zip 包，然后点击 `Deploy`
+4. 选择 `Pages`，点击 `Create Pages`, 修改名称，上传下载的 zip 包
+
+    > [!warning] 重要：SPA 模式
+    > 本项目是单页应用（SPA），**必须在部署时展开高级选项，将「未找到处理」设置为 `Single-page application (SPA)`**。
+    > 否则刷新页面或直接访问 `/admin` 等子路径时会返回 404。
+    >
+    > ![pages spa setting](/ui_install/pages-spa-setting.jpg)
+
+    然后点击 `Deploy`
 
     ![pages1](/ui_install/pages-1.png)
 
@@ -101,5 +178,15 @@ const generate = async () => {
 
 .button:hover {
     background-color: green;
+}
+
+.hint {
+    margin-top: 8px;
+    color: var(--vp-c-text-2);
+}
+
+.error {
+    margin-top: 8px;
+    color: #d03050;
 }
 </style>

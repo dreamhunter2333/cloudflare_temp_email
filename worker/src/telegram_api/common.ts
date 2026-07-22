@@ -7,7 +7,8 @@ import { LocaleMessages } from "../i18n/type";
 
 export const tgUserNewAddress = async (
     c: Context<HonoCustomType>, userId: string, address: string,
-    msgs: LocaleMessages
+    msgs: LocaleMessages,
+    enableRandomSubdomain: boolean = false
 ): Promise<{ address: string, jwt: string, password?: string | null }> => {
     if (c.env.RATE_LIMITER) {
         const { success } = await c.env.RATE_LIMITER.limit(
@@ -41,6 +42,7 @@ export const tgUserNewAddress = async (
         name: finalName,
         domain,
         enablePrefix: true,
+        enableRandomSubdomain,
         sourceMeta: `tg:${userId}`
     });
     // for mail push to telegram

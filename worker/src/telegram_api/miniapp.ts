@@ -2,7 +2,8 @@ import { Context } from "hono";
 import { Jwt } from 'hono/utils/jwt'
 import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
-import { checkCfTurnstile, checkIsAdmin } from "../utils";
+import { checkCfTurnstile, checkIsAdmin, getBooleanValue } from "../utils";
+import { resolveRawEmailRow } from "../gzip";
 import { TelegramSettings } from "./settings";
 import i18n from "../i18n";
 
@@ -83,7 +84,7 @@ async function getTelegramBindAddress(c: Context<HonoCustomType>): Promise<Respo
 }
 
 async function newTelegramAddress(c: Context<HonoCustomType>): Promise<Response> {
-    const { initData, address, cf_token } = await c.req.json();
+    const { initData, address, cf_token, enableRandomSubdomain } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     // check cf turnstile
     try {
@@ -94,7 +95,13 @@ async function newTelegramAddress(c: Context<HonoCustomType>): Promise<Response>
     try {
         const userId = await checkTelegramAuth(c, initData);
         // get the address list from the KV
-        const res = await tgUserNewAddress(c, userId, address, msgs)
+        const res = await tgUserNewAddress(
+            c,
+            userId,
+            address,
+            msgs,
+            getBooleanValue(enableRandomSubdomain)
+        )
         return c.json(res);
     }
     catch (e) {
@@ -138,7 +145,7 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
             if (!result) {
                 return c.text("Mail not found", 404);
             }
-            return c.json(result);
+            return c.json(await resolveRawEmailRow(result));
         }
         const userId = await checkTelegramAuth(c, initData);
         const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
@@ -146,13 +153,14 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
         const result = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where id = ?`
         ).bind(mailId).first();
+        if (!result) return c.json(null);
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const superUser = settings?.enableGlobalMailPush && settings?.globalMailPushList.includes(userId);
         if (!superUser) {
-            if (result?.address && !(result.address as string in addressIdMap)) {
+            if (!(result.address as string in addressIdMap)) {
                 return c.text(msgs.TgNoPermissionViewMailMsg, 403);
             }
-            const address_id = addressIdMap[result?.address as string];
+            const address_id = addressIdMap[result.address as string];
             const db_address_id = await c.env.DB.prepare(
                 `SELECT id FROM address where id = ? `
             ).bind(address_id).first("id");
@@ -160,7 +168,7 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
                 return c.text(msgs.TgNoPermissionViewMailMsg, 403);
             }
         }
-        return c.json(result);
+        return c.json(await resolveRawEmailRow(result));
     }
     catch (e) {
         return c.text((e as Error).message, 400);

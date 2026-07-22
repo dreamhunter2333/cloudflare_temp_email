@@ -111,5 +111,10 @@
     "raw": "${raw}",
     "parsedText": "${parsedText}",
     "parsedHtml": "${parsedHtml}",
+    "aiExtractType": "${aiExtractType}",
+    "aiExtractResult": "${aiExtractResult}",
+    "aiExtractResultText": "${aiExtractResultText}",
 }
 ```
+
+启用 AI 邮件内容提取后，Webhook 模板可使用 `aiExtractType`、`aiExtractResult`、`aiExtractResultText` 占位符。未提取到结果时这些字段为空字符串。

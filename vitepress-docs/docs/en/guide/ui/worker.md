@@ -16,6 +16,9 @@
 
     ![worker-runtime](/ui_install/worker-runtime.png)
 
+    > [!IMPORTANT]
+    > Add `nodejs_compat` before deploying `worker.js`. Without this compatibility flag, common errors include `No such module "path"` and `No such module "node:stream"`, and the frontend may only show `Network Error`.
+
 4. Download [worker.js](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/worker.js)
 
 5. Go back to `Overview`, find the worker you just created, click `Edit Code`, delete the original file, upload `worker.js`, and click `Deploy`
@@ -23,7 +26,7 @@
     > [!NOTE]
     > To upload, first click Explorer in the left menu,
     > then right-click in the file list window and find `Upload` in the context menu,
-    > please refer to the screenshots below
+    > please refer to the screenshots below. Do not manually create a path such as `\worker.js` in the editor. If saving fails with `No file system handle registered (\worker.js)`, go back to the Explorer file list, right-click upload the root `worker.js`, and then click `Deploy`.
     >
     > Reference: [issues156](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/156#issuecomment-2079453822)
 
@@ -56,7 +59,7 @@
 7. Click `Settings` -> `Bindings`, click `Add Binding`, enter the name as shown, select the D1 database you just created, and click `Add Binding`
 
     > [!NOTE] Important
-    > Note that the binding name for `D1 Database` here must be `DB`
+    > Note that the binding name for `D1 Database` here must be `DB` in uppercase. If the binding is named `db`, `DATABASE`, or anything else, `/open_api/settings` and `/admin/*` will fail; common frontend symptoms are the `map` initialization error or `Network Error`.
 
     ![worker-bindings](/ui_install/worker-bindings.png)
 
@@ -70,6 +73,8 @@
     > Open the `worker` `url`, if it displays `OK`, the deployment is successful
     >
     > Open `/health_check`, if it displays `OK`, the deployment is successful
+    >
+    > Open `/open_api/settings`; if it returns JSON, the public settings endpoint required by the frontend is working. Check this before deploying Pages.
 
     ![worker3](/ui_install/worker-3.png)
 
@@ -105,3 +110,5 @@
 
     > [!NOTE]
     > Select `cron` expression, enter `0 0 * * *` (this expression means run daily at midnight), click `Add` to add. Please adjust this expression according to your needs.
+    >
+    > Enabling auto cleanup in the admin page is not enough by itself. You must add a Cron Trigger so the Worker's `scheduled` event actually runs. When D1 reaches its size limit, writes fail with `D1_ERROR: Exceeded maximum DB size`, new mails cannot be stored, and the symptom is "mail suddenly stops arriving; deleting a few mails makes it work again".

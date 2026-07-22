@@ -32,6 +32,10 @@ export type WebhookMail = {
     raw: string;
     parsedText: string;
     parsedHtml: string;
+    aiExtract: ExtractResult | null;
+    aiExtractType: string;
+    aiExtractResult: string;
+    aiExtractResultText: string;
 }
 
 export type CustomSqlCleanup = {
@@ -113,9 +117,19 @@ export class UserSettings {
         this.verifyMailSender = verifyMailSender;
         this.enableMailAllowList = enableMailAllowList;
         this.mailAllowList = mailAllowList;
-        this.maxAddressCount = maxAddressCount || 5;
+        this.maxAddressCount = (typeof maxAddressCount === "number" && maxAddressCount >= 0) ? maxAddressCount : 5;
         this.enableEmailCheckRegex = enableEmailCheckRegex;
         this.emailCheckRegex = emailCheckRegex;
+    }
+}
+
+export class AddressCreationSettings {
+
+    enableSubdomainMatch: boolean | undefined;
+
+    constructor(data: AddressCreationSettings | undefined | null) {
+        const { enableSubdomainMatch } = data || {};
+        this.enableSubdomainMatch = enableSubdomainMatch;
     }
 }
 
@@ -146,6 +160,9 @@ export class WebhookSettings {
         "raw": "${raw}",
         "parsedText": "${parsedText}",
         "parsedHtml": "${parsedHtml}",
+        "aiExtractType": "${aiExtractType}",
+        "aiExtractResult": "${aiExtractResult}",
+        "aiExtractResultText": "${aiExtractResultText}",
     }, null, 2)
 }
 
@@ -174,9 +191,33 @@ export type EmailRuleSettings = {
     emailForwardingList: SubdomainForwardAddressList[]
 }
 
+export type SendMailLimitConfig = {
+    dailyEnabled: boolean;
+    monthlyEnabled: boolean;
+    dailyLimit: number | null;
+    monthlyLimit: number | null;
+}
+
 export type RoleConfig = {
     maxAddressCount?: number;
     // future configs can be added here
 }
 
 export type RoleAddressConfig = Record<string, RoleConfig>;
+
+export type RawMailRow = {
+    id: number;
+    message_id?: string;
+    source?: string;
+    address?: string;
+    raw?: string;
+    raw_blob?: unknown;
+    metadata?: string;
+    created_at?: string;
+}
+
+export type ExtractResult = {
+    type: 'auth_code' | 'auth_link' | 'service_link' | 'subscription_link' | 'other_link' | 'none';
+    result: string;
+    result_text: string;
+}

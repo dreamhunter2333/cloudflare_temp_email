@@ -10,6 +10,8 @@ export type IpBlacklistSettings = {
     blacklist?: string[];  // Array of regex patterns or plain strings
     asnBlacklist?: string[];  // Array of ASN organization patterns (e.g., "Google LLC", "Amazon")
     fingerprintBlacklist?: string[];  // Array of browser fingerprint patterns
+    enableWhitelist?: boolean;  // Enable IP whitelist (strict allowlist mode)
+    whitelist?: string[];  // Array of exact IPs or anchored regex; only matching IPs are allowed
     enableDailyLimit?: boolean;  // Enable daily request limit per IP
     dailyRequestLimit?: number;  // Maximum requests per IP per day
 }
@@ -79,6 +81,61 @@ function isBlacklisted(value: string | null | undefined, blacklist: string[], ca
 }
 
 /**
+ * Whitelist-style match: strict allowlist, independent from blacklist semantics.
+ * Plain IPv4/IPv6 entries are matched EXACTLY (not as regex) to avoid unintended matches.
+ * Only explicit regex patterns (containing metacharacters beyond dots/colons) are treated as regex.
+ *
+ * Examples:
+ *   "1.2.3.4"              → exact match only (NOT treated as regex /1.2.3.4/)
+ *   "2001:db8::1"          → exact match only
+ *   "^192\\.168\\.1\\.\\d+$" → regex (contains anchors/escapes)
+ */
+function isWhitelisted(value: string | null | undefined, whitelist: string[] | undefined): boolean {
+    if (!value || !whitelist || whitelist.length === 0) {
+        return false;
+    }
+
+    const normalizedValue = value.trim();
+
+    return whitelist.some(pattern => {
+        const normalizedPattern = pattern.trim();
+        if (!normalizedPattern) {
+            return false;
+        }
+
+        // IPv4 detection: digits and dots only → exact match (bypass regex heuristic)
+        if (/^\d+\.\d+\.\d+\.\d+$/.test(normalizedPattern)) {
+            return normalizedValue === normalizedPattern;
+        }
+
+        // IPv4-mapped IPv6: ::ffff:1.2.3.4 → exact match
+        if (/^::ffff:\d+\.\d+\.\d+\.\d+$/i.test(normalizedPattern)) {
+            return normalizedValue === normalizedPattern;
+        }
+
+        // IPv6 detection: hex digits and colons → exact match
+        if (/^[0-9a-fA-F:]+$/.test(normalizedPattern) && normalizedPattern.includes(':')) {
+            return normalizedValue === normalizedPattern;
+        }
+
+        // Regex detection: contains metacharacters beyond dots/colons
+        if (looksLikeRegex(normalizedPattern)) {
+            try {
+                const regex = new RegExp(normalizedPattern);
+                return regex.test(normalizedValue);
+            } catch (error) {
+                // Invalid regex in a whitelist = never match (fail closed)
+                console.warn(`Whitelist regex "${normalizedPattern}" failed to parse: ${(error as Error).message}, treating as no-match`);
+                return false;
+            }
+        }
+
+        // Fallback: other plain strings → exact match
+        return normalizedValue === normalizedPattern;
+    });
+}
+
+/**
  * Get IP blacklist settings from database
  *
  * @param c - Hono context
@@ -93,75 +150,147 @@ export async function getIpBlacklistSettings(
 }
 
 /**
- * Middleware to check access control (blacklist and rate limiting) for rate-limited endpoints
- * Returns 403/429 response if blocked, null if allowed or any error occurs
+ * Layer 1 — IP whitelist check (strict allowlist mode).
+ * Independent from blacklist. Fails closed when client IP is missing.
  *
- * @param c - Hono context
- * @returns Response if blocked, null otherwise (including errors)
+ * Returns:
+ *   - { response }     — request is blocked (403)
+ *   - { hit: true }    — whitelist active and the IP matched (trusted, skip blacklist)
+ *   - { hit: false }   — whitelist not active or list empty (proceed normally)
+ */
+function checkIpWhitelist(
+    c: Context<HonoCustomType>,
+    settings: IpBlacklistSettings,
+    reqIp: string | null
+): { response?: Response; hit: boolean } {
+    const active = !!(settings.enableWhitelist && settings.whitelist && settings.whitelist.length > 0);
+    if (!active) return { hit: false };
+
+    if (!reqIp) {
+        console.warn(`Blocked request without cf-connecting-ip under whitelist mode for path: ${c.req.path}`);
+        return { response: c.text(`Access denied: client IP unavailable`, 403), hit: false };
+    }
+
+    if (isWhitelisted(reqIp, settings.whitelist)) {
+        return { hit: true };
+    }
+
+    console.warn(`Blocked non-whitelisted IP: ${reqIp} for path: ${c.req.path}`);
+    return { response: c.text(`Access denied: IP ${reqIp} is not whitelisted`, 403), hit: false };
+}
+
+/**
+ * Layer 2a — Fingerprint blacklist check. Does NOT require a client IP.
+ * Must run before the IP-based early-return so fingerprint bans cannot be bypassed.
+ */
+function checkFingerprintBlacklist(
+    c: Context<HonoCustomType>,
+    settings: IpBlacklistSettings,
+): Response | null {
+    if (!settings.enabled) return null;
+    if (!settings.fingerprintBlacklist || settings.fingerprintBlacklist.length === 0) return null;
+
+    const fingerprint = c.req.raw.headers.get("x-fingerprint");
+    if (fingerprint && isBlacklisted(fingerprint, settings.fingerprintBlacklist, true)) {
+        console.warn(`Blocked blacklisted fingerprint: ${fingerprint} for path: ${c.req.path}`);
+        return c.text(`Access denied: Browser fingerprint is blacklisted`, 403);
+    }
+    return null;
+}
+
+/**
+ * Layer 2b — IP + ASN blacklist check. Requires a client IP.
+ */
+function checkIpAsnBlacklist(
+    c: Context<HonoCustomType>,
+    settings: IpBlacklistSettings,
+    reqIp: string
+): Response | null {
+    if (!settings.enabled) return null;
+
+    if (settings.blacklist && settings.blacklist.length > 0) {
+        if (isBlacklisted(reqIp, settings.blacklist, true)) {
+            console.warn(`Blocked blacklisted IP: ${reqIp} for path: ${c.req.path}`);
+            return c.text(`Access denied: IP ${reqIp} is blacklisted`, 403);
+        }
+    }
+
+    if (settings.asnBlacklist && settings.asnBlacklist.length > 0) {
+        const asOrganization = c.req.raw.cf?.asOrganization;
+        if (asOrganization && isBlacklisted(asOrganization as string, settings.asnBlacklist, false)) {
+            console.warn(`Blocked blacklisted ASN: ${asOrganization} (IP: ${reqIp}) for path: ${c.req.path}`);
+            return c.text(`Access denied: ASN organization is blacklisted`, 403);
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Layer 3 — Daily request limit per IP. Always runs (protects backend resources).
+ */
+async function checkDailyLimit(
+    c: Context<HonoCustomType>,
+    settings: IpBlacklistSettings,
+    reqIp: string
+): Promise<Response | null> {
+    if (!settings.enableDailyLimit || !settings.dailyRequestLimit || !c.env.KV) {
+        return null;
+    }
+
+    const daily_count_key = `limit|${reqIp}|${new Date().toISOString().slice(0, 10)}`;
+    const dailyLimit = settings.dailyRequestLimit;
+    const current_count = parseInt(await c.env.KV.get(daily_count_key) || "0", 10);
+
+    if (current_count && current_count >= dailyLimit) {
+        console.warn(`Blocked IP ${reqIp} exceeded daily limit of ${dailyLimit} requests for path: ${c.req.path}`);
+        return c.text(`IP=${reqIp} Exceeded daily limit of ${dailyLimit} requests`, 429);
+    }
+
+    // Increment counter with 24-hour expiration
+    await c.env.KV.put(daily_count_key, ((current_count || 0) + 1).toString(), { expirationTtl: 24 * 60 * 60 });
+    return null;
+}
+
+/**
+ * Middleware to check access control for rate-limited endpoints.
+ * Composes three independent layers in order:
+ *   Layer 1 — IP whitelist (strict allowlist; hit = trust, skip blacklist)
+ *   Layer 2 — Blacklist (IP / ASN / fingerprint)
+ *   Layer 3 — Daily request limit
+ *
+ * Returns 403/429 response if blocked, null if allowed or any error occurs.
  */
 export async function checkAccessControl(
     c: Context<HonoCustomType>
 ): Promise<Response | null> {
     try {
-        // Get IP blacklist settings from database
         const settings = await getIpBlacklistSettings(c);
-        if (!settings) {
-            return null;
-        }
+        if (!settings) return null;
 
-        // Get IP address from CloudFlare header
         const reqIp = c.req.raw.headers.get("cf-connecting-ip");
-        if (!reqIp) {
-            return null;
+
+        // Layer 1: whitelist
+        const whitelistResult = checkIpWhitelist(c, settings, reqIp);
+        if (whitelistResult.response) return whitelistResult.response;
+
+        // Layer 2a: fingerprint blacklist (does not require IP)
+        if (!whitelistResult.hit) {
+            const fingerprintResp = checkFingerprintBlacklist(c, settings);
+            if (fingerprintResp) return fingerprintResp;
         }
 
-        // Check if blacklist feature is enabled
-        if (settings.enabled) {
-            // Check if IP is blacklisted (case-sensitive matching)
-            if (settings.blacklist && settings.blacklist.length > 0) {
-                if (isBlacklisted(reqIp, settings.blacklist, true)) {
-                    console.warn(`Blocked blacklisted IP: ${reqIp} for path: ${c.req.path}`);
-                    return c.text(`Access denied: IP ${reqIp} is blacklisted`, 403);
-                }
-            }
+        // Without a client IP, skip IP-keyed layers below
+        if (!reqIp) return null;
 
-            // Check ASN organization blacklist
-            if (settings.asnBlacklist && settings.asnBlacklist.length > 0) {
-                const asOrganization = c.req.raw.cf?.asOrganization;
-                // Check ASN with case-insensitive matching
-                if (asOrganization && isBlacklisted(asOrganization as string, settings.asnBlacklist, false)) {
-                    console.warn(`Blocked blacklisted ASN: ${asOrganization} (IP: ${reqIp}) for path: ${c.req.path}`);
-                    return c.text(`Access denied: ASN organization is blacklisted`, 403);
-                }
-            }
-
-            // Check browser fingerprint blacklist
-            if (settings.fingerprintBlacklist && settings.fingerprintBlacklist.length > 0) {
-                const fingerprint = c.req.raw.headers.get("x-fingerprint");
-                // Check fingerprint with case-sensitive matching
-                if (fingerprint && isBlacklisted(fingerprint, settings.fingerprintBlacklist, true)) {
-                    console.warn(`Blocked blacklisted fingerprint: ${fingerprint} (IP: ${reqIp}) for path: ${c.req.path}`);
-                    return c.text(`Access denied: Browser fingerprint is blacklisted`, 403);
-                }
-            }
+        // Layer 2b: IP + ASN blacklist (skipped when whitelist trusted the IP)
+        if (!whitelistResult.hit) {
+            const ipAsnResp = checkIpAsnBlacklist(c, settings, reqIp);
+            if (ipAsnResp) return ipAsnResp;
         }
 
-        // Check daily request limit (independent of blacklist feature)
-        if (settings.enableDailyLimit && settings.dailyRequestLimit && c.env.KV) {
-            const daily_count_key = `limit|${reqIp}|${new Date().toISOString().slice(0, 10)}`;
-            const dailyLimit = settings.dailyRequestLimit;
-            const current_count = parseInt(await c.env.KV.get(daily_count_key) || "0", 10);
-
-            if (current_count && current_count >= dailyLimit) {
-                console.warn(`Blocked IP ${reqIp} exceeded daily limit of ${dailyLimit} requests for path: ${c.req.path}`);
-                return c.text(`IP=${reqIp} Exceeded daily limit of ${dailyLimit} requests`, 429);
-            }
-
-            // Increment counter with 24-hour expiration
-            await c.env.KV.put(daily_count_key, ((current_count || 0) + 1).toString(), { expirationTtl: 24 * 60 * 60 });
-        }
-
-        return null;
+        // Layer 3: daily limit (always enforced)
+        return await checkDailyLimit(c, settings, reqIp);
     } catch (error) {
         // Log error but don't block request
         console.error('Error checking IP blacklist and rate limit:', error);

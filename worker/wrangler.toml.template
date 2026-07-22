@@ -21,6 +21,7 @@ keep_vars = true
 # send_email = [
 #    { name = "SEND_MAIL" },
 # ]
+# SEND_MAIL_DOMAINS = ["example.com", "mail.example.com"]
 
 [vars]
 # DEFAULT_LANG = "zh"
@@ -50,6 +51,13 @@ PREFIX = "tmp"
 # CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST = false
 DEFAULT_DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # domain name for no role users
 DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all domain names
+# Allow /api/new_address and /admin/new_address to accept subdomains that end with an allowed base domain
+# e.g. if DOMAINS contains "abc.com", API can accept "team.abc.com" and "dev.team.abc.com"
+# ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
+# Allow optional random subdomain generation for the listed base domains
+# e.g. name@abc.com => name@r4nd0m.abc.com
+# RANDOM_SUBDOMAIN_DOMAINS = ["abc.com"]
+# RANDOM_SUBDOMAIN_LENGTH = 8
 # For chinese domain name, you can use DOMAIN_LABELS to show chinese domain name
 # DOMAIN_LABELS = ["中文.xxx", "xxx.xxx2"]
 # USER_DEFAULT_ROLE = "vip" # default role for new users(only when enable mail verification)
@@ -73,12 +81,22 @@ ENABLE_AUTO_REPLY = false
 # ENABLE_WEBHOOK = true
 # Enable address password feature, if set true, will generate password for new address and support password login and change
 # ENABLE_ADDRESS_PASSWORD = false
+# Show AI Agent mailbox connection info in the address credential modal
+# ENABLE_AGENT_EMAIL_INFO = true
+# Show SMTP/IMAP client connection info in the address credential modal
+# SMTP_IMAP_PROXY_CONFIG = """
+# {
+#   "smtp": { "host": "smtp.example.com", "port": 8025, "starttls": true },
+#   "imap": { "host": "imap.example.com", "port": 11143, "starttls": true }
+# }
+# """
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # DISABLE_SHOW_GITHUB = true
+# DISABLE_SHOW_GITHUB_FOR_USER = true
 # Status monitoring page URL
 # STATUS_URL = "https://status.example.com"
-# default send balance, if not set, it will be 0
+# default send balance, auto initialized when users open settings or send mail; if not set, it will be 0
 # DEFAULT_SEND_BALANCE = 1
 # the role which can send emails without limit, multiple roles can be separated by ,
 # NO_LIMIT_SEND_ROLE = "vip"
@@ -108,18 +126,22 @@ ENABLE_AUTO_REPLY = false
 # FRONTEND_URL = "https://xxxx.xxx"
 # Enable check junk mail
 # ENABLE_CHECK_JUNK_MAIL = false
-# junk mail check list, if status exists and status is not pass, will be marked as junk mail
-# JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
-# junk mail force check pass list, if no status or status is not pass, will be marked as junk mail
+# junk mail check list: reject registered failure/error results; none and SPF/DKIM neutral are treated as absent
+# JUNK_MAIL_CHECK_LIST = ["spf", "dkim", "dmarc"]
+# junk mail force pass list: every configured method must explicitly return pass
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
 # remove attachment if size exceed 2MB, mail maybe mising some information due to parsing
 # REMOVE_EXCEED_SIZE_ATTACHMENT = true
 # remove all attachment, mail maybe mising some information due to parsing
 # REMOVE_ALL_ATTACHMENT = true
+# enable gzip compressed email storage in raw_blob column (run db_migration first)
+# ENABLE_MAIL_GZIP = true
 # AI email extraction, automatically extract verification codes, auth links, etc.
 # ENABLE_AI_EMAIL_EXTRACT = true
-# AI model name, choose from https://developers.cloudflare.com/workers-ai/models/#text-generation
-# AI_EXTRACT_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+# AI model name, choose from https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models
+# Recommended JSON Mode model: "@cf/meta/llama-3.1-8b-instruct-fast"
+# Note: "@cf/meta/llama-3.1-8b-instruct" will be deprecated by Cloudflare on 2026-05-30
+# AI_EXTRACT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast"
 # Calling other woker to process email
 # ENABLE_ANOTHER_WORKER = false
 # ANOTHER_WORKER_LIST = """

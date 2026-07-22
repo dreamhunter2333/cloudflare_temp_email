@@ -111,5 +111,10 @@ To get the url, you need to configure the worker's `FRONTEND_URL` to your fronte
     "raw": "${raw}",
     "parsedText": "${parsedText}",
     "parsedHtml": "${parsedHtml}",
+    "aiExtractType": "${aiExtractType}",
+    "aiExtractResult": "${aiExtractResult}",
+    "aiExtractResultText": "${aiExtractResultText}",
 }
 ```
+
+When AI email extraction is enabled, webhook templates can use the `aiExtractType`, `aiExtractResult`, and `aiExtractResultText` placeholders. They are empty strings when no extraction result is available.
