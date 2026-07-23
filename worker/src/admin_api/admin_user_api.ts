@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 
 import { CONSTANTS } from '../constants';
-import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles, getMailDomain, includesDomain } from '../utils';
+import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles, getMailDomain, includesDomain, hashPasswordWithSalt } from '../utils';
 import { UserSettings, GeoData, UserInfo, RoleAddressConfig } from "../models";
 import { handleListQuery } from '../common'
 import UserBindAddressModule from '../user_api/bind_address';
@@ -78,11 +78,12 @@ export default {
         const userInfo = new UserInfo(geoData, email);
         try {
             checkUserPassword(password);
+            const { hash, salt } = await hashPasswordWithSalt(password);
             const { success } = await c.env.DB.prepare(
-                `INSERT INTO users (user_email, password, user_info)`
-                + ` VALUES (?, ?, ?)`
+                `INSERT INTO users (user_email, password, password_salt, user_info)`
+                + ` VALUES (?, ?, ?, ?)`
             ).bind(
-                email, password, JSON.stringify(userInfo)
+                email, hash, salt, JSON.stringify(userInfo)
             ).run();
             if (!success) {
                 return c.text(msgs.FailedToRegisterMsg, 500)
@@ -118,9 +119,10 @@ export default {
         if (!user_id) return c.text(msgs.UserNotFoundMsg, 400);
         try {
             checkUserPassword(password);
+            const { hash, salt } = await hashPasswordWithSalt(password);
             const { success } = await c.env.DB.prepare(
-                `UPDATE users SET password = ? WHERE id = ?`
-            ).bind(password, user_id).run();
+                `UPDATE users SET password = ?, password_salt = ? WHERE id = ?`
+            ).bind(hash, salt, user_id).run();
             if (!success) {
                 return c.text(msgs.FailedUpdatePasswordMsg, 500)
             }

@@ -461,6 +461,40 @@ export const hashPassword = async (password: string): Promise<string> => {
     return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+/**
+ * Hash password with a random salt for DB storage.
+ * Uses SHA-256(password + salt).
+ * @param password - the incoming hash (SHA-256 of plaintext) or plaintext
+ * @param salt - optional salt (generated if not provided)
+ */
+export const hashPasswordWithSalt = async (
+    password: string,
+    salt?: string
+): Promise<{ hash: string, salt: string }> => {
+    const useSalt = salt || crypto.randomUUID();
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password + useSalt));
+    const hashArray = Array.from(new Uint8Array(digest));
+    const hash = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+    return { hash, salt: useSalt };
+}
+
+/**
+ * Verify password against stored hash.
+ * Handles both legacy (no salt) and salted password hashes.
+ */
+export const verifyPassword = async (
+    incomingHash: string,
+    storedHash: string,
+    salt: string | null
+): Promise<boolean> => {
+    if (salt) {
+        const { hash } = await hashPasswordWithSalt(incomingHash, salt);
+        return hash === storedHash;
+    }
+    // Legacy: no salt, direct comparison
+    return storedHash === incomingHash;
+}
+
 export const getMaxAddressCount = async (
     c: Context<HonoCustomType>,
     userRole: string | null | undefined,
@@ -529,6 +563,9 @@ export default {
     isGlobalTurnstileEnabled,
     checkCfTurnstile,
     checkUserPassword,
+    hashPassword,
+    hashPasswordWithSalt,
+    verifyPassword,
     getJsonSetting,
     getJsonValue: getJsonObjectValue,
     getStringList: getStringArray

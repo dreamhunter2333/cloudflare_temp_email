@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import utils, { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue, getMailDomain, includesDomain } from "../utils"
+import utils, { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue, getMailDomain, includesDomain, hashPasswordWithSalt, verifyPassword } from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
 import { sendMail } from "../mails_api/send_mail_api";
@@ -127,11 +127,12 @@ export default {
         // if not enable mail verify, do not on conflict update
         if (!settings.enableMailVerify) {
             try {
+                const { hash, salt } = await hashPasswordWithSalt(password);
                 const { success } = await c.env.DB.prepare(
-                    `INSERT INTO users (user_email, password, user_info)`
-                    + ` VALUES (?, ?, ?)`
+                    `INSERT INTO users (user_email, password, password_salt, user_info)`
+                    + ` VALUES (?, ?, ?, ?)`
                 ).bind(
-                    email, password, JSON.stringify(userInfo)
+                    email, hash, salt, JSON.stringify(userInfo)
                 ).run();
                 if (!success) {
                     return c.text(msgs.FailedToRegisterMsg, 500)
@@ -146,13 +147,14 @@ export default {
             return c.json({ success: true })
         }
         // if enable mail verify, on conflict update
+        const { hash, salt } = await hashPasswordWithSalt(password);
         const { success } = await c.env.DB.prepare(
-            `INSERT INTO users (user_email, password, user_info)`
-            + ` VALUES (?, ?, ?)`
-            + ` ON CONFLICT(user_email) DO UPDATE SET password = ?, user_info = ?, updated_at = datetime('now')`
+            `INSERT INTO users (user_email, password, password_salt, user_info)`
+            + ` VALUES (?, ?, ?, ?)`
+            + ` ON CONFLICT(user_email) DO UPDATE SET password = ?, password_salt = ?, user_info = ?, updated_at = datetime('now')`
         ).bind(
-            email, password, JSON.stringify(userInfo),
-            password, JSON.stringify(userInfo)
+            email, hash, salt, JSON.stringify(userInfo),
+            hash, salt, JSON.stringify(userInfo)
         ).run();
         if (!success) {
             return c.text(msgs.FailedToRegisterMsg, 400);
@@ -193,14 +195,13 @@ export default {
                 return c.text(msgs.TurnstileCheckFailedMsg, 400)
             }
         }
-        const { id: user_id, password: dbPassword } = await c.env.DB.prepare(
-            `SELECT id, password FROM users where user_email = ?`
+        const { id: user_id, password: dbPassword, password_salt } = await c.env.DB.prepare(
+            `SELECT id, password, password_salt FROM users where user_email = ?`
         ).bind(email).first() || {};
         if (!dbPassword) {
             return c.text(msgs.UserNotFoundMsg, 400)
         }
-        // TODO: need check password use random salt
-        if (dbPassword != password) {
+        if (!await verifyPassword(password, dbPassword, password_salt)) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
         // create jwt

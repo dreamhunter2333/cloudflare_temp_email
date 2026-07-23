@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import i18n from '../i18n';
-import utils, { getBooleanValue, hashPassword, checkCfTurnstile } from '../utils';
+import utils, { getBooleanValue, hashPasswordWithSalt, verifyPassword, checkCfTurnstile } from '../utils';
 import { Jwt } from 'hono/utils/jwt';
 
 export default {
@@ -23,10 +23,11 @@ export default {
             return c.text(msgs.InvalidAddressTokenMsg, 400);
         }
 
-        // NOTE: new_password is the frontend SHA-256 hash, stored directly in address.password.
+        // NOTE: new_password is the frontend SHA-256 hash, server will salt and store.
+        const { hash, salt } = await hashPasswordWithSalt(new_password);
         const { success } = await c.env.DB.prepare(
-            `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
-        ).bind(new_password, address_id).run();
+            `UPDATE address SET password = ?, password_salt = ?, updated_at = datetime('now') WHERE id = ?`
+        ).bind(hash, salt, address_id).run();
 
         if (!success) {
             return c.text(msgs.FailedUpdatePasswordMsg, 500);
@@ -67,8 +68,8 @@ export default {
             return c.text(msgs.AddressNotFoundMsg, 404);
         }
 
-        // NOTE: password is the frontend SHA-256 hash, compared directly with address.password.
-        if (address.password !== password) {
+        // NOTE: password is the frontend SHA-256 hash, verified with salt if present.
+        if (!await verifyPassword(password, address.password, address.password_salt)) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 401);
         }
 
