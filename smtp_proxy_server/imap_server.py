@@ -83,7 +83,7 @@ class Account(imap4.MemoryAccount):
     def _emptyMailbox(self, name, id):
         """Return a dummy mailbox for CREATE requests (e.g. Gmail creating Drafts)."""
         _logger.debug("Accepting CREATE request for %s", name)
-        return SimpleMailbox(name, self._client)
+        return SimpleMailbox(name, self._client, self.name)
 
     def create(self, pathspec):
         """Accept CREATE silently without actually creating mailboxes."""
@@ -111,8 +111,8 @@ class SimpleRealm:
 
         client = BackendClient(password)
 
-        inbox = SimpleMailbox("INBOX", client)
-        sent = SimpleMailbox("SENT", client)
+        inbox = SimpleMailbox("INBOX", client, username)
+        sent = SimpleMailbox("SENT", client, username)
 
         account = Account(username)
         account._client = client

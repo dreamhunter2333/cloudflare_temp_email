@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     imap_tls_key: str = ""
     imap_cache_size: int = 500
     imap_http_timeout: float = 30.0
+    imap_flag_db_path: str = "data/imap_flags.db"
 
     model_config = SettingsConfigDict(env_file=".env")
 

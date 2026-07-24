@@ -20,6 +20,7 @@
 - fix: |AI Extract| Strengthen the prompt to keep original link domains from the email, preventing small models from rewriting verification-link domains (issue #1072)
 - fix: |AI Extract| Convert HTML-only mail bodies into compact readable text before sending them to Workers AI, preventing long templates from pushing verification codes past the 4000-character truncation window
 - fix: |Frontend| Add mobile Header page padding so the title and menu button no longer sit too close to the screen edge
+- fix: |IMAP Proxy| Fix IMAP `STORE` not actually marking mail as read: messages are no longer hardcoded to `\Seen`, and `SimpleMailbox` flag changes are now persisted to a local SQLite file (new `imap_flag_db_path` setting) so the read/unread state survives a client disconnect and reconnect (e.g. Thunderbird polling) instead of resetting on every new connection (issue #1074)
 
 ### Improvements
 
