@@ -3,11 +3,12 @@ import logging
 import time
 from collections import OrderedDict
 
-from twisted.internet import defer
+from twisted.internet import defer, threads
 from twisted.mail import imap4
 from zope.interface import implementer
 
 from config import settings
+from flag_store import FlagStore, get_flag_store
 from imap_http_client import BackendClient
 from imap_message import SimpleMessage
 from parse_email import generate_email_model, parse_email, clean_raw_headers, fix_mojibake
@@ -51,9 +52,12 @@ class MessageCache:
 @implementer(imap4.IMailboxInfo, imap4.IMailbox, imap4.ISearchableMailbox)
 class SimpleMailbox:
 
-    def __init__(self, name: str, client: BackendClient):
+    def __init__(self, name: str, client: BackendClient, address: str,
+                 flag_store: FlagStore = None):
         self.name = name
         self._client = client
+        self._address = address
+        self._flag_store = flag_store if flag_store is not None else get_flag_store()
         self.listeners = []
         self.addListener = self.listeners.append
         self.removeListener = self.listeners.remove
@@ -76,7 +80,10 @@ class SimpleMailbox:
         return 0
 
     def getUnseenCount(self):
-        return 0
+        return sum(
+            1 for u in self._uid_index
+            if r"\Seen" not in self._flags.get(u, set())
+        )
 
     def isWriteable(self):
         return 1
@@ -123,6 +130,7 @@ class SimpleMailbox:
         if count == 0:
             self._uid_index = []
             self._uid_index_built = True
+            self._flags = {}
             return
 
         uid_set = set()
@@ -146,6 +154,11 @@ class SimpleMailbox:
 
         self._uid_index = sorted(uid_set)
         self._uid_index_built = True
+        # Load persisted flags (e.g. \Seen set by a previous IMAP session) so
+        # STORE results survive reconnects instead of resetting every session.
+        self._flags = yield threads.deferToThread(
+            self._flag_store.get_all, self._address, self.name
+        )
         _logger.info(
             "UID index built for %s: %d UIDs, range=%s..%s",
             self.name, len(self._uid_index),
@@ -254,9 +267,10 @@ class SimpleMailbox:
                     else:
                         continue
 
-                    if uid_val not in self._flags:
-                        self._flags[uid_val] = {r"\Seen"}
-                    flags = self._flags[uid_val]
+                    # Flags default to unseen (empty set) unless a previous
+                    # STORE persisted them via self._flag_store; self._flags
+                    # is refreshed from that store in _build_uid_index().
+                    flags = self._flags.get(uid_val, set())
                     msg = SimpleMessage(
                         uid_val, email_model, flags=flags, raw=raw,
                         created_at=item.get("created_at"),
@@ -310,6 +324,7 @@ class SimpleMailbox:
 
         target_uids = self._resolve_message_set(messages, uid)
         result = {}
+        updated_flags: dict[int, set[str]] = {}
 
         for u in target_uids:
             current_flags = self._flags.get(u, set())
@@ -322,9 +337,18 @@ class SimpleMailbox:
                 current_flags = set(flags)
 
             self._flags[u] = current_flags
+            updated_flags[u] = current_flags
             seq = self._uid_to_seq(u)
             if seq is not None:
                 result[seq] = current_flags
+
+        if updated_flags:
+            # Persist so the flag change (e.g. marking \Seen) survives the
+            # client disconnecting and reconnecting in a later session.
+            yield threads.deferToThread(
+                self._flag_store.set_flags_bulk,
+                self._address, self.name, updated_flags,
+            )
 
         return result
 
