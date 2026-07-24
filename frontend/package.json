@@ -29,7 +29,7 @@
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.18.1",
-    "dompurify": "^3.4.11",
+    "dompurify": "^3.4.12",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.2",
     "naive-ui": "^2.44.1",
