@@ -139,6 +139,51 @@ class ImapMarkAsSeenPersistenceTest(unittest.TestCase):
         _run(mbox.store(message_set, [r"\Seen"], mode=-1, uid=True))
         self.assertEqual(mbox.getUnseenCount(), 1)
 
+        # The removal must also land in SQLite, not just this instance's
+        # in-memory dict: a fresh mailbox (= reconnect) must see it unseen.
+        mbox2 = self._make_mailbox(messages)
+        _run(mbox2._build_uid_index())
+        self.assertEqual(
+            mbox2.getUnseenCount(), 1,
+            "-FLAGS (\\Seen) was not persisted across reconnect",
+        )
+        self.assertNotIn(r"\Seen", mbox2._flags.get(1, set()))
+
+    def test_keyword_containing_comma_round_trips(self):
+        # Commas are legal in IMAP keywords; "foo,bar" is ONE keyword and
+        # must not come back from storage split into "foo" and "bar".
+        messages = [{"id": 1, "raw": ""}]
+        mbox = self._make_mailbox(messages)
+        _run(mbox._build_uid_index())
+
+        message_set = imap4.MessageSet(1, 1)
+        _run(mbox.store(message_set, ["foo,bar"], mode=1, uid=True))
+
+        mbox2 = self._make_mailbox(messages)
+        _run(mbox2._build_uid_index())
+        self.assertEqual(mbox2._flags.get(1), {"foo,bar"})
+
+    def test_concurrent_sessions_do_not_clobber_each_other(self):
+        # Two sessions load the same (empty) flags, then each STOREs a
+        # different flag on the same message. The second write must not be
+        # computed from its stale in-memory copy, or the first flag is lost.
+        messages = [{"id": 1, "raw": ""}]
+        mbox1 = self._make_mailbox(messages)
+        mbox2 = self._make_mailbox(messages)
+        _run(mbox1._build_uid_index())
+        _run(mbox2._build_uid_index())
+
+        message_set = imap4.MessageSet(1, 1)
+        _run(mbox1.store(message_set, [r"\Seen"], mode=1, uid=True))
+        _run(mbox2.store(message_set, [r"\Flagged"], mode=1, uid=True))
+
+        mbox3 = self._make_mailbox(messages)
+        _run(mbox3._build_uid_index())
+        self.assertEqual(
+            mbox3._flags.get(1), {r"\Seen", r"\Flagged"},
+            "a session's +FLAGS was lost to a concurrent session's stale write",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

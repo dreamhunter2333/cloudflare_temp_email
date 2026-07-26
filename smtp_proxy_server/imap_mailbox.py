@@ -323,32 +323,24 @@ class SimpleMailbox:
             return {}
 
         target_uids = self._resolve_message_set(messages, uid)
+        if not target_uids:
+            return {}
+
+        # Apply the delta inside the store's own transaction instead of
+        # computing new flag sets from this session's in-memory copy: another
+        # concurrent session may have STOREd since we loaded, and basing the
+        # write on stale state would silently drop its change.
+        updated_flags = yield threads.deferToThread(
+            self._flag_store.update_flags,
+            self._address, self.name, target_uids, set(flags), mode,
+        )
+
         result = {}
-        updated_flags: dict[int, set[str]] = {}
-
-        for u in target_uids:
-            current_flags = self._flags.get(u, set())
-
-            if mode == 1:    # +FLAGS
-                current_flags = current_flags | set(flags)
-            elif mode == -1:  # -FLAGS
-                current_flags = current_flags - set(flags)
-            elif mode == 0:   # FLAGS (replace)
-                current_flags = set(flags)
-
+        for u, current_flags in updated_flags.items():
             self._flags[u] = current_flags
-            updated_flags[u] = current_flags
             seq = self._uid_to_seq(u)
             if seq is not None:
                 result[seq] = current_flags
-
-        if updated_flags:
-            # Persist so the flag change (e.g. marking \Seen) survives the
-            # client disconnecting and reconnecting in a later session.
-            yield threads.deferToThread(
-                self._flag_store.set_flags_bulk,
-                self._address, self.name, updated_flags,
-            )
 
         return result
 
