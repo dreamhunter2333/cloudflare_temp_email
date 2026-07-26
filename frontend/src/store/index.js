@@ -99,6 +99,7 @@ export const useGlobalState = createGlobalState(
         const globalTabplacement = useStorage('globalTabplacement', 'top');
         const useSideMargin = useStorage('useSideMargin', true);
         const useUTCDate = useStorage('useUTCDate', false);
+        const autoLoadRemoteImages = useStorage('autoLoadRemoteImages', true);
         const autoRefresh = useStorage('autoRefresh', false);
         const configAutoRefreshInterval = useStorage("configAutoRefreshInterval", 60);
         const userOpenSettings = ref({
@@ -175,6 +176,7 @@ export const useGlobalState = createGlobalState(
             globalTabplacement,
             useSideMargin,
             useUTCDate,
+            autoLoadRemoteImages,
             autoRefresh,
             configAutoRefreshInterval,
             telegramApp,
