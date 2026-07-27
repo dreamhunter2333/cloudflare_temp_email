@@ -32,6 +32,7 @@ from twisted.python.failure import Failure
 import imap_mailbox
 from flag_store import FlagStore
 from imap_mailbox import SimpleMailbox
+from imap_server import SimpleIMAPServer
 
 
 def _sync_defer_to_thread(f, *args, **kwargs):
@@ -79,7 +80,8 @@ class FakeBackendClient:
         return defer.succeed((page, count))
 
 
-class ImapMarkAsSeenPersistenceTest(unittest.TestCase):
+class _MailboxTestBase(unittest.TestCase):
+    """Shared fixture: a temp-dir FlagStore and an inline deferToThread."""
 
     def setUp(self):
         self._tmpdir = tempfile.mkdtemp()
@@ -95,6 +97,9 @@ class ImapMarkAsSeenPersistenceTest(unittest.TestCase):
         flag_store = FlagStore(self._db_path)
         client = FakeBackendClient(messages)
         return SimpleMailbox("INBOX", client, address, flag_store=flag_store)
+
+
+class ImapMarkAsSeenPersistenceTest(_MailboxTestBase):
 
     def test_new_message_starts_unseen(self):
         mbox = self._make_mailbox([{"id": 1, "raw": ""}])
@@ -183,6 +188,100 @@ class ImapMarkAsSeenPersistenceTest(unittest.TestCase):
             mbox3._flags.get(1), {r"\Seen", r"\Flagged"},
             "a session's +FLAGS was lost to a concurrent session's stale write",
         )
+
+
+class ImapSearchFlagTest(_MailboxTestBase):
+    """SEARCH must answer flag keys from persisted state.
+
+    SimpleMailbox declares ISearchableMailbox, so IMAP4Server.do_SEARCH hands
+    the whole query to it and never runs its own search_UNSEEN/search_SEEN
+    helpers. Before this, every SEARCH fell through to "return everything",
+    so `SEARCH UNSEEN` listed mail the user had already read.
+    """
+
+    def _seen_mailbox(self):
+        """Two messages, UID 1 marked \\Seen, UID 2 left unread."""
+        messages = [{"id": 1, "raw": ""}, {"id": 2, "raw": ""}]
+        mbox = self._make_mailbox(messages)
+        _run(mbox._build_uid_index())
+        _run(mbox.store(imap4.MessageSet(1, 1), [r"\Seen"], mode=1, uid=True))
+        return mbox
+
+    def test_search_unseen_excludes_seen_messages(self):
+        mbox = self._seen_mailbox()
+        self.assertEqual(_run(mbox.search(["UNSEEN"], uid=True)), [2])
+
+    def test_search_seen_returns_only_seen_messages(self):
+        mbox = self._seen_mailbox()
+        self.assertEqual(_run(mbox.search(["SEEN"], uid=True)), [1])
+
+    def test_search_unseen_returns_sequence_numbers_when_not_uid(self):
+        mbox = self._seen_mailbox()
+        self.assertEqual(_run(mbox.search(["UNSEEN"], uid=False)), [2])
+
+    def test_search_all_still_returns_everything(self):
+        mbox = self._seen_mailbox()
+        self.assertEqual(_run(mbox.search(["ALL"], uid=True)), [1, 2])
+
+    def test_search_accepts_bytes_terms(self):
+        mbox = self._seen_mailbox()
+        self.assertEqual(_run(mbox.search([b"UNSEEN"], uid=True)), [2])
+
+    def test_unsupported_search_key_still_matches_everything(self):
+        # Keys this mailbox cannot evaluate keep the previous lenient
+        # behaviour rather than silently returning an empty result.
+        mbox = self._seen_mailbox()
+        self.assertEqual(_run(mbox.search(["SINCE"], uid=True)), [1, 2])
+
+    def test_combined_keys_are_conjunctive(self):
+        mbox = self._seen_mailbox()
+        _run(mbox.store(imap4.MessageSet(2, 2), [r"\Flagged"], mode=1, uid=True))
+        self.assertEqual(_run(mbox.search(["UNSEEN", "FLAGGED"], uid=True)), [2])
+        self.assertEqual(_run(mbox.search(["SEEN", "FLAGGED"], uid=True)), [])
+
+
+class FetchImpliesSeenTest(unittest.TestCase):
+    """Only non-peek body fetches may set \\Seen (RFC 3501 §6.4.5).
+
+    Twisted passes the parsed FETCH query to its own response builder and
+    never to the mailbox, so SimpleMailbox alone cannot distinguish BODY[]
+    from BODY.PEEK[]. SimpleIMAPServer.do_FETCH makes that call instead.
+    """
+
+    def _implies_seen(self, command):
+        parser = imap4._FetchParser()
+        parser.parseString(command)
+        return SimpleIMAPServer._fetch_implies_seen(parser.result)
+
+    def test_body_sets_seen(self):
+        self.assertTrue(self._implies_seen(b"BODY[]"))
+
+    def test_body_section_sets_seen(self):
+        # BODY[HEADER] is a non-peek fetch and does set \Seen, unlike the
+        # RFC822.HEADER shorthand below.
+        self.assertTrue(self._implies_seen(b"BODY[HEADER]"))
+
+    def test_body_peek_does_not_set_seen(self):
+        self.assertFalse(self._implies_seen(b"BODY.PEEK[]"))
+
+    def test_rfc822_sets_seen(self):
+        self.assertTrue(self._implies_seen(b"RFC822"))
+
+    def test_rfc822_text_sets_seen(self):
+        self.assertTrue(self._implies_seen(b"RFC822.TEXT"))
+
+    def test_rfc822_header_does_not_set_seen(self):
+        # Defined as equivalent to BODY.PEEK[HEADER].
+        self.assertFalse(self._implies_seen(b"RFC822.HEADER"))
+
+    def test_metadata_only_fetch_does_not_set_seen(self):
+        self.assertFalse(self._implies_seen(b"FLAGS"))
+        self.assertFalse(self._implies_seen(b"UID"))
+        self.assertFalse(self._implies_seen(b"RFC822.SIZE"))
+
+    def test_mixed_query_sets_seen_if_any_part_does(self):
+        self.assertTrue(self._implies_seen(b"(FLAGS BODY[])"))
+        self.assertFalse(self._implies_seen(b"(FLAGS BODY.PEEK[])"))
 
 
 if __name__ == "__main__":

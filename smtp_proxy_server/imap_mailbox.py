@@ -344,28 +344,58 @@ class SimpleMailbox:
 
         return result
 
+    # SEARCH keys we can answer from persisted flag state, mapped to the flag
+    # and whether it must be present. Anything else falls through to matching
+    # every message, which is how this mailbox answered every query before
+    # flags were persisted.
+    _FLAG_SEARCH_KEYS = {
+        "SEEN": ("\\Seen", True),
+        "UNSEEN": ("\\Seen", False),
+        "DELETED": ("\\Deleted", True),
+        "UNDELETED": ("\\Deleted", False),
+        "FLAGGED": ("\\Flagged", True),
+        "UNFLAGGED": ("\\Flagged", False),
+        "ANSWERED": ("\\Answered", True),
+        "UNANSWERED": ("\\Answered", False),
+        "DRAFT": ("\\Draft", True),
+        "UNDRAFT": ("\\Draft", False),
+    }
+
     @defer.inlineCallbacks
     def search(self, query, uid):
         if not self._uid_index_built:
             yield self._build_uid_index()
 
-        results = []
-
+        predicates = []
         for term in query:
-            if isinstance(term, str) and term.upper() == "ALL":
-                if uid:
-                    results = list(self._uid_index)
-                else:
-                    results = list(range(1, len(self._uid_index) + 1))
-                break
+            if isinstance(term, bytes):
+                term = term.decode("ascii", "ignore")
+            if not isinstance(term, str):
+                continue
+            predicate = self._FLAG_SEARCH_KEYS.get(term.upper())
+            if predicate is not None:
+                predicates.append(predicate)
 
-        if not results:
-            if uid:
-                results = list(self._uid_index)
-            else:
-                results = list(range(1, len(self._uid_index) + 1))
+        matched = [
+            u for u in self._uid_index
+            if all(
+                (flag in self._flags.get(u, set())) is present
+                for flag, present in predicates
+            )
+        ]
 
-        return results
+        _logger.info(
+            "SEARCH: uid=%s predicates=%d matched=%d/%d",
+            uid, len(predicates), len(matched), len(self._uid_index),
+        )
+
+        if uid:
+            return matched
+
+        return [
+            seq for seq in (self._uid_to_seq(u) for u in matched)
+            if seq is not None
+        ]
 
     def getUIDNext(self):
         if self._uid_index:
