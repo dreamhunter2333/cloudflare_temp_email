@@ -3,11 +3,12 @@ import logging
 import time
 from collections import OrderedDict
 
-from twisted.internet import defer
+from twisted.internet import defer, threads
 from twisted.mail import imap4
 from zope.interface import implementer
 
 from config import settings
+from flag_store import FlagStore, get_flag_store
 from imap_http_client import BackendClient
 from imap_message import SimpleMessage
 from parse_email import generate_email_model, parse_email, clean_raw_headers, fix_mojibake
@@ -51,9 +52,12 @@ class MessageCache:
 @implementer(imap4.IMailboxInfo, imap4.IMailbox, imap4.ISearchableMailbox)
 class SimpleMailbox:
 
-    def __init__(self, name: str, client: BackendClient):
+    def __init__(self, name: str, client: BackendClient, address: str,
+                 flag_store: FlagStore = None):
         self.name = name
         self._client = client
+        self._address = address
+        self._flag_store = flag_store if flag_store is not None else get_flag_store()
         self.listeners = []
         self.addListener = self.listeners.append
         self.removeListener = self.listeners.remove
@@ -76,7 +80,10 @@ class SimpleMailbox:
         return 0
 
     def getUnseenCount(self):
-        return 0
+        return sum(
+            1 for u in self._uid_index
+            if r"\Seen" not in self._flags.get(u, set())
+        )
 
     def isWriteable(self):
         return 1
@@ -123,6 +130,7 @@ class SimpleMailbox:
         if count == 0:
             self._uid_index = []
             self._uid_index_built = True
+            self._flags = {}
             return
 
         uid_set = set()
@@ -146,6 +154,11 @@ class SimpleMailbox:
 
         self._uid_index = sorted(uid_set)
         self._uid_index_built = True
+        # Load persisted flags (e.g. \Seen set by a previous IMAP session) so
+        # STORE results survive reconnects instead of resetting every session.
+        self._flags = yield threads.deferToThread(
+            self._flag_store.get_all, self._address, self.name
+        )
         _logger.info(
             "UID index built for %s: %d UIDs, range=%s..%s",
             self.name, len(self._uid_index),
@@ -254,9 +267,10 @@ class SimpleMailbox:
                     else:
                         continue
 
-                    if uid_val not in self._flags:
-                        self._flags[uid_val] = {r"\Seen"}
-                    flags = self._flags[uid_val]
+                    # Flags default to unseen (empty set) unless a previous
+                    # STORE persisted them via self._flag_store; self._flags
+                    # is refreshed from that store in _build_uid_index().
+                    flags = self._flags.get(uid_val, set())
                     msg = SimpleMessage(
                         uid_val, email_model, flags=flags, raw=raw,
                         created_at=item.get("created_at"),
@@ -309,18 +323,20 @@ class SimpleMailbox:
             return {}
 
         target_uids = self._resolve_message_set(messages, uid)
+        if not target_uids:
+            return {}
+
+        # Apply the delta inside the store's own transaction instead of
+        # computing new flag sets from this session's in-memory copy: another
+        # concurrent session may have STOREd since we loaded, and basing the
+        # write on stale state would silently drop its change.
+        updated_flags = yield threads.deferToThread(
+            self._flag_store.update_flags,
+            self._address, self.name, target_uids, set(flags), mode,
+        )
+
         result = {}
-
-        for u in target_uids:
-            current_flags = self._flags.get(u, set())
-
-            if mode == 1:    # +FLAGS
-                current_flags = current_flags | set(flags)
-            elif mode == -1:  # -FLAGS
-                current_flags = current_flags - set(flags)
-            elif mode == 0:   # FLAGS (replace)
-                current_flags = set(flags)
-
+        for u, current_flags in updated_flags.items():
             self._flags[u] = current_flags
             seq = self._uid_to_seq(u)
             if seq is not None:
@@ -328,28 +344,58 @@ class SimpleMailbox:
 
         return result
 
+    # SEARCH keys we can answer from persisted flag state, mapped to the flag
+    # and whether it must be present. Anything else falls through to matching
+    # every message, which is how this mailbox answered every query before
+    # flags were persisted.
+    _FLAG_SEARCH_KEYS = {
+        "SEEN": ("\\Seen", True),
+        "UNSEEN": ("\\Seen", False),
+        "DELETED": ("\\Deleted", True),
+        "UNDELETED": ("\\Deleted", False),
+        "FLAGGED": ("\\Flagged", True),
+        "UNFLAGGED": ("\\Flagged", False),
+        "ANSWERED": ("\\Answered", True),
+        "UNANSWERED": ("\\Answered", False),
+        "DRAFT": ("\\Draft", True),
+        "UNDRAFT": ("\\Draft", False),
+    }
+
     @defer.inlineCallbacks
     def search(self, query, uid):
         if not self._uid_index_built:
             yield self._build_uid_index()
 
-        results = []
-
+        predicates = []
         for term in query:
-            if isinstance(term, str) and term.upper() == "ALL":
-                if uid:
-                    results = list(self._uid_index)
-                else:
-                    results = list(range(1, len(self._uid_index) + 1))
-                break
+            if isinstance(term, bytes):
+                term = term.decode("ascii", "ignore")
+            if not isinstance(term, str):
+                continue
+            predicate = self._FLAG_SEARCH_KEYS.get(term.upper())
+            if predicate is not None:
+                predicates.append(predicate)
 
-        if not results:
-            if uid:
-                results = list(self._uid_index)
-            else:
-                results = list(range(1, len(self._uid_index) + 1))
+        matched = [
+            u for u in self._uid_index
+            if all(
+                (flag in self._flags.get(u, set())) is present
+                for flag, present in predicates
+            )
+        ]
 
-        return results
+        _logger.info(
+            "SEARCH: uid=%s predicates=%d matched=%d/%d",
+            uid, len(predicates), len(matched), len(self._uid_index),
+        )
+
+        if uid:
+            return matched
+
+        return [
+            seq for seq in (self._uid_to_seq(u) for u in matched)
+            if seq is not None
+        ]
 
     def getUIDNext(self):
         if self._uid_index:

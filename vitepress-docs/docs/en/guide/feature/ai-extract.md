@@ -43,6 +43,18 @@ Or add in Cloudflare Dashboard Worker settings:
 - **Variable name**: `AI`
 - **Type**: Workers AI
 
+## Fallback Without a Workers AI Binding
+
+If `ENABLE_AI_EMAIL_EXTRACT` is enabled but **no Workers AI binding is configured** (e.g. a self-hosted deployment without Workers AI), the system automatically falls back to a built-in **regex verification-code extractor**:
+
+- Extracts **verification codes** (`auth_code`) only; links are not extracted (link extraction requires AI)
+- Zero dependency, zero cost, runs locally inside the Worker
+- Supports common verification-code formats in English, Chinese, Japanese and Korean
+- Rejects years (e.g. `2026`) and `YYYYMMDD` dates to reduce false positives
+- Results are written to `metadata` and reuse the same Telegram / webhook placeholders (`aiExtractType` is `auth_code` in this case)
+
+When a Workers AI binding is configured, AI extraction is still preferred (recognizing both codes and links) and this fallback does not apply.
+
 ## Address Allowlist (Optional)
 
 To control costs and resource usage, you can configure an address allowlist in the Admin console's **AI Extract Settings** page:

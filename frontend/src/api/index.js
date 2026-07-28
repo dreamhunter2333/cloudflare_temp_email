@@ -104,6 +104,7 @@ const getOpenSettings = async (message, notification) => {
             cfTurnstileSiteKey: res["cfTurnstileSiteKey"] || "",
             enableWebhook: res["enableWebhook"] || false,
             isS3Enabled: res["isS3Enabled"] || false,
+            showGithubForUser: res["showGithubForUser"] ?? openSettings.value.showGithubForUser,
             enableAddressPassword: res["enableAddressPassword"] || false,
             enableAgentEmailInfo: res["enableAgentEmailInfo"] || false,
             smtpImapProxyConfig: res["smtpImapProxyConfig"] || openSettings.value.smtpImapProxyConfig,

@@ -122,11 +122,14 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     // forward email
     await forwardEmail(message, env);
 
+    // AI email content extraction
+    const aiExtractResult = await extractEmailInfo(parsedEmailContext, env, message_id, toAddress);
+
     // send email to telegram
     try {
         await sendMailToTelegram(
             { env: env } as Context<HonoCustomType>,
-            toAddress, parsedEmailContext, message_id);
+            toAddress, parsedEmailContext, message_id, aiExtractResult);
     } catch (error) {
         console.error("send mail to telegram error", error);
     }
@@ -135,7 +138,7 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     try {
         await triggerWebhook(
             { env: env } as Context<HonoCustomType>,
-            toAddress, parsedEmailContext, message_id
+            toAddress, parsedEmailContext, message_id, aiExtractResult
         );
     } catch (error) {
         console.error("send webhook error", error);
@@ -158,9 +161,6 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
 
     // auto reply email
     await auto_reply(message, env, toAddress);
-
-    // AI email content extraction
-    await extractEmailInfo(parsedEmailContext, env, message_id, toAddress);
 }
 
 export { email }

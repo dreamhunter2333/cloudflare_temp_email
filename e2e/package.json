@@ -13,7 +13,7 @@
     "ws": "^8.18.0"
   },
   "dependencies": {
-    "imapflow": "^1.3.1",
-    "nodemailer": "^8.0.5"
+    "imapflow": "^1.4.2",
+    "nodemailer": "^9.0.1"
   }
 }
