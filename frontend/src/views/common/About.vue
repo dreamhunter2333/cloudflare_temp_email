@@ -1,10 +1,10 @@
 <script setup>
 import { computed } from 'vue'
-import DOMPurify from 'dompurify'
 import { GithubAlt, Discord, Telegram } from '@vicons/fa'
 import { useGlobalState } from '../../store'
+import { sanitizeHtml } from '../../utils/sanitize-html'
 const { announcement } = useGlobalState()
-const safeAnnouncement = computed(() => DOMPurify.sanitize(announcement))
+const safeAnnouncement = computed(() => sanitizeHtml(announcement.value))
 </script>
 
 <template>

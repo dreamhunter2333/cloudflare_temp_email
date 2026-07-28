@@ -5,6 +5,7 @@ import axios from 'axios'
 import i18n from '../i18n'
 import { getFingerprint } from '../utils/fingerprint'
 import { safeBearerHeader, safeHeaderValue } from '../utils/headers'
+import { sanitizeHtml } from '../utils/sanitize-html'
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
 const {
@@ -123,7 +124,7 @@ const getOpenSettings = async (message, notification) => {
             notification.info({
                 content: () => {
                     return h("div", {
-                        innerHTML: announcement.value
+                        innerHTML: sanitizeHtml(announcement.value)
                     });
                 }
             });
