@@ -16,6 +16,7 @@
 
 ### Bug Fixes
 
+- fix: |Frontend| Preserve external navigation links on `<a>` and `<area>` elements when automatic remote-image loading is disabled, and block remote CSS resources hidden behind escaped function or at-rule names
 - fix: |Frontend| Sanitize HTML announcements in both the About page and startup notification through a shared DOMPurify helper, preventing executable tags or event attributes in `ANNOUNCEMENT` from causing XSS
 - fix: |Worker| Align junk-mail checking with authentication standards: treat SPF, DKIM, and DMARC `none` plus SPF/DKIM `neutral` as absent, and ignore unregistered results and unsupported method versions; `JUNK_MAIL_FORCE_PASS_LIST` still requires an explicit supported `pass`
 - fix: |Admin| When deleting an address from the admin panel, delete its mails, sender records, sendbox and auto-reply entries before removing the address row itself; previously the address row was deleted first, so the name-based subqueries matched nothing and the mails were left orphaned in the database
