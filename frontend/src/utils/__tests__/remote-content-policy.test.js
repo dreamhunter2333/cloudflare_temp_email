@@ -83,4 +83,24 @@ describe('必須保留', () => {
         expect({ v: n, kept: r.html.includes(needle), blocked: r.blocked })
             .toEqual({ v: n, kept: true, blocked: 0 });
     });
+
+    it('保留安全 CSS 跳脫與本地資源', () => {
+        const r = blockRemoteContent(
+            '<div style="font-family:\\41 rial;background:url(data:image/gif;base64,AAAA)">x</div>'
+        );
+        expect(r.blocked).toBe(0);
+        expect(r.html).toContain('font-family:\\41 rial');
+        expect(r.html).toContain('data:image/gif');
+    });
+});
+
+describe('阻斷計數', () => {
+    it('逐一計算 CSS 跳脫函式中的遠端資源', () => {
+        const r = blockRemoteContent(
+            '<div style="color:red;background:u\\72l(https://a.example/a.png),u\\72l(https://b.example/b.png)">x</div>'
+        );
+        expect(r.blocked).toBe(2);
+        expect(r.html).toContain('color:red');
+        expect(r.html).not.toContain('https://');
+    });
 });
