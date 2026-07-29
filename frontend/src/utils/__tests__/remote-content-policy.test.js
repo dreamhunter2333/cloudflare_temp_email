@@ -104,3 +104,18 @@ describe('阻斷計數', () => {
         expect(r.html).not.toContain('https://');
     });
 });
+
+describe('危險導航協議', () => {
+    it.each([
+        ['a javascript', '<a href="javascript:alert(1)">x</a>', 'a'],
+        ['a data:text/html', '<a href="data:text/html,<script>alert(1)</script>">x</a>', 'a'],
+        ['area javascript', '<map><area href="javascript:alert(1)"></map>', 'area'],
+        ['area data:text/html', '<map><area href="data:text/html,<script>alert(1)</script>"></map>', 'area'],
+    ])('%s', (_name, html, selector) => {
+        const host = document.createElement('div');
+        host.innerHTML = blockRemoteContent(html).html;
+        const node = host.querySelector(selector);
+        expect(node).not.toBeNull();
+        expect(node.hasAttribute('href')).toBe(false);
+    });
+});
