@@ -38,6 +38,9 @@ const V = [
     ['style 誘餌 url(', `<style>.a{content:"url(";background:url(${T})}</style>`],
     ['attr image-set', `<div style="background:image-set('${T}' 1x)">x</div>`],
     ['attr CSS 跳脫', `<div style="background:url(\\68 ttps://tracker.example/p.png)">x</div>`],
+    ['attr CSS 函式名稱跳脫', `<div style="background:u\\72l(${T})">x</div>`],
+    ['style CSS 函式名稱跳脫', `<style>.a{background:u\\72l(${T})}</style>`],
+    ['style CSS at-rule 跳脫', `<style>@im\\70ort "${T}";</style>`],
     ['URL 反斜線', `<img src="https:\\\\tracker.example\\p.png">`],
     ['scheme 無斜線', `<img src="https:tracker.example/p.png">`],
     ['data:text/html iframe', `<iframe src="data:text/html,&lt;img src=${T}&gt;"></iframe>`],
@@ -63,6 +66,8 @@ const KEEP = [
     ['排版 CSS', '<table><tr><td style="padding:8px;color:#333">hi</td></tr></table>', 'padding:8px'],
     ['style 區塊排版', '<style>.a{color:red;font-size:14px}</style><p class="a">x</p>', 'font-size:14px'],
     ['data: 於 CSS', '<div style="background:url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7)">x</div>', 'data:image/gif'],
+    ['外部 a 連結', `<a href="${T}">open</a>`, T],
+    ['外部 area 連結', `<map name="m"><area href="${T}" coords="0,0,1,1"></map>`, T],
 ];
 
 describe('攻擊向量', () => {

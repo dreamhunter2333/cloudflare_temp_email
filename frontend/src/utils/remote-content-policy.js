@@ -8,6 +8,7 @@ const URL_ATTRIBUTES = new Set([
     'src', 'srcset', 'imagesrcset', 'href', 'xlink:href',
     'poster', 'background', 'data', 'action', 'formaction',
 ]);
+const NAVIGATION_HREF_ELEMENTS = new Set(['A', 'AREA']);
 
 // Elements that fetch on their own, redirect the frame, or re-base every
 // relative URL in the document. None of them belong in a mail body, and
@@ -29,6 +30,21 @@ const ALLOWED_URI_REGEXP =
 const CSS_FETCHES = /url\(|image-set|image\(|cross-fade|element\(|@import/i;
 // A url(...) token or a bare string, either of which can name a resource.
 const CSS_TOKEN = /url\(\s*(['"]?)([^'")]*)\1\s*\)|(['"])([^'"]*)\3/g;
+const CSS_ESCAPE = /\\([0-9a-f]{1,6})[ \t\r\n\f]?|\\([^\r\n\f0-9a-f])/gi;
+
+function decodeCssEscapes(value) {
+    return value.replace(CSS_ESCAPE, (_match, hex, escaped) => {
+        if (!hex) {
+            return escaped;
+        }
+        const codePoint = Number.parseInt(hex, 16);
+        if (codePoint === 0 || codePoint > 0x10FFFF ||
+            (codePoint >= 0xD800 && codePoint <= 0xDFFF)) {
+            return '\uFFFD';
+        }
+        return String.fromCodePoint(codePoint);
+    });
+}
 
 /**
  * Whether a URL can be *proven* to stay off the network.
@@ -74,8 +90,13 @@ function srcsetIsLocal(value) {
  * dropped, so the surrounding rule structure survives.
  */
 function blockCssUrls(cssText, onBlocked) {
-    if (!CSS_FETCHES.test(cssText)) {
+    const decodedCssText = decodeCssEscapes(cssText);
+    if (!CSS_FETCHES.test(decodedCssText)) {
         return cssText;
+    }
+    if (decodedCssText !== cssText) {
+        onBlocked();
+        return '';
     }
     return cssText.replace(CSS_TOKEN, (match, urlQuote, urlValue, strQuote, strValue) => {
         const isUrlToken = urlValue !== undefined;
@@ -106,6 +127,9 @@ function getPurifier() {
 
     purifier.addHook('uponSanitizeAttribute', (node, data) => {
         if (!URL_ATTRIBUTES.has(data.attrName)) {
+            return;
+        }
+        if (data.attrName === 'href' && NAVIGATION_HREF_ELEMENTS.has(node.tagName)) {
             return;
         }
         const isSrcset = data.attrName === 'srcset' || data.attrName === 'imagesrcset';
