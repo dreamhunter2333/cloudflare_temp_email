@@ -81,30 +81,3 @@ export function getDownloadEmlUrl(raw) {
         ))
 }
 
-// 1x1 transparent GIF, used as a placeholder for blocked remote images
-const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7';
-
-// Matches <img src="http(s)://..."> / <img src="//..."> (protocol-relative), quoted only.
-// cid: (already replaced with blob URLs above) and data: URIs are intentionally left untouched.
-const REMOTE_IMG_SRC_REGEX = /(<img\b[^>]*?\ssrc\s*=\s*)(["'])(https?:\/\/|\/\/)([^"']*)\2/gi;
-
-/**
- * Replaces remote <img> sources with a transparent placeholder so the browser
- * never fetches them, keeping the original URL in a data-blocked-src attribute.
- * @param {string} html
- * @returns {{ html: string, blocked: boolean }}
- */
-export function blockRemoteImages(html) {
-    if (!html) {
-        return { html: html || '', blocked: false };
-    }
-    let blocked = false;
-    const processedHtml = html.replace(
-        REMOTE_IMG_SRC_REGEX,
-        (_match, prefix, quote, protocol, rest) => {
-            blocked = true;
-            return `${prefix}${quote}${TRANSPARENT_PIXEL}${quote} data-blocked-src=${quote}${protocol}${rest}${quote}`;
-        }
-    );
-    return { html: processedHtml, blocked };
-}

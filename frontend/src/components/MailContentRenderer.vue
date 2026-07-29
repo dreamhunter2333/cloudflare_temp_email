@@ -4,7 +4,8 @@ import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound, ImageRound } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
-import { getDownloadEmlUrl, blockRemoteImages } from '../utils/email-parser';
+import { getDownloadEmlUrl } from '../utils/email-parser';
+import { blockRemoteContent } from '../utils/remote-content-policy';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
 
@@ -58,18 +59,20 @@ const curAttachments = ref([]);
 const attachmentLoding = ref(false);
 const showFullscreen = ref(false);
 
-// Per-mail override: once the user clicks "load images", keep showing them
-// for this mail even though the global setting stays off.
-const showRemoteImages = ref(autoLoadRemoteImages.value);
+// Per-mail consent, deliberately independent of the global setting: it only
+// ever turns true when the user clicks "load images" for this specific mail,
+// and resets when a different mail is shown.
+const showRemoteImages = ref(false);
 watch(() => props.mail.id, () => {
-  showRemoteImages.value = autoLoadRemoteImages.value;
+  showRemoteImages.value = false;
 });
 
 const processedMail = computed(() => {
   if (autoLoadRemoteImages.value || showRemoteImages.value) {
-    return { message: props.mail.message, blocked: false };
+    return { message: props.mail.message, blocked: 0 };
   }
-  return blockRemoteImages(props.mail.message);
+  const { html, blocked } = blockRemoteContent(props.mail.message);
+  return { message: html, blocked };
 });
 
 const handleLoadRemoteImages = () => {
@@ -168,13 +171,21 @@ const handleSaveToS3 = async (filename, blob) => {
         {{ t('fullscreen') }}
       </n-button>
 
-      <n-button v-if="processedMail.blocked" size="small" tertiary type="warning" @click="handleLoadRemoteImages">
-        <template #icon>
-          <n-icon :component="ImageRound" />
-        </template>
-        {{ t('loadRemoteImages') }}
-      </n-button>
     </n-space>
+
+    <!-- 外部资源阻断提示 -->
+    <n-alert v-if="processedMail.blocked" type="warning" :show-icon="false" :bordered="false"
+      class="remote-images-banner">
+      <n-space align="center" justify="space-between">
+        <span>{{ t('remoteImagesBlocked', { count: processedMail.blocked }) }}</span>
+        <n-button size="tiny" tertiary type="warning" @click="handleLoadRemoteImages">
+          <template #icon>
+            <n-icon :component="ImageRound" />
+          </template>
+          {{ t('loadRemoteImages') }}
+        </n-button>
+      </n-space>
+    </n-alert>
 
     <!-- AI 提取信息 -->
     <AiExtractInfo :metadata="mail.metadata" />
@@ -238,6 +249,11 @@ const handleSaveToS3 = async (filename, blob) => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Let the banner's inner space fill the alert so the button sits on the right. */
+.remote-images-banner :deep(.n-space) {
+  width: 100%;
 }
 
 .mail-content {
