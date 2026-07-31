@@ -51,7 +51,8 @@ print(response.json())
 
 ## admin 获取单封邮件 API
 
-通过邮件 ID 获取单封邮件，返回结构与 `/admin/mails` 中的单条记录一致。
+无需邮箱 JWT，通过邮件 ID 获取单封邮件，并使用 `x-admin-auth` 认证。
+返回结构与 `/admin/mails` 中的单条记录一致：gzip 压缩的原始邮件会解压到 `raw`，响应不包含 `raw_blob`。
 
 ```python
 import requests

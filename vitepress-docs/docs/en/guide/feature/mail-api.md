@@ -51,7 +51,8 @@ print(response.json())
 
 ## Admin Get Mail API
 
-Fetch a single mail by mail ID. The response matches one entry returned by `/admin/mails`.
+Fetch a single mail by mail ID without a mailbox JWT. Authenticate with `x-admin-auth`.
+The response matches one entry returned by `/admin/mails`: gzip-compressed raw content is decompressed into `raw`, and `raw_blob` is excluded.
 
 ```python
 import requests
