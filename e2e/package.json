@@ -10,7 +10,7 @@
     "@playwright/test": "1.58.2",
     "@types/nodemailer": "^7.0.11",
     "@types/ws": "^8.5.0",
-    "ws": "^8.18.0"
+    "ws": "^8.21.0"
   },
   "dependencies": {
     "imapflow": "^1.4.2",
