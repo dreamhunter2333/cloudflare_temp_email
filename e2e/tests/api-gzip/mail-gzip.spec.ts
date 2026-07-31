@@ -140,6 +140,34 @@ test.describe('Mail Gzip Storage', () => {
     }
   });
 
+  test('gzip-compressed mail is readable through admin detail API', async ({ request }) => {
+    const { jwt, address } = await createGzipAddress(request, 'gzip-admin-detail');
+    try {
+      await receiveGzipMail(request, address, {
+        subject: 'Gzip Admin Detail Test',
+        text: 'admin compressed content',
+      });
+
+      const listRes = await request.get(`${WORKER_GZIP_URL}/api/mails?limit=10&offset=0`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      const { results } = await listRes.json();
+      expect(results.length).toBeGreaterThanOrEqual(1);
+      const mailId = results[0].id;
+
+      const detailRes = await request.get(`${WORKER_GZIP_URL}/admin/mails/${mailId}`, {
+        headers: { 'x-admin-auth': 'e2e-admin-pass' },
+      });
+      expect(detailRes.ok()).toBe(true);
+      const mail = await detailRes.json();
+      expect(mail.raw).toContain('Gzip Admin Detail Test');
+      expect(mail.raw).toContain('admin compressed content');
+      expect(mail.raw_blob).toBeUndefined();
+    } finally {
+      await deleteGzipAddress(request, jwt);
+    }
+  });
+
   test('mixed: plaintext seed + gzip receive both readable in same list', async ({ request }) => {
     const { jwt, address } = await createGzipAddress(request, 'gzip-mixed');
     try {

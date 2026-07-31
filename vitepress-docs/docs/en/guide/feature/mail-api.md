@@ -49,6 +49,26 @@ print(response.json())
 
 **Note**: Keyword filtering has been removed from the backend API. If you need to filter emails by content, please use the frontend filter input in the UI, which filters the currently displayed page.
 
+## Admin Get Mail API
+
+Fetch a single mail by mail ID. The response matches one entry returned by `/admin/mails`.
+
+```python
+import requests
+
+mail_id = 1
+url = f"https://<your-worker-address>/admin/mails/{mail_id}"
+
+headers = {
+        "x-admin-auth": "<your-Admin-password>",
+        # "x-custom-auth": "<your-website-password>", # If private site password is enabled
+    }
+
+response = requests.get(url, headers=headers)
+
+print(response.json())
+```
+
 ## Admin Delete Mail API
 
 Delete a single mail by mail ID.

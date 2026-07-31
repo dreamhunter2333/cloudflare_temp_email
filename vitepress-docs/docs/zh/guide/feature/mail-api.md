@@ -49,6 +49,26 @@ print(response.json())
 
 **注意**：后端 API 已移除关键词过滤功能。如需按内容过滤邮件，请使用前端界面的过滤输入框，该功能可过滤当前显示的页面。
 
+## admin 获取单封邮件 API
+
+通过邮件 ID 获取单封邮件，返回结构与 `/admin/mails` 中的单条记录一致。
+
+```python
+import requests
+
+mail_id = 1
+url = f"https://<你的worker地址>/admin/mails/{mail_id}"
+
+headers = {
+        "x-admin-auth": "<你的Admin密码>",
+        # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
+    }
+
+response = requests.get(url, headers=headers)
+
+print(response.json())
+```
+
 ## admin 删除邮件 API
 
 通过邮件 ID 删除单封邮件。
