@@ -23,7 +23,7 @@ The script runs the following in order:
 | `worker/` | `pnpm up` + `pnpm add -D wrangler@latest` |
 | `pages/` | `pnpm up` + `pnpm add -D wrangler@latest` |
 | `vitepress-docs/` | `pnpm up --latest` + `pnpm add -D wrangler@latest` |
-| `e2e/` | `npx --yes npm-check-updates@latest --upgrade` + `npm install` |
+| `e2e/` | `npx --yes npm-check-updates@23.0.0 --upgrade` + `npm install` + Playwright image validation |
 
 Note: `vitepress-docs/` and `e2e/` upgrade to the latest versions and may cross semver ranges; other packages upgrade within ranges only. `e2e/` uses npm because it has a `package-lock.json`.
 
