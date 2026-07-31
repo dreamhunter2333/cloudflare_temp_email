@@ -1,5 +1,5 @@
 # Keep this version in sync with @playwright/test in package.json
-FROM mcr.microsoft.com/playwright:v1.58.2-noble
+FROM mcr.microsoft.com/playwright:v1.62.1-noble
 
 RUN apt-get update && apt-get install -y curl netcat-openbsd && rm -rf /var/lib/apt/lists/*
 

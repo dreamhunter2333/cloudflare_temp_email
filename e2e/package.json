@@ -7,13 +7,13 @@
     "test:down": "docker compose down -v"
   },
   "devDependencies": {
-    "@playwright/test": "1.58.2",
-    "@types/nodemailer": "^7.0.11",
-    "@types/ws": "^8.5.0",
-    "ws": "^8.18.0"
+    "@playwright/test": "1.62.1",
+    "@types/nodemailer": "^8.0.1",
+    "@types/ws": "^8.18.1",
+    "ws": "^8.21.1"
   },
   "dependencies": {
-    "imapflow": "^1.4.2",
-    "nodemailer": "^9.0.1"
+    "imapflow": "^1.6.5",
+    "nodemailer": "^9.0.3"
   }
 }
