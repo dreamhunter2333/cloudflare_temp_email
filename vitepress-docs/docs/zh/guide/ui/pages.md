@@ -115,9 +115,12 @@ const generate = async () => {
     - 此处 worker 域名为后端 api 的域名，比如我部署在 `https://temp-email-api.awsl.uk`，则填写 `https://temp-email-api.awsl.uk`
     - 如果你的域名是 `https://temp-email-api.xxx.workers.dev`，则填写 `https://temp-email-api.xxx.workers.dev`
     - 不要填写前端 `Pages` 自己的域名，也不要带 `/admin`、`/api` 等路径，否则前端请求会打到错误地址，可能出现 `Cannot read properties of undefined (reading 'map')` 或 `405 Method Not Allowed`
+    - 填写前请先在浏览器打开 `https://你的worker域名/open_api/settings`，确认返回 JSON；如果返回 HTML、404、405 或 Cloudflare 挑战页，请先修复 Worker 绑定、变量或安全策略
 
     > [!warning] 注意
     > `worker.dev` 域名在中国无法访问，请自定义域名
+    >
+    > 不要给后端 API 域名开启 Under Attack、Bot Fight、Managed Challenge 等会返回浏览器挑战页的安全策略。前端 XHR 请求无法完成这些挑战，常见表现是 `Network Error`。
 
     <div :class="$style.container">
         <input :class="$style.input" type="text" v-model="domain" placeholder="请输入以 https:// 开头的后端 API 地址"></input>
@@ -133,6 +136,8 @@ const generate = async () => {
     > 修改压缩包里面的 index-xxx.js 文件 ，xx 是随机的字符串
     >
     > 搜索 `https://temp-email-api.xxx.xxx` ，替换成你 worker 的后端 API 根地址，然后部署新的 zip 文件。如果填成前端 Pages 域名，常见现象就是页面报 `map` 错误或接口返回 `405`
+    >
+    > 如果第一次填错后重新部署仍然报错，请用无痕窗口测试或清理浏览器缓存，避免浏览器继续使用旧的前端资源。
 
 4. 选择 `Pages`，点击 `Create Pages`, 修改名称，上传下载的 zip 包
 

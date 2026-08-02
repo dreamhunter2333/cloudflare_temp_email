@@ -30,11 +30,18 @@
 
 然后参考下面的文档使用 `CLI` 或者 `UI` 覆盖部署之前的 `worker` 和 `pages` 即可
 
+升级不是修改 Cloudflare 控制台里已经运行的旧代码，而是用新版本产物重新覆盖部署：
+
+- 如果使用 UI 部署，请重新下载最新 release 的 `worker.js` 和 `frontend.zip`，按原部署方式覆盖上传。
+- 如果使用 GitHub Actions 部署，请先同步 fork 仓库，再重新运行对应 workflow。
+- 如果 changelog 标注了数据库变更，请在 admin 后台的 `快速设置 -> 数据库` 执行升级，或按 D1 文档执行对应 SQL。
+- 升级后如果前端仍显示旧错误，请用无痕窗口测试或清理浏览器缓存，避免继续加载旧前端资源。
+
 ### CLI 部署
 
 - [命令行更新 d1](/zh/guide/cli/d1)
 - [命令行部署 worker](/zh/guide/cli/worker)
-- [命令行部署 pages](/zh/guide/cli/worker)
+- [命令行部署 pages](/zh/guide/cli/pages)
 
 ### UI 部署
 

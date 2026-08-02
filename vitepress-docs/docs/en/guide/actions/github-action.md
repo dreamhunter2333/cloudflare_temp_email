@@ -57,6 +57,16 @@ Then go to the repository page `Settings` -> `Secrets and variables` -> `Actions
 - If you need separate frontend and backend deployment that talks to Worker directly, find `Deploy Frontend` and click `Run workflow` to select a branch and deploy manually
 - If you need Pages deployment with Page Functions forwarding backend requests, find `Deploy Frontend with page function` and click `Run workflow` to deploy manually
 
+### Auto-Update with Page Functions Forwarding
+
+If you want to use `Upstream Sync` for automatic updates and also let Pages forward backend requests through Page Functions, use the `Deploy Frontend with page function` workflow instead of `Deploy Frontend`.
+
+- Enable `Upstream Sync`, `Deploy Backend`, and `Deploy Frontend with page function`
+- Configure the `PAGE_TOML` repository secret by copying the content of `pages/wrangler.toml`
+- Change the `service` field in `PAGE_TOML` to your Worker backend name
+- This workflow runs `pnpm build:pages`, uses same-origin frontend requests, and does not read `FRONTEND_ENV`
+- After each completed `Upstream Sync`, `Deploy Frontend with page function` deploys the frontend automatically when `PAGE_TOML` is configured
+
 ## How to Configure Auto-Update
 
 1. Open the `Actions` page of the repository, find `Upstream Sync`, and click `enable workflow` to enable the `workflow`

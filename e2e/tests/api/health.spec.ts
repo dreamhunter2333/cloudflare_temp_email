@@ -15,6 +15,7 @@ test.describe('Health & Settings', () => {
     const settings = await res.json();
     expect(settings.domains).toContain('test.example.com');
     expect(settings.defaultDomains).toContain('test.example.com');
+    expect(settings.prefix).toBe('tmp');
     expect(settings.enableSendMail).toBe(true);
     expect(settings.enableUserCreateEmail).toBe(true);
     expect(settings.enableUserDeleteEmail).toBe(true);

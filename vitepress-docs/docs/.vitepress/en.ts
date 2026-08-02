@@ -144,6 +144,13 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             ]
         },
         {
+            text: 'Help',
+            collapsed: false,
+            items: [
+                { text: 'FAQ', link: 'common-issues' },
+            ]
+        },
+        {
             text: 'Notifications & Integrations',
             collapsed: false,
             items: [
@@ -182,13 +189,6 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             items: [
                 { text: 'Admin Console', link: 'feature/admin' },
                 { text: 'Admin User Management', link: 'feature/admin-user-management' },
-            ]
-        },
-        {
-            text: 'Help',
-            collapsed: false,
-            items: [
-                { text: 'FAQ', link: 'common-issues' },
             ]
         },
         { text: 'Reference', base: "/en/", link: 'reference' }

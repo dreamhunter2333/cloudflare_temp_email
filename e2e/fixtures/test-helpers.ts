@@ -1,4 +1,5 @@
-import { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
+import { createHash } from 'crypto';
 import WebSocket from 'ws';
 
 export const WORKER_URL = process.env.WORKER_URL!;
@@ -9,6 +10,13 @@ export const WORKER_URL_SEND_MAIL_DOMAIN = process.env.WORKER_URL_SEND_MAIL_DOMA
 export const FRONTEND_URL = process.env.FRONTEND_URL!;
 export const MAILPIT_API = process.env.MAILPIT_API!;
 export const TEST_DOMAIN = 'test.example.com';
+
+/**
+ * SHA-256 hash matching the frontend hashPassword utility.
+ */
+export function hashPassword(password: string): string {
+  return createHash('sha256').update(password).digest('hex');
+}
 
 /**
  * Create a new email address via the worker API.

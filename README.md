@@ -30,7 +30,8 @@
 
 <p align="center">
   <a href="README.md">中文文档</a> |
-  <a href="README_EN.md">English Document</a>
+  <a href="README_EN.md">English Document</a> |
+  <a href="README_JA.md">日本語ドキュメント</a>
 </p>
 
 > 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
@@ -40,7 +41,9 @@
 - **完全免费** - 基于 Cloudflare 免费服务构建，零成本运行
 - **高性能** - Rust WASM 邮件解析，响应速度极快
 - **现代化界面** - 响应式设计，支持多语言，操作简便
-- **地址密码** - 支持为邮箱地址设置独立密码，增强安全性 (通过 `ENABLE_ADDRESS_PASSWORD` 启用)
+- **地址密码** - 支持为邮箱地址设置独立密码，增强安全性
+- **Agent 友好** - 内置邮箱 [`skill`](skills/cf-temp-mail-agent-mail/SKILL.md)，方便 AI agent 使用邮箱
+- **移动端管理** - 社区客户端 [CloudMail](https://github.com/Lur1N77777/CloudMail)，支持 Android 管理后台和邮箱管理
 
 ## 部署文档 - 快速开始
 

@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { WORKER_URL, createTestAddress, seedTestMail, deleteAddress } from '../../fixtures/test-helpers';
 
+const ADMIN_HEADERS = { 'x-admin-auth': 'e2e-admin-pass' };
+
 test.describe('Mail Detail', () => {
   test('fetch a single mail by ID', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'detail-get');
@@ -51,5 +53,48 @@ test.describe('Mail Detail', () => {
     } finally {
       await deleteAddress(request, jwt);
     }
+  });
+});
+
+test.describe('Admin Mail Detail', () => {
+  test('fetch a single mail by ID without a mailbox JWT', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'admin-detail-get');
+
+    try {
+      await seedTestMail(request, address, {
+        subject: 'Admin Detail Test',
+        from: 'admin-detail@test.example.com',
+        text: 'Hello admin detail',
+      });
+
+      const listRes = await request.get(`${WORKER_URL}/api/mails?limit=10&offset=0`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      expect(listRes.ok()).toBe(true);
+      const { results } = await listRes.json();
+      expect(results).toHaveLength(1);
+      const mailId = results[0].id;
+
+      const detailRes = await request.get(`${WORKER_URL}/admin/mails/${mailId}`, {
+        headers: ADMIN_HEADERS,
+      });
+      expect(detailRes.ok()).toBe(true);
+      const mail = await detailRes.json();
+      expect(mail.id).toBe(mailId);
+      expect(mail.address).toBe(address);
+      expect(mail.source).toBe('admin-detail@test.example.com');
+      expect(mail.raw).toContain('Admin Detail Test');
+      expect(mail.raw_blob).toBeUndefined();
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
+
+  test('fetch non-existent mail returns null', async ({ request }) => {
+    const res = await request.get(`${WORKER_URL}/admin/mails/99999999`, {
+      headers: ADMIN_HEADERS,
+    });
+    expect(res.ok()).toBe(true);
+    expect(await res.json()).toBeNull();
   });
 });

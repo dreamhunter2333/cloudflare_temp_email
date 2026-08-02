@@ -22,7 +22,9 @@ Extraction results are automatically saved to the `metadata` field in the databa
 | Variable Name              | Type      | Description                                                                                                                      | Example                          |
 | -------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
 | `ENABLE_AI_EMAIL_EXTRACT`  | Text/JSON | Whether to enable AI email recognition feature                                                                                   | `true`                           |
-| `AI_EXTRACT_MODEL`         | Text      | AI model name, choose from [models supporting JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models) | `@cf/meta/llama-3.1-8b-instruct` |
+| `AI_EXTRACT_MODEL`         | Text      | AI model name, choose from [models supporting JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models) | `@cf/meta/llama-3.1-8b-instruct-fast` |
+
+We recommend `@cf/meta/llama-3.1-8b-instruct-fast` as the default model because it supports the JSON Mode used by this feature, and Cloudflare says `-fast` variants will remain active. The cheaper `@cf/meta/llama-3.1-8b-instruct-fp8-fast` is not currently listed as a JSON Mode supported model, so it is not recommended for this feature. Cloudflare's newer recommended model `@cf/zai-org/glm-4.7-flash` is suitable for multilingual scenarios, but confirm structured JSON output support in your account/region before using it for this feature. The previous default model `@cf/meta/llama-3.1-8b-instruct` will be deprecated by Cloudflare on 2026-05-30 and is no longer recommended.
 
 ## Content Length Limit
 
@@ -40,6 +42,18 @@ binding = "AI"
 Or add in Cloudflare Dashboard Worker settings:
 - **Variable name**: `AI`
 - **Type**: Workers AI
+
+## Fallback Without a Workers AI Binding
+
+If `ENABLE_AI_EMAIL_EXTRACT` is enabled but **no Workers AI binding is configured** (e.g. a self-hosted deployment without Workers AI), the system automatically falls back to a built-in **regex verification-code extractor**:
+
+- Extracts **verification codes** (`auth_code`) only; links are not extracted (link extraction requires AI)
+- Zero dependency, zero cost, runs locally inside the Worker
+- Supports common verification-code formats in English, Chinese, Japanese and Korean
+- Rejects years (e.g. `2026`) and `YYYYMMDD` dates to reduce false positives
+- Results are written to `metadata` and reuse the same Telegram / webhook placeholders (`aiExtractType` is `auth_code` in this case)
+
+When a Workers AI binding is configured, AI extraction is still preferred (recognizing both codes and links) and this fallback does not apply.
 
 ## Address Allowlist (Optional)
 

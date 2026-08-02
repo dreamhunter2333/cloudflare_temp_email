@@ -187,7 +187,8 @@ onMounted(async () => {
                         <n-input v-model:value="user.email" />
                     </n-form-item-row>
                     <n-form-item-row :label="t('password')" required>
-                        <n-input v-model:value="user.password" type="password" show-password-on="click" />
+                        <n-input v-model:value="user.password" type="password" show-password-on="click"
+                            @keyup.enter="emailLogin" />
                     </n-form-item-row>
                     <Turnstile ref="loginTurnstileRef" v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="loginCfToken" />
                     <n-button @click="emailLogin" type="primary" block secondary strong>
@@ -218,7 +219,8 @@ onMounted(async () => {
                         <n-input v-model:value="user.email" />
                     </n-form-item-row>
                     <n-form-item-row :label="t('password')" required>
-                        <n-input v-model:value="user.password" type="password" show-password-on="click" />
+                        <n-input v-model:value="user.password" type="password" show-password-on="click"
+                            @keyup.enter="emailSignup" />
                     </n-form-item-row>
                     <Turnstile ref="signupTurnstileRef" v-if="userOpenSettings.enableMailVerify" v-model:value="signupCfToken" />
                     <n-form-item-row v-if="userOpenSettings.enableMailVerify" :label="t('verifyCode')" required>
@@ -244,7 +246,8 @@ onMounted(async () => {
                     <n-input v-model:value="user.email" />
                 </n-form-item-row>
                 <n-form-item-row :label="t('password')" required>
-                    <n-input v-model:value="user.password" type="password" show-password-on="click" />
+                    <n-input v-model:value="user.password" type="password" show-password-on="click"
+                        @keyup.enter="emailSignup" />
                 </n-form-item-row>
                 <Turnstile ref="resetTurnstileRef" v-model:value="resetCfToken" />
                 <n-form-item-row :label="t('verifyCode')" required>

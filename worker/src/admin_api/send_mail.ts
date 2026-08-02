@@ -3,6 +3,7 @@ import { isSendMailBindingEnabled } from "../common";
 import i18n from "../i18n";
 import { sendMail } from "../mails_api/send_mail_api";
 import { ensureSendMailLimit, increaseSendMailLimitCount } from "../mails_api/send_mail_limit_utils";
+import { getMailDomain } from "../utils";
 
 const getAdminSendMailErrorMessage = (
     msgs: ReturnType<typeof i18n.getMessagesbyContext>,
@@ -68,9 +69,7 @@ export const sendMailByBindingAdmin = async (c: Context<HonoCustomType>) => {
         return c.text(msgs.InvalidInputMsg, 400)
     }
     const fromMail = typeof from === "string" ? from : from?.email;
-    const mailDomain = typeof fromMail === "string" && fromMail.includes("@")
-        ? fromMail.split("@")[1]?.trim().toLowerCase()
-        : null;
+    const mailDomain = getMailDomain(fromMail);
     if (!mailDomain) {
         return c.text(msgs.InvalidInputMsg, 400)
     }

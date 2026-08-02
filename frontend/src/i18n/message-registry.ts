@@ -42,6 +42,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Auto Refresh",
       "zh": "自动刷新"
     },
+    "backToList": {
+      "en": "Back to List",
+      "zh": "返回列表"
+    },
     "cancelMultiAction": {
       "en": "Cancel Multi Action",
       "zh": "取消多选"
@@ -186,6 +190,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Fullscreen",
       "zh": "全屏"
     },
+    "loadRemoteImages": {
+      "en": "Load Images",
+      "zh": "加载图片"
+    },
+    "remoteImagesBlocked": {
+      "en": "{count} remote resources blocked to protect your privacy",
+      "zh": "已阻止 {count} 项外部资源以保护隐私"
+    },
     "reply": {
       "en": "Reply",
       "zh": "回复"
@@ -279,6 +291,116 @@ export const MESSAGE_REGISTRY = {
     "userAddresses": {
       "en": "User Addresses",
       "zh": "用户地址"
+    }
+  },
+  "components.AddressCredentialModal": {
+    "addressCredential": {
+      "en": "Address Credential",
+      "zh": "地址凭证"
+    },
+    "addressCredentialLabel": {
+      "en": "Address JWT",
+      "zh": "Address JWT"
+    },
+    "addressPassword": {
+      "en": "Address Password",
+      "zh": "地址密码"
+    },
+    "agentAccess": {
+      "en": "AI Agent",
+      "zh": "AI Agent"
+    },
+    "agentAccessTip": {
+      "en": "Use this mailbox from an AI agent with the Address JWT and parsed-mail APIs.",
+      "zh": "AI Agent 可使用 Address JWT 和 parsed-mail API 读取这个邮箱。"
+    },
+    "agentConfig": {
+      "en": "Agent config",
+      "zh": "Agent 配置"
+    },
+    "agentSkill": {
+      "en": "Agent skill",
+      "zh": "Agent skill"
+    },
+    "apiBase": {
+      "en": "API Base",
+      "zh": "API 地址"
+    },
+    "autoLoginLink": {
+      "en": "Auto-login link",
+      "zh": "自动登录链接"
+    },
+    "copyFailed": {
+      "en": "Copy failed",
+      "zh": "复制失败"
+    },
+    "copySection": {
+      "en": "Copy",
+      "zh": "复制"
+    },
+    "copySuccess": {
+      "en": "Copied",
+      "zh": "已复制"
+    },
+    "currentAddress": {
+      "en": "Current address",
+      "zh": "当前邮箱"
+    },
+    "docs": {
+      "en": "Docs",
+      "zh": "文档"
+    },
+    "imapHost": {
+      "en": "IMAP host",
+      "zh": "IMAP 主机"
+    },
+    "imapPort": {
+      "en": "IMAP port",
+      "zh": "IMAP 端口"
+    },
+    "password": {
+      "en": "Password",
+      "zh": "密码"
+    },
+    "plainOrProxyTls": {
+      "en": "Plain or proxy TLS",
+      "zh": "明文或代理层 TLS"
+    },
+    "security": {
+      "en": "Security",
+      "zh": "安全"
+    },
+    "smtpHost": {
+      "en": "SMTP host",
+      "zh": "SMTP 主机"
+    },
+    "smtpImapAccess": {
+      "en": "SMTP / IMAP",
+      "zh": "SMTP / IMAP"
+    },
+    "smtpImapTip": {
+      "en": "Use these values in mail clients after the administrator configures the SMTP/IMAP proxy. The password can be the Address JWT shown here, or the address password when you have it.",
+      "zh": "管理员配置 SMTP/IMAP 代理后，可在邮件客户端中使用这些信息。密码可使用这里展示的 Address JWT，也可使用你持有的地址密码。"
+    },
+    "smtpPort": {
+      "en": "SMTP port",
+      "zh": "SMTP 端口"
+    },
+    "starttls": {
+      "en": "STARTTLS",
+      "zh": "STARTTLS"
+    },
+    "tip": {
+      "en": "Use these credentials only with clients and agents you trust.",
+      "zh": "请只在可信的客户端和 Agent 中使用这些凭证。"
+    },
+    "title": {
+      "en": "Address Credentials & Connection Methods",
+      "zh": "地址凭证与连接方式"
+    },
+    "username": {
+      "en": "Username",
+      "zh": "用户名"
     }
   },
   "views.user.UserMailBox": {
@@ -817,8 +939,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "密码不匹配"
     },
     "showAddressCredential": {
-      "en": "Show Address Credential",
-      "zh": "查看邮箱地址凭证"
+      "en": "Credentials & Connection Methods",
+      "zh": "地址凭证与连接方式"
     },
     "success": {
       "en": "Success",
@@ -1891,8 +2013,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "打开即可自动登录邮箱的链接"
     },
     "randomSubdomainTip": {
-      "en": "When enabled, the created address will use a random subdomain. Subdomain addresses are recommended for receiving only.",
-      "zh": "启用后，创建出来的地址会自动挂在随机子域名下。子域名地址更建议仅用于收件。"
+      "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain — see the random subdomain docs.",
+      "zh": "启用后，创建出来的地址会自动挂在随机子域名下，建议仅用于收件。需要在基础域名 DNS 中配置通配 MX 记录，详见随机子域名文档。"
     },
     "successTip": {
       "en": "Success Created",
@@ -1980,6 +2102,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.common.Appearance": {
+    "autoLoadRemoteImages": {
+      "en": "Automatically load external images in mail body",
+      "zh": "自动加载邮件正文中的外部图片"
+    },
     "autoRefreshInterval": {
       "en": "Auto Refresh Interval(Sec)",
       "zh": "自动刷新间隔(秒)"
@@ -1997,8 +2123,20 @@ export const MESSAGE_REGISTRY = {
       "zh": "左侧"
     },
     "mailboxSplitSize": {
-      "en": "Mailbox Split Size",
-      "zh": "邮箱界面分栏大小"
+      "en": "Left list width in two-column mailbox view",
+      "zh": "邮箱双栏视图左侧列表宽度占比"
+    },
+    "mailListView": {
+      "en": "Full-width mailbox list view",
+      "zh": "邮箱全宽列表视图"
+    },
+    "mailListPreviewLineClamp": {
+      "en": "Body Preview Lines",
+      "zh": "正文预览行数"
+    },
+    "off": {
+      "en": "Off",
+      "zh": "关闭"
     },
     "preferShowTextMail": {
       "en": "Display text Mail by default",
@@ -2413,8 +2551,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "请\"登录\"或点击 \"注册新邮箱\" 按钮来获取一个新的邮箱地址"
     },
     "randomSubdomainTip": {
-      "en": "When enabled, the created address will use a random subdomain. Subdomain addresses are recommended for receiving only.",
-      "zh": "启用后，创建出来的地址会自动挂在随机子域名下。子域名地址更建议仅用于收件。"
+      "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain — see the random subdomain docs.",
+      "zh": "启用后，创建出来的地址会自动挂在随机子域名下，建议仅用于收件。需要在基础域名 DNS 中配置通配 MX 记录，详见随机子域名文档。"
     }
   },
   "views.admin.Webhook": {

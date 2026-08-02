@@ -12,3 +12,6 @@ services:
       - proxy_url=https://temp-email-api.xxx.xxx
       - port=8025
       - imap_port=11143
+    volumes:
+      # Persists IMAP flags (e.g. \Seen) across container restarts
+      - ./data:/app/data

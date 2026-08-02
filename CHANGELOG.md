@@ -6,7 +6,68 @@
   <a href="CHANGELOG_EN.md">English</a>
 </p>
 
-## v1.8.0(main)
+## v1.11.0(main)
+
+### Features
+
+### Bug Fixes
+
+### Improvements
+
+## v1.10.0
+
+### Features
+
+- feat: |Admin| 新增 `GET /admin/mails/:id` 接口，支持管理员按邮件 ID 跨邮箱读取单封邮件，并兼容 gzip 压缩存储（issue #1096）
+- feat: |Frontend| 邮箱新增「邮箱全宽列表视图」开关（在外观设置中控制），开启后默认全宽列表展示邮件标题与正文预览，点击单封邮件再展开为双栏，再次点击同一封邮件可回到列表视图；多选模式下点击邮件会同步切换勾选状态与右侧预览，并禁用同邮件点击收回列表，展开时双栏左侧列表宽度仍遵循「邮箱双栏视图左侧列表宽度占比」配置；默认关闭，保留原有双栏行为
+- feat: |Frontend| 邮箱全宽列表视图新增「正文预览行数」配置（在外观设置中控制），可设置邮件正文预览的最大行数，默认 2 行，0 表示关闭预览
+- feat: |Frontend| 外观设置新增「自动加载邮件正文中的外部图片」开关，关闭后邮件预览（含全屏视图）会先经 DOMPurify 消毒，并以白名单策略处理所有可能发起请求的位置：仅保留可证明为本地的引用（`cid:`、`data:image/`、`blob:` 与站内相对路径），其余一律阻断；`base`、`meta`、`script`、`link`、`iframe`、`object`、`embed`、`noscript` 等会自行取用资源或改变解析基准的元素在此模式下移除，`<style>` 保留但其中 `url()`、`image-set()`、`@import` 的远端引用会被替换。正文上方显示已阻断资源数量的提示条，可一键按封加载；默认保持开启，行为与此前一致（issue #1073）
+
+### Bug Fixes
+
+- fix: |Frontend| 关闭邮件外部图片自动加载时保留 `<a>` 与 `<area>` 的外部导航链接，并阻断通过 CSS 转义函数名或 at-rule 绕过远程资源过滤的情况
+- fix: |Frontend| 使用共享 DOMPurify 净化逻辑处理关于页面与启动通知中的 HTML 公告，避免 `ANNOUNCEMENT` 中的可执行标签或事件属性造成 XSS
+- fix: |Worker| 按邮件认证规范修复垃圾邮件检测：SPF、DKIM、DMARC 的 `none` 及 SPF/DKIM `neutral` 按认证方法不存在处理，并忽略未注册结果和不支持的方法版本；`JUNK_MAIL_FORCE_PASS_LIST` 仍要求明确返回受支持的 `pass`
+- fix: |Admin| 管理后台删除邮箱地址时，先删除该地址的邮件、发件记录、自动回复等关联数据，最后再删除地址本身；此前地址行先被删除导致按地址名匹配的子查询查不到数据，邮件等记录被遗留在数据库中
+- fix: |AI 提取| 强化提示词，要求 AI 保持邮件原始链接域名，避免小模型改写验证链接域名导致错误跳转（issue #1072）
+- fix: |AI 提取| HTML-only 邮件在发送给 Workers AI 前会先压缩为可读文本，避免样式模板过长导致验证码位于 4000 字截断之后而无法识别
+- fix: |Frontend| 移动端 Header 增加页头内边距，避免标题、菜单按钮与屏幕边缘过近
+- fix: |IMAP 代理| 修复 IMAP `STORE` 无法真正标记邮件已读的问题：邮件不再硬编码为 `\Seen`，且 `SimpleMailbox` 的 flags 变更现持久化到本地 SQLite（新增 `imap_flag_db_path` 配置），使已读/未读状态可在客户端断线重连（如 Thunderbird 轮询）后保留，而非每次新建连接即丢失（issue #1074）
+- fix: |IMAP 代理| 修复 `SEARCH UNSEEN` 返回全部邮件的问题：`SimpleMailbox.search()` 现按持久化的 flags 计算 `SEEN`/`UNSEEN`/`FLAGGED`/`DELETED`/`ANSWERED`/`DRAFT` 及其否定形式，多个条件按 AND 组合；无法识别的检索条件仍沿用原有行为返回全部邮件
+- fix: |IMAP 代理| 修复取信不会自动标记已读的问题：`BODY[...]`、`RFC822`、`RFC822.TEXT` 取信现按 RFC 3501 自动置 `\Seen`，而 `BODY.PEEK[...]`、`RFC822.HEADER` 及仅取元数据（如 `FLAGS`）不会
+
+### Testing
+
+- test: |Worker| 新增 junk_mail_policy 回归测试（issue #1084）：覆盖 SPF/DKIM/DMARC 的 `none`/`neutral` 按认证方法不存在处理、明确 `fail` 仍被拒收，以及 `JUNK_MAIL_FORCE_PASS_LIST` 仅接受明确 `pass`
+
+### Improvements
+
+- docs: |README| 新增完整日文 README，并在中文和英文 README 中添加日文导航链接
+- feat: |Frontend| 「邮箱双栏视图左侧列表宽度占比」最小值由 0.25 放宽至 0，左侧列表可完全折叠使正文近乎全屏，刻度增加 0 点；收件箱与发件箱的双栏拆分同步生效，并优化外观设置文案以明确该比例控制左侧邮件列表宽度
+
+## v1.9.0
+
+### Features
+
+- feat: |AI 识别| 未配置 Workers AI 绑定时，自动回退到内置正则提取验证码（支持中英日韩，并排除年份与 `YYYYMMDD` 日期误判），让无 Workers AI 的自部署用户也能在 Telegram 推送与 Webhook 中拿到验证码
+- feat: |Telegram| Telegram 新邮件推送与 `/mails` 历史邮件查看支持展示 AI 提取结果，包含验证码、验证链接、服务链接、订阅链接等关键信息
+- feat: |Webhook| 邮件 Webhook 模板支持填充 AI 提取结果占位符，包括 `aiExtractType`、`aiExtractResult`、`aiExtractResultText`
+- feat: |Frontend| 新增 `DISABLE_SHOW_GITHUB_FOR_USER` 配置，可仅对普通用户隐藏 Header 的 GitHub/版本入口，admin 仍可见（issue #1041）
+- feat: |Frontend| 将邮箱地址凭证弹窗升级为“地址凭证与连接方式”，复用普通用户与 admin 创建邮箱结果弹窗；支持通过 `ENABLE_AGENT_EMAIL_INFO` 展示 AI Agent 接入信息，并通过 `SMTP_IMAP_PROXY_CONFIG` 展示 SMTP/IMAP 客户端连接信息
+- docs: |随机子域名| 在前端“启用随机子域名”提示与 `subdomain` / `worker-vars` 文档（中英）中明确说明：要让 `name@<随机>.abc.com` 真正收到邮件，必须在基础域名 DNS 中为 `*` 子域添加通配 MX 记录，Email Routing 子域不继承父域配置（issue #1035）
+
+### Bug Fixes
+
+- fix: |Admin| 管理员重置邮箱地址密码时改为前端 SHA-256 后提交，后端只接受并存储哈希值，避免该接口继续接收明文密码
+- fix: |Address| 管理员邮箱地址列表与用户绑定地址列表不再返回已存储的地址密码哈希值，避免列表接口暴露敏感字段
+- fix: |Address| 统一规范化配置域名、收件地址域名与前缀的空白和大小写，覆盖 `DOMAINS`、`DEFAULT_DOMAINS`、`USER_ROLES.domains`、随机子域名、转发规则、SMTP 与 `SEND_MAIL` 域名匹配，保留转发规则空域名 catch-all 行为，并明确空 `DEFAULT_DOMAINS` / 角色域名回退到 `DOMAINS` 的行为，避免大小写配置或入站收件域名导致创建、收件、转发或发信失败（issue #926）
+- fix: |AI 提取| 将 AI 邮件识别默认 Workers AI 模型切换为支持 JSON Mode 且未弃用的 `@cf/meta/llama-3.1-8b-instruct-fast`，并在文档中补充 `@cf/zai-org/glm-4.7-flash` 结构化输出兼容性提示（issue #1029）
+- fix: |CI| 将 GitHub Actions 与 e2e Docker 镜像统一升级到 Node.js 24，适配 Wrangler 4.90.0 的运行时要求
+- fix: |Frontend| 修复 iOS Safari 点击输入框时因移动端表单控件字号过小导致页面自动放大的问题
+
+### Improvements
+
+## v1.8.0
 
 ### Features
 
@@ -15,6 +76,9 @@
 - feat: |Skill| 新增仓库内置只读 skill `cf-temp-mail-agent-mail`（`skills/cf-temp-mail-agent-mail/`），让 OpenClaw / Codex / Cursor 等 AI agent 凭用户提供的 Address JWT + API 地址读取邮箱、轮询验证码，绕开创建邮箱时的 Turnstile 人机验证；可通过 `npx degit dreamhunter2333/cloudflare_temp_email/skills/cf-temp-mail-agent-mail` 安装
 - docs: |文档| 新增"AI Agent 使用邮箱"文档（`guide/feature/agent-email`），说明 `parsed_mail` API 用法，并在 parsed API 不可用时给出对齐前端的 `mail-parser-wasm` + `postal-mime` 本地解析回退方案
 - docs: |文档| 在 `quick-start` / `worker-vars` / `email-routing` 三个入口文档（中英文）显式补充"域名是部署前提条件"提示，强调需先在 Cloudflare 启用 Email Routing 并下发邮件 DNS 记录、Worker 部署后再绑定 Catch-all，子域名需单独启用，避免用户在没有可用域名时直接开始部署却收不到邮件（issue #1004）
+- docs: |部署排障| 优化近期 issue 暴露的 UI 部署与升级排障文档：补充 `nodejs_compat`、D1 绑定名必须为 `DB`、`/open_api/settings` 校验、后端 API 地址填写、Cloudflare 安全挑战导致 `Network Error`、D1 容量上限与 Cron Trigger 自动清理、GitHub OAuth 公开邮箱、admin 管理口令与用户账号区别、随机二级域名 API 需传 `enableRandomSubdomain` 等说明；同时将帮助/FAQ 菜单移动到核心配置之后，提升可见性
+- docs: |文档| 补充重新创建旧邮箱提示地址已存在时的处理方式，并完善 GitHub Actions 自动更新配合 Page Functions 转发后端请求的 workflow 说明（issues #947 #654）
+- docs: |OAuth2| 补充 GitHub 私密邮箱登录配置，说明可使用 `https://api.github.com/user/emails`、JSONPath 邮箱字段和 `user:email` scope 获取主邮箱（issue #655）
 
 ### Bug Fixes
 
@@ -22,12 +86,13 @@
 - fix: |Frontend| 收窄地址管理相关弹窗宽度，并让地址表格在弹窗内部横向滚动，避免多地址场景撑宽弹窗
 - fix: |Frontend| 修复 `/open_api/settings` 未返回 `domains` 数组时前端设置初始化直接调用 `map()` 报 `undefined` 错误的问题，统一按空数组兜底处理
 - fix: |Frontend| 修复前端在 `jwt` / `auth` / `adminAuth` 等 localStorage 凭据为空字符串、字面量 `"undefined"` 或包含换行/控制符时，请求构造的 `Authorization` 等头部抛出 `Invalid character in header content` 导致前端所有接口报错的问题（issue #1000）。新增 `safeHeaderValue` / `safeBearerHeader` 工具，对全部认证头做 RFC 7230 校验，不安全的值直接跳过该头部，让 worker 走标准 401 而不是请求级崩溃
+- fix: |Frontend| 修复多语言菜单在移动端顶部显示语言与版本按钮导致 Header 横向拥挤或溢出的问题，移动端仅保留菜单按钮并将语言/版本入口放入抽屉
 
 ### Improvements
 
 - refactor: |Worker| 拆分 `mails_api/index.ts` 与 `admin_api/index.ts`，入口只负责挂路由，业务拆到各自的 `*_api.ts` 文件（`mails_crud.ts` / `new_address.ts` / `parsed_mail_api.ts` / `address_api.ts` / `address_sender_api.ts` / `sendbox_api.ts` / `statistics_api.ts` / `account_settings_api.ts`），保持路径与行为不变
 
-## v1.7.0(main)
+## v1.7.0
 
 ### Breaking Changes
 
@@ -45,7 +110,7 @@
 
 ### Improvements
 
-## v1.6.0(main)
+## v1.6.0
 
 ### Features
 
@@ -69,7 +134,7 @@
 - docs: |发送邮件| 增强 SMTP_CONFIG 字段说明和多域名示例，新增发信余额机制说明
 - docs: |Email Routing| 补充子域名需单独启用 Email Routing 的说明，避免仅在一级域名开启导致子域收不到邮件（#969）
 
-## v1.5.0(main)
+## v1.5.0
 
 ### Features
 

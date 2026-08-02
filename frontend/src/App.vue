@@ -129,6 +129,16 @@ onMounted(async () => {
   margin-left: 10px;
   margin-right: 10px;
 }
+
+@media (hover: none) and (pointer: coarse) and (max-width: 1024px) {
+  :where(input, textarea, select, [contenteditable="true"]) {
+    font-size: 16px !important;
+  }
+
+  :where(.n-input, .n-input-number, .n-base-selection, .n-input-group-label) {
+    --n-font-size: 16px !important;
+  }
+}
 </style>
 
 <style scoped>

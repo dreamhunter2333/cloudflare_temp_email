@@ -8,6 +8,19 @@ After deploying the frontend application, click the upper-left logo 5 times or v
 
 You need to configure `ADMIN_PASSWORDS` in the backend or ensure the current user role is `ADMIN_USER_ROLE`, otherwise access to the console will be denied.
 
+## Admin Passwords vs User Accounts
+
+`ADMIN_PASSWORDS` is the management password for the Admin console. It is not a site user account
+and does not correspond to any mailbox address. Logging in with an admin password grants access to
+the console, but that login itself cannot receive mail.
+
+Site user accounts are stored in the `users` table and use the user login flow. Whether a user can
+receive mail depends on whether they created or bound a mailbox address. Creating a normal user
+whose email looks like `admin@example.com` does not automatically grant admin permissions.
+
+If you want a user account to access the Admin console, configure `ADMIN_USER_ROLE` and assign the
+same role to that user in user management.
+
 ![admin](/feature/admin.png)
 
 ## Account List Sorting
