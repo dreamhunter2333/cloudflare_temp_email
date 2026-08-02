@@ -6,7 +6,7 @@ const seedMail = async (c: Context<HonoCustomType>) => {
     if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
         return c.text("Not available", 404);
     }
-    const { address, source, raw, message_id } = await c.req.json();
+    const { address, to_address, source, raw, message_id } = await c.req.json();
     if (!address || !raw) {
         return c.text("address and raw are required", 400);
     }
@@ -18,9 +18,9 @@ const seedMail = async (c: Context<HonoCustomType>) => {
     }
     const msgId = message_id || `<e2e-${Date.now()}@test>`;
     const { success } = await c.env.DB.prepare(
-        `INSERT INTO raw_mails (message_id, source, address, raw, created_at)`
-        + ` VALUES (?, ?, ?, ?, datetime('now'))`
-    ).bind(msgId, source || address, address, raw).run();
+        `INSERT INTO raw_mails (message_id, source, address, to_address, raw, created_at)`
+        + ` VALUES (?, ?, ?, ?, ?, datetime('now'))`
+    ).bind(msgId, source || address, address, to_address || null, raw).run();
     return c.json({ success });
 };
 

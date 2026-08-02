@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     message_id TEXT,
     source TEXT,
     address TEXT,
+    to_address TEXT,
     raw TEXT,
     raw_blob BLOB,
     metadata TEXT,
@@ -10,6 +11,8 @@ CREATE TABLE IF NOT EXISTS raw_mails (
 );
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_address ON raw_mails(address);
+
+CREATE INDEX IF NOT EXISTS idx_raw_mails_to_address ON raw_mails(to_address);
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
 

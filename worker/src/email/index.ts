@@ -9,6 +9,7 @@ import { check_if_junk_mail } from "./check_junk";
 import { remove_attachment_if_need } from "./check_attachment";
 import { extractEmailInfo } from "./ai_extract";
 import { forwardEmail } from "./forward";
+import { resolveRealRecipient } from "./recipient";
 import { EmailRuleSettings } from "../models";
 import { CONSTANTS } from "../constants";
 import { compressText } from "../gzip";
@@ -16,6 +17,7 @@ import { compressText } from "../gzip";
 
 async function email(message: ForwardableEmailMessage, env: Bindings, ctx: ExecutionContext) {
     const toAddress = normalizeAddressDomain(message.to);
+    const realTo = resolveRealRecipient(message, toAddress, env);
     if (await isBlocked(message.from, env)) {
         message.setReject("Reject from address");
         console.log(`Reject message from ${message.from} to ${toAddress}`);
@@ -68,6 +70,8 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     // save email
     try {
         let success = false;
+        const rawInsertSql = `INSERT INTO raw_mails (source, address, to_address, raw, message_id) VALUES (?, ?, ?, ?, ?)`;
+        const rawInsertParams = [message.from, toAddress, realTo, parsedEmailContext.rawEmail, message_id];
         if (getBooleanValue(env.ENABLE_MAIL_GZIP)) {
             let compressed: ArrayBuffer | null = null;
             try {
@@ -78,9 +82,9 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
             if (compressed) {
                 try {
                     ({ success } = await env.DB.prepare(
-                        `INSERT INTO raw_mails (source, address, raw_blob, message_id) VALUES (?, ?, ?, ?)`
+                        `INSERT INTO raw_mails (source, address, to_address, raw_blob, message_id) VALUES (?, ?, ?, ?, ?)`
                     ).bind(
-                        message.from, toAddress, compressed, message_id
+                        message.from, toAddress, realTo, compressed, message_id
                     ).run());
                 } catch (dbError) {
                     // Fallback to plaintext only if raw_blob column is missing (migration not applied)
@@ -88,9 +92,9 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
                     if (errMsg.includes('raw_blob') || errMsg.includes('no such column')) {
                         console.error("raw_blob column missing, falling back to plaintext", dbError);
                         ({ success } = await env.DB.prepare(
-                            `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
+                            rawInsertSql
                         ).bind(
-                            message.from, toAddress, parsedEmailContext.rawEmail, message_id
+                            ...rawInsertParams
                         ).run());
                     } else {
                         throw dbError;
@@ -98,16 +102,16 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
                 }
             } else {
                 ({ success } = await env.DB.prepare(
-                    `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
+                    rawInsertSql
                 ).bind(
-                    message.from, toAddress, parsedEmailContext.rawEmail, message_id
+                    ...rawInsertParams
                 ).run());
             }
         } else {
             ({ success } = await env.DB.prepare(
-                `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
+                rawInsertSql
             ).bind(
-                message.from, toAddress, parsedEmailContext.rawEmail, message_id
+                ...rawInsertParams
             ).run());
         }
         if (!success) {
