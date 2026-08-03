@@ -416,7 +416,7 @@ onBeforeUnmount(() => {
                     </n-tag>
                     <n-tag v-if="showEMailTo" type="info">
                       <n-ellipsis style="max-width: 240px;">
-                        TO: {{ row.address }}
+                        TO: {{ row.to_address || row.address }}
                       </n-ellipsis>
                     </n-tag>
                     <AiExtractInfo :metadata="row.metadata" compact />
@@ -500,7 +500,7 @@ onBeforeUnmount(() => {
                   </n-tag>
                   <n-tag v-if="showEMailTo" type="info">
                     <n-ellipsis class="mail-list-meta-text">
-                      TO: {{ row.address }}
+                      TO: {{ row.to_address || row.address }}
                     </n-ellipsis>
                   </n-tag>
                   <AiExtractInfo :metadata="row.metadata" compact />
@@ -552,7 +552,7 @@ onBeforeUnmount(() => {
                 </n-tag>
                 <n-tag v-if="showEMailTo" type="info">
                   <n-ellipsis style="max-width: 240px;">
-                    TO: {{ row.address }}
+                    TO: {{ row.to_address || row.address }}
                   </n-ellipsis>
                 </n-tag>
                 <AiExtractInfo :metadata="row.metadata" compact />

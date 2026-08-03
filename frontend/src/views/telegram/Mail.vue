@@ -57,7 +57,7 @@ onMounted(async () => {
                 FROM: {{ curMail.source }}
             </n-tag>
             <n-tag v-if="showEMailTo" type="info">
-                TO: {{ curMail.address }}
+                TO: {{ curMail.to_address || curMail.address }}
             </n-tag>
             <iframe :srcdoc="curMail.message" style="margin-top: 10px;width: 100%; height: 100%;">
             </iframe>

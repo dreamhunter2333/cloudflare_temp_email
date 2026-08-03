@@ -122,7 +122,7 @@ const handleSaveToS3 = async (filename, blob) => {
         FROM: {{ mail.source }}
       </n-tag>
       <n-tag v-if="showEMailTo" type="info">
-        TO: {{ mail.address }}
+        TO: {{ mail.to_address || mail.address }}
       </n-tag>
 
       <!-- 操作按钮 -->
