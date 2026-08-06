@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 import { useScopedI18n } from '@/i18n/app'
 import { useMessage } from 'naive-ui'
@@ -34,6 +34,7 @@ const addressValue = ref(null)
 const addressLoading = ref(false)
 const localAddressCache = useLocalStorage("LocalAddressCache", [])
 const optionValueMap = new Map()
+let addressSearchTimer = null
 
 const formatAddressLabel = (address) => {
     if (!address) return address;
@@ -94,11 +95,32 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
     return children;
 }
 
-const buildUserOptions = async () => {
+const fetchUserAddressRows = async (query = '') => {
+    const params = new URLSearchParams({
+        limit: '100',
+        offset: '0',
+        with_counts: 'false',
+        with_total: 'false',
+    });
+    if (query) {
+        params.set('query', query);
+    }
+    const { results } = await api.fetch(`/user_api/bind_address?${params.toString()}`);
+    return results || [];
+}
+
+const buildUserOptions = async (query = '') => {
     const children = [];
     try {
-        const { results } = await api.fetch(`/user_api/bind_address`);
-        for (const row of results || []) {
+        const rows = await fetchUserAddressRows(query);
+        if (!query && settings.value.address && !rows.some((row) => row.name === settings.value.address)) {
+            const currentRows = await fetchUserAddressRows(settings.value.address);
+            const currentRow = currentRows.find((row) => row.name === settings.value.address);
+            if (currentRow) {
+                rows.push(currentRow);
+            }
+        }
+        for (const row of rows) {
             const address = row.address || row.name;
             if (!address) continue;
             const label = formatAddressLabel(address);
@@ -140,9 +162,8 @@ const buildTelegramOptions = async () => {
     return children;
 }
 
-const refreshAddressOptions = async () => {
+const refreshAddressOptions = async (query = '') => {
     addressLoading.value = true;
-    addressValue.value = null;
     try {
         if (isTelegram.value) {
             const telegramChildren = await buildTelegramOptions();
@@ -151,7 +172,7 @@ const refreshAddressOptions = async () => {
         }
         const groups = [];
         if (userJwt.value) {
-            const userChildren = await buildUserOptions();
+            const userChildren = await buildUserOptions(query);
             if (userChildren.length > 0) {
                 groups.push({ type: 'group', label: t('userAddresses'), children: userChildren });
             }
@@ -170,6 +191,14 @@ const refreshAddressOptions = async () => {
     } finally {
         addressLoading.value = false;
     }
+}
+
+const searchUserAddresses = (query) => {
+    if (!userJwt.value || isTelegram.value) return;
+    clearTimeout(addressSearchTimer);
+    addressSearchTimer = setTimeout(() => {
+        refreshAddressOptions(query.trim());
+    }, 250);
 }
 
 const onAddressChange = async (value) => {
@@ -210,12 +239,18 @@ onMounted(async () => {
 watch([userJwt, isTelegram, () => settings.value.address], async () => {
     await refreshAddressOptions();
 });
+
+onBeforeUnmount(() => {
+    clearTimeout(addressSearchTimer);
+})
 </script>
 
 <template>
     <n-flex class="address-row" align="center" justify="center" :wrap="true">
         <n-select v-model:value="addressValue" :options="addressOptions" :size="size" filterable
+            :remote="Boolean(userJwt) && !isTelegram"
             :loading="addressLoading" :placeholder="t('address')" @update:value="onAddressChange"
+            @search="searchUserAddresses"
             class="address-select" />
         <slot name="actions" />
         <n-button v-if="showCopy" class="address-copy" @click="copy" :size="size" tertiary type="primary">

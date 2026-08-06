@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
 
 import { api } from '../../api'
@@ -14,6 +14,8 @@ const { t } = useScopedI18n('views.user.UserMailBox')
 const mailBoxKey = ref("")
 const addressFilter = ref();
 const addressFilterOptions = ref([]);
+const addressFilterLoading = ref(false);
+let addressSearchTimer = null;
 
 const queryMail = () => {
     addressFilter.value = addressFilter.value ? addressFilter.value.trim() : addressFilter.value;
@@ -21,19 +23,29 @@ const queryMail = () => {
 }
 
 const fetchMailData = async (limit, offset) => {
-    return await api.fetch(
-        `/user_api/mails`
-        + `?limit=${limit}`
-        + `&offset=${offset}`
-        + (addressFilter.value ? `&address=${addressFilter.value}` : '')
-    );
+    const params = new URLSearchParams({
+        limit: String(limit),
+        offset: String(offset),
+    });
+    if (addressFilter.value) {
+        params.set('address', addressFilter.value);
+    }
+    return await api.fetch(`/user_api/mails?${params.toString()}`);
 }
 
-const fetchAddresData = async () => {
+const fetchAddressData = async (query = '') => {
+    addressFilterLoading.value = true;
     try {
-        const { results } = await api.fetch(
-            `/user_api/bind_address`
-        );
+        const params = new URLSearchParams({
+            limit: '100',
+            offset: '0',
+            with_counts: 'false',
+            with_total: 'false',
+        });
+        if (query) {
+            params.set('query', query);
+        }
+        const { results } = await api.fetch(`/user_api/bind_address?${params.toString()}`);
         addressFilterOptions.value = results.map((item) => {
             return {
                 label: item.name,
@@ -43,7 +55,16 @@ const fetchAddresData = async () => {
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
+    } finally {
+        addressFilterLoading.value = false;
     }
+}
+
+const searchAddresses = (query) => {
+    clearTimeout(addressSearchTimer);
+    addressSearchTimer = setTimeout(() => {
+        fetchAddressData(query.trim());
+    }, 250);
 }
 
 const deleteMail = async (curMailId) => {
@@ -55,15 +76,19 @@ watch(addressFilter, async (newValue) => {
 });
 
 onMounted(() => {
-    fetchAddresData();
+    fetchAddressData();
 });
+
+onBeforeUnmount(() => {
+    clearTimeout(addressSearchTimer);
+})
 </script>
 
 <template>
     <div style="margin-top: 10px;">
         <n-input-group>
-            <n-select v-model:value="addressFilter" :options="addressFilterOptions" clearable
-                :placeholder="t('addressQueryTip')" />
+            <n-select v-model:value="addressFilter" :options="addressFilterOptions" clearable filterable remote
+                :loading="addressFilterLoading" :placeholder="t('addressQueryTip')" @search="searchAddresses" />
             <n-button @click="queryMail" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>

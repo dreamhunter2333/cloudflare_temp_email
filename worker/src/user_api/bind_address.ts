@@ -6,6 +6,22 @@ import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
 import { updateAddressUpdatedAt, commonGetUserRole, hideObjectFields } from '../common';
 
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
+
+type BindedAddress = {
+    id: number;
+    name: string;
+    mail_count?: number;
+    send_count?: number;
+    created_at: string;
+    updated_at: string;
+};
+
+const escapeLikeQuery = (query: string): string => {
+    return query.replace(/[\\%_]/g, '\\$&');
+}
+
 const UserBindAddressModule = {
     bind: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
@@ -97,27 +113,77 @@ const UserBindAddressModule = {
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
-        const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);
-        return c.json({
-            results: results,
-        });
+        const msgs = i18n.getMessagesbyContext(c);
+        const { limit: limitParam, offset: offsetParam, query, with_counts, with_total } = c.req.query();
+        const limit = limitParam === undefined ? DEFAULT_PAGE_SIZE : Number(limitParam);
+        const offset = offsetParam === undefined ? 0 : Number(offsetParam);
+        if (!Number.isInteger(limit) || limit <= 0 || limit > MAX_PAGE_SIZE) {
+            return c.text(msgs.InvalidLimitMsg, 400);
+        }
+        if (!Number.isInteger(offset) || offset < 0) {
+            return c.text(msgs.InvalidOffsetMsg, 400);
+        }
+        const includeTotal = with_total !== 'false';
+        const { results, count } = await UserBindAddressModule.getBindedAddressesPageById(
+            c,
+            user_id,
+            limit,
+            offset,
+            query?.trim() || '',
+            with_counts !== 'false',
+            includeTotal,
+        );
+        if (!includeTotal) {
+            return c.json({ results });
+        }
+        return c.json({ results, count });
     },
-    getBindedAddressListById: async (
-        c: Context<HonoCustomType>, user_id: number | string
-    ): Promise<string[]> => {
-        const bindedAddressList = await UserBindAddressModule.getBindedAddressesById(c, user_id);
-        return bindedAddressList.map((item) => item.name);
+    getBindedAddressesPageById: async (
+        c: Context<HonoCustomType>,
+        user_id: number | string,
+        limit: number,
+        offset: number,
+        query: string,
+        includeCounts: boolean,
+        includeTotal: boolean,
+    ): Promise<{ results: BindedAddress[], count: number }> => {
+        const params: (number | string)[] = [user_id];
+        const filters = ['ua.user_id = ?'];
+        if (query) {
+            const likeParam = `%${escapeLikeQuery(query)}%`;
+            const useInstr = new TextEncoder().encode(likeParam).length > 50;
+            filters.push(useInstr ? `instr(a.name, ?) > 0` : `a.name LIKE ? ESCAPE '\\'`);
+            params.push(useInstr ? query : likeParam);
+        }
+        const countFields = includeCounts
+            ? `, (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count`
+                + `, (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
+            : '';
+        const fromQuery = ` FROM address a`
+            + ` JOIN users_address ua ON ua.address_id = a.id`
+            + ` WHERE ${filters.join(' AND ')}`;
+        const resultsStatement = c.env.DB.prepare(
+            `SELECT a.id, a.name, a.created_at, a.updated_at${countFields}`
+            + fromQuery
+            + ` ORDER BY a.id DESC LIMIT ? OFFSET ?`
+        ).bind(...params, limit, offset);
+        if (!includeTotal) {
+            const { results } = await resultsStatement.all<BindedAddress>();
+            return { results: results || [], count: 0 };
+        }
+        const [pageResult, countResult] = await c.env.DB.batch([
+            resultsStatement,
+            c.env.DB.prepare(`SELECT COUNT(*) AS count${fromQuery}`).bind(...params),
+        ]);
+        const countRow = countResult.results?.[0] as { count?: number } | undefined;
+        return {
+            results: (pageResult.results || []) as BindedAddress[],
+            count: countRow?.count || 0,
+        };
     },
     getBindedAddressesById: async (
         c: Context<HonoCustomType>, user_id: number | string
-    ): Promise<{
-        id: number;
-        name: string;
-        mail_count: number;
-        send_count: number;
-        created_at: string;
-        updated_at: string;
-    }[]> => {
+    ): Promise<BindedAddress[]> => {
         const msgs = i18n.getMessagesbyContext(c);
         if (!user_id) {
             throw new Error(msgs.UserNotFoundMsg);
@@ -132,14 +198,7 @@ const UserBindAddressModule = {
             + ` ON ua.address_id = a.id `
             + ` WHERE ua.user_id = ?`
             + ` ORDER BY a.id DESC`
-        ).bind(user_id).all<{
-            id: number;
-            name: string;
-            mail_count: number;
-            send_count: number;
-            created_at: string;
-            updated_at: string;
-        }>();
+        ).bind(user_id).all<BindedAddress>();
         return (results || []).map((row) => hideObjectFields(row, ['password']));
     },
     getBindedAddressJwt: async (c: Context<HonoCustomType>) => {
