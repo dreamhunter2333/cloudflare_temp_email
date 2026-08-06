@@ -175,6 +175,8 @@ This endpoint uses **User JWT** (obtained via `/user_api/login` or `/user_api/re
 The `results` array contains only the current page. Address-management pages can keep `with_counts=true&with_total=true`; lightweight selectors should use `with_counts=false&with_total=false` with remote `query` searches.
 
 ```python
+import requests
+
 url = "https://<your-worker-address>/user_api/bind_address"
 headers = {
     "x-user-token": "<your-user-JWT-token>",

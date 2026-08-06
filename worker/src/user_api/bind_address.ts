@@ -152,7 +152,10 @@ const UserBindAddressModule = {
         if (query) {
             const likeParam = `%${escapeLikeQuery(query)}%`;
             const useInstr = new TextEncoder().encode(likeParam).length > 50;
-            filters.push(useInstr ? `instr(a.name, ?) > 0` : `a.name LIKE ? ESCAPE '\\'`);
+            filters.push(useInstr
+                ? `instr(lower(a.name), lower(?)) > 0`
+                : `a.name LIKE ? ESCAPE '\\'`
+            );
             params.push(useInstr ? query : likeParam);
         }
         const countFields = includeCounts

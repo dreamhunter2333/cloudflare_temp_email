@@ -16,6 +16,7 @@ const addressFilter = ref();
 const addressFilterOptions = ref([]);
 const addressFilterLoading = ref(false);
 let addressSearchTimer = null;
+let addressFilterRequestId = 0;
 
 const queryMail = () => {
     addressFilter.value = addressFilter.value ? addressFilter.value.trim() : addressFilter.value;
@@ -34,6 +35,7 @@ const fetchMailData = async (limit, offset) => {
 }
 
 const fetchAddressData = async (query = '') => {
+    const requestId = ++addressFilterRequestId;
     addressFilterLoading.value = true;
     try {
         const params = new URLSearchParams({
@@ -46,6 +48,7 @@ const fetchAddressData = async (query = '') => {
             params.set('query', query);
         }
         const { results } = await api.fetch(`/user_api/bind_address?${params.toString()}`);
+        if (requestId !== addressFilterRequestId) return;
         addressFilterOptions.value = results.map((item) => {
             return {
                 label: item.name,
@@ -56,7 +59,9 @@ const fetchAddressData = async (query = '') => {
         console.log(error)
         message.error(error.message || "error");
     } finally {
-        addressFilterLoading.value = false;
+        if (requestId === addressFilterRequestId) {
+            addressFilterLoading.value = false;
+        }
     }
 }
 
@@ -81,6 +86,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     clearTimeout(addressSearchTimer);
+    addressFilterRequestId++;
 })
 </script>
 

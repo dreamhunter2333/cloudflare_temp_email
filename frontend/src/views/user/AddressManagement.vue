@@ -1,5 +1,5 @@
 <script setup>
-import { ref, h, onMounted, watch } from 'vue';
+import { ref, h, onBeforeUnmount, onMounted, watch } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router';
 import { NBadge, NPopconfirm, NButton } from 'naive-ui'
@@ -26,6 +26,7 @@ const showTranferAddress = ref(false)
 const currentAddress = ref("")
 const currentAddressId = ref(0)
 const targetUserEmail = ref('')
+let fetchRequestId = 0
 
 const changeMailAddress = async (address_id) => {
     try {
@@ -88,6 +89,7 @@ const transferAddress = async () => {
 }
 
 const fetchData = async () => {
+    const requestId = ++fetchRequestId;
     tableLoading.value = true;
     try {
         const params = new URLSearchParams({
@@ -102,6 +104,7 @@ const fetchData = async () => {
         const { results, count: addressCount } = await api.fetch(
             `/user_api/bind_address?${params.toString()}`
         );
+        if (requestId !== fetchRequestId) return;
         data.value = results;
         count.value = addressCount;
         const lastPage = Math.max(1, Math.ceil(addressCount / pageSize.value));
@@ -112,7 +115,9 @@ const fetchData = async () => {
         console.log(error)
         message.error(error.message || "error");
     } finally {
-        tableLoading.value = false;
+        if (requestId === fetchRequestId) {
+            tableLoading.value = false;
+        }
     }
 }
 
@@ -212,6 +217,10 @@ onMounted(async () => {
 
 watch([page, pageSize], async () => {
     await fetchData();
+})
+
+onBeforeUnmount(() => {
+    fetchRequestId++;
 })
 </script>
 

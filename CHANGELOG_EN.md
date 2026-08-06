@@ -22,8 +22,6 @@
 
 - fix: |E2E| Add regression coverage ensuring user settings do not rewrite recent address activity timestamps
 
-- test: |E2E| Add regression coverage for user-address pagination, search, optional counts, and cross-user mail isolation
-
 ## v1.10.0
 
 ### Features

@@ -175,6 +175,8 @@ print(response.json())
 响应中的 `results` 仅包含当前页。地址管理页面可保留 `with_counts=true&with_total=true`；轻量地址选择器建议使用 `with_counts=false&with_total=false` 并结合 `query` 远程搜索。
 
 ```python
+import requests
+
 url = "https://<你的worker地址>/user_api/bind_address"
 headers = {
     "x-user-token": "<你的用户JWT Token>",

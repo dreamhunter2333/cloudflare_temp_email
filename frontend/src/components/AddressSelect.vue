@@ -35,6 +35,7 @@ const addressLoading = ref(false)
 const localAddressCache = useLocalStorage("LocalAddressCache", [])
 const optionValueMap = new Map()
 let addressSearchTimer = null
+let addressRequestId = 0
 
 const formatAddressLabel = (address) => {
     if (!address) return address;
@@ -86,9 +87,6 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
             const label = formatAddressLabel(address);
             const key = `local:${curJwt}`;
             const option = { label, value: getOptionValue(key, 'local', curJwt, address), address };
-            if (settings.value.address && address === settings.value.address) {
-                addressValue.value = option.value;
-            }
             return option;
         })
         .filter(Boolean);
@@ -126,9 +124,6 @@ const buildUserOptions = async (query = '') => {
             const label = formatAddressLabel(address);
             const key = `user:${row.id}`;
             const option = { label, value: getOptionValue(key, 'user', String(row.id), address), address };
-            if (settings.value.address && address === settings.value.address) {
-                addressValue.value = option.value;
-            }
             children.push(option);
         }
     } catch (error) {
@@ -151,9 +146,6 @@ const buildTelegramOptions = async () => {
             const label = formatAddressLabel(row.address);
             const key = `tg:${row.jwt}`;
             const option = { label, value: getOptionValue(key, 'tg', row.jwt, row.address), address: row.address };
-            if (settings.value.address && row.address === settings.value.address) {
-                addressValue.value = option.value;
-            }
             children.push(option);
         }
     } catch (error) {
@@ -163,11 +155,17 @@ const buildTelegramOptions = async () => {
 }
 
 const refreshAddressOptions = async (query = '') => {
+    const requestId = ++addressRequestId;
     addressLoading.value = true;
     try {
         if (isTelegram.value) {
             const telegramChildren = await buildTelegramOptions();
+            if (requestId !== addressRequestId) return;
             addressOptions.value = telegramChildren;
+            const currentOption = telegramChildren.find(
+                (item) => item.address === settings.value.address
+            );
+            if (currentOption) addressValue.value = currentOption.value;
             return;
         }
         const groups = [];
@@ -187,9 +185,16 @@ const refreshAddressOptions = async (query = '') => {
                 groups.push({ type: 'group', label: t('localAddresses'), children: localChildren });
             }
         }
+        if (requestId !== addressRequestId) return;
         addressOptions.value = groups;
+        const currentOption = groups
+            .flatMap((group) => group.children || [])
+            .find((item) => item.address === settings.value.address);
+        if (currentOption) addressValue.value = currentOption.value;
     } finally {
-        addressLoading.value = false;
+        if (requestId === addressRequestId) {
+            addressLoading.value = false;
+        }
     }
 }
 
@@ -242,6 +247,7 @@ watch([userJwt, isTelegram, () => settings.value.address], async () => {
 
 onBeforeUnmount(() => {
     clearTimeout(addressSearchTimer);
+    addressRequestId++;
 })
 </script>
 
