@@ -13,6 +13,7 @@ const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
 const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
 const MAX_DOMAIN_LENGTH = 253;
 const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+const ADDRESS_ACTIVITY_UPDATE_INTERVAL = '-1 day';
 
 const normalizeDomainValue = (domain: string): string => {
     return trimLower(domain);
@@ -250,10 +251,32 @@ export function updateAddressUpdatedAt(
     c.executionCtx.waitUntil((async () => {
         try {
             await c.env.DB.prepare(
-                `UPDATE address SET updated_at = datetime('now') where name = ?`
-            ).bind(address).run();
+                `UPDATE address SET updated_at = datetime('now')`
+                + ` WHERE name = ?`
+                + ` AND (updated_at IS NULL OR updated_at < datetime('now', ?))`
+            ).bind(address, ADDRESS_ACTIVITY_UPDATE_INTERVAL).run();
         } catch (e) {
             console.warn("[updateAddressUpdatedAt] failed:", address, e);
+        }
+    })());
+}
+
+export function updateUserAddressesUpdatedAt(
+    c: Context<HonoCustomType>,
+    userId: number | string | undefined | null
+): void {
+    if (!userId) {
+        return;
+    }
+    c.executionCtx.waitUntil((async () => {
+        try {
+            await c.env.DB.prepare(
+                `UPDATE address SET updated_at = datetime('now')`
+                + ` WHERE id IN (SELECT address_id FROM users_address WHERE user_id = ?)`
+                + ` AND (updated_at IS NULL OR updated_at < datetime('now', ?))`
+            ).bind(userId, ADDRESS_ACTIVITY_UPDATE_INTERVAL).run();
+        } catch (e) {
+            console.warn("[updateUserAddressesUpdatedAt] failed:", userId, e);
         }
     })());
 }
