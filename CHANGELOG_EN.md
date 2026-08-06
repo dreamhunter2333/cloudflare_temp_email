@@ -14,6 +14,8 @@
 
 ### Improvements
 
+- perf: |Worker| Throttle address-activity touches to one write per day so user settings and mailbox access do not repeatedly update recently active addresses, reducing D1 writes (issue #1103)
+
 ## v1.10.0
 
 ### Features
