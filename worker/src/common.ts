@@ -255,7 +255,8 @@ export function updateAddressUpdatedAt(
                 + ` AND (updated_at IS NULL OR updated_at < datetime('now', '-1 day'))`
             ).bind(address).run();
         } catch (e) {
-            console.warn("[updateAddressUpdatedAt] failed:", address, e);
+            const errorName = e instanceof Error ? e.name : "UnknownError";
+            console.warn("[updateAddressUpdatedAt] failed:", errorName);
         }
     })());
 }
@@ -275,7 +276,8 @@ export function updateUserAddressesUpdatedAt(
                 + ` AND (updated_at IS NULL OR updated_at < datetime('now', '-1 day'))`
             ).bind(userId).run();
         } catch (e) {
-            console.warn("[updateUserAddressesUpdatedAt] failed:", userId, e);
+            const errorName = e instanceof Error ? e.name : "UnknownError";
+            console.warn("[updateUserAddressesUpdatedAt] failed:", errorName);
         }
     })());
 }
