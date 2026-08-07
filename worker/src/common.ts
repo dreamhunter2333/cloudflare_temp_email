@@ -250,10 +250,34 @@ export function updateAddressUpdatedAt(
     c.executionCtx.waitUntil((async () => {
         try {
             await c.env.DB.prepare(
-                `UPDATE address SET updated_at = datetime('now') where name = ?`
+                `UPDATE address SET updated_at = datetime('now')`
+                + ` WHERE name = ?`
+                + ` AND (updated_at IS NULL OR updated_at < datetime('now', '-1 day'))`
             ).bind(address).run();
         } catch (e) {
-            console.warn("[updateAddressUpdatedAt] failed:", address, e);
+            const errorName = e instanceof Error ? e.name : "UnknownError";
+            console.warn("[updateAddressUpdatedAt] failed:", errorName);
+        }
+    })());
+}
+
+export function updateUserAddressesUpdatedAt(
+    c: Context<HonoCustomType>,
+    userId: number | string | undefined | null
+): void {
+    if (!userId) {
+        return;
+    }
+    c.executionCtx.waitUntil((async () => {
+        try {
+            await c.env.DB.prepare(
+                `UPDATE address SET updated_at = datetime('now')`
+                + ` WHERE id IN (SELECT address_id FROM users_address WHERE user_id = ?)`
+                + ` AND (updated_at IS NULL OR updated_at < datetime('now', '-1 day'))`
+            ).bind(userId).run();
+        } catch (e) {
+            const errorName = e instanceof Error ? e.name : "UnknownError";
+            console.warn("[updateUserAddressesUpdatedAt] failed:", errorName);
         }
     })());
 }
