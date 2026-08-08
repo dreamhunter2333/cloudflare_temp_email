@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 import { useScopedI18n } from '@/i18n/app'
 import { useMessage } from 'naive-ui'
@@ -34,6 +34,8 @@ const addressValue = ref(null)
 const addressLoading = ref(false)
 const localAddressCache = useLocalStorage("LocalAddressCache", [])
 const optionValueMap = new Map()
+let addressSearchTimer = null
+let addressRequestId = 0
 
 const formatAddressLabel = (address) => {
     if (!address) return address;
@@ -73,7 +75,8 @@ const getOptionValue = (key, scope, payload, address) => {
     return value
 }
 
-const buildLocalOptions = (excludeAddresses = new Set()) => {
+const buildLocalOptions = (excludeAddresses = new Set(), query = '') => {
+    const normalizedQuery = query.trim().toLowerCase();
     if (typeof jwt.value === 'string' && jwt.value && !localAddressCache.value.includes(jwt.value)) {
         localAddressCache.value.push(jwt.value)
     }
@@ -82,31 +85,47 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
             const address = parseJwtAddress(curJwt);
             if (!address) return null;
             if (excludeAddresses.has(address)) return null;
+            if (normalizedQuery && !address.toLowerCase().includes(normalizedQuery)) return null;
             const label = formatAddressLabel(address);
             const key = `local:${curJwt}`;
             const option = { label, value: getOptionValue(key, 'local', curJwt, address), address };
-            if (settings.value.address && address === settings.value.address) {
-                addressValue.value = option.value;
-            }
             return option;
         })
         .filter(Boolean);
     return children;
 }
 
-const buildUserOptions = async () => {
+const fetchUserAddressRows = async (query = '') => {
+    const params = new URLSearchParams({
+        limit: '100',
+        offset: '0',
+        with_counts: 'false',
+        with_total: 'false',
+    });
+    if (query) {
+        params.set('query', query);
+    }
+    const { results } = await api.fetch(`/user_api/bind_address?${params.toString()}`);
+    return results || [];
+}
+
+const buildUserOptions = async (query = '') => {
     const children = [];
     try {
-        const { results } = await api.fetch(`/user_api/bind_address`);
-        for (const row of results || []) {
+        const rows = await fetchUserAddressRows(query);
+        if (!query && settings.value.address && !rows.some((row) => row.name === settings.value.address)) {
+            const currentRows = await fetchUserAddressRows(settings.value.address);
+            const currentRow = currentRows.find((row) => row.name === settings.value.address);
+            if (currentRow) {
+                rows.push(currentRow);
+            }
+        }
+        for (const row of rows) {
             const address = row.address || row.name;
             if (!address) continue;
             const label = formatAddressLabel(address);
             const key = `user:${row.id}`;
             const option = { label, value: getOptionValue(key, 'user', String(row.id), address), address };
-            if (settings.value.address && address === settings.value.address) {
-                addressValue.value = option.value;
-            }
             children.push(option);
         }
     } catch (error) {
@@ -129,9 +148,6 @@ const buildTelegramOptions = async () => {
             const label = formatAddressLabel(row.address);
             const key = `tg:${row.jwt}`;
             const option = { label, value: getOptionValue(key, 'tg', row.jwt, row.address), address: row.address };
-            if (settings.value.address && row.address === settings.value.address) {
-                addressValue.value = option.value;
-            }
             children.push(option);
         }
     } catch (error) {
@@ -140,23 +156,28 @@ const buildTelegramOptions = async () => {
     return children;
 }
 
-const refreshAddressOptions = async () => {
+const refreshAddressOptions = async (query = '') => {
+    const requestId = ++addressRequestId;
     addressLoading.value = true;
-    addressValue.value = null;
     try {
         if (isTelegram.value) {
             const telegramChildren = await buildTelegramOptions();
+            if (requestId !== addressRequestId) return;
             addressOptions.value = telegramChildren;
+            const currentOption = telegramChildren.find(
+                (item) => item.address === settings.value.address
+            );
+            if (currentOption) addressValue.value = currentOption.value;
             return;
         }
         const groups = [];
         if (userJwt.value) {
-            const userChildren = await buildUserOptions();
+            const userChildren = await buildUserOptions(query);
             if (userChildren.length > 0) {
                 groups.push({ type: 'group', label: t('userAddresses'), children: userChildren });
             }
             const userAddressSet = new Set(userChildren.map((item) => item.address));
-            const localChildren = buildLocalOptions(userAddressSet);
+            const localChildren = buildLocalOptions(userAddressSet, query);
             if (localChildren.length > 0) {
                 groups.push({ type: 'group', label: t('localAddresses'), children: localChildren });
             }
@@ -166,10 +187,25 @@ const refreshAddressOptions = async () => {
                 groups.push({ type: 'group', label: t('localAddresses'), children: localChildren });
             }
         }
+        if (requestId !== addressRequestId) return;
         addressOptions.value = groups;
+        const currentOption = groups
+            .flatMap((group) => group.children || [])
+            .find((item) => item.address === settings.value.address);
+        if (currentOption) addressValue.value = currentOption.value;
     } finally {
-        addressLoading.value = false;
+        if (requestId === addressRequestId) {
+            addressLoading.value = false;
+        }
     }
+}
+
+const searchUserAddresses = (query) => {
+    if (!userJwt.value || isTelegram.value) return;
+    clearTimeout(addressSearchTimer);
+    addressSearchTimer = setTimeout(() => {
+        refreshAddressOptions(query.trim());
+    }, 250);
 }
 
 const onAddressChange = async (value) => {
@@ -210,12 +246,19 @@ onMounted(async () => {
 watch([userJwt, isTelegram, () => settings.value.address], async () => {
     await refreshAddressOptions();
 });
+
+onBeforeUnmount(() => {
+    clearTimeout(addressSearchTimer);
+    addressRequestId++;
+})
 </script>
 
 <template>
     <n-flex class="address-row" align="center" justify="center" :wrap="true">
         <n-select v-model:value="addressValue" :options="addressOptions" :size="size" filterable
+            :remote="Boolean(userJwt) && !isTelegram"
             :loading="addressLoading" :placeholder="t('address')" @update:value="onAddressChange"
+            @search="searchUserAddresses"
             class="address-select" />
         <slot name="actions" />
         <n-button v-if="showCopy" class="address-copy" @click="copy" :size="size" tertiary type="primary">

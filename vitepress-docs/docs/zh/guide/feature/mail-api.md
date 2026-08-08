@@ -160,6 +160,40 @@ print(response.json())
 - 用户 JWT 使用 `x-user-token: <jwt>` 访问 `/user_api/*` 接口
 :::
 
+### 用户绑定地址列表
+
+`GET /user_api/bind_address` 使用服务端分页，支持以下查询参数：
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `limit` | `20` | 每页数量，范围为 1–100 |
+| `offset` | `0` | 分页偏移量 |
+| `query` | 空 | 按完整邮箱地址进行子串搜索 |
+| `with_counts` | `true` | 设为 `false` 时不查询每个地址的收件和发件数量，适用于地址选择器 |
+| `with_total` | `true` | 设为 `false` 时跳过总数查询，响应中不返回 `count` |
+
+响应中的 `results` 仅包含当前页。地址管理页面可保留 `with_counts=true&with_total=true`；轻量地址选择器建议使用 `with_counts=false&with_total=false` 并结合 `query` 远程搜索。
+
+```python
+import requests
+
+url = "https://<你的worker地址>/user_api/bind_address"
+headers = {
+    "x-user-token": "<你的用户JWT Token>",
+}
+querystring = {
+    "limit": "20",
+    "offset": "0",
+    "query": "example",
+    "with_counts": "false",
+    "with_total": "false",
+}
+response = requests.get(url, headers=headers, params=querystring)
+print(response.json())
+```
+
+### 用户邮件列表
+
 支持 `address` 过滤
 
 ```python

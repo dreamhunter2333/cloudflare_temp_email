@@ -1,5 +1,5 @@
 <script setup>
-import { ref, h, onMounted } from 'vue';
+import { ref, h, onBeforeUnmount, onMounted, watch } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router';
 import { NBadge, NPopconfirm, NButton } from 'naive-ui'
@@ -17,10 +17,16 @@ const router = useRouter()
 const { locale, t } = useScopedI18n('views.user.AddressManagement')
 
 const data = ref([])
+const count = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
+const addressQuery = ref('')
+const tableLoading = ref(false)
 const showTranferAddress = ref(false)
 const currentAddress = ref("")
 const currentAddressId = ref(0)
 const targetUserEmail = ref('')
+let fetchRequestId = 0
 
 const changeMailAddress = async (address_id) => {
     try {
@@ -83,15 +89,45 @@ const transferAddress = async () => {
 }
 
 const fetchData = async () => {
+    const requestId = ++fetchRequestId;
+    tableLoading.value = true;
     try {
-        const { results } = await api.fetch(
-            `/user_api/bind_address`
+        const params = new URLSearchParams({
+            limit: String(pageSize.value),
+            offset: String((page.value - 1) * pageSize.value),
+            with_counts: 'true',
+            with_total: 'true',
+        });
+        if (addressQuery.value) {
+            params.set('query', addressQuery.value);
+        }
+        const { results, count: addressCount } = await api.fetch(
+            `/user_api/bind_address?${params.toString()}`
         );
+        if (requestId !== fetchRequestId) return;
         data.value = results;
+        count.value = addressCount;
+        const lastPage = Math.max(1, Math.ceil(addressCount / pageSize.value));
+        if (page.value > lastPage) {
+            page.value = lastPage;
+        }
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
+    } finally {
+        if (requestId === fetchRequestId) {
+            tableLoading.value = false;
+        }
     }
+}
+
+const queryAddress = async () => {
+    addressQuery.value = addressQuery.value.trim();
+    if (page.value !== 1) {
+        page.value = 1;
+        return;
+    }
+    await fetchData();
 }
 
 const columns = [
@@ -178,6 +214,14 @@ const columns = [
 onMounted(async () => {
     await fetchData()
 })
+
+watch([page, pageSize], async () => {
+    await fetchData();
+})
+
+onBeforeUnmount(() => {
+    fetchRequestId++;
+})
 </script>
 
 <template>
@@ -196,8 +240,22 @@ onMounted(async () => {
         </n-modal>
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
+                <n-input-group>
+                    <n-input v-model:value="addressQuery" :placeholder="t('addressQueryTip')"
+                        @keydown.enter="queryAddress" clearable />
+                    <n-button @click="queryAddress" type="primary" tertiary>
+                        {{ t('query') }}
+                    </n-button>
+                </n-input-group>
                 <div class="address-table-scroll">
-                    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                    <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"
+                        :page-sizes="[20, 50, 100]" show-size-picker>
+                        <template #prefix="{ itemCount }">
+                            {{ t('itemCount') }}: {{ itemCount }}
+                        </template>
+                    </n-pagination>
+                    <n-data-table :columns="columns" :data="data" :loading="tableLoading"
+                        :bordered="false" embedded />
                 </div>
             </n-tab-pane>
             <n-tab-pane name="create_or_bind" :tab="t('create_or_bind')">
@@ -215,5 +273,10 @@ onMounted(async () => {
 .address-table-scroll {
     max-width: 100%;
     overflow-x: auto;
+}
+
+.n-pagination {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 </style>
