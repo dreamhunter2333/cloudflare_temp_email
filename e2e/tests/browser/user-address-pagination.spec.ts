@@ -93,7 +93,7 @@ test.describe('User address pagination browser flow', () => {
       await expect(addressRows).toHaveCount(1);
       await expect(addressRows.first()).toContainText(searchedAddress.address);
 
-      await page.getByRole('tab', { name: 'Mail Box' }).click();
+      await page.getByText('Mail Box', { exact: true }).click();
       const mailboxAddressSelect = page.getByPlaceholder('Leave blank to query all addresses');
       const mailboxSearchResponse = page.waitForResponse((response) => {
         const url = new URL(response.url());
