@@ -75,7 +75,8 @@ const getOptionValue = (key, scope, payload, address) => {
     return value
 }
 
-const buildLocalOptions = (excludeAddresses = new Set()) => {
+const buildLocalOptions = (excludeAddresses = new Set(), query = '') => {
+    const normalizedQuery = query.trim().toLowerCase();
     if (typeof jwt.value === 'string' && jwt.value && !localAddressCache.value.includes(jwt.value)) {
         localAddressCache.value.push(jwt.value)
     }
@@ -84,6 +85,7 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
             const address = parseJwtAddress(curJwt);
             if (!address) return null;
             if (excludeAddresses.has(address)) return null;
+            if (normalizedQuery && !address.toLowerCase().includes(normalizedQuery)) return null;
             const label = formatAddressLabel(address);
             const key = `local:${curJwt}`;
             const option = { label, value: getOptionValue(key, 'local', curJwt, address), address };
@@ -175,7 +177,7 @@ const refreshAddressOptions = async (query = '') => {
                 groups.push({ type: 'group', label: t('userAddresses'), children: userChildren });
             }
             const userAddressSet = new Set(userChildren.map((item) => item.address));
-            const localChildren = buildLocalOptions(userAddressSet);
+            const localChildren = buildLocalOptions(userAddressSet, query);
             if (localChildren.length > 0) {
                 groups.push({ type: 'group', label: t('localAddresses'), children: localChildren });
             }

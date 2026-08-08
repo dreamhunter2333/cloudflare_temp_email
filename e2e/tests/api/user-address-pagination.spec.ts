@@ -113,6 +113,12 @@ test.describe('User address pagination', () => {
       );
       expect(invalidLimitRes.status()).toBe(400);
 
+      const invalidOffsetRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address?limit=20&offset=-1`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(invalidOffsetRes.status()).toBe(400);
+
       await seedTestMail(request, addresses[0].address, { subject: 'Bound mail' });
       await seedTestMail(request, outsider.address, { subject: 'Outsider mail' });
 
@@ -123,6 +129,15 @@ test.describe('User address pagination', () => {
       const userMails = await userMailsRes.json();
       expect(userMails.count).toBe(1);
       expect(userMails.results[0].address).toBe(addresses[0].address);
+
+      const filteredOutsiderMailsRes = await request.get(
+        `${WORKER_URL}/user_api/mails?limit=20&offset=0&address=${encodeURIComponent(outsider.address)}`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(filteredOutsiderMailsRes.ok()).toBe(true);
+      const filteredOutsiderMails = await filteredOutsiderMailsRes.json();
+      expect(filteredOutsiderMails.count).toBe(0);
+      expect(filteredOutsiderMails.results).toHaveLength(0);
 
       const outsiderMailsRes = await request.get(`${WORKER_URL}/api/mails?limit=20&offset=0`, {
         headers: { Authorization: `Bearer ${outsider.jwt}` },
