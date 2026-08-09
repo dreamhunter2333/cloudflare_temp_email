@@ -170,7 +170,7 @@ const refreshAddressOptions = async (query = '') => {
             const currentOption = telegramChildren.find(
                 (item) => item.address === settings.value.address
             );
-            if (currentOption) addressValue.value = currentOption.value;
+            addressValue.value = currentOption?.value || null;
             return;
         }
         const groups = [];
@@ -195,7 +195,11 @@ const refreshAddressOptions = async (query = '') => {
         const currentOption = groups
             .flatMap((group) => group.children || [])
             .find((item) => item.address === settings.value.address);
-        if (currentOption) addressValue.value = currentOption.value;
+        if (currentOption) {
+            addressValue.value = currentOption.value;
+        } else if (!query) {
+            addressValue.value = null;
+        }
     } finally {
         if (requestId === addressRequestId) {
             addressLoading.value = false;
