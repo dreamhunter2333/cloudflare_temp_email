@@ -91,7 +91,7 @@ test.describe('User address pagination', () => {
       );
       expect(secondPageRes.ok()).toBe(true);
       const secondPage = await secondPageRes.json();
-      expect(secondPage.count).toBe(3);
+      expect(secondPage.count).toBe(0);
       expect(secondPage.results).toHaveLength(1);
 
       const searchParams = new URLSearchParams({

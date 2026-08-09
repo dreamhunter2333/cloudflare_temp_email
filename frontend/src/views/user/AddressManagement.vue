@@ -52,7 +52,11 @@ const unbindAddress = async (address_id) => {
             body: JSON.stringify({ address_id })
         });
         message.success(t('unbindAddress') + " " + t('success'));
-        await fetchData();
+        if (page.value === 1) {
+            await fetchData();
+        } else {
+            page.value = 1;
+        }
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
@@ -77,7 +81,11 @@ const transferAddress = async () => {
             })
         });
         message.success(t('transferAddress') + " " + t('success'));
-        await fetchData();
+        if (page.value === 1) {
+            await fetchData();
+        } else {
+            page.value = 1;
+        }
         showTranferAddress.value = false;
         currentAddressId.value = 0;
         currentAddress.value = "";
@@ -104,20 +112,9 @@ const fetchData = async () => {
             `/user_api/bind_address?${params.toString()}`
         );
         if (requestId !== fetchRequestId) return;
-        const results = response.results || [];
-        const hasServerPagination = Number.isInteger(response.count);
-        const normalizedQuery = addressQuery.value.toLowerCase();
-        const fallbackResults = hasServerPagination
-            ? results
-            : results.filter((row) => !normalizedQuery || row.name?.toLowerCase().includes(normalizedQuery));
-        const addressCount = hasServerPagination ? response.count : fallbackResults.length;
-        data.value = hasServerPagination
-            ? results
-            : fallbackResults.slice((page.value - 1) * pageSize.value, page.value * pageSize.value);
-        count.value = addressCount;
-        const lastPage = Math.max(1, Math.ceil(addressCount / pageSize.value));
-        if (page.value > lastPage) {
-            page.value = lastPage;
+        data.value = response.results || [];
+        if (page.value === 1) {
+            count.value = response.count || 0;
         }
     } catch (error) {
         if (requestId !== fetchRequestId) return;

@@ -635,20 +635,19 @@ export const handleListQuery = async (
     offset: string | number | undefined | null,
     /** Must be pre-validated (e.g. whitelist), NOT raw user input. Interpolated directly into SQL. */
     orderBy?: string,
-    hiddenFields: string[] = [],
-    countAllPages = false
+    hiddenFields: string[] = []
 ): Promise<Response> => {
     const msgs = i18n.getMessagesbyContext(c);
     if (typeof limit === "string") {
-        limit = Number(limit);
+        limit = parseInt(limit);
     }
     if (typeof offset === "string") {
-        offset = Number(offset);
+        offset = parseInt(offset);
     }
-    if (typeof limit !== 'number' || !Number.isInteger(limit) || limit <= 0 || limit > 100) {
+    if (!limit || limit < 0 || limit > 100) {
         return c.text(msgs.InvalidLimitMsg, 400)
     }
-    if (typeof offset !== 'number' || !Number.isInteger(offset) || offset < 0) {
+    if (offset == null || offset == undefined || offset < 0) {
         return c.text(msgs.InvalidOffsetMsg, 400)
     }
     const orderClause = orderBy || 'id desc';
@@ -656,14 +655,15 @@ export const handleListQuery = async (
     const { results } = await c.env.DB.prepare(resultsQuery).bind(
         ...params, limit, offset
     ).all();
-    const responseResults = hiddenFields.length === 0
-        ? results
-        : results.map((row) => hideObjectFields(row, hiddenFields));
-    const shouldCount = countAllPages || offset === 0;
-    const count = shouldCount ? await c.env.DB.prepare(
+    const count = offset == 0 ? await c.env.DB.prepare(
         countQuery
     ).bind(...params).first("count") : 0;
-    return c.json({ results: responseResults, count });
+    if (hiddenFields.length === 0) {
+        return c.json({ results, count });
+    }
+
+    const filteredResults = results.map((row) => hideObjectFields(row, hiddenFields));
+    return c.json({ results: filteredResults, count });
 }
 
 export const hideObjectFields = <T extends Record<string, unknown>>(

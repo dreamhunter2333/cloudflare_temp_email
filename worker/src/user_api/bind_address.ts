@@ -124,8 +124,6 @@ const UserBindAddressModule = {
             limit ?? 20,
             offset ?? 0,
             'a.id DESC',
-            [],
-            true,
         );
     },
     getBindedAddressesById: async (
