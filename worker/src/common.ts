@@ -494,7 +494,7 @@ export const cleanup = async (
     if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
     }
-    const configuredBatchSize = Number(c.env.CLEANUP_BATCH_SIZE);
+    const configuredBatchSize = getIntValue(c.env.CLEANUP_BATCH_SIZE, 3000);
     const cleanupBatchSize = Number.isInteger(configuredBatchSize) && configuredBatchSize > 0
         ? Math.min(configuredBatchSize, 5000)
         : 3000;
