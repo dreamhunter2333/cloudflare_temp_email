@@ -97,7 +97,7 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
 const buildUserOptions = async () => {
     const children = [];
     try {
-        const { results } = await api.fetch(`/user_api/bind_address`);
+        const { results } = await api.fetch(`/user_api/bind_address?limit=100&offset=0`);
         for (const row of results || []) {
             const address = row.address || row.name;
             if (!address) continue;

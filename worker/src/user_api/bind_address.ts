@@ -4,7 +4,7 @@ import { Jwt } from 'hono/utils/jwt'
 import { isAddressCountLimitReached } from "../utils"
 import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
-import { updateAddressUpdatedAt, commonGetUserRole, hideObjectFields } from '../common';
+import { updateAddressUpdatedAt, commonGetUserRole, handleListQuery, hideObjectFields } from '../common';
 
 const UserBindAddressModule = {
     bind: async (c: Context<HonoCustomType>) => {
@@ -97,16 +97,24 @@ const UserBindAddressModule = {
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
-        const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);
-        return c.json({
-            results: results,
-        });
-    },
-    getBindedAddressListById: async (
-        c: Context<HonoCustomType>, user_id: number | string
-    ): Promise<string[]> => {
-        const bindedAddressList = await UserBindAddressModule.getBindedAddressesById(c, user_id);
-        return bindedAddressList.map((item) => item.name);
+        const { limit, offset } = c.req.query();
+        const params = [String(user_id)];
+        const fromQuery = ` FROM address a`
+            + ` JOIN users_address ua ON ua.address_id = a.id`
+            + ` WHERE ua.user_id = ?`;
+        return await handleListQuery(
+            c,
+            `SELECT a.*,`
+                + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
+                + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
+                + fromQuery,
+            `SELECT COUNT(*) AS count${fromQuery}`,
+            params,
+            limit ?? 20,
+            offset ?? 0,
+            'a.id DESC',
+            ['password'],
+        );
     },
     getBindedAddressesById: async (
         c: Context<HonoCustomType>, user_id: number | string

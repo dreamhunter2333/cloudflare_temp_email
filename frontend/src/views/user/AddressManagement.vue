@@ -1,5 +1,5 @@
 <script setup>
-import { ref, h, onMounted } from 'vue';
+import { ref, h, onMounted, watch } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router';
 import { NBadge, NPopconfirm, NButton } from 'naive-ui'
@@ -17,6 +17,9 @@ const router = useRouter()
 const { locale, t } = useScopedI18n('views.user.AddressManagement')
 
 const data = ref([])
+const count = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
 const showTranferAddress = ref(false)
 const currentAddress = ref("")
 const currentAddressId = ref(0)
@@ -46,7 +49,11 @@ const unbindAddress = async (address_id) => {
             body: JSON.stringify({ address_id })
         });
         message.success(t('unbindAddress') + " " + t('success'));
-        await fetchData();
+        if (page.value === 1) {
+            await fetchData();
+        } else {
+            page.value = 1;
+        }
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
@@ -71,7 +78,11 @@ const transferAddress = async () => {
             })
         });
         message.success(t('transferAddress') + " " + t('success'));
-        await fetchData();
+        if (page.value === 1) {
+            await fetchData();
+        } else {
+            page.value = 1;
+        }
         showTranferAddress.value = false;
         currentAddressId.value = 0;
         currentAddress.value = "";
@@ -84,10 +95,17 @@ const transferAddress = async () => {
 
 const fetchData = async () => {
     try {
-        const { results } = await api.fetch(
-            `/user_api/bind_address`
+        const params = new URLSearchParams({
+            limit: String(pageSize.value),
+            offset: String((page.value - 1) * pageSize.value),
+        });
+        const { results, count: addressCount } = await api.fetch(
+            `/user_api/bind_address?${params.toString()}`
         );
         data.value = results;
+        if (page.value === 1) {
+            count.value = addressCount;
+        }
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
@@ -178,6 +196,10 @@ const columns = [
 onMounted(async () => {
     await fetchData()
 })
+
+watch([page, pageSize], async () => {
+    await fetchData();
+})
 </script>
 
 <template>
@@ -197,6 +219,12 @@ onMounted(async () => {
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
                 <div class="address-table-scroll">
+                    <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"
+                        :page-sizes="[20, 50, 100]" show-size-picker>
+                        <template #prefix="{ itemCount }">
+                            {{ t('itemCount') }}: {{ itemCount }}
+                        </template>
+                    </n-pagination>
                     <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
                 </div>
             </n-tab-pane>
@@ -215,5 +243,10 @@ onMounted(async () => {
 .address-table-scroll {
     max-width: 100%;
     overflow-x: auto;
+}
+
+.n-pagination {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 </style>

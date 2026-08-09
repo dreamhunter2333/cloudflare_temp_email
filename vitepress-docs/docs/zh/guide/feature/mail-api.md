@@ -160,6 +160,36 @@ print(response.json())
 - 用户 JWT 使用 `x-user-token: <jwt>` 访问 `/user_api/*` 接口
 :::
 
+### 用户绑定地址列表
+
+`GET /user_api/bind_address` 使用服务端分页，支持以下查询参数：
+
+未携带分页参数时返回默认第一页，不支持一次获取全部绑定地址。
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `limit` | `20` | 每页数量，范围为 1–100 |
+| `offset` | `0` | 分页偏移量 |
+
+响应中的 `results` 仅包含当前页。仅 `offset=0` 时查询总数，后续页面的 `count` 为 `0`，客户端应保留第一页返回的总数。
+
+```python
+import requests
+
+url = "https://<你的worker地址>/user_api/bind_address"
+headers = {
+    "x-user-token": "<你的用户JWT Token>",
+}
+querystring = {
+    "limit": "20",
+    "offset": "0",
+}
+response = requests.get(url, headers=headers, params=querystring)
+print(response.json())
+```
+
+### 用户邮件列表
+
 支持 `address` 过滤
 
 ```python

@@ -852,6 +852,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Mail Count",
       "zh": "邮件数量"
     },
+    "itemCount": {
+      "en": "Total",
+      "zh": "总数"
+    },
     "name": {
       "en": "Name",
       "zh": "名称"

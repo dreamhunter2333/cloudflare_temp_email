@@ -160,6 +160,36 @@ This endpoint uses **User JWT** (obtained via `/user_api/login` or `/user_api/re
 - User JWT uses `x-user-token: <jwt>` to access `/user_api/*` endpoints
 :::
 
+### Bound Address List
+
+`GET /user_api/bind_address` uses server-side pagination and accepts these query parameters:
+
+Requests without pagination parameters return the default first page. Fetching all bound addresses in one request is not supported.
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `limit` | `20` | Page size, from 1 to 100 |
+| `offset` | `0` | Pagination offset |
+
+The `results` array contains only the current page. The total is queried only when `offset=0`; later pages return `count: 0`, so clients should retain the total from the first page.
+
+```python
+import requests
+
+url = "https://<your-worker-address>/user_api/bind_address"
+headers = {
+    "x-user-token": "<your-user-JWT-token>",
+}
+querystring = {
+    "limit": "20",
+    "offset": "0",
+}
+response = requests.get(url, headers=headers, params=querystring)
+print(response.json())
+```
+
+### User Mail List
+
 Supports `address` filter
 
 ```python
