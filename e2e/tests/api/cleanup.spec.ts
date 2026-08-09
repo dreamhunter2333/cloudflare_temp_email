@@ -60,7 +60,7 @@ test.describe('Bounded cleanup', () => {
     await request.delete(`${WORKER_URL}/admin/mails/${recentMails.results[0].id}`);
   });
 
-  test('deletes one address snapshot and its related data', async ({ request }) => {
+  test('deletes one address batch and its related data', async ({ request }) => {
     const oldAddress = await createTestAddress(request, 'cleanup-old');
 
     const seedResponse = await request.post(`${WORKER_URL}/admin/test/seed_mail`, {
