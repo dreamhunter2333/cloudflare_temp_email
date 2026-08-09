@@ -93,7 +93,8 @@ onBeforeUnmount(() => {
 <template>
     <div style="margin-top: 10px;">
         <n-input-group>
-            <n-select v-model:value="addressFilter" :options="addressFilterOptions" clearable filterable remote
+            <n-select data-testid="user-mail-address-filter" v-model:value="addressFilter"
+                :options="addressFilterOptions" clearable filterable remote
                 :loading="addressFilterLoading" :placeholder="t('addressQueryTip')" @search="searchAddresses" />
             <n-button @click="queryMail" type="primary" tertiary>
                 {{ t('query') }}

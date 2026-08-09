@@ -100,17 +100,20 @@ test.describe('User address pagination browser flow', () => {
           && url.searchParams.get('with_total') === 'false';
       });
       await page.getByText('Mail Box', { exact: true }).click();
-      await initialMailboxAddressesResponse;
-      const mailboxAddressSelect = page.getByPlaceholder('Leave blank to query all addresses');
+      const initialMailboxResponse = await initialMailboxAddressesResponse;
+      expect(initialMailboxResponse.ok()).toBe(true);
+      const mailboxAddressSelect = page.getByTestId('user-mail-address-filter');
+      const mailboxAddressInput = mailboxAddressSelect.locator('input');
       await mailboxAddressSelect.click();
-      await Promise.all([
+      const [mailboxSearchResponse] = await Promise.all([
         page.waitForResponse((response) => {
           const url = new URL(response.url());
           return url.pathname === '/user_api/bind_address'
             && url.searchParams.get('query') === searchedAddress.address;
         }),
-        mailboxAddressSelect.pressSequentially(searchedAddress.address),
+        mailboxAddressInput.pressSequentially(searchedAddress.address),
       ]);
+      expect(mailboxSearchResponse.ok()).toBe(true);
 
       const mailboxOptions = page.locator('.n-base-select-menu:visible');
       await expect(mailboxOptions).toContainText(searchedAddress.address);
@@ -120,7 +123,7 @@ test.describe('User address pagination browser flow', () => {
           && url.searchParams.get('address') === searchedAddress.address;
       });
       await mailboxOptions.getByText(searchedAddress.address, { exact: true }).click();
-      await filteredMailResponse;
+      expect((await filteredMailResponse).ok()).toBe(true);
 
       await page.evaluate((localJwt) => {
         localStorage.setItem('LocalAddressCache', JSON.stringify([localJwt]));
@@ -132,12 +135,12 @@ test.describe('User address pagination browser flow', () => {
           && url.searchParams.get('with_total') === 'false';
       });
       await page.goto(`${FRONTEND_URL}/en/?jwt=${encodeURIComponent(createdAddresses[0].jwt)}`);
-      await initialAddressOptionsResponse;
+      expect((await initialAddressOptionsResponse).ok()).toBe(true);
 
       const addressSelect = page.locator('.address-select');
       await expect(addressSelect).toBeVisible({ timeout: 15_000 });
       await addressSelect.click();
-      await Promise.all([
+      const [addressSearchResponse] = await Promise.all([
         page.waitForResponse((response) => {
           const url = new URL(response.url());
           return url.pathname === '/user_api/bind_address'
@@ -145,6 +148,7 @@ test.describe('User address pagination browser flow', () => {
         }),
         addressSelect.locator('input').pressSequentially(searchedAddress.address),
       ]);
+      expect(addressSearchResponse.ok()).toBe(true);
 
       const addressOptions = page.locator('.n-base-select-menu:visible');
       await expect(addressOptions).toContainText('User Addresses');
@@ -152,14 +156,17 @@ test.describe('User address pagination browser flow', () => {
       await expect(addressOptions).not.toContainText('Local Addresses');
       await expect(addressOptions).not.toContainText(localOnlyAddress.address.split('@')[0]);
     } finally {
-      await Promise.allSettled(createdAddresses.map((address) => deleteAddress(request, address.jwt)));
-      if (userId !== undefined) {
-        await request.delete(`${WORKER_URL}/admin/users/${userId}`);
+      try {
+        await Promise.allSettled(createdAddresses.map((address) => deleteAddress(request, address.jwt)));
+        if (userId !== undefined) {
+          await request.delete(`${WORKER_URL}/admin/users/${userId}`);
+        }
+        if (originalUserSettings) {
+          await saveUserSettings(request, originalUserSettings);
+        }
+      } finally {
+        await request.dispose();
       }
-      if (originalUserSettings) {
-        await saveUserSettings(request, originalUserSettings);
-      }
-      await request.dispose();
     }
   });
 });
