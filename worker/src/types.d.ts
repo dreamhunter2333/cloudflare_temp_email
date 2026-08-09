@@ -117,6 +117,7 @@ type Bindings = {
 
     // gzip compression for raw_mails
     ENABLE_MAIL_GZIP: string | boolean | undefined
+    CLEANUP_BATCH_SIZE: string | number | undefined
 
     // E2E testing
     E2E_TEST_MODE: string | boolean | undefined

@@ -494,6 +494,7 @@ export const cleanup = async (
     if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
     }
+    const cleanupBatchSize = getCleanupBatchSize(c.env.CLEANUP_BATCH_SIZE);
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
         case "inactiveAddress":
@@ -501,7 +502,8 @@ export const cleanup = async (
                 c,
                 `updated_at < datetime('now', ?)`,
                 "updated_at",
-                cleanDays
+                cleanDays,
+                cleanupBatchSize
             )
             break;
         case "addressCreated":
@@ -509,7 +511,8 @@ export const cleanup = async (
                 c,
                 `created_at < datetime('now', ?)`,
                 "created_at",
-                cleanDays
+                cleanDays,
+                cleanupBatchSize
             )
             break;
         case "unboundAddress":
@@ -518,7 +521,8 @@ export const cleanup = async (
                 `created_at < datetime('now', ?)`
                 + ` AND NOT EXISTS (SELECT 1 FROM users_address WHERE address_id = address.id)`,
                 "created_at",
-                cleanDays
+                cleanDays,
+                cleanupBatchSize
             )
             break;
         case "mails":
@@ -529,7 +533,7 @@ export const cleanup = async (
                     ORDER BY created_at, id
                     LIMIT ?
                 )`
-            ).bind(`-${cleanDays} day`, CLEANUP_BATCH_SIZE).run();
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "mails_unknow":
             await c.env.DB.prepare(`
@@ -543,7 +547,7 @@ export const cleanup = async (
                     ORDER BY raw_mails.created_at, raw_mails.id
                     LIMIT ?
                 )`
-            ).bind(`-${cleanDays} day`, CLEANUP_BATCH_SIZE).run();
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "sendbox":
             await c.env.DB.prepare(`
@@ -553,7 +557,7 @@ export const cleanup = async (
                     ORDER BY created_at, id
                     LIMIT ?
                 )`
-            ).bind(`-${cleanDays} day`, CLEANUP_BATCH_SIZE).run();
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "emptyAddress":
             // Delete addresses that have no emails and were created more than N days ago
@@ -563,7 +567,8 @@ export const cleanup = async (
                 + ` AND address.name IS NOT NULL`
                 + ` AND NOT EXISTS (SELECT 1 FROM raw_mails WHERE raw_mails.address = address.name)`,
                 "created_at",
-                cleanDays
+                cleanDays,
+                cleanupBatchSize
             )
             break;
         default:
@@ -572,44 +577,47 @@ export const cleanup = async (
     return true;
 }
 
-const CLEANUP_BATCH_SIZE = 100;
+const getCleanupBatchSize = (value: string | number | undefined): number => {
+    const batchSize = Number(value);
+    if (!Number.isInteger(batchSize) || batchSize < 1) return 1000;
+    return Math.min(batchSize, 5000);
+}
 
 const batchDeleteAddressWithData = async (
     c: Context<HonoCustomType>,
     addressQueryCondition: string,
     orderBy: "created_at" | "updated_at",
     cleanDays: number,
+    batchSize: number,
 ): Promise<boolean> => {
     const { results } = await c.env.DB.prepare(
         `SELECT id, name FROM address WHERE ${addressQueryCondition}`
         + ` ORDER BY ${orderBy}, id LIMIT ?`
-    ).bind(`-${cleanDays} day`, CLEANUP_BATCH_SIZE).all<{ id: number; name: string }>();
+    ).bind(`-${cleanDays} day`, batchSize).all<{ id: number; name: string }>();
     if (results.length === 0) return true;
 
-    const addressIds = results.map((address) => address.id);
-    const addressNames = results.map((address) => address.name);
-    const idPlaceholders = addressIds.map(() => "?").join(", ");
-    const namePlaceholders = addressNames.map(() => "?").join(", ");
+    const addressIds = JSON.stringify(results.map((address) => address.id));
+    const addressNames = JSON.stringify(results.map((address) => address.name));
 
     await c.env.DB.batch([
         c.env.DB.prepare(
-            `DELETE FROM raw_mails WHERE address IN (${namePlaceholders})`
-        ).bind(...addressNames),
+            `DELETE FROM raw_mails WHERE address IN (SELECT value FROM json_each(?))`
+        ).bind(addressNames),
         c.env.DB.prepare(
-            `DELETE FROM sendbox WHERE address IN (${namePlaceholders})`
-        ).bind(...addressNames),
+            `DELETE FROM sendbox WHERE address IN (SELECT value FROM json_each(?))`
+        ).bind(addressNames),
         c.env.DB.prepare(
-            `DELETE FROM auto_reply_mails WHERE address IN (${namePlaceholders})`
-        ).bind(...addressNames),
+            `DELETE FROM auto_reply_mails WHERE address IN (SELECT value FROM json_each(?))`
+        ).bind(addressNames),
         c.env.DB.prepare(
-            `DELETE FROM address_sender WHERE address IN (${namePlaceholders})`
-        ).bind(...addressNames),
+            `DELETE FROM address_sender WHERE address IN (SELECT value FROM json_each(?))`
+        ).bind(addressNames),
         c.env.DB.prepare(
-            `DELETE FROM users_address WHERE address_id IN (${idPlaceholders})`
-        ).bind(...addressIds),
+            `DELETE FROM users_address WHERE address_id IN (SELECT value FROM json_each(?))`
+        ).bind(addressIds),
         c.env.DB.prepare(
-            `DELETE FROM address WHERE id IN (${idPlaceholders})`
-        ).bind(...addressIds),
+            `DELETE FROM address WHERE id IN (SELECT value FROM json_each(?))`
+        ).bind(addressIds),
     ]);
     return true;
 }

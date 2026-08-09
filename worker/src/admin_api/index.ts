@@ -106,5 +106,4 @@ api.post('/admin/ai_extract/settings', ai_extract_settings.saveAiExtractSettings
 
 // E2E test endpoints
 api.post('/admin/test/seed_mail', e2e_test_api.seedMail)
-api.post('/admin/test/backdate_address', e2e_test_api.backdateAddress)
 api.post('/admin/test/receive_mail', e2e_test_api.receiveMail)
