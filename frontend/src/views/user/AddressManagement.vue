@@ -96,7 +96,6 @@ const fetchData = async () => {
             limit: String(pageSize.value),
             offset: String((page.value - 1) * pageSize.value),
             with_counts: 'true',
-            with_total: 'true',
         });
         if (addressQuery.value) {
             params.set('query', addressQuery.value);

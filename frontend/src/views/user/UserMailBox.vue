@@ -42,7 +42,6 @@ const fetchAddressData = async (query = '') => {
             limit: '100',
             offset: '0',
             with_counts: 'false',
-            with_total: 'false',
         });
         if (query) {
             params.set('query', query);

@@ -97,7 +97,7 @@ test.describe('User address pagination browser flow', () => {
         const url = new URL(response.url());
         return url.pathname === '/user_api/bind_address'
           && !url.searchParams.has('query')
-          && url.searchParams.get('with_total') === 'false';
+          && url.searchParams.get('with_counts') === 'false';
       });
       await page.getByText('Mail Box', { exact: true }).click();
       const initialMailboxResponse = await initialMailboxAddressesResponse;
@@ -132,7 +132,7 @@ test.describe('User address pagination browser flow', () => {
         const url = new URL(response.url());
         return url.pathname === '/user_api/bind_address'
           && !url.searchParams.has('query')
-          && url.searchParams.get('with_total') === 'false';
+          && url.searchParams.get('with_counts') === 'false';
       });
       await page.goto(`${FRONTEND_URL}/en/?jwt=${encodeURIComponent(createdAddresses[0].jwt)}`);
       expect((await initialAddressOptionsResponse).ok()).toBe(true);

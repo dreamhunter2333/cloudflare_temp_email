@@ -635,19 +635,20 @@ export const handleListQuery = async (
     offset: string | number | undefined | null,
     /** Must be pre-validated (e.g. whitelist), NOT raw user input. Interpolated directly into SQL. */
     orderBy?: string,
-    hiddenFields: string[] = []
+    hiddenFields: string[] = [],
+    countMode: 'first-page' | 'all-pages' | 'none' = 'first-page'
 ): Promise<Response> => {
     const msgs = i18n.getMessagesbyContext(c);
     if (typeof limit === "string") {
-        limit = parseInt(limit);
+        limit = Number(limit);
     }
     if (typeof offset === "string") {
-        offset = parseInt(offset);
+        offset = Number(offset);
     }
-    if (!limit || limit < 0 || limit > 100) {
+    if (typeof limit !== 'number' || !Number.isInteger(limit) || limit <= 0 || limit > 100) {
         return c.text(msgs.InvalidLimitMsg, 400)
     }
-    if (offset == null || offset == undefined || offset < 0) {
+    if (typeof offset !== 'number' || !Number.isInteger(offset) || offset < 0) {
         return c.text(msgs.InvalidOffsetMsg, 400)
     }
     const orderClause = orderBy || 'id desc';
@@ -655,15 +656,17 @@ export const handleListQuery = async (
     const { results } = await c.env.DB.prepare(resultsQuery).bind(
         ...params, limit, offset
     ).all();
-    const count = offset == 0 ? await c.env.DB.prepare(
+    const responseResults = hiddenFields.length === 0
+        ? results
+        : results.map((row) => hideObjectFields(row, hiddenFields));
+    if (countMode === 'none') {
+        return c.json({ results: responseResults });
+    }
+    const shouldCount = countMode === 'all-pages' || (countMode === 'first-page' && offset === 0);
+    const count = shouldCount ? await c.env.DB.prepare(
         countQuery
     ).bind(...params).first("count") : 0;
-    if (hiddenFields.length === 0) {
-        return c.json({ results, count });
-    }
-
-    const filteredResults = results.map((row) => hideObjectFields(row, hiddenFields));
-    return c.json({ results: filteredResults, count });
+    return c.json({ results: responseResults, count });
 }
 
 export const hideObjectFields = <T extends Record<string, unknown>>(

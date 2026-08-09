@@ -117,7 +117,6 @@ test.describe('User address pagination', () => {
         offset: '0',
         query: addresses[1].address,
         with_counts: 'false',
-        with_total: 'false',
       });
       const lightweightRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?${lightweightParams.toString()}`,
