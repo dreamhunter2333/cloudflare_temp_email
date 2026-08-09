@@ -61,7 +61,7 @@ test.describe('Bounded cleanup', () => {
   });
 
   test('deletes one address snapshot and its related data', async ({ request }) => {
-    const oldAddress = await createTestAddress(request, 'cleanup-old-address');
+    const oldAddress = await createTestAddress(request, 'cleanup-old');
 
     const seedResponse = await request.post(`${WORKER_URL}/admin/test/seed_mail`, {
       data: {
@@ -85,7 +85,7 @@ test.describe('Bounded cleanup', () => {
     expect((await oldAddressResponse.json()).count).toBe(0);
     expect((await listMails(request, oldAddress.address)).count).toBe(0);
 
-    const recentAddress = await createTestAddress(request, 'cleanup-recent-address');
+    const recentAddress = await createTestAddress(request, 'cleanup-recent');
     try {
       const recentCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
         data: { cleanType: 'addressCreated', cleanDays: 1 },
