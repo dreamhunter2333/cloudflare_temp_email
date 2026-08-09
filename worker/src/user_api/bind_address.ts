@@ -134,9 +134,22 @@ const UserBindAddressModule = {
             true,
         );
     },
+    getBindedAddressListById: async (
+        c: Context<HonoCustomType>, user_id: number | string
+    ): Promise<string[]> => {
+        const bindedAddressList = await UserBindAddressModule.getBindedAddressesById(c, user_id);
+        return bindedAddressList.map((item) => item.name);
+    },
     getBindedAddressesById: async (
         c: Context<HonoCustomType>, user_id: number | string
-    ) => {
+    ): Promise<{
+        id: number;
+        name: string;
+        mail_count: number;
+        send_count: number;
+        created_at: string;
+        updated_at: string;
+    }[]> => {
         const msgs = i18n.getMessagesbyContext(c);
         if (!user_id) {
             throw new Error(msgs.UserNotFoundMsg);
@@ -151,7 +164,14 @@ const UserBindAddressModule = {
             + ` ON ua.address_id = a.id `
             + ` WHERE ua.user_id = ?`
             + ` ORDER BY a.id DESC`
-        ).bind(user_id).all<Record<string, unknown>>();
+        ).bind(user_id).all<{
+            id: number;
+            name: string;
+            mail_count: number;
+            send_count: number;
+            created_at: string;
+            updated_at: string;
+        }>();
         return (results || []).map((row) => hideObjectFields(row, ['password']));
     },
     getBindedAddressJwt: async (c: Context<HonoCustomType>) => {
