@@ -840,10 +840,6 @@ export const MESSAGE_REGISTRY = {
       "en": "Address",
       "zh": "地址"
     },
-    "addressQueryTip": {
-      "en": "Search bound addresses",
-      "zh": "搜索已绑定地址"
-    },
     "changeMailAddress": {
       "en": "Change Address",
       "zh": "切换地址"
@@ -863,10 +859,6 @@ export const MESSAGE_REGISTRY = {
     "name": {
       "en": "Name",
       "zh": "名称"
-    },
-    "query": {
-      "en": "Query",
-      "zh": "查询"
     },
     "send_count": {
       "en": "Send Count",

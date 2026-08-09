@@ -170,7 +170,6 @@ Requests without pagination parameters return the default first page. Fetching a
 | --- | --- | --- |
 | `limit` | `20` | Page size, from 1 to 100 |
 | `offset` | `0` | Pagination offset |
-| `query` | empty | Substring search against the full email address |
 
 The `results` array contains only the current page. The total is queried only when `offset=0`; later pages return `count: 0`, so clients should retain the total from the first page.
 
@@ -184,7 +183,6 @@ headers = {
 querystring = {
     "limit": "20",
     "offset": "0",
-    "query": "example",
 }
 response = requests.get(url, headers=headers, params=querystring)
 print(response.json())

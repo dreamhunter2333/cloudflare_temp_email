@@ -26,7 +26,7 @@ async function createUser(request: APIRequestContext) {
 }
 
 test.describe('User address pagination', () => {
-  test('paginates and searches addresses', async ({ request }) => {
+  test('paginates addresses and enforces mail ownership', async ({ request }) => {
     const addresses: Awaited<ReturnType<typeof createTestAddress>>[] = [];
     let outsider: Awaited<ReturnType<typeof createTestAddress>> | undefined;
     let originalUserSettings: Record<string, unknown> | undefined;
@@ -95,23 +95,6 @@ test.describe('User address pagination', () => {
       expect(secondPage.count).toBe(0);
       expect(secondPage.results).toHaveLength(1);
 
-      const searchParams = new URLSearchParams({
-        limit: '20',
-        offset: '0',
-        query: addresses[1].address,
-      });
-      const searchRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?${searchParams.toString()}`,
-        { headers: { 'x-user-token': userJwt } },
-      );
-      expect(searchRes.ok()).toBe(true);
-      const searchResult = await searchRes.json();
-      expect(searchResult.count).toBe(1);
-      expect(searchResult.results).toHaveLength(1);
-      expect(searchResult.results[0].name).toBe(addresses[1].address);
-      expect(searchResult.results[0].mail_count).toBe(0);
-      expect(searchResult.results[0].send_count).toBe(0);
-
       const invalidLimitRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?limit=101&offset=0`,
         { headers: { 'x-user-token': userJwt } },
@@ -123,20 +106,6 @@ test.describe('User address pagination', () => {
         { headers: { 'x-user-token': userJwt } },
       );
       expect(invalidOffsetRes.status()).toBe(400);
-
-      const longQueryParams = new URLSearchParams({
-        limit: '20',
-        offset: '0',
-        query: 'A'.repeat(51),
-      });
-      const longQueryRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?${longQueryParams.toString()}`,
-        { headers: { 'x-user-token': userJwt } },
-      );
-      expect(longQueryRes.ok()).toBe(true);
-      const longQueryResult = await longQueryRes.json();
-      expect(longQueryResult.count).toBe(0);
-      expect(longQueryResult.results).toHaveLength(0);
 
       await seedTestMail(request, addresses[0].address, { subject: 'Bound mail' });
       await seedTestMail(request, outsider.address, { subject: 'Outsider mail' });

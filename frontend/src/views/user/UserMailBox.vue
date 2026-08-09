@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
 
 import { api } from '../../api'
@@ -14,9 +14,6 @@ const { t } = useScopedI18n('views.user.UserMailBox')
 const mailBoxKey = ref("")
 const addressFilter = ref();
 const addressFilterOptions = ref([]);
-const addressFilterLoading = ref(false);
-let addressSearchTimer = null;
-let addressFilterRequestId = 0;
 
 const queryMail = () => {
     addressFilter.value = addressFilter.value ? addressFilter.value.trim() : addressFilter.value;
@@ -24,53 +21,29 @@ const queryMail = () => {
 }
 
 const fetchMailData = async (limit, offset) => {
-    const params = new URLSearchParams({
-        limit: String(limit),
-        offset: String(offset),
-    });
-    if (addressFilter.value) {
-        params.set('address', addressFilter.value);
-    }
-    return await api.fetch(`/user_api/mails?${params.toString()}`);
+    return await api.fetch(
+        `/user_api/mails`
+        + `?limit=${limit}`
+        + `&offset=${offset}`
+        + (addressFilter.value ? `&address=${addressFilter.value}` : '')
+    );
 }
 
-const fetchAddressData = async (query = '') => {
-    const requestId = ++addressFilterRequestId;
-    addressFilterLoading.value = true;
+const fetchAddresData = async () => {
     try {
-        const params = new URLSearchParams({
-            limit: '100',
-            offset: '0',
-        });
-        if (query) {
-            params.set('query', query);
-        }
-        const { results } = await api.fetch(`/user_api/bind_address?${params.toString()}`);
-        if (requestId !== addressFilterRequestId) return;
-        const normalizedQuery = query.trim().toLowerCase();
-        addressFilterOptions.value = (results || [])
-            .filter((item) => !normalizedQuery || item.name?.toLowerCase().includes(normalizedQuery))
-            .slice(0, 100)
-            .map((item) => ({
+        const { results } = await api.fetch(
+            `/user_api/bind_address?limit=100&offset=0`
+        );
+        addressFilterOptions.value = results.map((item) => {
+            return {
                 label: item.name,
                 value: item.name
-            }));
+            }
+        });
     } catch (error) {
-        if (requestId !== addressFilterRequestId) return;
         console.log(error)
         message.error(error.message || "error");
-    } finally {
-        if (requestId === addressFilterRequestId) {
-            addressFilterLoading.value = false;
-        }
     }
-}
-
-const searchAddresses = (query) => {
-    clearTimeout(addressSearchTimer);
-    addressSearchTimer = setTimeout(() => {
-        fetchAddressData(query.trim());
-    }, 250);
 }
 
 const deleteMail = async (curMailId) => {
@@ -82,21 +55,15 @@ watch(addressFilter, async (newValue) => {
 });
 
 onMounted(() => {
-    fetchAddressData();
+    fetchAddresData();
 });
-
-onBeforeUnmount(() => {
-    clearTimeout(addressSearchTimer);
-    addressFilterRequestId++;
-})
 </script>
 
 <template>
     <div style="margin-top: 10px;">
         <n-input-group>
-            <n-select data-testid="user-mail-address-filter" v-model:value="addressFilter"
-                :options="addressFilterOptions" clearable filterable remote
-                :loading="addressFilterLoading" :placeholder="t('addressQueryTip')" @search="searchAddresses" />
+            <n-select v-model:value="addressFilter" :options="addressFilterOptions" clearable
+                :placeholder="t('addressQueryTip')" />
             <n-button @click="queryMail" type="primary" tertiary>
                 {{ t('query') }}
             </n-button>

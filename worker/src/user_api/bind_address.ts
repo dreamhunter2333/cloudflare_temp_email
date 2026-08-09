@@ -97,21 +97,11 @@ const UserBindAddressModule = {
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
-        const { limit, offset, query } = c.req.query();
-        const searchQuery = query?.trim();
+        const { limit, offset } = c.req.query();
         const params = [String(user_id)];
-        let searchWhere = '';
-        if (searchQuery) {
-            const likeParam = `%${searchQuery.replace(/[\\%_]/g, '\\$&')}%`;
-            const useInstr = new TextEncoder().encode(likeParam).length > 50;
-            searchWhere = useInstr
-                ? ` AND instr(lower(a.name), lower(?)) > 0`
-                : ` AND a.name LIKE ? ESCAPE '\\'`;
-            params.push(useInstr ? searchQuery : likeParam);
-        }
         const fromQuery = ` FROM address a`
             + ` JOIN users_address ua ON ua.address_id = a.id`
-            + ` WHERE ua.user_id = ?${searchWhere}`;
+            + ` WHERE ua.user_id = ?`;
         return await handleListQuery(
             c,
             `SELECT a.id, a.name, a.created_at, a.updated_at,`

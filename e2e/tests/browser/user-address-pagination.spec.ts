@@ -42,7 +42,7 @@ async function bindAddress(request: APIRequestContext, userJwt: string, addressJ
 }
 
 test.describe('User address pagination browser flow', () => {
-  test('paginates, searches, filters mail, and excludes unmatched local addresses', async ({ page }) => {
+  test('paginates addresses and filters mail', async ({ page }) => {
     test.setTimeout(120_000);
 
     const request = await apiRequest.newContext();
@@ -69,9 +69,6 @@ test.describe('User address pagination browser flow', () => {
         createdAddresses.push(address);
         await bindAddress(request, user.jwt, address.jwt);
       }
-      const localOnlyAddress = await createTestAddress(request, 'browser-local-');
-      createdAddresses.push(localOnlyAddress);
-
       const defaultAddressPageResponse = await request.get(
         `${WORKER_URL}/user_api/bind_address`,
         { headers: { 'x-user-token': user.jwt } },
@@ -96,74 +93,28 @@ test.describe('User address pagination browser flow', () => {
       await pagination.locator('.n-pagination-item').filter({ hasText: /^2$/ }).click();
       await expect(addressRows).toHaveCount(1);
 
-      const searchedAddress = createdAddresses[7];
-      await page.getByPlaceholder('Search bound addresses').fill(searchedAddress.address);
-      await page.getByRole('button', { name: 'Query', exact: true }).click();
-      await expect(addressRows).toHaveCount(1);
-      await expect(addressRows.first()).toContainText(searchedAddress.address);
+      const selectedAddress = createdAddresses[7];
 
       const initialMailboxAddressesResponse = page.waitForResponse((response) => {
         const url = new URL(response.url());
         return url.pathname === '/user_api/bind_address'
-          && !url.searchParams.has('query')
           && url.searchParams.get('limit') === '100';
       });
       await page.getByText('Mail Box', { exact: true }).click();
       const initialMailboxResponse = await initialMailboxAddressesResponse;
       expect(initialMailboxResponse.ok()).toBe(true);
-      const mailboxAddressSelect = page.getByTestId('user-mail-address-filter');
-      const mailboxAddressInput = mailboxAddressSelect.locator('input');
+      const mailboxAddressSelect = page.locator('.n-input-group .n-select').first();
       await mailboxAddressSelect.click();
-      const [mailboxSearchResponse] = await Promise.all([
-        page.waitForResponse((response) => {
-          const url = new URL(response.url());
-          return url.pathname === '/user_api/bind_address'
-            && url.searchParams.get('query') === searchedAddress.address;
-        }),
-        mailboxAddressInput.pressSequentially(searchedAddress.address),
-      ]);
-      expect(mailboxSearchResponse.ok()).toBe(true);
 
       const mailboxOptions = page.locator('.n-base-select-menu:visible');
-      await expect(mailboxOptions).toContainText(searchedAddress.address);
+      await expect(mailboxOptions).toContainText(selectedAddress.address);
       const filteredMailResponse = page.waitForResponse((response) => {
         const url = new URL(response.url());
         return url.pathname === '/user_api/mails'
-          && url.searchParams.get('address') === searchedAddress.address;
+          && url.searchParams.get('address') === selectedAddress.address;
       });
-      await mailboxOptions.getByText(searchedAddress.address, { exact: true }).click();
+      await mailboxOptions.getByText(selectedAddress.address, { exact: true }).click();
       expect((await filteredMailResponse).ok()).toBe(true);
-
-      await page.evaluate((localJwt) => {
-        localStorage.setItem('LocalAddressCache', JSON.stringify([localJwt]));
-      }, localOnlyAddress.jwt);
-      const initialAddressOptionsResponse = page.waitForResponse((response) => {
-        const url = new URL(response.url());
-        return url.pathname === '/user_api/bind_address'
-          && !url.searchParams.has('query')
-          && url.searchParams.get('limit') === '100';
-      });
-      await page.goto(`${FRONTEND_URL}/en/?jwt=${encodeURIComponent(createdAddresses[0].jwt)}`);
-      expect((await initialAddressOptionsResponse).ok()).toBe(true);
-
-      const addressSelect = page.locator('.address-select');
-      await expect(addressSelect).toBeVisible({ timeout: 15_000 });
-      await addressSelect.click();
-      const [addressSearchResponse] = await Promise.all([
-        page.waitForResponse((response) => {
-          const url = new URL(response.url());
-          return url.pathname === '/user_api/bind_address'
-            && url.searchParams.get('query') === searchedAddress.address;
-        }),
-        addressSelect.locator('input').pressSequentially(searchedAddress.address),
-      ]);
-      expect(addressSearchResponse.ok()).toBe(true);
-
-      const addressOptions = page.locator('.n-base-select-menu:visible');
-      await expect(addressOptions).toContainText('User Addresses');
-      await expect(addressOptions).toContainText(searchedAddress.address.split('@')[0]);
-      await expect(addressOptions).not.toContainText('Local Addresses');
-      await expect(addressOptions).not.toContainText(localOnlyAddress.address.split('@')[0]);
     } finally {
       try {
         try {
