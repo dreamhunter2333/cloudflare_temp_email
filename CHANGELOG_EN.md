@@ -16,7 +16,7 @@
 
 - fix: |Worker| Throttle address-activity touches to one write per day so user settings and mailbox access do not repeatedly update recently active addresses, reducing D1 writes (issue #1103)
 
-- feat: |User| Add server-side pagination and remote search for bound addresses, with optional per-address and total counts; validate user-mail list ownership with a JOIN and delete ownership with `EXISTS` instead of loading every bound address for large users (issue #1103)
+- feat: |User| Add server-side pagination and remote search for bound addresses, with optional per-address counts and totals queried only on the first page; validate user-mail list ownership with a JOIN and delete ownership with `EXISTS` instead of loading every bound address for large users (issue #1103)
 
 ### Testing
 

@@ -41,6 +41,7 @@ test.describe('User address pagination', () => {
           ...originalUserSettings,
           enable: true,
           enableMailVerify: false,
+          maxAddressCount: 0,
         },
       });
       expect(enableUserRes.ok()).toBe(true);
