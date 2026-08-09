@@ -93,7 +93,7 @@ test.describe('User address pagination browser flow', () => {
       await pagination.locator('.n-pagination-item').filter({ hasText: /^2$/ }).click();
       await expect(addressRows).toHaveCount(1);
 
-      const selectedAddress = createdAddresses[7];
+      const selectedAddress = createdAddresses[20];
 
       const initialMailboxAddressesResponse = page.waitForResponse((response) => {
         const url = new URL(response.url());
