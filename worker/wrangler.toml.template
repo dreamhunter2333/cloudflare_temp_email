@@ -17,6 +17,8 @@ keep_vars = true
 # enable cron if you want set auto clean up
 # [triggers]
 # crons = [ "0 0 * * *" ]
+# Per-run limit for mail, sent-mail, and creation/activity-based address cleanup. Defaults to 3000, maximum 5000.
+# CLEANUP_BATCH_SIZE = 3000
 
 # send_email = [
 #    { name = "SEND_MAIL" },

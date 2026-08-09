@@ -494,18 +494,26 @@ export const cleanup = async (
     if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
     }
+    let cleanupBatchSize = getIntValue(c.env.CLEANUP_BATCH_SIZE, 3000);
+    if (!Number.isInteger(cleanupBatchSize) || cleanupBatchSize < 1 || cleanupBatchSize > 5000) {
+        cleanupBatchSize = 3000;
+    }
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
         case "inactiveAddress":
             await batchDeleteAddressWithData(
                 c,
-                `updated_at < datetime('now', '-${cleanDays} day')`
+                `id IN (`
+                + `SELECT id FROM address WHERE updated_at < datetime('now', '-${cleanDays} day') `
+                + `ORDER BY updated_at, id LIMIT ${cleanupBatchSize})`
             )
             break;
         case "addressCreated":
             await batchDeleteAddressWithData(
                 c,
-                `created_at < datetime('now', '-${cleanDays} day')`
+                `id IN (`
+                + `SELECT id FROM address WHERE created_at < datetime('now', '-${cleanDays} day') `
+                + `ORDER BY created_at, id LIMIT ${cleanupBatchSize})`
             )
             break;
         case "unboundAddress":
@@ -516,8 +524,13 @@ export const cleanup = async (
             break;
         case "mails":
             await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM raw_mails WHERE id IN (
+                    SELECT id FROM raw_mails
+                    WHERE created_at < datetime('now', ?)
+                    ORDER BY created_at, id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "mails_unknow":
             await c.env.DB.prepare(`
@@ -527,8 +540,13 @@ export const cleanup = async (
             break;
         case "sendbox":
             await c.env.DB.prepare(`
-                DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM sendbox WHERE id IN (
+                    SELECT id FROM sendbox
+                    WHERE created_at < datetime('now', ?)
+                    ORDER BY created_at, id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "emptyAddress":
             // Delete addresses that have no emails and were created more than N days ago
