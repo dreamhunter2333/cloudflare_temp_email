@@ -124,7 +124,7 @@ test.describe('User address pagination', () => {
       );
       expect(lightweightRes.ok()).toBe(true);
       const lightweightResult = await lightweightRes.json();
-      expect(lightweightResult).not.toHaveProperty('count');
+      expect(lightweightResult.count).toBe(1);
       expect(lightweightResult.results).toHaveLength(1);
       expect(lightweightResult.results[0]).not.toHaveProperty('mail_count');
 

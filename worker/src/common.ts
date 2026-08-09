@@ -636,7 +636,7 @@ export const handleListQuery = async (
     /** Must be pre-validated (e.g. whitelist), NOT raw user input. Interpolated directly into SQL. */
     orderBy?: string,
     hiddenFields: string[] = [],
-    countMode: 'first-page' | 'all-pages' | 'none' = 'first-page'
+    countAllPages = false
 ): Promise<Response> => {
     const msgs = i18n.getMessagesbyContext(c);
     if (typeof limit === "string") {
@@ -659,10 +659,7 @@ export const handleListQuery = async (
     const responseResults = hiddenFields.length === 0
         ? results
         : results.map((row) => hideObjectFields(row, hiddenFields));
-    if (countMode === 'none') {
-        return c.json({ results: responseResults });
-    }
-    const shouldCount = countMode === 'all-pages' || (countMode === 'first-page' && offset === 0);
+    const shouldCount = countAllPages || offset === 0;
     const count = shouldCount ? await c.env.DB.prepare(
         countQuery
     ).bind(...params).first("count") : 0;

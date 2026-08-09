@@ -171,7 +171,7 @@ For backward compatibility, requests without any of these parameters keep the le
 | `limit` | `20` | Page size, from 1 to 100 |
 | `offset` | `0` | Pagination offset |
 | `query` | empty | Substring search against the full email address |
-| `with_counts` | `true` | Set to `false` to skip inbox/sent counts and the total-count query; `count` is then omitted from the response |
+| `with_counts` | `true` | Set to `false` to skip inbox/sent counts for each address |
 
 The `results` array contains only the current page. Address-management pages can keep `with_counts=true`; lightweight selectors should use `with_counts=false` with remote `query` searches.
 

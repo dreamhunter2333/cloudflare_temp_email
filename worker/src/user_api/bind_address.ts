@@ -131,7 +131,7 @@ const UserBindAddressModule = {
             offset ?? 0,
             'a.id DESC',
             [],
-            with_counts === 'false' ? 'none' : 'all-pages',
+            true,
         );
     },
     getBindedAddressesById: async (
