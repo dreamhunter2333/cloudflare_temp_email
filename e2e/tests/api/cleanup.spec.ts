@@ -3,7 +3,7 @@ import { WORKER_URL, createTestAddress, deleteAddress } from '../../fixtures/tes
 
 const listMails = async (request: APIRequestContext, address: string) => {
   const response = await request.get(`${WORKER_URL}/admin/mails`, {
-    params: { address, limit: '200', offset: '0' },
+    params: { address, limit: '100', offset: '0' },
   });
   expect(response.ok()).toBe(true);
   return response.json();
