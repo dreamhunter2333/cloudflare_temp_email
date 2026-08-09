@@ -494,10 +494,10 @@ export const cleanup = async (
     if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
     }
-    const cleanupBatchSize = Math.max(
-        1,
-        Math.min(getIntValue(c.env.CLEANUP_BATCH_SIZE, 3000) || 3000, 5000)
-    );
+    let cleanupBatchSize = getIntValue(c.env.CLEANUP_BATCH_SIZE, 3000);
+    if (!Number.isInteger(cleanupBatchSize) || cleanupBatchSize < 1 || cleanupBatchSize > 5000) {
+        cleanupBatchSize = 3000;
+    }
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
         case "inactiveAddress":
