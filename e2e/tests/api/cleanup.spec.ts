@@ -60,49 +60,6 @@ test.describe('Bounded cleanup', () => {
     await request.delete(`${WORKER_URL}/admin/mails/${recentMails.results[0].id}`);
   });
 
-  test('advances through a bounded scan when old mails are not unknown', async ({ request }) => {
-    const knownAddress = await createTestAddress(request, 'cleanup-known-address');
-    const unknownAddress = `cleanup-unknown-${Date.now()}@test.example.com`;
-
-    try {
-      const knownResponses = await Promise.all(Array.from({ length: 10 }, (_, index) =>
-        request.post(`${WORKER_URL}/admin/test/seed_mail`, {
-          data: {
-            address: knownAddress.address,
-            raw: 'known cleanup mail',
-            message_id: `<cleanup-known-${Date.now()}-${index}@test>`,
-          },
-        })
-      ));
-      expect(knownResponses.every((response) => response.ok())).toBe(true);
-
-      const unknownResponse = await request.post(`${WORKER_URL}/admin/test/seed_mail`, {
-        data: {
-          address: unknownAddress,
-          raw: 'unknown cleanup mail',
-          message_id: `<cleanup-unknown-${Date.now()}@test>`,
-        },
-      });
-      expect(unknownResponse.ok()).toBe(true);
-      await new Promise((resolve) => setTimeout(resolve, 1100));
-
-      const firstCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
-        data: { cleanType: 'mails_unknow', cleanDays: 0 },
-      });
-      expect(firstCleanup.ok()).toBe(true);
-      expect((await listMails(request, unknownAddress)).count).toBe(1);
-
-      const secondCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
-        data: { cleanType: 'mails_unknow', cleanDays: 0 },
-      });
-      expect(secondCleanup.ok()).toBe(true);
-      expect((await listMails(request, unknownAddress)).count).toBe(0);
-      expect((await listMails(request, knownAddress.address)).count).toBe(10);
-    } finally {
-      await deleteAddress(request, knownAddress.jwt);
-    }
-  });
-
   test('deletes one address snapshot and its related data', async ({ request }) => {
     const oldAddress = await createTestAddress(request, 'cleanup-old-address');
 

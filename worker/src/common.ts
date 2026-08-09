@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, saveSetting, deleteSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
+import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, WebhookMail, WebhookSettings } from './models';
@@ -494,10 +494,10 @@ export const cleanup = async (
     if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
     }
-    const cleanupBatchSize = Math.min(
-        Math.max(getIntValue(c.env.CLEANUP_BATCH_SIZE, 3000), 1),
-        5000
-    );
+    const configuredBatchSize = Number(c.env.CLEANUP_BATCH_SIZE);
+    const cleanupBatchSize = Number.isInteger(configuredBatchSize) && configuredBatchSize > 0
+        ? Math.min(configuredBatchSize, 5000)
+        : 3000;
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
         case "inactiveAddress":
@@ -519,10 +519,11 @@ export const cleanup = async (
             )
             break;
         case "unboundAddress":
-            await batchDeleteConditionalAddresses(
+            await batchDeleteAddressWithData(
                 c,
-                `NOT EXISTS (SELECT 1 FROM users_address WHERE address_id = address.id)`,
-                "cleanup_cursor:unboundAddress",
+                `created_at < datetime('now', ?)`
+                + ` AND NOT EXISTS (SELECT 1 FROM users_address WHERE address_id = address.id)`,
+                "created_at",
                 cleanDays,
                 cleanupBatchSize
             )
@@ -538,7 +539,18 @@ export const cleanup = async (
             ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "mails_unknow":
-            await cleanupUnknownMails(c, cleanDays, cleanupBatchSize);
+            await c.env.DB.prepare(`
+                DELETE FROM raw_mails WHERE id IN (
+                    SELECT raw_mails.id FROM raw_mails
+                    WHERE raw_mails.created_at < datetime('now', ?)
+                    AND raw_mails.address IS NOT NULL
+                    AND NOT EXISTS (
+                        SELECT 1 FROM address WHERE name = raw_mails.address
+                    )
+                    ORDER BY raw_mails.created_at, raw_mails.id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "sendbox":
             await c.env.DB.prepare(`
@@ -552,11 +564,12 @@ export const cleanup = async (
             break;
         case "emptyAddress":
             // Delete addresses that have no emails and were created more than N days ago
-            await batchDeleteConditionalAddresses(
+            await batchDeleteAddressWithData(
                 c,
-                `address.name IS NOT NULL`
+                `created_at < datetime('now', ?)`
+                + ` AND address.name IS NOT NULL`
                 + ` AND NOT EXISTS (SELECT 1 FROM raw_mails WHERE raw_mails.address = address.name)`,
-                "cleanup_cursor:emptyAddress",
+                "created_at",
                 cleanDays,
                 cleanupBatchSize
             )
@@ -578,92 +591,6 @@ const batchDeleteAddressWithData = async (
         `SELECT id, name FROM address WHERE ${addressQueryCondition}`
         + ` ORDER BY ${orderBy}, id LIMIT ?`
     ).bind(`-${cleanDays} day`, batchSize).all<{ id: number; name: string }>();
-    if (results.length === 0) return true;
-
-    return await deleteAddressCandidates(c, results);
-}
-
-type CleanupCursor = {
-    created_at: string;
-    id: number;
-}
-
-type CleanupCandidate = CleanupCursor & {
-    should_delete: number;
-}
-
-const getCleanupCursor = async (
-    c: Context<HonoCustomType>, cursorKey: string
-): Promise<CleanupCursor | null> => {
-    const cursor = await getJsonSetting<CleanupCursor>(c, cursorKey);
-    if (!cursor || typeof cursor.created_at !== "string" || typeof cursor.id !== "number") return null;
-    return cursor;
-}
-
-const updateCleanupCursor = async (
-    c: Context<HonoCustomType>, cursorKey: string,
-    candidates: CleanupCursor[], batchSize: number
-): Promise<void> => {
-    if (candidates.length < batchSize) {
-        await deleteSetting(c, cursorKey);
-        return;
-    }
-    const lastCandidate = candidates[candidates.length - 1];
-    await saveSetting(c, cursorKey, JSON.stringify({
-        created_at: lastCandidate.created_at,
-        id: lastCandidate.id,
-    }));
-}
-
-const cleanupUnknownMails = async (
-    c: Context<HonoCustomType>, cleanDays: number, batchSize: number
-): Promise<void> => {
-    const cursorKey = "cleanup_cursor:mails_unknow";
-    const cursor = await getCleanupCursor(c, cursorKey);
-    const cursorQuery = cursor ? ` AND (created_at, id) > (?, ?)` : "";
-    const cursorParams = cursor ? [cursor.created_at, cursor.id] : [];
-    const { results } = await c.env.DB.prepare(`
-        SELECT id, created_at,
-            CASE WHEN address IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM address WHERE name = raw_mails.address
-            ) THEN 1 ELSE 0 END AS should_delete
-        FROM raw_mails
-        WHERE created_at < datetime('now', ?)${cursorQuery}
-        ORDER BY created_at, id
-        LIMIT ?`
-    ).bind(`-${cleanDays} day`, ...cursorParams, batchSize).all<CleanupCandidate>();
-
-    const mailIds = results.filter((mail) => mail.should_delete === 1).map((mail) => mail.id);
-    if (mailIds.length > 0) {
-        await c.env.DB.prepare(
-            `DELETE FROM raw_mails WHERE id IN (SELECT value FROM json_each(?))`
-        ).bind(JSON.stringify(mailIds)).run();
-    }
-    await updateCleanupCursor(c, cursorKey, results, batchSize);
-}
-
-const batchDeleteConditionalAddresses = async (
-    c: Context<HonoCustomType>, addressCheck: string, cursorKey: string,
-    cleanDays: number, batchSize: number
-): Promise<boolean> => {
-    const cursor = await getCleanupCursor(c, cursorKey);
-    const cursorQuery = cursor ? ` AND (created_at, id) > (?, ?)` : "";
-    const cursorParams = cursor ? [cursor.created_at, cursor.id] : [];
-    const { results } = await c.env.DB.prepare(
-        `SELECT id, name, created_at, CASE WHEN ${addressCheck}`
-        + ` THEN 1 ELSE 0 END AS should_delete FROM address`
-        + ` WHERE created_at < datetime('now', ?)${cursorQuery}`
-        + ` ORDER BY created_at, id LIMIT ?`
-    ).bind(`-${cleanDays} day`, ...cursorParams, batchSize).all<CleanupCandidate & { name: string }>();
-
-    await deleteAddressCandidates(c, results.filter((address) => address.should_delete === 1));
-    await updateCleanupCursor(c, cursorKey, results, batchSize);
-    return true;
-}
-
-const deleteAddressCandidates = async (
-    c: Context<HonoCustomType>, results: { id: number; name: string }[]
-): Promise<boolean> => {
     if (results.length === 0) return true;
 
     const addressIds = JSON.stringify(results.map((address) => address.id));
