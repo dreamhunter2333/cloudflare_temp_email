@@ -84,6 +84,7 @@ test.describe('User address pagination', () => {
       expect(firstPage.results).toHaveLength(2);
       expect(firstPage.results[0].mail_count).toBe(0);
       expect(firstPage.results[0].send_count).toBe(0);
+      expect(firstPage.results[0]).toHaveProperty('source_meta');
       expect(firstPage.results[0]).not.toHaveProperty('password');
 
       const secondPageRes = await request.get(

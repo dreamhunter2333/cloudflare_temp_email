@@ -104,7 +104,7 @@ const UserBindAddressModule = {
             + ` WHERE ua.user_id = ?`;
         return await handleListQuery(
             c,
-            `SELECT a.id, a.name, a.created_at, a.updated_at,`
+            `SELECT a.*,`
                 + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
                 + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
                 + fromQuery,
@@ -113,6 +113,7 @@ const UserBindAddressModule = {
             limit ?? 20,
             offset ?? 0,
             'a.id DESC',
+            ['password'],
         );
     },
     getBindedAddressesById: async (
