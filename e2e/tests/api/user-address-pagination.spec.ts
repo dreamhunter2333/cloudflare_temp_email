@@ -26,7 +26,7 @@ async function createUser(request: APIRequestContext) {
 }
 
 test.describe('User address pagination', () => {
-  test('paginates and searches addresses without loading counts when disabled', async ({ request }) => {
+  test('paginates and searches addresses', async ({ request }) => {
     const addresses: Awaited<ReturnType<typeof createTestAddress>>[] = [];
     let outsider: Awaited<ReturnType<typeof createTestAddress>> | undefined;
     let originalUserSettings: Record<string, unknown> | undefined;
@@ -75,19 +75,19 @@ test.describe('User address pagination', () => {
       expect(defaultPage.results).toHaveLength(3);
 
       const firstPageRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?limit=2&offset=0&with_counts=false`,
+        `${WORKER_URL}/user_api/bind_address?limit=2&offset=0`,
         { headers: { 'x-user-token': userJwt } },
       );
       expect(firstPageRes.ok()).toBe(true);
       const firstPage = await firstPageRes.json();
       expect(firstPage.count).toBe(3);
       expect(firstPage.results).toHaveLength(2);
-      expect(firstPage.results[0]).not.toHaveProperty('mail_count');
-      expect(firstPage.results[0]).not.toHaveProperty('send_count');
+      expect(firstPage.results[0].mail_count).toBe(0);
+      expect(firstPage.results[0].send_count).toBe(0);
       expect(firstPage.results[0]).not.toHaveProperty('password');
 
       const secondPageRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?limit=2&offset=2&with_counts=false`,
+        `${WORKER_URL}/user_api/bind_address?limit=2&offset=2`,
         { headers: { 'x-user-token': userJwt } },
       );
       expect(secondPageRes.ok()).toBe(true);
@@ -99,7 +99,6 @@ test.describe('User address pagination', () => {
         limit: '20',
         offset: '0',
         query: addresses[1].address,
-        with_counts: 'true',
       });
       const searchRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?${searchParams.toString()}`,
@@ -112,22 +111,6 @@ test.describe('User address pagination', () => {
       expect(searchResult.results[0].name).toBe(addresses[1].address);
       expect(searchResult.results[0].mail_count).toBe(0);
       expect(searchResult.results[0].send_count).toBe(0);
-
-      const lightweightParams = new URLSearchParams({
-        limit: '20',
-        offset: '0',
-        query: addresses[1].address,
-        with_counts: 'false',
-      });
-      const lightweightRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?${lightweightParams.toString()}`,
-        { headers: { 'x-user-token': userJwt } },
-      );
-      expect(lightweightRes.ok()).toBe(true);
-      const lightweightResult = await lightweightRes.json();
-      expect(lightweightResult.count).toBe(1);
-      expect(lightweightResult.results).toHaveLength(1);
-      expect(lightweightResult.results[0]).not.toHaveProperty('mail_count');
 
       const invalidLimitRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?limit=101&offset=0`,
@@ -145,7 +128,6 @@ test.describe('User address pagination', () => {
         limit: '20',
         offset: '0',
         query: 'A'.repeat(51),
-        with_counts: 'false',
       });
       const longQueryRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?${longQueryParams.toString()}`,

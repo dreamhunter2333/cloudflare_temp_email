@@ -41,7 +41,6 @@ const fetchAddressData = async (query = '') => {
         const params = new URLSearchParams({
             limit: '100',
             offset: '0',
-            with_counts: 'false',
         });
         if (query) {
             params.set('query', query);

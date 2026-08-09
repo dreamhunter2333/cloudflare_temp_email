@@ -103,7 +103,6 @@ const fetchData = async () => {
         const params = new URLSearchParams({
             limit: String(pageSize.value),
             offset: String((page.value - 1) * pageSize.value),
-            with_counts: 'true',
         });
         if (addressQuery.value) {
             params.set('query', addressQuery.value);

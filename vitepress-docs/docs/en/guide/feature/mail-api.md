@@ -171,9 +171,8 @@ Requests without pagination parameters return the default first page. Fetching a
 | `limit` | `20` | Page size, from 1 to 100 |
 | `offset` | `0` | Pagination offset |
 | `query` | empty | Substring search against the full email address |
-| `with_counts` | `true` | Set to `false` to skip inbox/sent counts for each address |
 
-The `results` array contains only the current page. The total is queried only when `offset=0`; later pages return `count: 0`, so clients should retain the total from the first page. Address-management pages can keep `with_counts=true`; lightweight selectors should use `with_counts=false` with remote `query` searches.
+The `results` array contains only the current page. The total is queried only when `offset=0`; later pages return `count: 0`, so clients should retain the total from the first page.
 
 ```python
 import requests
@@ -186,7 +185,6 @@ querystring = {
     "limit": "20",
     "offset": "0",
     "query": "example",
-    "with_counts": "false",
 }
 response = requests.get(url, headers=headers, params=querystring)
 print(response.json())

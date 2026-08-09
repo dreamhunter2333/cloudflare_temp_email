@@ -97,7 +97,7 @@ const UserBindAddressModule = {
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
-        const { limit, offset, query, with_counts } = c.req.query();
+        const { limit, offset, query } = c.req.query();
         const searchQuery = query?.trim();
         const params = [String(user_id)];
         let searchWhere = '';
@@ -109,16 +109,15 @@ const UserBindAddressModule = {
                 : ` AND a.name LIKE ? ESCAPE '\\'`;
             params.push(useInstr ? searchQuery : likeParam);
         }
-        const countFields = with_counts === 'false'
-            ? ''
-            : `, (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count`
-                + `, (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`;
         const fromQuery = ` FROM address a`
             + ` JOIN users_address ua ON ua.address_id = a.id`
             + ` WHERE ua.user_id = ?${searchWhere}`;
         return await handleListQuery(
             c,
-            `SELECT a.id, a.name, a.created_at, a.updated_at${countFields}${fromQuery}`,
+            `SELECT a.id, a.name, a.created_at, a.updated_at,`
+                + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
+                + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
+                + fromQuery,
             `SELECT COUNT(*) AS count${fromQuery}`,
             params,
             limit ?? 20,

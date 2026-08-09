@@ -171,9 +171,8 @@ print(response.json())
 | `limit` | `20` | 每页数量，范围为 1–100 |
 | `offset` | `0` | 分页偏移量 |
 | `query` | 空 | 按完整邮箱地址进行子串搜索 |
-| `with_counts` | `true` | 设为 `false` 时跳过每个地址的收发件数量查询 |
 
-响应中的 `results` 仅包含当前页。仅 `offset=0` 时查询总数，后续页面的 `count` 为 `0`，客户端应保留第一页返回的总数。地址管理页面可保留 `with_counts=true`；轻量地址选择器建议使用 `with_counts=false` 并结合 `query` 远程搜索。
+响应中的 `results` 仅包含当前页。仅 `offset=0` 时查询总数，后续页面的 `count` 为 `0`，客户端应保留第一页返回的总数。
 
 ```python
 import requests
@@ -186,7 +185,6 @@ querystring = {
     "limit": "20",
     "offset": "0",
     "query": "example",
-    "with_counts": "false",
 }
 response = requests.get(url, headers=headers, params=querystring)
 print(response.json())
