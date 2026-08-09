@@ -18,12 +18,12 @@
 
 - feat: |User| Add server-side pagination for bound addresses, with totals queried only on the first page; validate user-mail list ownership with a JOIN and delete ownership with `EXISTS` instead of loading every bound address for large users (issue #1103)
 
-- perf: |Worker| Process built-in cleanup tasks in bounded batches of 3000 by default, configurable through `CLEANUP_BATCH_SIZE` up to 5000; reuse one address snapshot when batch-deleting related data to avoid unbounded deletes and repeated address-table scans (issue #1103)
+- feat: |Worker| Process built-in cleanup tasks in bounded batches of 3000 by default, configurable through `CLEANUP_BATCH_SIZE` up to 5000; reuse one address snapshot when batch-deleting related data to avoid unbounded deletes and repeated address-table scans (issue #1103)
 
 ### Testing
 
 - fix: |E2E| Add regression coverage ensuring user settings do not rewrite recent address activity timestamps
-- test: |E2E| Cover cleanup batch limits, continuation on later runs, preservation of recent data, and address-related data cleanup
+- fix: |E2E| Cover cleanup batch limits, continuation on later runs, preservation of recent data, and address-related data cleanup
 
 ## v1.10.0
 

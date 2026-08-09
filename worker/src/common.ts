@@ -494,7 +494,10 @@ export const cleanup = async (
     if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
     }
-    const cleanupBatchSize = getCleanupBatchSize(c.env.CLEANUP_BATCH_SIZE);
+    const configuredBatchSize = Number(c.env.CLEANUP_BATCH_SIZE);
+    const cleanupBatchSize = Number.isInteger(configuredBatchSize) && configuredBatchSize > 0
+        ? Math.min(configuredBatchSize, 5000)
+        : 3000;
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
         case "inactiveAddress":
@@ -575,12 +578,6 @@ export const cleanup = async (
             throw new Error(msgs.InvalidCleanTypeMsg)
     }
     return true;
-}
-
-const getCleanupBatchSize = (value: string | number | undefined): number => {
-    const batchSize = Number(value);
-    if (!Number.isInteger(batchSize) || batchSize < 1) return 3000;
-    return Math.min(batchSize, 5000);
 }
 
 const batchDeleteAddressWithData = async (
