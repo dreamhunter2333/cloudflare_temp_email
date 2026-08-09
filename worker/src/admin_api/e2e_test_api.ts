@@ -6,7 +6,7 @@ const seedMail = async (c: Context<HonoCustomType>) => {
     if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
         return c.text("Not available", 404);
     }
-    const { address, source, raw, message_id } = await c.req.json();
+    const { address, source, raw, message_id, age_days = 0, count = 1 } = await c.req.json();
     if (!address || !raw) {
         return c.text("address and raw are required", 400);
     }
@@ -16,11 +16,34 @@ const seedMail = async (c: Context<HonoCustomType>) => {
     if (message_id && message_id.length > 255) {
         return c.text("message_id too long", 400);
     }
+    if (!Number.isInteger(age_days) || age_days < 0 || age_days > 1000) {
+        return c.text("age_days must be an integer between 0 and 1000", 400);
+    }
+    if (!Number.isInteger(count) || count < 1 || count > 100) {
+        return c.text("count must be an integer between 1 and 100", 400);
+    }
     const msgId = message_id || `<e2e-${Date.now()}@test>`;
+    const results = await c.env.DB.batch(Array.from({ length: count }, (_, index) =>
+        c.env.DB.prepare(
+            `INSERT INTO raw_mails (message_id, source, address, raw, created_at)`
+            + ` VALUES (?, ?, ?, ?, datetime('now', ?))`
+        ).bind(count === 1 ? msgId : `${msgId}-${index}`, source || address, address, raw, `-${age_days} day`)
+    ));
+    const success = results.every((result) => result.success);
+    return c.json({ success });
+};
+
+const backdateAddress = async (c: Context<HonoCustomType>) => {
+    if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
+        return c.text("Not available", 404);
+    }
+    const { id, age_days } = await c.req.json();
+    if (!Number.isInteger(id) || !Number.isInteger(age_days) || age_days < 1 || age_days > 1000) {
+        return c.text("id and age_days are required integers", 400);
+    }
     const { success } = await c.env.DB.prepare(
-        `INSERT INTO raw_mails (message_id, source, address, raw, created_at)`
-        + ` VALUES (?, ?, ?, ?, datetime('now'))`
-    ).bind(msgId, source || address, address, raw).run();
+        `UPDATE address SET created_at = datetime('now', ?), updated_at = datetime('now', ?) WHERE id = ?`
+    ).bind(`-${age_days} day`, `-${age_days} day`, id).run();
     return c.json({ success });
 };
 
@@ -78,4 +101,4 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
     });
 };
 
-export default { seedMail, receiveMail };
+export default { seedMail, backdateAddress, receiveMail };

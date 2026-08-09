@@ -18,9 +18,12 @@
 
 - feat: |User| Add server-side pagination for bound addresses, with totals queried only on the first page; validate user-mail list ownership with a JOIN and delete ownership with `EXISTS` instead of loading every bound address for large users (issue #1103)
 
+- perf: |Worker| Limit each built-in cleanup run to 100 candidates and reuse one address snapshot when batch-deleting related data, avoiding unbounded deletes and repeated address-table scans (issue #1103)
+
 ### Testing
 
 - fix: |E2E| Add regression coverage ensuring user settings do not rewrite recent address activity timestamps
+- test: |E2E| Cover cleanup batch limits, continuation on later runs, preservation of recent data, and address-related data cleanup
 
 ## v1.10.0
 

@@ -499,42 +499,71 @@ export const cleanup = async (
         case "inactiveAddress":
             await batchDeleteAddressWithData(
                 c,
-                `updated_at < datetime('now', '-${cleanDays} day')`
+                `updated_at < datetime('now', ?)`,
+                "updated_at",
+                cleanDays
             )
             break;
         case "addressCreated":
             await batchDeleteAddressWithData(
                 c,
-                `created_at < datetime('now', '-${cleanDays} day')`
+                `created_at < datetime('now', ?)`,
+                "created_at",
+                cleanDays
             )
             break;
         case "unboundAddress":
             await batchDeleteAddressWithData(
                 c,
-                `id NOT IN (SELECT address_id FROM users_address) AND created_at < datetime('now', '-${cleanDays} day')`
+                `created_at < datetime('now', ?)`
+                + ` AND NOT EXISTS (SELECT 1 FROM users_address WHERE address_id = address.id)`,
+                "created_at",
+                cleanDays
             )
             break;
         case "mails":
             await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM raw_mails WHERE id IN (
+                    SELECT id FROM raw_mails
+                    WHERE created_at < datetime('now', ?)
+                    ORDER BY created_at, id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, CLEANUP_BATCH_SIZE).run();
             break;
         case "mails_unknow":
             await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE address NOT IN
-                (select name from address) AND created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM raw_mails WHERE id IN (
+                    SELECT raw_mails.id FROM raw_mails
+                    WHERE raw_mails.created_at < datetime('now', ?)
+                    AND raw_mails.address IS NOT NULL
+                    AND NOT EXISTS (
+                        SELECT 1 FROM address WHERE name = raw_mails.address
+                    )
+                    ORDER BY raw_mails.created_at, raw_mails.id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, CLEANUP_BATCH_SIZE).run();
             break;
         case "sendbox":
             await c.env.DB.prepare(`
-                DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM sendbox WHERE id IN (
+                    SELECT id FROM sendbox
+                    WHERE created_at < datetime('now', ?)
+                    ORDER BY created_at, id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, CLEANUP_BATCH_SIZE).run();
             break;
         case "emptyAddress":
             // Delete addresses that have no emails and were created more than N days ago
             await batchDeleteAddressWithData(
                 c,
-                `name NOT IN (SELECT DISTINCT address FROM raw_mails WHERE address IS NOT NULL) AND created_at < datetime('now', '-${cleanDays} day')`
+                `created_at < datetime('now', ?)`
+                + ` AND address.name IS NOT NULL`
+                + ` AND NOT EXISTS (SELECT 1 FROM raw_mails WHERE raw_mails.address = address.name)`,
+                "created_at",
+                cleanDays
             )
             break;
         default:
@@ -543,34 +572,45 @@ export const cleanup = async (
     return true;
 }
 
+const CLEANUP_BATCH_SIZE = 100;
+
 const batchDeleteAddressWithData = async (
     c: Context<HonoCustomType>,
     addressQueryCondition: string,
+    orderBy: "created_at" | "updated_at",
+    cleanDays: number,
 ): Promise<boolean> => {
-    await c.env.DB.prepare(
-        `DELETE FROM raw_mails WHERE address IN ( ` +
-        `SELECT name FROM address WHERE ${addressQueryCondition})`
-    ).run();
-    await c.env.DB.prepare(
-        `DELETE FROM sendbox WHERE address IN ( ` +
-        `SELECT name FROM address WHERE ${addressQueryCondition})`
-    ).run();
-    await c.env.DB.prepare(
-        `DELETE FROM auto_reply_mails WHERE address IN ( ` +
-        `SELECT name FROM address WHERE ${addressQueryCondition})`
-    ).run();
-    await c.env.DB.prepare(
-        `DELETE FROM address_sender WHERE address IN ( ` +
-        `SELECT name FROM address WHERE ${addressQueryCondition})`
-    ).run();
-    await c.env.DB.prepare(
-        `DELETE FROM users_address WHERE address_id IN ( ` +
-        `SELECT id FROM address WHERE ${addressQueryCondition})`
-    ).run();
-    // delete address
-    await c.env.DB.prepare(`
-        DELETE FROM address WHERE ${addressQueryCondition}`
-    ).run();
+    const { results } = await c.env.DB.prepare(
+        `SELECT id, name FROM address WHERE ${addressQueryCondition}`
+        + ` ORDER BY ${orderBy}, id LIMIT ?`
+    ).bind(`-${cleanDays} day`, CLEANUP_BATCH_SIZE).all<{ id: number; name: string }>();
+    if (results.length === 0) return true;
+
+    const addressIds = results.map((address) => address.id);
+    const addressNames = results.map((address) => address.name);
+    const idPlaceholders = addressIds.map(() => "?").join(", ");
+    const namePlaceholders = addressNames.map(() => "?").join(", ");
+
+    await c.env.DB.batch([
+        c.env.DB.prepare(
+            `DELETE FROM raw_mails WHERE address IN (${namePlaceholders})`
+        ).bind(...addressNames),
+        c.env.DB.prepare(
+            `DELETE FROM sendbox WHERE address IN (${namePlaceholders})`
+        ).bind(...addressNames),
+        c.env.DB.prepare(
+            `DELETE FROM auto_reply_mails WHERE address IN (${namePlaceholders})`
+        ).bind(...addressNames),
+        c.env.DB.prepare(
+            `DELETE FROM address_sender WHERE address IN (${namePlaceholders})`
+        ).bind(...addressNames),
+        c.env.DB.prepare(
+            `DELETE FROM users_address WHERE address_id IN (${idPlaceholders})`
+        ).bind(...addressIds),
+        c.env.DB.prepare(
+            `DELETE FROM address WHERE id IN (${idPlaceholders})`
+        ).bind(...addressIds),
+    ]);
     return true;
 }
 
