@@ -65,13 +65,13 @@ test.describe('User address pagination', () => {
         expect(bindRes.ok()).toBe(true);
       }
 
-      const legacyRes = await request.get(`${WORKER_URL}/user_api/bind_address`, {
+      const defaultPageRes = await request.get(`${WORKER_URL}/user_api/bind_address`, {
         headers: { 'x-user-token': userJwt },
       });
-      expect(legacyRes.ok()).toBe(true);
-      const legacyResult = await legacyRes.json();
-      expect(legacyResult).not.toHaveProperty('count');
-      expect(legacyResult.results).toHaveLength(3);
+      expect(defaultPageRes.ok()).toBe(true);
+      const defaultPage = await defaultPageRes.json();
+      expect(defaultPage.count).toBe(3);
+      expect(defaultPage.results).toHaveLength(3);
 
       const firstPageRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?limit=2&offset=0&with_counts=false`,

@@ -72,6 +72,15 @@ test.describe('User address pagination browser flow', () => {
       const localOnlyAddress = await createTestAddress(request, 'browser-local-');
       createdAddresses.push(localOnlyAddress);
 
+      const defaultAddressPageResponse = await request.get(
+        `${WORKER_URL}/user_api/bind_address`,
+        { headers: { 'x-user-token': user.jwt } },
+      );
+      expect(defaultAddressPageResponse.ok()).toBe(true);
+      const defaultAddressPage = await defaultAddressPageResponse.json();
+      expect(defaultAddressPage.count).toBe(21);
+      expect(defaultAddressPage.results).toHaveLength(20);
+
       await page.goto(`${FRONTEND_URL}/en/`);
       await page.evaluate((userJwt) => {
         localStorage.setItem('userJwt', userJwt);

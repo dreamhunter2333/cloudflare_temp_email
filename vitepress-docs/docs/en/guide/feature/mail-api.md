@@ -164,7 +164,7 @@ This endpoint uses **User JWT** (obtained via `/user_api/login` or `/user_api/re
 
 `GET /user_api/bind_address` uses server-side pagination and accepts these query parameters:
 
-For backward compatibility, requests without any of these parameters keep the legacy behavior and return all bound addresses. New clients should always send pagination parameters.
+Requests without pagination parameters return the default first page. Fetching all bound addresses in one request is not supported.
 
 | Parameter | Default | Description |
 | --- | --- | --- |

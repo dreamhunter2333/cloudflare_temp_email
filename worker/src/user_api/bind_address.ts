@@ -98,12 +98,6 @@ const UserBindAddressModule = {
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
         const { limit, offset, query, with_counts } = c.req.query();
-        const usePagination = [limit, offset, query, with_counts]
-            .some((value) => value !== undefined);
-        if (!usePagination) {
-            const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);
-            return c.json({ results });
-        }
         const searchQuery = query?.trim();
         const params = [String(user_id)];
         let searchWhere = '';
@@ -133,12 +127,6 @@ const UserBindAddressModule = {
             [],
             true,
         );
-    },
-    getBindedAddressListById: async (
-        c: Context<HonoCustomType>, user_id: number | string
-    ): Promise<string[]> => {
-        const bindedAddressList = await UserBindAddressModule.getBindedAddressesById(c, user_id);
-        return bindedAddressList.map((item) => item.name);
     },
     getBindedAddressesById: async (
         c: Context<HonoCustomType>, user_id: number | string
