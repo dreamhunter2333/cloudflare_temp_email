@@ -6,20 +6,13 @@ import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
 import { updateAddressUpdatedAt, commonGetUserRole, hideObjectFields } from '../common';
 
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 100;
-
-type BindedAddress = {
+type BoundAddress = {
     id: number;
     name: string;
-    mail_count?: number;
-    send_count?: number;
     created_at: string;
     updated_at: string;
-};
-
-const escapeLikeQuery = (query: string): string => {
-    return query.replace(/[\\%_]/g, '\\$&');
+    mail_count?: number;
+    send_count?: number;
 }
 
 const UserBindAddressModule = {
@@ -121,9 +114,9 @@ const UserBindAddressModule = {
             const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);
             return c.json({ results });
         }
-        const limit = limitParam === undefined ? DEFAULT_PAGE_SIZE : Number(limitParam);
+        const limit = limitParam === undefined ? 20 : Number(limitParam);
         const offset = offsetParam === undefined ? 0 : Number(offsetParam);
-        if (!Number.isInteger(limit) || limit <= 0 || limit > MAX_PAGE_SIZE) {
+        if (!Number.isInteger(limit) || limit <= 0 || limit > 100) {
             return c.text(msgs.InvalidLimitMsg, 400);
         }
         if (!Number.isInteger(offset) || offset < 0) {
@@ -152,11 +145,11 @@ const UserBindAddressModule = {
         query: string,
         includeCounts: boolean,
         includeTotal: boolean,
-    ): Promise<{ results: BindedAddress[], count: number }> => {
+    ): Promise<{ results: BoundAddress[], count: number }> => {
         const params: (number | string)[] = [user_id];
         const filters = ['ua.user_id = ?'];
         if (query) {
-            const likeParam = `%${escapeLikeQuery(query)}%`;
+            const likeParam = `%${query.replace(/[\\%_]/g, '\\$&')}%`;
             const useInstr = new TextEncoder().encode(likeParam).length > 50;
             filters.push(useInstr
                 ? `instr(lower(a.name), lower(?)) > 0`
@@ -177,7 +170,7 @@ const UserBindAddressModule = {
             + ` ORDER BY a.id DESC LIMIT ? OFFSET ?`
         ).bind(...params, limit, offset);
         if (!includeTotal) {
-            const { results } = await resultsStatement.all<BindedAddress>();
+            const { results } = await resultsStatement.all<BoundAddress>();
             return { results: results || [], count: 0 };
         }
         const [pageResult, countResult] = await c.env.DB.batch([
@@ -186,13 +179,13 @@ const UserBindAddressModule = {
         ]);
         const countRow = countResult.results?.[0] as { count?: number } | undefined;
         return {
-            results: (pageResult.results || []) as BindedAddress[],
+            results: (pageResult.results || []) as BoundAddress[],
             count: countRow?.count || 0,
         };
     },
     getBindedAddressesById: async (
         c: Context<HonoCustomType>, user_id: number | string
-    ): Promise<BindedAddress[]> => {
+    ): Promise<BoundAddress[]> => {
         const msgs = i18n.getMessagesbyContext(c);
         if (!user_id) {
             throw new Error(msgs.UserNotFoundMsg);
@@ -207,7 +200,7 @@ const UserBindAddressModule = {
             + ` ON ua.address_id = a.id `
             + ` WHERE ua.user_id = ?`
             + ` ORDER BY a.id DESC`
-        ).bind(user_id).all<BindedAddress>();
+        ).bind(user_id).all<BoundAddress>();
         return (results || []).map((row) => hideObjectFields(row, ['password']));
     },
     getBindedAddressJwt: async (c: Context<HonoCustomType>) => {
