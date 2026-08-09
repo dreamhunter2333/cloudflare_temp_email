@@ -157,12 +157,15 @@ test.describe('User address pagination browser flow', () => {
       await expect(addressOptions).not.toContainText(localOnlyAddress.address.split('@')[0]);
     } finally {
       try {
-        await Promise.allSettled(createdAddresses.map((address) => deleteAddress(request, address.jwt)));
-        if (userId !== undefined) {
-          await request.delete(`${WORKER_URL}/admin/users/${userId}`);
-        }
-        if (originalUserSettings) {
-          await saveUserSettings(request, originalUserSettings);
+        try {
+          await Promise.allSettled(createdAddresses.map((address) => deleteAddress(request, address.jwt)));
+          if (userId !== undefined) {
+            await request.delete(`${WORKER_URL}/admin/users/${userId}`);
+          }
+        } finally {
+          if (originalUserSettings) {
+            await saveUserSettings(request, originalUserSettings);
+          }
         }
       } finally {
         await request.dispose();

@@ -106,7 +106,10 @@ const fetchUserAddressRows = async (query = '') => {
         params.set('query', query);
     }
     const { results } = await api.fetch(`/user_api/bind_address?${params.toString()}`);
-    return results || [];
+    const normalizedQuery = query.trim().toLowerCase();
+    return (results || [])
+        .filter((row) => !normalizedQuery || row.name?.toLowerCase().includes(normalizedQuery))
+        .slice(0, 100);
 }
 
 const buildUserOptions = async (query = '') => {
@@ -157,6 +160,7 @@ const buildTelegramOptions = async () => {
 }
 
 const refreshAddressOptions = async (query = '') => {
+    clearTimeout(addressSearchTimer);
     const requestId = ++addressRequestId;
     addressLoading.value = true;
     try {

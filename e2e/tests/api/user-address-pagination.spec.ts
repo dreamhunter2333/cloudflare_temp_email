@@ -11,11 +11,6 @@ async function createUser(request: APIRequestContext) {
   const email = `address-page-${Date.now()}@test.example.com`;
   const password = hashPassword('test-password-123');
 
-  const settingsRes = await request.post(`${WORKER_URL}/admin/user_settings`, {
-    data: { enable: true, enableMailVerify: false },
-  });
-  expect(settingsRes.ok()).toBe(true);
-
   const registerRes = await request.post(`${WORKER_URL}/user_api/register`, {
     data: { email, password },
   });
@@ -32,15 +27,34 @@ async function createUser(request: APIRequestContext) {
 
 test.describe('User address pagination', () => {
   test('paginates and searches addresses without loading counts when disabled', async ({ request }) => {
-    const { jwt: userJwt, userId } = await createUser(request);
-    const addresses = await Promise.all([
-      createTestAddress(request, 'user-page-a'),
-      createTestAddress(request, 'user-page-b'),
-      createTestAddress(request, 'user-page-c'),
-    ]);
-    const outsider = await createTestAddress(request, 'user-page-outsider');
+    const addresses: Awaited<ReturnType<typeof createTestAddress>>[] = [];
+    let outsider: Awaited<ReturnType<typeof createTestAddress>> | undefined;
+    let originalUserSettings: Record<string, unknown> | undefined;
+    let userId: number | undefined;
 
     try {
+      const settingsRes = await request.get(`${WORKER_URL}/admin/user_settings`);
+      expect(settingsRes.ok()).toBe(true);
+      originalUserSettings = await settingsRes.json();
+      const enableUserRes = await request.post(`${WORKER_URL}/admin/user_settings`, {
+        data: {
+          ...originalUserSettings,
+          enable: true,
+          enableMailVerify: false,
+        },
+      });
+      expect(enableUserRes.ok()).toBe(true);
+
+      const user = await createUser(request);
+      const userJwt = user.jwt;
+      userId = user.userId;
+      addresses.push(...await Promise.all([
+        createTestAddress(request, 'user-page-a'),
+        createTestAddress(request, 'user-page-b'),
+        createTestAddress(request, 'user-page-c'),
+      ]));
+      outsider = await createTestAddress(request, 'user-page-outsider');
+
       for (const item of addresses) {
         const bindRes = await request.post(`${WORKER_URL}/user_api/bind_address`, {
           headers: {
@@ -50,6 +64,14 @@ test.describe('User address pagination', () => {
         });
         expect(bindRes.ok()).toBe(true);
       }
+
+      const legacyRes = await request.get(`${WORKER_URL}/user_api/bind_address`, {
+        headers: { 'x-user-token': userJwt },
+      });
+      expect(legacyRes.ok()).toBe(true);
+      const legacyResult = await legacyRes.json();
+      expect(legacyResult).not.toHaveProperty('count');
+      expect(legacyResult.results).toHaveLength(3);
 
       const firstPageRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?limit=2&offset=0&with_counts=false`,
@@ -119,6 +141,21 @@ test.describe('User address pagination', () => {
       );
       expect(invalidOffsetRes.status()).toBe(400);
 
+      const longQueryParams = new URLSearchParams({
+        limit: '20',
+        offset: '0',
+        query: 'A'.repeat(51),
+        with_counts: 'false',
+      });
+      const longQueryRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address?${longQueryParams.toString()}`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(longQueryRes.ok()).toBe(true);
+      const longQueryResult = await longQueryRes.json();
+      expect(longQueryResult.count).toBe(0);
+      expect(longQueryResult.results).toHaveLength(0);
+
       await seedTestMail(request, addresses[0].address, { subject: 'Bound mail' });
       await seedTestMail(request, outsider.address, { subject: 'Outsider mail' });
 
@@ -159,11 +196,23 @@ test.describe('User address pagination', () => {
       const outsiderAfter = await outsiderAfterRes.json();
       expect(outsiderAfter.results).toHaveLength(1);
     } finally {
-      for (const item of [...addresses, outsider]) {
-        await deleteAddress(request, item.jwt);
+      try {
+        await Promise.allSettled(
+          [...addresses, outsider].filter((item) => item !== undefined)
+            .map((item) => deleteAddress(request, item.jwt)),
+        );
+        if (userId !== undefined) {
+          const deleteUserRes = await request.delete(`${WORKER_URL}/admin/users/${userId}`);
+          expect(deleteUserRes.ok()).toBe(true);
+        }
+      } finally {
+        if (originalUserSettings) {
+          const restoreSettingsRes = await request.post(`${WORKER_URL}/admin/user_settings`, {
+            data: originalUserSettings,
+          });
+          expect(restoreSettingsRes.ok()).toBe(true);
+        }
       }
-      const deleteUserRes = await request.delete(`${WORKER_URL}/admin/users/${userId}`);
-      expect(deleteUserRes.ok()).toBe(true);
     }
   });
 });

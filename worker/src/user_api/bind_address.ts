@@ -115,6 +115,12 @@ const UserBindAddressModule = {
         const { user_id } = c.get("userPayload");
         const msgs = i18n.getMessagesbyContext(c);
         const { limit: limitParam, offset: offsetParam, query, with_counts, with_total } = c.req.query();
+        const usePagination = [limitParam, offsetParam, query, with_counts, with_total]
+            .some((value) => value !== undefined);
+        if (!usePagination) {
+            const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);
+            return c.json({ results });
+        }
         const limit = limitParam === undefined ? DEFAULT_PAGE_SIZE : Number(limitParam);
         const offset = offsetParam === undefined ? 0 : Number(offsetParam);
         if (!Number.isInteger(limit) || limit <= 0 || limit > MAX_PAGE_SIZE) {

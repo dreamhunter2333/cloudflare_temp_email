@@ -164,6 +164,8 @@ This endpoint uses **User JWT** (obtained via `/user_api/login` or `/user_api/re
 
 `GET /user_api/bind_address` uses server-side pagination and accepts these query parameters:
 
+For backward compatibility, requests without any of these parameters keep the legacy behavior and return all bound addresses. New clients should always send pagination parameters.
+
 | Parameter | Default | Description |
 | --- | --- | --- |
 | `limit` | `20` | Page size, from 1 to 100 |

@@ -49,13 +49,16 @@ const fetchAddressData = async (query = '') => {
         }
         const { results } = await api.fetch(`/user_api/bind_address?${params.toString()}`);
         if (requestId !== addressFilterRequestId) return;
-        addressFilterOptions.value = results.map((item) => {
-            return {
+        const normalizedQuery = query.trim().toLowerCase();
+        addressFilterOptions.value = (results || [])
+            .filter((item) => !normalizedQuery || item.name?.toLowerCase().includes(normalizedQuery))
+            .slice(0, 100)
+            .map((item) => ({
                 label: item.name,
                 value: item.name
-            }
-        });
+            }));
     } catch (error) {
+        if (requestId !== addressFilterRequestId) return;
         console.log(error)
         message.error(error.message || "error");
     } finally {

@@ -101,17 +101,27 @@ const fetchData = async () => {
         if (addressQuery.value) {
             params.set('query', addressQuery.value);
         }
-        const { results, count: addressCount } = await api.fetch(
+        const response = await api.fetch(
             `/user_api/bind_address?${params.toString()}`
         );
         if (requestId !== fetchRequestId) return;
-        data.value = results;
+        const results = response.results || [];
+        const hasServerPagination = Number.isInteger(response.count);
+        const normalizedQuery = addressQuery.value.toLowerCase();
+        const fallbackResults = hasServerPagination
+            ? results
+            : results.filter((row) => !normalizedQuery || row.name?.toLowerCase().includes(normalizedQuery));
+        const addressCount = hasServerPagination ? response.count : fallbackResults.length;
+        data.value = hasServerPagination
+            ? results
+            : fallbackResults.slice((page.value - 1) * pageSize.value, page.value * pageSize.value);
         count.value = addressCount;
         const lastPage = Math.max(1, Math.ceil(addressCount / pageSize.value));
         if (page.value > lastPage) {
             page.value = lastPage;
         }
     } catch (error) {
+        if (requestId !== fetchRequestId) return;
         console.log(error)
         message.error(error.message || "error");
     } finally {
