@@ -579,7 +579,7 @@ export const cleanup = async (
 
 const getCleanupBatchSize = (value: string | number | undefined): number => {
     const batchSize = Number(value);
-    if (!Number.isInteger(batchSize) || batchSize < 1) return 1000;
+    if (!Number.isInteger(batchSize) || batchSize < 1) return 3000;
     return Math.min(batchSize, 5000);
 }
 
