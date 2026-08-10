@@ -31,17 +31,19 @@ test('create an address with a custom subdomain from the UI', async ({ page }) =
 
     const name = `subui${Date.now()}`;
     const domain = `team.${TEST_DOMAIN}`;
-    await page.locator('.n-input-group:visible .n-input input').fill(name);
+    const createForm = page.locator('.n-tab-pane:visible form');
+    await createForm.locator('.n-input-group .n-input input').fill(name);
 
-    const domainSelect = page.locator('.n-input-group:visible .n-select');
+    const domainSelect = createForm.locator('.n-input-group .n-select');
     await domainSelect.click();
     await domainSelect.locator('input').fill(domain);
     await domainSelect.locator('input').press('Enter');
 
-    await page.getByRole('button', { name: 'Create New Email' }).last().click();
+    await createForm.getByRole('button', { name: 'Create New Email' }).click();
 
     const address = `TMP${name}@${domain}`;
     await expect(page.locator('code').getByText(address, { exact: true })).toBeVisible();
+    await page.waitForFunction(() => Boolean(localStorage.getItem('jwt')));
     jwt = await page.evaluate(() => localStorage.getItem('jwt') || undefined);
     expect(jwt).toBeTruthy();
   } finally {
