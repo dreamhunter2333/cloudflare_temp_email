@@ -41,7 +41,7 @@ test('create an address with a custom subdomain from the UI', async ({ page }) =
 
     await createForm.getByRole('button', { name: 'Create New Email' }).click();
 
-    const address = `TMP${name}@${domain}`;
+    const address = `tmp${name}@${domain}`;
     await expect(page.locator('code').getByText(address, { exact: true })).toBeVisible();
     await page.waitForFunction(() => Boolean(localStorage.getItem('jwt')));
     jwt = await page.evaluate(() => localStorage.getItem('jwt') || undefined);

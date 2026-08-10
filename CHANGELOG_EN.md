@@ -24,7 +24,7 @@
 
 ### Testing
 
-- test: |E2E| Cover creating a custom-subdomain address from the UI and recreating the same address after deletion
+- fix: |E2E| Cover creating a custom-subdomain address from the UI and recreating the same address after deletion
 - fix: |E2E| Add regression coverage ensuring user settings do not rewrite recent address activity timestamps
 - fix: |E2E| Cover cleanup batch limits, continuation on later runs, preservation of recent data, and address-related data cleanup
 
