@@ -88,6 +88,7 @@ const getOpenSettings = async (message, notification) => {
             needAuth: res["needAuth"] || false,
             defaultDomains: res["defaultDomains"] || [],
             randomSubdomainDomains: res["randomSubdomainDomains"] || [],
+            enableAddressCreationSubdomainMatch: res["enableAddressCreationSubdomainMatch"] || false,
             domains: domains.map((domain, index) => {
                 return {
                     label: domainLabels.length > index ? domainLabels[index] : domain,

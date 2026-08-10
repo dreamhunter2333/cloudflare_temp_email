@@ -277,6 +277,8 @@ const fetchData = async ({ suppressErrorMessage = false } = {}) => {
         addressCreationSubdomainMatchMode.value = getSubdomainMatchModeByStoredValue(
             addressCreationSubdomainMatchStatus.value.storedEnabled
         )
+        openSettings.value.enableAddressCreationSubdomainMatch
+            = addressCreationSubdomainMatchStatus.value.effectiveEnabled
         const sendMailLimitConfig = res.sendMailLimitConfig
         sendMailDailyLimitEnabled.value = !!sendMailLimitConfig?.dailyEnabled
         sendMailMonthlyLimitEnabled.value = !!sendMailLimitConfig?.monthlyEnabled

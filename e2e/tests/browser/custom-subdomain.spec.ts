@@ -25,8 +25,19 @@ test('create an address with a custom subdomain from the UI', async ({ page }) =
   };
 
   try {
-    await saveSubdomainMatchSetting(true);
+    await saveSubdomainMatchSetting(false);
     await page.goto(`${FRONTEND_URL}/en/`);
+    await page.getByRole('button', { name: 'Create New Email' }).click();
+
+    const disabledCreateForm = page.locator('.n-tab-pane:visible form');
+    const disabledDomainSelect = disabledCreateForm.locator('.n-input-group .n-select');
+    await expect(disabledDomainSelect.locator('input')).toHaveCount(0);
+    await expect(disabledCreateForm.getByText(
+      'You can choose a domain from the dropdown list.', { exact: true }
+    )).toBeVisible();
+
+    await saveSubdomainMatchSetting(true);
+    await page.reload();
     await page.getByRole('button', { name: 'Create New Email' }).click();
 
     const name = `subui${Date.now()}`;
@@ -35,6 +46,7 @@ test('create an address with a custom subdomain from the UI', async ({ page }) =
     await createForm.locator('.n-input-group .n-input input').fill(name);
 
     const domainSelect = createForm.locator('.n-input-group .n-select');
+    await expect(domainSelect.locator('input')).toHaveCount(1);
     await domainSelect.click();
     await domainSelect.locator('input').fill(domain);
     await domainSelect.locator('input').press('Enter');

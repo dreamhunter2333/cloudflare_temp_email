@@ -30,6 +30,7 @@ export const useGlobalState = createGlobalState(
             defaultDomains: [],
             /** @type {string[]} */
             randomSubdomainDomains: [],
+            enableAddressCreationSubdomainMatch: false,
             /** @type {Array<{label: string, value: string}>} */
             domains: [],
             copyright: 'Dream Hunter',

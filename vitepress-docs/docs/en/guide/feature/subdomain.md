@@ -92,8 +92,9 @@ addresses can be created through `/api/new_address` or `/admin/new_address`:
 - `name@team.abc.com`
 - `name@dev.team.abc.com`
 
-On the web and admin create-address pages, enter the full subdomain in the domain selector and
-press Enter. The backend still verifies that it is a subdomain of an allowed base domain.
+When the setting is effectively enabled, the domain selector on the web and admin create-address
+pages accepts a full subdomain followed by Enter. When disabled, it only accepts configured domains.
+The backend still verifies that the input is a subdomain of an allowed base domain.
 
 > [!NOTE]
 > This feature does not create Cloudflare-side subdomain mail routes for you.

@@ -2498,6 +2498,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Credential Login",
       "zh": "凭据登录"
     },
+    "customSubdomainTip": {
+      "en": "Select a domain, or enter a custom subdomain such as team.example.com.",
+      "zh": "选择域名，或输入 team.example.com 这样的自定义子域名。"
+    },
     "email": {
       "en": "Email",
       "zh": "邮箱"
@@ -2527,8 +2531,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "留空将会生成一个随机的邮箱地址。"
     },
     "getNewEmailTip3": {
-      "en": "Select a domain, or enter a custom subdomain such as team.example.com. Custom subdomains require subdomain suffix matching to be enabled.",
-      "zh": "选择域名，或输入 team.example.com 这样的自定义子域名。使用自定义子域名前需启用子域名后缀匹配。"
+      "en": "You can choose a domain from the dropdown list.",
+      "zh": "你可以从下拉列表中选择一个域名。"
     },
     "help": {
       "en": "Help",

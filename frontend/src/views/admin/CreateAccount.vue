@@ -83,10 +83,12 @@ onMounted(async () => {
                     </n-input-group-label>
                     <n-input v-model:value="emailName" />
                     <n-input-group-label>@</n-input-group-label>
-                    <n-select v-model:value="emailDomain" :consistent-menu-width="false" filterable tag
+                    <n-select v-model:value="emailDomain" :consistent-menu-width="false"
+                        :filterable="openSettings.enableAddressCreationSubdomainMatch"
+                        :tag="openSettings.enableAddressCreationSubdomainMatch"
                         :options="openSettings.domains" />
                 </n-input-group>
-                <p style="margin: 8px 0 0; opacity: 0.75;">
+                <p v-if="openSettings.enableAddressCreationSubdomainMatch" style="margin: 8px 0 0; opacity: 0.75;">
                     {{ t('customSubdomainTip') }}
                 </p>
             </n-form-item-row>

@@ -131,6 +131,25 @@ test.describe('Create Address Subdomain Match', () => {
     expect(await res.text()).toContain('Invalid domain');
   });
 
+  test('public settings exposes the effective subdomain match state', async ({ request }) => {
+    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, false);
+    const disabledRes = await request.get(`${CREATE_ADDRESS_WORKER_URL}/open_api/settings`);
+    expect(disabledRes.ok()).toBe(true);
+    expect((await disabledRes.json()).enableAddressCreationSubdomainMatch).toBe(false);
+
+    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, true);
+    const enabledRes = await request.get(`${CREATE_ADDRESS_WORKER_URL}/open_api/settings`);
+    expect(enabledRes.ok()).toBe(true);
+    expect((await enabledRes.json()).enableAddressCreationSubdomainMatch).toBe(true);
+
+    if (WORKER_URL_ENV_OFF) {
+      await saveSubdomainMatchSetting(request, WORKER_URL_ENV_OFF, true);
+      const envOffRes = await request.get(`${WORKER_URL_ENV_OFF}/open_api/settings`);
+      expect(envOffRes.ok()).toBe(true);
+      expect((await envOffRes.json()).enableAddressCreationSubdomainMatch).toBe(false);
+    }
+  });
+
   test('admin switch enables suffix subdomain match for both admin and user create APIs', async ({ request }) => {
     await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, true);
 
