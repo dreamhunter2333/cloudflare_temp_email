@@ -184,6 +184,34 @@ test.describe('Create Address Subdomain Match', () => {
     expect(await invalidOverlongRes.text()).toContain('Invalid domain');
   });
 
+  test('deleted custom subdomain address can be recreated', async ({ request }) => {
+    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, true);
+
+    const name = `subreuse${Date.now()}`;
+    const createAddress = () => request.post(`${CREATE_ADDRESS_WORKER_URL}/api/new_address`, {
+      data: { name, domain: SUBDOMAIN },
+    });
+
+    const firstCreate = await createAddress();
+    expect(firstCreate.ok()).toBe(true);
+    const firstAddress = await firstCreate.json();
+
+    const firstDelete = await request.delete(`${CREATE_ADDRESS_WORKER_URL}/api/delete_address`, {
+      headers: { Authorization: `Bearer ${firstAddress.jwt}` },
+    });
+    expect(firstDelete.ok()).toBe(true);
+
+    const secondCreate = await createAddress();
+    expect(secondCreate.ok()).toBe(true);
+    const secondAddress = await secondCreate.json();
+    expect(secondAddress.address).toBe(firstAddress.address);
+
+    const secondDelete = await request.delete(`${CREATE_ADDRESS_WORKER_URL}/api/delete_address`, {
+      headers: { Authorization: `Bearer ${secondAddress.jwt}` },
+    });
+    expect(secondDelete.ok()).toBe(true);
+  });
+
   test('env false works as hard kill switch even if admin setting is enabled', async ({ request }) => {
     test.skip(!WORKER_URL_ENV_OFF, 'WORKER_URL_ENV_OFF is not configured');
 

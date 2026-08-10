@@ -83,9 +83,12 @@ onMounted(async () => {
                     </n-input-group-label>
                     <n-input v-model:value="emailName" />
                     <n-input-group-label>@</n-input-group-label>
-                    <n-select v-model:value="emailDomain" :consistent-menu-width="false"
+                    <n-select v-model:value="emailDomain" :consistent-menu-width="false" filterable tag
                         :options="openSettings.domains" />
                 </n-input-group>
+                <p style="margin: 8px 0 0; opacity: 0.75;">
+                    {{ t('customSubdomainTip') }}
+                </p>
             </n-form-item-row>
             <n-form-item-row v-if="canUseRandomSubdomain">
                 <n-checkbox v-model:checked="enableRandomSubdomain">

@@ -2000,6 +2000,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Create New Email",
       "zh": "创建新邮箱"
     },
+    "customSubdomainTip": {
+      "en": "Select a domain, or enter a custom subdomain such as team.example.com. Custom subdomains require subdomain suffix matching to be enabled.",
+      "zh": "选择域名，或输入 team.example.com 这样的自定义子域名。使用自定义子域名前需启用子域名后缀匹配。"
+    },
     "enablePrefix": {
       "en": "If enable Prefix",
       "zh": "是否启用前缀"
@@ -2523,8 +2527,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "留空将会生成一个随机的邮箱地址。"
     },
     "getNewEmailTip3": {
-      "en": "You can choose a domain from the dropdown list.",
-      "zh": "你可以从下拉列表中选择一个域名。"
+      "en": "Select a domain, or enter a custom subdomain such as team.example.com. Custom subdomains require subdomain suffix matching to be enabled.",
+      "zh": "选择域名，或输入 team.example.com 这样的自定义子域名。使用自定义子域名前需启用子域名后缀匹配。"
     },
     "help": {
       "en": "Help",
