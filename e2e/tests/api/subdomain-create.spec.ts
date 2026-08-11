@@ -210,24 +210,26 @@ test.describe('Create Address Subdomain Match', () => {
     expect(await outsideRandomScopeRes.text()).toContain('Invalid domain');
   });
 
-  test('deleted custom subdomain address can be recreated', async ({ request }) => {
+  test('deleted random subdomain address can be recreated manually', async ({ request }) => {
     await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, true);
 
     const name = `subreuse${Date.now()}`;
-    const createAddress = () => request.post(`${CREATE_ADDRESS_WORKER_URL}/api/new_address`, {
-      data: { name, domain: SUBDOMAIN },
+    const firstCreate = await request.post(`${CREATE_ADDRESS_WORKER_URL}/api/new_address`, {
+      data: { name, domain: TEST_DOMAIN, enableRandomSubdomain: true },
     });
-
-    const firstCreate = await createAddress();
     expect(firstCreate.ok()).toBe(true);
     const firstAddress = await firstCreate.json();
+    const generatedDomain = firstAddress.address.split('@')[1];
+    expect(generatedDomain).not.toBe(TEST_DOMAIN);
 
     const firstDelete = await request.delete(`${CREATE_ADDRESS_WORKER_URL}/api/delete_address`, {
       headers: { Authorization: `Bearer ${firstAddress.jwt}` },
     });
     expect(firstDelete.ok()).toBe(true);
 
-    const secondCreate = await createAddress();
+    const secondCreate = await request.post(`${CREATE_ADDRESS_WORKER_URL}/api/new_address`, {
+      data: { name, domain: generatedDomain },
+    });
     expect(secondCreate.ok()).toBe(true);
     const secondAddress = await secondCreate.json();
     expect(secondAddress.address).toBe(firstAddress.address);
