@@ -411,16 +411,11 @@ export const newAddress = async (
     }
     const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
     const allowManualSubdomain = domain
-        ? allowDomains.some((baseDomain) => {
-            if (!allowRandomSubdomainForDomain(c, baseDomain)) {
-                return false;
-            }
-            return isDomainOrSubdomain(domain, baseDomain);
-        })
+        ? allowDomains.some((baseDomain) =>
+            allowRandomSubdomainForDomain(c, baseDomain) && isDomainOrSubdomain(domain, baseDomain))
         : false;
-    const allowSubdomainMatch = enableSubdomainMatch || allowManualSubdomain;
     const matchedAllowDomain = domain
-        ? findMatchedAllowedDomain(domain, allowDomains, allowSubdomainMatch)
+        ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch || allowManualSubdomain)
         : null;
     // check domain is valid
     if (!domain || !matchedAllowDomain) {
