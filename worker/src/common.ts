@@ -410,12 +410,17 @@ export const newAddress = async (
         domain = normalizeDomainValue(domain);
     }
     const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
-    const enableRandomSubdomainMatch = domain
-        ? allowDomains.some((allowDomain) =>
-            allowRandomSubdomainForDomain(c, allowDomain) && isDomainOrSubdomain(domain, allowDomain))
+    const allowManualSubdomain = domain
+        ? allowDomains.some((baseDomain) => {
+            if (!allowRandomSubdomainForDomain(c, baseDomain)) {
+                return false;
+            }
+            return isDomainOrSubdomain(domain, baseDomain);
+        })
         : false;
+    const allowSubdomainMatch = enableSubdomainMatch || allowManualSubdomain;
     const matchedAllowDomain = domain
-        ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch || enableRandomSubdomainMatch)
+        ? findMatchedAllowedDomain(domain, allowDomains, allowSubdomainMatch)
         : null;
     // check domain is valid
     if (!domain || !matchedAllowDomain) {
