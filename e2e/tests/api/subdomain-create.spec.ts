@@ -8,6 +8,7 @@ const INVALID_LOOKALIKE_DOMAIN = `bad${TEST_DOMAIN}`;
 const INVALID_EMPTY_PREFIX_DOMAIN = `.${TEST_DOMAIN}`;
 const INVALID_EMPTY_LABEL_DOMAIN = `a..b.${TEST_DOMAIN}`;
 const INVALID_OVERLONG_DOMAIN = `${'a.'.repeat(119)}${TEST_DOMAIN}`;
+const SUBDOMAIN_OUTSIDE_RANDOM_SCOPE = 'team.no-random.example.com';
 const CREATE_ADDRESS_WORKER_URL = WORKER_URL_SUBDOMAIN || WORKER_URL;
 let originalCreateAddressStoredEnabled: boolean | undefined;
 let originalEnvOffStoredEnabled: boolean | undefined;
@@ -201,6 +202,12 @@ test.describe('Create Address Subdomain Match', () => {
     });
     expect(invalidOverlongRes.ok()).toBe(false);
     expect(await invalidOverlongRes.text()).toContain('Invalid domain');
+
+    const outsideRandomScopeRes = await request.post(`${CREATE_ADDRESS_WORKER_URL}/admin/new_address`, {
+      data: { name: `subscope${Date.now()}`, domain: SUBDOMAIN_OUTSIDE_RANDOM_SCOPE },
+    });
+    expect(outsideRandomScopeRes.ok()).toBe(false);
+    expect(await outsideRandomScopeRes.text()).toContain('Invalid domain');
   });
 
   test('deleted custom subdomain address can be recreated', async ({ request }) => {

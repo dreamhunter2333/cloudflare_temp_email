@@ -32,6 +32,8 @@ test('create an address with a custom subdomain from the UI', async ({ page }) =
     const disabledCreateForm = page.locator('.n-tab-pane:visible form');
     const disabledDomainSelect = disabledCreateForm.locator('.n-input-group .n-select');
     await expect(disabledDomainSelect.locator('input')).toHaveCount(0);
+    await expect(disabledCreateForm.getByText('Use Random Subdomain', { exact: true })).toBeVisible();
+    await expect(disabledCreateForm.getByText('Use Custom Subdomain', { exact: true })).toHaveCount(0);
     await expect(disabledCreateForm.getByText(
       'You can choose a domain from the dropdown list.', { exact: true }
     )).toBeVisible();
@@ -41,18 +43,22 @@ test('create an address with a custom subdomain from the UI', async ({ page }) =
     await page.getByRole('button', { name: 'Create New Email' }).click();
 
     const name = `subui${Date.now()}`;
-    const domain = `team.${TEST_DOMAIN}`;
     const createForm = page.locator('.n-tab-pane:visible form');
     await createForm.locator('.n-input-group .n-input input').fill(name);
 
     const domainSelect = createForm.locator('.n-input-group .n-select');
-    await expect(domainSelect.locator('input')).toHaveCount(1);
-    await domainSelect.click();
-    await domainSelect.locator('input').fill(domain);
-    await domainSelect.locator('input').press('Enter');
+    await expect(domainSelect.locator('input')).toHaveCount(0);
+
+    const randomSubdomain = createForm.getByRole('checkbox', { name: 'Use Random Subdomain' });
+    const customSubdomain = createForm.getByRole('checkbox', { name: 'Use Custom Subdomain' });
+    await randomSubdomain.check();
+    await customSubdomain.check();
+    await expect(randomSubdomain).not.toBeChecked();
+    await createForm.getByPlaceholder('Custom subdomain').fill('team');
 
     await createForm.getByRole('button', { name: 'Create New Email' }).click();
 
+    const domain = `team.${TEST_DOMAIN}`;
     const address = `tmp${name}@${domain}`;
     await expect(page.locator('code').getByText(address, { exact: true })).toBeVisible();
     await page.waitForFunction(() => Boolean(localStorage.getItem('jwt')));

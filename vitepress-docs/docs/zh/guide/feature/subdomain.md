@@ -26,7 +26,7 @@ RANDOM_SUBDOMAIN_DOMAINS = ["abc.com"]
 RANDOM_SUBDOMAIN_LENGTH = 8
 ```
 
-- `RANDOM_SUBDOMAIN_DOMAINS`：允许启用随机二级域名的基础域名列表
+- `RANDOM_SUBDOMAIN_DOMAINS`：允许使用随机或手动子域名的基础域名列表
 - `RANDOM_SUBDOMAIN_LENGTH`：随机串长度，范围 `1-63`，默认 `8`
 
 创建地址 API 需要显式传入 `enableRandomSubdomain: true` 才会生成随机二级域名。前端勾选“启用随机二级域名”时会自动传这个字段；如果你自己调用 `/api/new_address` 或 `/admin/new_address`，也需要在请求体中传入：
@@ -58,12 +58,13 @@ RANDOM_SUBDOMAIN_LENGTH = 8
 >
 > 参考 issue：[#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035)
 
-## 允许 API 直接指定子域名
+## 手动指定子域名
 
 如果你不想让系统随机生成子域名，而是希望调用方在创建地址时直接指定 `team.abc.com` 这种子域名，
-可以开启：
+需要把基础域名加入随机子域名范围，并开启手动子域名开关：
 
 ```toml
+RANDOM_SUBDOMAIN_DOMAINS = ["abc.com"]
 ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 ```
 
@@ -74,10 +75,12 @@ ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 
 都可以通过 `/api/new_address` 或 `/admin/new_address` 创建。
 
-该开关实际生效时，网页端和管理后台的创建邮箱页面才会允许在域名选择框中直接输入完整子域名，
-然后按 Enter 确认；关闭时仍只能选择配置好的域名。后端还会校验输入域名是否为已配置基础域名的子域名。
+两个配置同时生效时，网页端和管理后台会在随机子域名选项旁显示独立的“使用自定义子域名”开关。
+开启后只需输入 `team`，前端会与当前基础域名组合成 `team.abc.com`。手动与随机模式互斥。
+
+后端还会校验匹配到的基础域名是否同时存在于允许域名和 `RANDOM_SUBDOMAIN_DOMAINS` 中。
 
 > [!NOTE]
-> 这个能力不会自动创建 Cloudflare 侧的子域名邮箱路由。
+> 手动和随机子域名共用 `RANDOM_SUBDOMAIN_DOMAINS` 的范围及同一套通配 MX 配置；这个能力不会自动创建 Cloudflare 侧的子域名邮箱路由。
 >
 > 如果你在管理后台里保存过这个开关，后续也可以通过“跟随环境变量”把它恢复到未设置状态，再重新回退到 env 默认值。

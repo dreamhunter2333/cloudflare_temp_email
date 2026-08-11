@@ -1,4 +1,4 @@
-name = "cloudflare_temp_email"
+name = "cloudflare_temp_email_subdomain"
 main = "src/worker.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = [ "nodejs_compat" ]
@@ -6,14 +6,10 @@ keep_vars = true
 
 [vars]
 PREFIX = "TMP"
-DEFAULT_DOMAINS = []
-DOMAINS = ["TEST.EXAMPLE.COM"]
+DEFAULT_DOMAINS = ["TEST.EXAMPLE.COM"]
+DOMAINS = ["TEST.EXAMPLE.COM", "NO-RANDOM.EXAMPLE.COM"]
 RANDOM_SUBDOMAIN_DOMAINS = ["TEST.EXAMPLE.COM"]
-USER_ROLES = [
-  { domains = ["TEST.EXAMPLE.COM"], role = "case-role", prefix = "ROLE" },
-  { domains = [], role = "empty-role", prefix = "EMPTY" },
-]
-JWT_SECRET = "e2e-test-secret-key"
+JWT_SECRET = "e2e-test-secret-key-subdomain"
 BLACK_LIST = ""
 ENABLE_USER_CREATE_EMAIL = true
 ENABLE_USER_DELETE_EMAIL = true
@@ -31,9 +27,9 @@ SMTP_CONFIG = """
 
 [[kv_namespaces]]
 binding = "KV"
-id = "e2e-test-kv-00000000-0000-0000-0000-000000000000"
+id = "e2e-test-kv-subdomain-00000000-0000-0000-0000-000000000000"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "e2e-temp-email"
-database_id = "e2e-test-db-00000000-0000-0000-0000-000000000000"
+database_name = "e2e-temp-email-subdomain"
+database_id = "e2e-test-db-subdomain-00000000-0000-0000-0000-000000000000"

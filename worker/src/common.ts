@@ -414,7 +414,8 @@ export const newAddress = async (
         ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch)
         : null;
     // check domain is valid
-    if (!domain || !matchedAllowDomain) {
+    if (!domain || !matchedAllowDomain
+        || (domain !== matchedAllowDomain && !allowRandomSubdomainForDomain(c, matchedAllowDomain))) {
         throw new Error(msgs.InvalidDomainMsg)
     }
     if (enableRandomSubdomain && !allowRandomSubdomainForDomain(c, domain)) {

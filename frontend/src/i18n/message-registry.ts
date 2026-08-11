@@ -2000,9 +2000,17 @@ export const MESSAGE_REGISTRY = {
       "en": "Create New Email",
       "zh": "创建新邮箱"
     },
+    "customSubdomain": {
+      "en": "Custom subdomain",
+      "zh": "自定义子域名"
+    },
     "customSubdomainTip": {
-      "en": "Select a domain, or enter a custom subdomain such as team.example.com. Custom subdomains require subdomain suffix matching to be enabled.",
-      "zh": "选择域名，或输入 team.example.com 这样的自定义子域名。使用自定义子域名前需启用子域名后缀匹配。"
+      "en": "Enter only the subdomain part. This mode is available only for base domains that allow random subdomains.",
+      "zh": "只需输入子域部分。该模式仅适用于已允许随机子域名的基础域名。"
+    },
+    "enableCustomSubdomain": {
+      "en": "Use Custom Subdomain",
+      "zh": "使用自定义子域名"
     },
     "enablePrefix": {
       "en": "If enable Prefix",
@@ -2229,12 +2237,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "强制开启"
     },
     "create_address_subdomain_match_note": {
-      "en": "This is different from RANDOM_SUBDOMAIN_DOMAINS: this switch allows API callers to specify custom subdomains directly, while random subdomain only auto-generates one during creation.",
-      "zh": "这与 RANDOM_SUBDOMAIN_DOMAINS 不同：这里允许 API 调用方直接指定自定义子域名；随机子域名功能只是在创建时自动补一个随机子域名。"
+      "en": "This is the manual mode within RANDOM_SUBDOMAIN_DOMAINS: callers enter the subdomain, while random mode generates it automatically.",
+      "zh": "这是 RANDOM_SUBDOMAIN_DOMAINS 范围内的手动模式：调用方输入子域名，随机模式则自动生成。"
     },
     "create_address_subdomain_match_tip": {
-      "en": "Only affects /api/new_address and /admin/new_address domain validation. Example: when enabled, foo.example.com can match configured base domain example.com.",
-      "zh": "仅影响 /api/new_address 和 /admin/new_address 的域名校验。例如开启后，foo.example.com 可以匹配已配置的基础域名 example.com。"
+      "en": "Allows /api/new_address and /admin/new_address to accept manually entered subdomains only when the matched base domain is also enabled for random subdomains.",
+      "zh": "允许 /api/new_address 和 /admin/new_address 接受手动子域名，但匹配到的基础域名还必须已启用随机子域名。"
     },
     "delete_rule": {
       "en": "Delete",
@@ -2498,9 +2506,17 @@ export const MESSAGE_REGISTRY = {
       "en": "Credential Login",
       "zh": "凭据登录"
     },
+    "customSubdomain": {
+      "en": "Custom subdomain",
+      "zh": "自定义子域名"
+    },
+    "customSubdomainRequired": {
+      "en": "Please enter a custom subdomain.",
+      "zh": "请输入自定义子域名。"
+    },
     "customSubdomainTip": {
-      "en": "Select a domain, or enter a custom subdomain such as team.example.com.",
-      "zh": "选择域名，或输入 team.example.com 这样的自定义子域名。"
+      "en": "Enter only the subdomain part. This mode is available only for base domains that allow random subdomains.",
+      "zh": "只需输入子域部分。该模式仅适用于已允许随机子域名的基础域名。"
     },
     "email": {
       "en": "Email",
@@ -2513,6 +2529,10 @@ export const MESSAGE_REGISTRY = {
     "enableRandomSubdomain": {
       "en": "Use Random Subdomain",
       "zh": "启用随机子域名"
+    },
+    "enableCustomSubdomain": {
+      "en": "Use Custom Subdomain",
+      "zh": "使用自定义子域名"
     },
     "generateName": {
       "en": "Generate Fake Name",

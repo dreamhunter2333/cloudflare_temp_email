@@ -10,7 +10,7 @@
 
 ### Features
 
-- feat: |Frontend| Allow custom subdomains to be entered in the web and admin create-address domain selectors only when subdomain suffix matching is effectively enabled (issue #1108)
+- feat: |Frontend| Add a separate manual-subdomain switch within the random-subdomain scope, mutually exclusive with random generation (issue #1108)
 
 ### Bug Fixes
 
@@ -24,7 +24,7 @@
 
 ### Testing
 
-- fix: |E2E| Cover toggling custom-subdomain input with the effective setting, creating an address from the UI, and recreating the same address after deletion
+- fix: |E2E| Cover manual-subdomain scope, mutually exclusive modes, UI creation, and recreating the same address after deletion
 - fix: |E2E| Add regression coverage ensuring user settings do not rewrite recent address activity timestamps
 - fix: |E2E| Cover cleanup batch limits, continuation on later runs, preservation of recent data, and address-related data cleanup
 

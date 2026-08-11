@@ -27,7 +27,7 @@ RANDOM_SUBDOMAIN_DOMAINS = ["abc.com"]
 RANDOM_SUBDOMAIN_LENGTH = 8
 ```
 
-- `RANDOM_SUBDOMAIN_DOMAINS`: base domains that allow optional random second-level subdomains
+- `RANDOM_SUBDOMAIN_DOMAINS`: base domains that allow random or manually entered subdomains
 - `RANDOM_SUBDOMAIN_LENGTH`: random string length, range `1-63`, default `8`
 
 The create-address APIs only generate a random subdomain when the request explicitly passes
@@ -77,12 +77,14 @@ If you want to create an address under a specific subdomain such as `team.abc.co
 >
 > Reference issue: [#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035)
 
-## Let APIs Specify Subdomains Directly
+## Enter a Subdomain Manually
 
 If you do not want the system to generate a random subdomain, and instead want the caller to
-explicitly create addresses like `team.abc.com`, enable:
+explicitly create addresses like `team.abc.com`, add the base domain to the random-subdomain scope
+and enable the manual-subdomain switch:
 
 ```toml
+RANDOM_SUBDOMAIN_DOMAINS = ["abc.com"]
 ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 ```
 
@@ -92,11 +94,16 @@ addresses can be created through `/api/new_address` or `/admin/new_address`:
 - `name@team.abc.com`
 - `name@dev.team.abc.com`
 
-When the setting is effectively enabled, the domain selector on the web and admin create-address
-pages accepts a full subdomain followed by Enter. When disabled, it only accepts configured domains.
-The backend still verifies that the input is a subdomain of an allowed base domain.
+When both settings are effective, the web and admin create-address pages show a separate **Use
+Custom Subdomain** option next to the random-subdomain option. Enter only `team`; the frontend
+combines it with the selected base domain as `team.abc.com`. Manual and random modes are mutually
+exclusive.
+
+The backend also verifies that the matched base domain is present in both the allowed-domain list
+and `RANDOM_SUBDOMAIN_DOMAINS`.
 
 > [!NOTE]
-> This feature does not create Cloudflare-side subdomain mail routes for you.
+> Manual and random subdomains share the `RANDOM_SUBDOMAIN_DOMAINS` scope and the same wildcard MX
+> setup. This feature does not create Cloudflare-side subdomain mail routes for you.
 >
 > If the admin panel has already saved an override once, you can switch it back to **Follow Environment Variable** to clear the override and return to env fallback behavior.

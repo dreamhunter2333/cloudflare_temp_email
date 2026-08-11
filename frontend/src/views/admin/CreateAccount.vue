@@ -15,6 +15,8 @@ const { t } = useScopedI18n('views.admin.CreateAccount')
 
 const enablePrefix = ref(true)
 const enableRandomSubdomain = ref(false)
+const enableCustomSubdomain = ref(false)
+const customSubdomain = ref("")
 const emailName = ref("")
 const emailDomain = ref("")
 const showReultModal = ref(false)
@@ -29,25 +31,53 @@ const canUseRandomSubdomain = computed(() => {
     return (openSettings.value.randomSubdomainDomains || []).includes(emailDomain.value)
 })
 
+const canUseCustomSubdomain = computed(() => {
+    return openSettings.value.enableAddressCreationSubdomainMatch && canUseRandomSubdomain.value
+})
+
 watch(canUseRandomSubdomain, (enabled) => {
     if (!enabled) {
         enableRandomSubdomain.value = false
     }
 })
 
+watch(canUseCustomSubdomain, (enabled) => {
+    if (!enabled) {
+        enableCustomSubdomain.value = false
+    }
+})
+
+watch(enableRandomSubdomain, (enabled) => {
+    if (enabled) {
+        enableCustomSubdomain.value = false
+    }
+})
+
+watch(enableCustomSubdomain, (enabled) => {
+    if (enabled) {
+        enableRandomSubdomain.value = false
+        return
+    }
+    customSubdomain.value = ""
+})
+
 const newEmail = async () => {
-    if (!emailName.value || !emailDomain.value) {
+    if (!emailName.value || !emailDomain.value
+        || (enableCustomSubdomain.value && !customSubdomain.value.trim())) {
         message.error(t('fillInAllFields'))
         return
     }
     try {
+        const domain = enableCustomSubdomain.value
+            ? `${customSubdomain.value.trim()}.${emailDomain.value}`
+            : emailDomain.value
         const res = await api.fetch(`/admin/new_address`, {
             method: 'POST',
             body: JSON.stringify({
                 enablePrefix: enablePrefix.value,
                 enableRandomSubdomain: enableRandomSubdomain.value,
                 name: emailName.value,
-                domain: emailDomain.value,
+                domain,
             })
         })
         result.value = res["jwt"];
@@ -84,13 +114,8 @@ onMounted(async () => {
                     <n-input v-model:value="emailName" />
                     <n-input-group-label>@</n-input-group-label>
                     <n-select v-model:value="emailDomain" :consistent-menu-width="false"
-                        :filterable="openSettings.enableAddressCreationSubdomainMatch"
-                        :tag="openSettings.enableAddressCreationSubdomainMatch"
                         :options="openSettings.domains" />
                 </n-input-group>
-                <p v-if="openSettings.enableAddressCreationSubdomainMatch" style="margin: 8px 0 0; opacity: 0.75;">
-                    {{ t('customSubdomainTip') }}
-                </p>
             </n-form-item-row>
             <n-form-item-row v-if="canUseRandomSubdomain">
                 <n-checkbox v-model:checked="enableRandomSubdomain">
@@ -98,6 +123,18 @@ onMounted(async () => {
                 </n-checkbox>
                 <p style="margin: 8px 0 0; opacity: 0.75;">
                     {{ t('randomSubdomainTip') }}
+                </p>
+            </n-form-item-row>
+            <n-form-item-row v-if="canUseCustomSubdomain">
+                <n-checkbox v-model:checked="enableCustomSubdomain">
+                    {{ t('enableCustomSubdomain') }}
+                </n-checkbox>
+                <n-input-group v-if="enableCustomSubdomain" style="margin-top: 8px;">
+                    <n-input v-model:value="customSubdomain" :placeholder="t('customSubdomain')" />
+                    <n-input-group-label>.{{ emailDomain }}</n-input-group-label>
+                </n-input-group>
+                <p style="margin: 8px 0 0; opacity: 0.75;">
+                    {{ t('customSubdomainTip') }}
                 </p>
             </n-form-item-row>
             <n-button @click="newEmail" type="primary" block :loading="loading">
