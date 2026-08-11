@@ -47,14 +47,11 @@ watch(enableRandomSubdomain, (enabled) => {
 watch(enableCustomSubdomain, (enabled) => {
     if (enabled) {
         enableRandomSubdomain.value = false
-        return
     }
-    customSubdomain.value = ""
 })
 
 const newEmail = async () => {
-    if (!emailName.value || !emailDomain.value
-        || (enableCustomSubdomain.value && !customSubdomain.value.trim())) {
+    if (!emailName.value || !emailDomain.value) {
         message.error(t('fillInAllFields'))
         return
     }
@@ -121,14 +118,12 @@ onMounted(async () => {
                     {{ t('enableCustomSubdomain') }}
                 </n-checkbox>
                 <n-input-group v-if="enableCustomSubdomain" style="margin-top: 8px;">
-                    <n-input v-model:value="customSubdomain" :placeholder="t('customSubdomain')" />
+                    <n-input v-model:value="customSubdomain" />
                     <n-input-group-label>.{{ emailDomain }}</n-input-group-label>
                 </n-input-group>
-                <p style="margin: 8px 0 0; opacity: 0.75;">
-                    {{ t('customSubdomainTip') }}
-                </p>
             </n-form-item-row>
-            <n-button @click="newEmail" type="primary" block :loading="loading">
+            <n-button @click="newEmail" type="primary" block :loading="loading"
+                :disabled="enableCustomSubdomain && !customSubdomain.trim()">
                 {{ t('creatNewEmail') }}
             </n-button>
         </n-card>

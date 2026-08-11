@@ -20,7 +20,8 @@ test('create an address with a custom subdomain from the UI', async ({ page, req
     await randomSubdomain.check();
     await customSubdomain.check();
     await expect(randomSubdomain).not.toBeChecked();
-    await createForm.getByPlaceholder('Custom subdomain').fill('team');
+    const customSubdomainRow = createForm.locator('.n-form-item-row').filter({ has: customSubdomain });
+    await customSubdomainRow.locator('.n-input input').fill('team');
 
     await createForm.getByRole('button', { name: 'Create New Email' }).click();
 

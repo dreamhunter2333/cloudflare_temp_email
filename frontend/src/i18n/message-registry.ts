@@ -2000,14 +2000,6 @@ export const MESSAGE_REGISTRY = {
       "en": "Create New Email",
       "zh": "创建新邮箱"
     },
-    "customSubdomain": {
-      "en": "Custom subdomain",
-      "zh": "自定义子域名"
-    },
-    "customSubdomainTip": {
-      "en": "Enter only the subdomain part. This mode is available only for base domains that allow random subdomains.",
-      "zh": "只需输入子域部分。该模式仅适用于已允许随机子域名的基础域名。"
-    },
     "enableCustomSubdomain": {
       "en": "Use Custom Subdomain",
       "zh": "使用自定义子域名"
@@ -2505,18 +2497,6 @@ export const MESSAGE_REGISTRY = {
     "credentialLogin": {
       "en": "Credential Login",
       "zh": "凭据登录"
-    },
-    "customSubdomain": {
-      "en": "Custom subdomain",
-      "zh": "自定义子域名"
-    },
-    "customSubdomainRequired": {
-      "en": "Please enter a custom subdomain.",
-      "zh": "请输入自定义子域名。"
-    },
-    "customSubdomainTip": {
-      "en": "Enter only the subdomain part. This mode is available only for base domains that allow random subdomains.",
-      "zh": "只需输入子域部分。该模式仅适用于已允许随机子域名的基础域名。"
     },
     "email": {
       "en": "Email",

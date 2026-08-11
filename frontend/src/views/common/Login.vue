@@ -166,10 +166,6 @@ const generateName = async () => {
 };
 
 const newEmail = async () => {
-    if (enableCustomSubdomain.value && !customSubdomain.value.trim()) {
-        message.error(t('customSubdomainRequired'));
-        return;
-    }
     try {
         // If custom names are disabled, send empty name to trigger backend auto-generation
         const nameToSend = openSettings.value.disableCustomAddressName ? "" : emailName.value;
@@ -229,9 +225,7 @@ watch(enableRandomSubdomain, (enabled) => {
 watch(enableCustomSubdomain, (enabled) => {
     if (enabled) {
         enableRandomSubdomain.value = false;
-        return;
     }
-    customSubdomain.value = "";
 });
 
 const domainsOptions = computed(() => {
@@ -357,15 +351,13 @@ onMounted(async () => {
                                 {{ t('enableCustomSubdomain') }}
                             </n-checkbox>
                             <n-input-group v-if="enableCustomSubdomain" style="margin-top: 8px;">
-                                <n-input v-model:value="customSubdomain" :placeholder="t('customSubdomain')" />
+                                <n-input v-model:value="customSubdomain" />
                                 <n-input-group-label>.{{ emailDomain }}</n-input-group-label>
                             </n-input-group>
-                            <p style="margin: 8px 0 0; opacity: 0.75;">
-                                {{ t('customSubdomainTip') }}
-                            </p>
                         </n-form-item-row>
                         <Turnstile v-model:value="cfToken" />
-                        <n-button type="primary" block secondary strong @click="newEmail" :loading="loading">
+                        <n-button type="primary" block secondary strong @click="newEmail" :loading="loading"
+                            :disabled="enableCustomSubdomain && !customSubdomain.trim()">
                             <template #icon>
                                 <n-icon :component="NewLabelOutlined" />
                             </template>
