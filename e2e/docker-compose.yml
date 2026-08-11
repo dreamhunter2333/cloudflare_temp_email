@@ -24,8 +24,6 @@ services:
     build:
       context: ..
       dockerfile: e2e/Dockerfile.worker
-      args:
-        WRANGLER_TOML: e2e/fixtures/wrangler.toml.e2e.subdomain
     ports:
       - "8789:8789"
     command: ["pnpm", "exec", "wrangler", "dev", "--port", "8789", "--ip", "0.0.0.0"]

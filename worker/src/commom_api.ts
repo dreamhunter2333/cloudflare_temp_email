@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 import utils from './utils';
 import { CONSTANTS } from './constants';
 import { isS3Enabled } from './mails_api/s3_attachment';
-import { getAddressCreationSubdomainMatchStatus, isAnySendMailEnabled } from './common';
+import { isAnySendMailEnabled } from './common';
 
 const api = new Hono<HonoCustomType>
 
@@ -20,8 +20,6 @@ api.get('/open_api/settings', async (c) => {
     ) || {};
     const smtpProxyConfig = smtpImapProxyConfig.smtp || {};
     const imapProxyConfig = smtpImapProxyConfig.imap || {};
-    const { effectiveEnabled: enableAddressCreationSubdomainMatch }
-        = await getAddressCreationSubdomainMatchStatus(c);
 
     return c.json({
         "title": c.env.TITLE,
@@ -34,7 +32,6 @@ api.get('/open_api/settings', async (c) => {
         "defaultDomains": utils.getDefaultDomains(c),
         "domains": utils.getDomains(c),
         "randomSubdomainDomains": utils.getRandomSubdomainDomains(c),
-        "enableAddressCreationSubdomainMatch": enableAddressCreationSubdomainMatch,
         "domainLabels": utils.getStringArray(c.env.DOMAIN_LABELS),
         "needAuth": needAuth,
         "adminContact": c.env.ADMIN_CONTACT,

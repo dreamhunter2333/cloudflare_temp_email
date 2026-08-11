@@ -213,18 +213,9 @@ const canUseRandomSubdomain = computed(() => {
     return (openSettings.value.randomSubdomainDomains || []).includes(emailDomain.value);
 });
 
-const canUseCustomSubdomain = computed(() => {
-    return openSettings.value.enableAddressCreationSubdomainMatch && canUseRandomSubdomain.value;
-});
-
 watch(canUseRandomSubdomain, (enabled) => {
     if (!enabled) {
         enableRandomSubdomain.value = false;
-    }
-});
-
-watch(canUseCustomSubdomain, (enabled) => {
-    if (!enabled) {
         enableCustomSubdomain.value = false;
     }
 });
@@ -361,7 +352,7 @@ onMounted(async () => {
                                 {{ t('randomSubdomainTip') }}
                             </p>
                         </n-form-item-row>
-                        <n-form-item-row v-if="canUseCustomSubdomain">
+                        <n-form-item-row v-if="canUseRandomSubdomain">
                             <n-checkbox v-model:checked="enableCustomSubdomain">
                                 {{ t('enableCustomSubdomain') }}
                             </n-checkbox>

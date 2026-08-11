@@ -47,6 +47,10 @@ the request body:
 If you want to create an address under a specific subdomain such as `team.abc.com`, do not pass
 `enableRandomSubdomain: true`; use the direct-subdomain flow below instead.
 
+For base domains in `RANDOM_SUBDOMAIN_DOMAINS`, the web and admin pages show both **Use Random
+Subdomain** and **Use Custom Subdomain**. In custom mode, enter only `team`; the frontend combines
+it as `team.abc.com`. The two modes are mutually exclusive.
+
 > [!NOTE]
 > This feature only appends a random second-level subdomain when the mailbox is created.
 >
@@ -77,14 +81,12 @@ If you want to create an address under a specific subdomain such as `team.abc.co
 >
 > Reference issue: [#1035](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/1035)
 
-## Enter a Subdomain Manually
+## Let APIs Specify Other Subdomains Directly
 
-If you do not want the system to generate a random subdomain, and instead want the caller to
-explicitly create addresses like `team.abc.com`, add the base domain to the random-subdomain scope
-and enable the manual-subdomain switch:
+If a base domain is not in `RANDOM_SUBDOMAIN_DOMAINS`, but API callers still need to create
+addresses like `team.abc.com` directly, enable:
 
 ```toml
-RANDOM_SUBDOMAIN_DOMAINS = ["abc.com"]
 ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 ```
 
@@ -94,16 +96,8 @@ addresses can be created through `/api/new_address` or `/admin/new_address`:
 - `name@team.abc.com`
 - `name@dev.team.abc.com`
 
-When both settings are effective, the web and admin create-address pages show a separate **Use
-Custom Subdomain** option next to the random-subdomain option. Enter only `team`; the frontend
-combines it with the selected base domain as `team.abc.com`. Manual and random modes are mutually
-exclusive.
-
-The backend also verifies that the matched base domain is present in both the allowed-domain list
-and `RANDOM_SUBDOMAIN_DOMAINS`.
-
 > [!NOTE]
-> Manual and random subdomains share the `RANDOM_SUBDOMAIN_DOMAINS` scope and the same wildcard MX
-> setup. This feature does not create Cloudflare-side subdomain mail routes for you.
+> This switch only relaxes create-address API domain validation. It does not change the frontend
+> domain scope or create Cloudflare-side subdomain mail routes for you.
 >
 > If the admin panel has already saved an override once, you can switch it back to **Follow Environment Variable** to clear the override and return to env fallback behavior.

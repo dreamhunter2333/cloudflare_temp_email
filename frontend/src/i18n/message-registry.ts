@@ -2237,12 +2237,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "强制开启"
     },
     "create_address_subdomain_match_note": {
-      "en": "This is the manual mode within RANDOM_SUBDOMAIN_DOMAINS: callers enter the subdomain, while random mode generates it automatically.",
-      "zh": "这是 RANDOM_SUBDOMAIN_DOMAINS 范围内的手动模式：调用方输入子域名，随机模式则自动生成。"
+      "en": "RANDOM_SUBDOMAIN_DOMAINS already allows random or manual subdomains for listed base domains. This switch additionally allows API callers to specify subdomains under other allowed base domains.",
+      "zh": "RANDOM_SUBDOMAIN_DOMAINS 已允许在所列基础域名下随机生成或手动输入子域名；此开关额外允许 API 在其他已授权基础域名下指定子域名。"
     },
     "create_address_subdomain_match_tip": {
-      "en": "Allows /api/new_address and /admin/new_address to accept manually entered subdomains only when the matched base domain is also enabled for random subdomains.",
-      "zh": "允许 /api/new_address 和 /admin/new_address 接受手动子域名，但匹配到的基础域名还必须已启用随机子域名。"
+      "en": "Only affects /api/new_address and /admin/new_address domain validation. Example: when enabled, foo.example.com can match configured base domain example.com.",
+      "zh": "仅影响 /api/new_address 和 /admin/new_address 的域名校验。例如开启后，foo.example.com 可以匹配已配置的基础域名 example.com。"
     },
     "delete_rule": {
       "en": "Delete",

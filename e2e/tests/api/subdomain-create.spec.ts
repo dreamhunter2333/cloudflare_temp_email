@@ -1,14 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { TEST_DOMAIN, WORKER_URL, WORKER_URL_ENV_OFF, WORKER_URL_SUBDOMAIN } from '../../fixtures/test-helpers';
 
-const SUBDOMAIN = `team.${TEST_DOMAIN}`;
-const NESTED_SUBDOMAIN = `deep.team.${TEST_DOMAIN}`;
-const MIXED_CASE_SUBDOMAIN = `TeAm.${TEST_DOMAIN.toUpperCase()}`;
-const INVALID_LOOKALIKE_DOMAIN = `bad${TEST_DOMAIN}`;
-const INVALID_EMPTY_PREFIX_DOMAIN = `.${TEST_DOMAIN}`;
-const INVALID_EMPTY_LABEL_DOMAIN = `a..b.${TEST_DOMAIN}`;
-const INVALID_OVERLONG_DOMAIN = `${'a.'.repeat(119)}${TEST_DOMAIN}`;
-const SUBDOMAIN_OUTSIDE_RANDOM_SCOPE = 'team.no-random.example.com';
+const MANUAL_BASE_DOMAIN = 'manual.example.com';
+const SUBDOMAIN = `team.${MANUAL_BASE_DOMAIN}`;
+const NESTED_SUBDOMAIN = `deep.team.${MANUAL_BASE_DOMAIN}`;
+const MIXED_CASE_SUBDOMAIN = `TeAm.${MANUAL_BASE_DOMAIN.toUpperCase()}`;
+const INVALID_LOOKALIKE_DOMAIN = `bad${MANUAL_BASE_DOMAIN}`;
+const INVALID_EMPTY_PREFIX_DOMAIN = `.${MANUAL_BASE_DOMAIN}`;
+const INVALID_EMPTY_LABEL_DOMAIN = `a..b.${MANUAL_BASE_DOMAIN}`;
+const INVALID_OVERLONG_DOMAIN = `${'a.'.repeat(119)}${MANUAL_BASE_DOMAIN}`;
+const RANDOM_SUBDOMAIN = `team.${TEST_DOMAIN}`;
 const CREATE_ADDRESS_WORKER_URL = WORKER_URL_SUBDOMAIN || WORKER_URL;
 let originalCreateAddressStoredEnabled: boolean | undefined;
 let originalEnvOffStoredEnabled: boolean | undefined;
@@ -120,35 +121,16 @@ test.describe('Create Address Subdomain Match', () => {
     );
   });
 
-  test('persisted false still keeps exact match only', async ({ request }) => {
+  test('random subdomain scope allows a manually entered subdomain', async ({ request }) => {
     await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, false);
 
     const uniqueName = `subdomain-default-${Date.now()}`;
     const res = await request.post(`${CREATE_ADDRESS_WORKER_URL}/admin/new_address`, {
-      data: { name: uniqueName, domain: SUBDOMAIN },
+      data: { name: uniqueName, domain: RANDOM_SUBDOMAIN },
     });
 
-    expect(res.ok()).toBe(false);
-    expect(await res.text()).toContain('Invalid domain');
-  });
-
-  test('public settings exposes the effective subdomain match state', async ({ request }) => {
-    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, false);
-    const disabledRes = await request.get(`${CREATE_ADDRESS_WORKER_URL}/open_api/settings`);
-    expect(disabledRes.ok()).toBe(true);
-    expect((await disabledRes.json()).enableAddressCreationSubdomainMatch).toBe(false);
-
-    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, true);
-    const enabledRes = await request.get(`${CREATE_ADDRESS_WORKER_URL}/open_api/settings`);
-    expect(enabledRes.ok()).toBe(true);
-    expect((await enabledRes.json()).enableAddressCreationSubdomainMatch).toBe(true);
-
-    if (WORKER_URL_ENV_OFF) {
-      await saveSubdomainMatchSetting(request, WORKER_URL_ENV_OFF, true);
-      const envOffRes = await request.get(`${WORKER_URL_ENV_OFF}/open_api/settings`);
-      expect(envOffRes.ok()).toBe(true);
-      expect((await envOffRes.json()).enableAddressCreationSubdomainMatch).toBe(false);
-    }
+    expect(res.ok()).toBe(true);
+    expect((await res.json()).address).toContain(`@${RANDOM_SUBDOMAIN}`);
   });
 
   test('admin switch enables suffix subdomain match for both admin and user create APIs', async ({ request }) => {
@@ -202,16 +184,10 @@ test.describe('Create Address Subdomain Match', () => {
     });
     expect(invalidOverlongRes.ok()).toBe(false);
     expect(await invalidOverlongRes.text()).toContain('Invalid domain');
-
-    const outsideRandomScopeRes = await request.post(`${CREATE_ADDRESS_WORKER_URL}/admin/new_address`, {
-      data: { name: `subscope${Date.now()}`, domain: SUBDOMAIN_OUTSIDE_RANDOM_SCOPE },
-    });
-    expect(outsideRandomScopeRes.ok()).toBe(false);
-    expect(await outsideRandomScopeRes.text()).toContain('Invalid domain');
   });
 
   test('deleted random subdomain address can be recreated manually', async ({ request }) => {
-    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, true);
+    await saveSubdomainMatchSetting(request, CREATE_ADDRESS_WORKER_URL, false);
 
     const name = `subreuse${Date.now()}`;
     const firstCreate = await request.post(`${CREATE_ADDRESS_WORKER_URL}/api/new_address`, {
@@ -246,7 +222,7 @@ test.describe('Create Address Subdomain Match', () => {
     await saveSubdomainMatchSetting(request, WORKER_URL_ENV_OFF, true);
 
     const res = await request.post(`${WORKER_URL_ENV_OFF}/admin/new_address`, {
-      data: { name: `subdomain-env-off-${Date.now()}`, domain: SUBDOMAIN },
+      data: { name: `subdomain-env-off-${Date.now()}`, domain: RANDOM_SUBDOMAIN },
     });
     expect(res.ok()).toBe(false);
     expect(await res.text()).toContain('Invalid domain');

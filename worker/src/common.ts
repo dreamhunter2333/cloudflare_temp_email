@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
+import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, isDomainOrSubdomain, normalizeDomains, trimLower } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, WebhookMail, WebhookSettings } from './models';
@@ -410,12 +410,15 @@ export const newAddress = async (
         domain = normalizeDomainValue(domain);
     }
     const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
+    const enableRandomSubdomainMatch = domain
+        ? allowDomains.some((allowDomain) =>
+            allowRandomSubdomainForDomain(c, allowDomain) && isDomainOrSubdomain(domain, allowDomain))
+        : false;
     const matchedAllowDomain = domain
-        ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch)
+        ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch || enableRandomSubdomainMatch)
         : null;
     // check domain is valid
-    if (!domain || !matchedAllowDomain
-        || (domain !== matchedAllowDomain && !allowRandomSubdomainForDomain(c, matchedAllowDomain))) {
+    if (!domain || !matchedAllowDomain) {
         throw new Error(msgs.InvalidDomainMsg)
     }
     if (enableRandomSubdomain && !allowRandomSubdomainForDomain(c, domain)) {
