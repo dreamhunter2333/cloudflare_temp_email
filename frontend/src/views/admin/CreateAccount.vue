@@ -14,8 +14,7 @@ const message = useMessage()
 const { t } = useScopedI18n('views.admin.CreateAccount')
 
 const enablePrefix = ref(true)
-const enableRandomSubdomain = ref(false)
-const enableCustomSubdomain = ref(false)
+const subdomainMode = ref("normal")
 const customSubdomain = ref("")
 const emailName = ref("")
 const emailDomain = ref("")
@@ -33,20 +32,7 @@ const canUseRandomSubdomain = computed(() => {
 
 watch(canUseRandomSubdomain, (enabled) => {
     if (!enabled) {
-        enableRandomSubdomain.value = false
-        enableCustomSubdomain.value = false
-    }
-})
-
-watch(enableRandomSubdomain, (enabled) => {
-    if (enabled) {
-        enableCustomSubdomain.value = false
-    }
-})
-
-watch(enableCustomSubdomain, (enabled) => {
-    if (enabled) {
-        enableRandomSubdomain.value = false
+        subdomainMode.value = "normal"
     }
 })
 
@@ -56,14 +42,14 @@ const newEmail = async () => {
         return
     }
     try {
-        const domain = enableCustomSubdomain.value
+        const domain = subdomainMode.value === "custom"
             ? `${customSubdomain.value.trim()}.${emailDomain.value}`
             : emailDomain.value
         const res = await api.fetch(`/admin/new_address`, {
             method: 'POST',
             body: JSON.stringify({
                 enablePrefix: enablePrefix.value,
-                enableRandomSubdomain: enableRandomSubdomain.value,
+                enableRandomSubdomain: subdomainMode.value === "random",
                 name: emailName.value,
                 domain,
             })
@@ -106,24 +92,25 @@ onMounted(async () => {
                 </n-input-group>
             </n-form-item-row>
             <n-form-item-row v-if="canUseRandomSubdomain">
-                <n-checkbox v-model:checked="enableRandomSubdomain">
-                    {{ t('enableRandomSubdomain') }}
-                </n-checkbox>
-                <p style="margin: 8px 0 0; opacity: 0.75;">
-                    {{ t('randomSubdomainTip') }}
-                </p>
-            </n-form-item-row>
-            <n-form-item-row v-if="canUseRandomSubdomain">
-                <n-checkbox v-model:checked="enableCustomSubdomain">
-                    {{ t('enableCustomSubdomain') }}
-                </n-checkbox>
-                <n-input-group v-if="enableCustomSubdomain" style="margin-top: 8px;">
-                    <n-input v-model:value="customSubdomain" />
-                    <n-input-group-label>.{{ emailDomain }}</n-input-group-label>
-                </n-input-group>
+                <div style="width: 100%;">
+                    <n-radio-group v-model:value="subdomainMode">
+                        <n-space>
+                            <n-radio value="normal">{{ t('normalSubdomain') }}</n-radio>
+                            <n-radio value="random">{{ t('enableRandomSubdomain') }}</n-radio>
+                            <n-radio value="custom">{{ t('enableCustomSubdomain') }}</n-radio>
+                        </n-space>
+                    </n-radio-group>
+                    <p v-if="subdomainMode === 'random'" style="margin: 8px 0 0; opacity: 0.75;">
+                        {{ t('randomSubdomainTip') }}
+                    </p>
+                    <n-input-group v-if="subdomainMode === 'custom'" style="margin-top: 8px;">
+                        <n-input v-model:value="customSubdomain" />
+                        <n-input-group-label>.{{ emailDomain }}</n-input-group-label>
+                    </n-input-group>
+                </div>
             </n-form-item-row>
             <n-button @click="newEmail" type="primary" block :loading="loading"
-                :disabled="enableCustomSubdomain && !customSubdomain.trim()">
+                :disabled="subdomainMode === 'custom' && !customSubdomain.trim()">
                 {{ t('creatNewEmail') }}
             </n-button>
         </n-card>

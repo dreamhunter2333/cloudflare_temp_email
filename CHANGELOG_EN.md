@@ -10,7 +10,7 @@
 
 ### Features
 
-- feat: |Frontend| Add a separate manual-subdomain switch within the random-subdomain scope, mutually exclusive with random generation (issue #1108)
+- feat: |Frontend| Add Normal, Random, and Custom subdomain mode selection within the random-subdomain scope (issue #1108)
 
 ### Bug Fixes
 

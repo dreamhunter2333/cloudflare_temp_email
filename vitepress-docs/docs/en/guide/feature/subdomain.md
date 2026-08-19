@@ -47,9 +47,9 @@ the request body:
 If you want to create an address under a specific subdomain such as `team.abc.com`, do not pass
 `enableRandomSubdomain: true`; use the direct-subdomain flow below instead.
 
-For base domains in `RANDOM_SUBDOMAIN_DOMAINS`, the web and admin pages show both **Use Random
-Subdomain** and **Use Custom Subdomain**. In custom mode, enter only `team`; the frontend combines
-it as `team.abc.com`. The two modes are mutually exclusive.
+For base domains in `RANDOM_SUBDOMAIN_DOMAINS`, the web and admin pages offer **Normal Domain**,
+**Use Random Subdomain**, and **Use Custom Subdomain** as single-choice modes. In custom mode,
+enter only `team`; the frontend combines it as `team.abc.com`.
 
 > [!NOTE]
 > This feature only appends a random second-level subdomain when the mailbox is created.

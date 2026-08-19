@@ -10,7 +10,7 @@
 
 ### Features
 
-- feat: |Frontend| 在随机子域名允许范围内新增独立的手动子域名开关，与随机生成模式互斥（issue #1108）
+- feat: |Frontend| 在随机子域名允许范围内新增普通、随机和自定义子域名模式选择（issue #1108）
 
 ### Bug Fixes
 

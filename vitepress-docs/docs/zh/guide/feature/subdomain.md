@@ -41,8 +41,8 @@ RANDOM_SUBDOMAIN_LENGTH = 8
 
 `domain` 必须传 `RANDOM_SUBDOMAIN_DOMAINS` 中配置的基础域名，例如 `abc.com`。如果要创建 `team.abc.com` 这种指定子域名地址，请不要传 `enableRandomSubdomain: true`，而是使用下方“直接指定子域名”的流程。
 
-对于 `RANDOM_SUBDOMAIN_DOMAINS` 中的基础域名，网页端和管理后台会同时提供“启用随机子域名”和
-“使用自定义子域名”两个选项。自定义模式只需输入 `team`，前端会组合成 `team.abc.com`；两种模式互斥。
+对于 `RANDOM_SUBDOMAIN_DOMAINS` 中的基础域名，网页端和管理后台会提供“普通域名”、
+“启用随机子域名”和“使用自定义子域名”三种单选模式。自定义模式只需输入 `team`，前端会组合成 `team.abc.com`。
 
 > [!NOTE]
 > 这个功能只是在“创建地址”时自动补一个随机二级域名。

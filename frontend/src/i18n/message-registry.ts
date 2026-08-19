@@ -2020,6 +2020,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Open to auto login email link",
       "zh": "打开即可自动登录邮箱的链接"
     },
+    "normalSubdomain": {
+      "en": "Normal Domain",
+      "zh": "普通域名"
+    },
     "randomSubdomainTip": {
       "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain — see the random subdomain docs.",
       "zh": "启用后，创建出来的地址会自动挂在随机子域名下，建议仅用于收件。需要在基础域名 DNS 中配置通配 MX 记录，详见随机子域名文档。"
@@ -2521,6 +2525,10 @@ export const MESSAGE_REGISTRY = {
     "getNewEmail": {
       "en": "Create New Email",
       "zh": "创建新邮箱"
+    },
+    "normalSubdomain": {
+      "en": "Normal Domain",
+      "zh": "普通域名"
     },
     "getNewEmailTip1": {
       "en": "Please input the email you want to use. only allow: ",
