@@ -419,8 +419,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "关于"
     },
     "accountSettings": {
-      "en": "Email Address Settings",
-      "zh": "邮箱地址设置"
+      "en": "Email Settings",
+      "zh": "邮箱设置"
     },
     "appearance": {
       "en": "Appearance",
@@ -1055,8 +1055,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "预览"
     },
     "requestAccess": {
-      "en": "Request for Current Address",
-      "zh": "为当前地址申请"
+      "en": "Request Access",
+      "zh": "申请权限"
     },
     "requestAccessTip": {
       "en": "Send permission and balance are managed separately for each email address. The current address, {address}, has no available balance. Request permission for this address or contact the admin.",
@@ -1109,8 +1109,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.index.SimpleIndex": {
     "accountSettings": {
-      "en": "Email Address Settings",
-      "zh": "邮箱地址设置"
+      "en": "Email Settings",
+      "zh": "邮箱设置"
     },
     "addressCopied": {
       "en": "Address copied successfully",
