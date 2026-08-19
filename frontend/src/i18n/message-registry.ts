@@ -419,8 +419,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "关于"
     },
     "accountSettings": {
-      "en": "Account Settings",
-      "zh": "账户"
+      "en": "Email Address Settings",
+      "zh": "邮箱地址设置"
     },
     "appearance": {
       "en": "Appearance",
@@ -689,8 +689,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "发送邮件"
     },
     "senderAccess": {
-      "en": "Sender Access Control",
-      "zh": "发件权限控制"
+      "en": "Email Address Send Permission",
+      "zh": "邮箱地址发信权限"
     },
     "statistics": {
       "en": "Statistics",
@@ -731,8 +731,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.User": {
     "address_management": {
-      "en": "Address Management",
-      "zh": "地址管理"
+      "en": "Email Address Management",
+      "zh": "邮箱地址管理"
     },
     "bind_address": {
       "en": "Bind Mail Address",
@@ -743,8 +743,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "收件箱"
     },
     "user_settings": {
-      "en": "User Settings",
-      "zh": "用户设置"
+      "en": "User Account Settings",
+      "zh": "用户账号设置"
     }
   },
   "views.user.UserLogin": {
@@ -753,8 +753,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "未开启邮箱验证或未开启注册功能，无法重置密码，请联系管理员"
     },
     "email": {
-      "en": "Email",
-      "zh": "邮箱"
+      "en": "User Account Email",
+      "zh": "用户账号邮箱"
     },
     "forgotPassword": {
       "en": "Forgot Password",
@@ -781,16 +781,16 @@ export const MESSAGE_REGISTRY = {
       "zh": "请完成人机验证"
     },
     "pleaseInput": {
-      "en": "Please input email and password",
-      "zh": "请输入邮箱和密码"
+      "en": "Please enter your user account email and password",
+      "zh": "请输入用户账号邮箱和密码"
     },
     "pleaseInputCode": {
       "en": "Please input code",
       "zh": "请输入验证码"
     },
     "pleaseInputEmail": {
-      "en": "Please input email",
-      "zh": "请输入邮箱"
+      "en": "Please enter your user account email",
+      "zh": "请输入用户账号邮箱"
     },
     "pleaseLogin": {
       "en": "Please login",
@@ -823,12 +823,12 @@ export const MESSAGE_REGISTRY = {
   },
   "views.user.UserBar": {
     "currentUser": {
-      "en": "Current Login User",
-      "zh": "当前登录用户"
+      "en": "Current User Account",
+      "zh": "当前用户账号"
     },
     "fetchUserSettingsError": {
-      "en": "Login password is invalid or account not exist, it may be network connection issue, please try again later.",
-      "zh": "登录信息已过期或账号不存在，也可能是网络连接异常，请稍后再尝试。"
+      "en": "The login information has expired or the user account does not exist. This may also be a network issue; please try again later.",
+      "zh": "登录信息已过期或用户账号不存在，也可能是网络连接异常，请稍后再尝试。"
     }
   },
   "views.user.AddressManagement": {
@@ -837,16 +837,16 @@ export const MESSAGE_REGISTRY = {
       "zh": "操作"
     },
     "address": {
-      "en": "Address",
-      "zh": "地址"
+      "en": "Email Addresses",
+      "zh": "邮箱地址"
     },
     "changeMailAddress": {
       "en": "Change Address",
       "zh": "切换地址"
     },
     "create_or_bind": {
-      "en": "Create or Bind",
-      "zh": "创建或绑定"
+      "en": "Create or Bind Email Address",
+      "zh": "创建或绑定邮箱地址"
     },
     "mail_count": {
       "en": "Mail Count",
@@ -869,16 +869,16 @@ export const MESSAGE_REGISTRY = {
       "zh": "成功"
     },
     "targetUserEmail": {
-      "en": "Target User Email",
-      "zh": "目标用户邮箱"
+      "en": "Target User Account Email",
+      "zh": "目标用户账号邮箱"
     },
     "transferAddress": {
       "en": "Transfer Address",
       "zh": "转移地址"
     },
     "transferAddressTip": {
-      "en": "Transfer address to another user will remove the address from your account and transfer it to another user. Are you sure to transfer the address?",
-      "zh": "转移地址到其他用户将会从你的账户中移除此地址并转移给其他用户。确定要转移地址吗？"
+      "en": "Transferring this email address removes it from your user account and binds it to the target user account. Are you sure you want to continue?",
+      "zh": "转移邮箱地址会将其从你的用户账号解绑，并绑定到目标用户账号。确定要继续吗？"
     },
     "unbindAddress": {
       "en": "Unbind Address",
@@ -891,8 +891,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.index.AccountSettings": {
     "changePassword": {
-      "en": "Change Password",
-      "zh": "修改密码"
+      "en": "Change Address Password",
+      "zh": "修改地址密码"
     },
     "clearInbox": {
       "en": "Clear Inbox",
@@ -915,20 +915,20 @@ export const MESSAGE_REGISTRY = {
       "zh": "确认密码"
     },
     "deleteAccount": {
-      "en": "Delete Account",
-      "zh": "删除账户"
+      "en": "Delete Email Address",
+      "zh": "删除邮箱地址"
     },
     "deleteAccountConfirm": {
-      "en": "Are you sure to delete your account and all emails for this account?",
-      "zh": "确定要删除你的账户和其中的所有邮件吗?"
+      "en": "Are you sure you want to delete this email address and all of its emails? This does not delete your user account.",
+      "zh": "确定要删除当前邮箱地址及其中的所有邮件吗？此操作不会删除你的用户账号。"
     },
     "logout": {
-      "en": "Logout",
-      "zh": "退出登录"
+      "en": "Log Out of Address",
+      "zh": "退出地址登录"
     },
     "logoutConfirm": {
-      "en": "Are you sure to logout?",
-      "zh": "确定要退出登录吗？"
+      "en": "Are you sure you want to log out of the current email address?",
+      "zh": "确定要退出当前邮箱地址的登录吗？"
     },
     "newPassword": {
       "en": "New Password",
@@ -1055,12 +1055,16 @@ export const MESSAGE_REGISTRY = {
       "zh": "预览"
     },
     "requestAccess": {
-      "en": "Request Access",
-      "zh": "申请权限"
+      "en": "Request for Current Address",
+      "zh": "为当前地址申请"
     },
     "requestAccessTip": {
-      "en": "No send balance yet. If your admin enabled a default balance it should be assigned automatically; otherwise request access or contact the admin.",
-      "zh": "当前还没有可用的发信额度。如果管理员启用了默认额度，会自动发放；否则请申请权限或联系管理员处理。"
+      "en": "Send permission and balance are managed separately for each email address. The current address, {address}, has no available balance. Request permission for this address or contact the admin.",
+      "zh": "发信权限和额度按邮箱地址独立管理。当前地址 {address} 暂无可用额度，请为此地址申请发信权限或联系管理员。"
+    },
+    "requestSuccess": {
+      "en": "Send permission requested for the current address",
+      "zh": "已为当前地址提交发信权限申请"
     },
     "rich text": {
       "en": "Rich Text",
@@ -1071,8 +1075,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "发送"
     },
     "send_balance": {
-      "en": "Send Mail Balance Left",
-      "zh": "剩余发送邮件额度"
+      "en": "Current Address Send Balance",
+      "zh": "当前地址剩余发信额度"
     },
     "subject": {
       "en": "Subject",
@@ -1105,8 +1109,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.index.SimpleIndex": {
     "accountSettings": {
-      "en": "Account Settings",
-      "zh": "账户设置"
+      "en": "Email Address Settings",
+      "zh": "邮箱地址设置"
     },
     "addressCopied": {
       "en": "Address copied successfully",
@@ -1221,8 +1225,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "确定"
     },
     "userLogin": {
-      "en": "User Login",
-      "zh": "用户登录"
+      "en": "User Account Login",
+      "zh": "用户账号登录"
     }
   },
   "views.admin.SendBox": {
@@ -1591,12 +1595,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "操作"
     },
     "address": {
-      "en": "Address",
-      "zh": "地址"
+      "en": "Email Address",
+      "zh": "邮箱地址"
     },
     "balance": {
-      "en": "Balance",
-      "zh": "余额"
+      "en": "Send Balance",
+      "zh": "发信额度"
     },
     "created_at": {
       "en": "Created At",
@@ -1627,8 +1631,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "总数"
     },
     "modalTip": {
-      "en": "Please input the sender balance",
-      "zh": "请输入发件额度"
+      "en": "Set the send balance for this email address",
+      "zh": "请设置此邮箱地址的发信额度"
     },
     "modify": {
       "en": "Modify",
