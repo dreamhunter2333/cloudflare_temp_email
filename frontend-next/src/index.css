@@ -1,0 +1,1052 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Geist", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+:root {
+  --background: 210 17% 96%;
+  --foreground: 220 13% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 13% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 13% 10%;
+  --primary: 160 84% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 14% 94%;
+  --secondary-foreground: 220 13% 16%;
+  --muted: 210 14% 94%;
+  --muted-foreground: 215 12% 43%;
+  --accent: 154 56% 91%;
+  --accent-foreground: 160 84% 25%;
+  --destructive: 0 72% 51%;
+  --border: 214 15% 88%;
+  --input: 214 15% 88%;
+  --ring: 160 84% 35%;
+}
+
+.style-b {
+  --background: 44 27% 94%;
+  --foreground: 40 15% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 40 15% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 40 15% 12%;
+  --primary: 142 72% 35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 38 30% 93%;
+  --secondary-foreground: 40 15% 18%;
+  --muted: 38 30% 93%;
+  --muted-foreground: 37 10% 39%;
+  --accent: 137 55% 90%;
+  --accent-foreground: 142 72% 29%;
+  --destructive: 6 73% 59%;
+  --border: 37 24% 90%;
+  --input: 37 24% 90%;
+  --ring: 142 72% 35%;
+}
+
+.dark {
+  --background: 210 16% 6%;
+  --foreground: 210 20% 92%;
+  --card: 210 14% 9%;
+  --card-foreground: 210 20% 92%;
+  --popover: 210 14% 9%;
+  --popover-foreground: 210 20% 92%;
+  --primary: 158 64% 52%;
+  --primary-foreground: 160 80% 8%;
+  --secondary: 210 12% 13%;
+  --secondary-foreground: 210 20% 88%;
+  --muted: 210 12% 13%;
+  --muted-foreground: 214 12% 64%;
+  --accent: 160 64% 12%;
+  --accent-foreground: 158 64% 58%;
+  --destructive: 0 84% 65%;
+  --border: 214 12% 18%;
+  --input: 214 12% 18%;
+  --ring: 158 64% 52%;
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+.style-b.dark {
+  --background: 30 20% 8%;
+  --foreground: 38 35% 93%;
+  --card: 30 16% 12%;
+  --card-foreground: 38 35% 93%;
+  --popover: 30 16% 12%;
+  --popover-foreground: 38 35% 93%;
+  --primary: 135 63% 51%;
+  --primary-foreground: 141 57% 5%;
+  --secondary: 31 16% 15%;
+  --secondary-foreground: 38 25% 86%;
+  --muted: 31 16% 15%;
+  --muted-foreground: 35 13% 66%;
+  --accent: 136 58% 12%;
+  --accent-foreground: 135 63% 55%;
+  --destructive: 3 83% 71%;
+  --border: 31 19% 16%;
+  --input: 31 19% 16%;
+  --ring: 135 63% 51%;
+}
+
+.style-b,
+.style-b.dark {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: hsl(var(--background));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.notice-toast {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 50;
+  width: min(360px, calc(100vw - 28px));
+  background: hsl(var(--card));
+  box-shadow: 0 18px 40px -24px rgb(24 22 16 / 55%);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.mail-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.auth-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, hsl(var(--foreground)) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(180deg, color-mix(in srgb, hsl(var(--foreground)) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(135deg, color-mix(in srgb, hsl(var(--accent)) 58%, transparent), transparent 42%),
+    hsl(var(--background));
+  background-size: 42px 42px, 42px 42px, auto;
+}
+
+.auth-sidebar {
+  background: color-mix(in srgb, hsl(var(--card)) 88%, hsl(var(--background)) 12%);
+}
+
+.auth-main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 34px;
+}
+
+.auth-stage {
+  display: grid;
+  width: min(100%, 1060px);
+  grid-template-columns: minmax(420px, 1fr) 320px;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.auth-card {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, hsl(var(--card)) 94%, white 6%), hsl(var(--card)));
+  box-shadow: 0 22px 70px -28px rgb(24 22 16 / 38%);
+  padding: 28px;
+}
+
+.dark .auth-card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, hsl(var(--card)) 94%, white 3%), hsl(var(--card)));
+}
+
+.auth-card-head {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.auth-card-head h1 {
+  margin: 0;
+  max-width: 520px;
+  font-size: 54px;
+  font-weight: 900;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.auth-card-head p,
+.context-card p,
+.auth-note p {
+  margin: 8px 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.auth-access {
+  margin-bottom: 14px;
+}
+
+.auth-tabs {
+  display: none;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-form label {
+  color: hsl(var(--muted-foreground));
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.address-builder {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, hsl(var(--background)) 82%, hsl(var(--card)) 18%);
+  padding: 10px 12px;
+  min-height: 58px;
+}
+
+.address-builder input {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  height: auto;
+  min-width: 90px;
+  font-size: 18px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.address-builder span {
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.address-builder select {
+  min-width: 98px;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--foreground));
+  outline: none;
+  font-weight: 700;
+}
+
+.auth-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.auth-submit {
+  min-height: 46px;
+  font-weight: 800;
+}
+
+.auth-submit:disabled {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  opacity: 1;
+}
+
+.auth-context {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.context-card {
+  gap: 12px;
+  padding-block: 20px;
+  border-radius: 8px;
+  background: color-mix(in srgb, hsl(var(--card)) 88%, hsl(var(--background)) 12%);
+  box-shadow: 0 18px 42px -32px rgb(24 22 16 / 42%);
+}
+
+.context-card [data-slot="card-header"] {
+  padding: 0 24px;
+}
+
+.context-card [data-slot="card-title"] {
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.context-card [data-slot="card-content"] {
+  display: grid;
+  gap: 14px;
+  padding: 0 24px;
+}
+
+.context-row {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.context-row strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.auth-note {
+  display: flex;
+  gap: 10px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, hsl(var(--background)) 76%, transparent);
+  padding: 13px 14px;
+}
+
+.auth-note span {
+  margin-top: 7px;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+}
+
+.auth-note p {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.credential-input {
+  min-height: 116px;
+  resize: vertical;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  outline: none;
+  padding: 11px 12px;
+}
+
+.checkbox-line,
+.compose-html {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.turnstile-box {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  min-height: 0;
+}
+
+.verify-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.mail-sidebar {
+  display: flex;
+  width: 236px;
+  flex: 0 0 236px;
+  flex-direction: column;
+  border-right: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  padding: 14px 12px;
+  transition: width .18s ease, flex-basis .18s ease;
+}
+
+.mail-sidebar.collapsed {
+  width: 68px;
+  flex-basis: 68px;
+  padding-inline: 10px;
+}
+
+.mail-sidebar.collapsed .sidebar-label {
+  display: none;
+}
+
+.mail-sidebar.collapsed .sidebar-brand,
+.mail-sidebar.collapsed .nav-item,
+.mail-sidebar.collapsed > button {
+  justify-content: center;
+}
+
+.mail-sidebar.collapsed .sidebar-session {
+  padding-inline: 8px;
+}
+
+.mail-sidebar.collapsed .sidebar-brand .brand-mark {
+  display: none;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 14px;
+  font-weight: 800;
+}
+
+.sidebar-toggle {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.mail-sidebar.collapsed .sidebar-toggle {
+  margin: 0 auto;
+}
+
+.brand-mark,
+.address-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+}
+
+.sidebar-nav {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  overflow: auto;
+}
+
+.nav-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  padding: 9px 11px;
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.nav-item.active,
+.nav-item:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.sidebar-session {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--background));
+  padding: 9px 10px;
+}
+
+.session-avatar {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mail-main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.mail-topbar {
+  display: flex;
+  height: 62px;
+  flex: 0 0 62px;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  padding: 0 18px;
+}
+
+.address-pill {
+  display: flex;
+  min-width: 220px;
+  max-width: 360px;
+  flex: 1;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--background));
+  padding: 0 6px 0 14px;
+  height: 40px;
+}
+
+.status-dot,
+.unread-dot {
+  border-radius: 999px;
+  background: hsl(var(--primary));
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  box-shadow: 0 0 0 3px hsl(var(--accent));
+}
+
+.mail-search {
+  display: flex;
+  width: 248px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--background));
+  padding: 0 13px;
+  height: 40px;
+}
+
+.mail-search input {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  height: auto;
+}
+
+.inbox-grid {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.mail-list {
+  display: flex;
+  width: 372px;
+  flex: 0 0 372px;
+  flex-direction: column;
+  border-right: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+}
+
+.list-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 15px 18px 13px;
+}
+
+.list-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+}
+
+.list-heading h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.list-heading span {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.list-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.empty-state {
+  padding: 24px 18px;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+
+.mail-row {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 12px;
+  border: 0;
+  border-bottom: 1px solid hsl(var(--border));
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 13px 16px;
+  text-align: left;
+}
+
+.mail-row.selected,
+.mail-row:hover {
+  background: hsl(var(--accent));
+}
+
+.sender-avatar {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sender-avatar.large {
+  width: 46px;
+  height: 46px;
+  flex-basis: 46px;
+  font-size: 16px;
+}
+
+.mail-row-top {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+
+.time {
+  margin-left: auto;
+  flex: 0 0 auto;
+  color: hsl(var(--muted-foreground));
+  font-size: 11.5px;
+  font-weight: 650;
+}
+
+.subject,
+.preview {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subject {
+  margin: 2px 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.preview {
+  color: hsl(var(--muted-foreground));
+  font-size: 12.5px;
+}
+
+.unread-dot {
+  margin-top: 6px;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+}
+
+.reader {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.empty-reader {
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 700;
+}
+
+.reader-toolbar {
+  display: flex;
+  height: 56px;
+  flex: 0 0 56px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 0 16px;
+}
+
+.reader-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 34px 32px 60px;
+}
+
+.reader-meta {
+  display: flex;
+  max-width: 680px;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 auto 22px;
+}
+
+.reader-meta h1,
+.page-panel h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.reader-meta p,
+.page-panel p {
+  margin: 6px 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+
+.message-card {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.message-frame {
+  width: 100%;
+  min-height: 420px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.message-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  line-height: 1.65;
+}
+
+.code-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 22px 0 14px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 8px;
+  background: hsl(var(--background));
+  padding: 18px 22px;
+}
+
+.code-box span {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 9px;
+}
+
+.page-panel {
+  height: 100%;
+  overflow-y: auto;
+  padding: 36px 32px 60px;
+}
+
+.compose-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 10px 18px;
+}
+
+.compose-row span:first-child {
+  width: 54px;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.compose-body {
+  min-height: 240px;
+  width: 100%;
+  resize: vertical;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  outline: none;
+  padding: 18px;
+  line-height: 1.6;
+}
+
+.compose-html {
+  padding: 12px 18px 0;
+}
+
+.compose-actions {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  padding: 14px 18px;
+}
+
+.address-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: hsl(var(--card));
+  color: inherit;
+  cursor: pointer;
+  padding: 16px;
+}
+
+.address-card.active {
+  border-color: hsl(var(--primary));
+}
+
+.address-section-title {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.address-icon {
+  width: 42px;
+  height: 42px;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 1080px) {
+  .auth-stage {
+    grid-template-columns: 1fr;
+    max-width: 620px;
+  }
+
+  .auth-context {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .auth-note {
+    grid-column: 1 / -1;
+  }
+
+  .auth-card-head h1 {
+    font-size: 42px;
+  }
+}
+
+@media (max-width: 700px) {
+  .notice-toast {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+  }
+
+  .mail-shell {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  .mail-sidebar {
+    display: none;
+  }
+
+  .mail-main {
+    min-height: 100vh;
+  }
+
+  .mail-topbar {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+
+  .address-pill {
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .mail-search {
+    width: 100%;
+  }
+
+  .inbox-grid {
+    display: block;
+    overflow: visible;
+  }
+
+  .mail-list {
+    width: auto;
+    border-right: 0;
+  }
+
+  .reader {
+    display: none;
+  }
+
+  .page-panel {
+    height: auto;
+    padding: 24px 16px 48px;
+  }
+
+  .auth-shell {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .auth-main {
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 18px 12px;
+  }
+
+  .auth-stage,
+  .auth-context {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-card {
+    padding: 20px;
+  }
+
+  .auth-card-head h1 {
+    font-size: 34px;
+  }
+
+  .address-builder {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .address-builder input {
+    flex: 1 1 160px;
+  }
+
+  .auth-tabs {
+    display: flex;
+  }
+
+  .compose-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

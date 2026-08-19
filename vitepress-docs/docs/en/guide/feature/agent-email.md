@@ -93,6 +93,10 @@ curl -s "$BASE/api/parsed_mails?limit=20&offset=0" \
 
 Requires `send_balance > 0` (check via `/api/settings`). The deployment must have a send method configured (Resend / SMTP / Cloudflare Email Routing binding).
 
+::: tip Send access belongs to a mailbox address
+`/api/request_send_mail_access` requests access for the mailbox address identified by the Address JWT in `Authorization`, not for a user account. Request access separately for each mailbox address; a User JWT cannot replace the Address JWT on this endpoint.
+:::
+
 | Task                    | Method | Path                            | Body / Returns                              |
 | ----------------------- | ------ | ------------------------------- | ------------------------------------------- |
 | Request send access     | POST   | `/api/request_send_mail_access` | `{}` → `{ status: "ok" }`                  |

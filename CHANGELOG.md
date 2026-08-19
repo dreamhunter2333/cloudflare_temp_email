@@ -10,6 +10,10 @@
 
 ### Features
 
+- feat: |Frontend Next| 新增 `frontend-next` Vite React + shadcn 命令生成组件的非 admin 邮件客户端，按参考稿 B 风格实现创建/恢复地址、收件箱、写信、地址管理、用户账号集成、设置与亮色/暗色切换
+
+- docs: |前端/文档| 统一邮箱地址、用户账号与 Admin 权限的表述，并明确发信权限和额度按邮箱地址独立申请与管理
+
 ### Bug Fixes
 
 ### Improvements

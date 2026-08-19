@@ -8,24 +8,30 @@ After deploying the frontend application, click the upper-left logo 5 times or v
 
 You need to configure `ADMIN_PASSWORDS` in the backend or ensure the current user role is `ADMIN_USER_ROLE`, otherwise access to the console will be denied.
 
-## Admin Passwords vs User Accounts
+## Admin Passwords, User Accounts, and Mailbox Addresses
 
 `ADMIN_PASSWORDS` is the management password for the Admin console. It is not a site user account
 and does not correspond to any mailbox address. Logging in with an admin password grants access to
 the console, but that login itself cannot receive mail.
 
-Site user accounts are stored in the `users` table and use the user login flow. Whether a user can
-receive mail depends on whether they created or bound a mailbox address. Creating a normal user
-whose email looks like `admin@example.com` does not automatically grant admin permissions.
+Site user accounts are stored in the `users` table and use the user login flow. They bind, sync, and
+manage multiple mailbox addresses, but do not have an inbox, address credential, or send balance by
+themselves.
+
+Mailbox addresses are stored in the `address` table. Each address has its own inbox, address
+credential, and send access. A user can receive mail only after creating or binding an address, and
+send access must be requested for a specific mailbox address rather than for the user account.
+Creating a normal user whose email looks like `admin@example.com` does not automatically grant admin
+permissions.
 
 If you want a user account to access the Admin console, configure `ADMIN_USER_ROLE` and assign the
 same role to that user in user management.
 
 ![admin](/feature/admin.png)
 
-## Account List Sorting
+## Mailbox Address List Sorting
 
-The Accounts tab in the admin console supports column sorting. Click the column header to toggle ascending/descending order for:
+The Mailbox Addresses tab in the admin console supports column sorting. Click the column header to toggle ascending/descending order for:
 
 - ID
 - Name

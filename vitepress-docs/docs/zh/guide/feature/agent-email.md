@@ -93,6 +93,10 @@ curl -s "$BASE/api/parsed_mails?limit=20&offset=0" \
 
 需要 `send_balance > 0`（通过 `/api/settings` 查看），且部署方已配置发送方式（Resend / SMTP / Cloudflare Email Routing binding）。
 
+::: tip 发信权限属于邮箱地址
+`/api/request_send_mail_access` 申请的是 `Authorization` 中 Address JWT 对应邮箱地址的发信权限，不是用户账号的权限。不同邮箱地址需要分别申请；User JWT 不能代替 Address JWT 调用该接口。
+:::
+
 | 任务             | 方法   | 路径                            | 请求体 / 返回                              |
 | ---------------- | ------ | ------------------------------- | ------------------------------------------ |
 | 申请发信权限     | POST   | `/api/request_send_mail_access` | `{}` → `{ status: "ok" }`                 |

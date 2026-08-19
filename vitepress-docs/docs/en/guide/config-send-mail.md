@@ -152,10 +152,12 @@ wrangler secret put SMTP_CONFIG
 
 ## Send Balance Mechanism
 
-Users need a send balance to send emails. The balance mechanism works as follows:
+Send access and balance belong to a **mailbox address**, not to a user account. A user account only binds, syncs, and manages multiple mailbox addresses. Even after signing in to a user account, select a specific mailbox address and request send access for that address. Each address has its own enabled state and balance.
+
+A mailbox address needs a send balance to send emails. The balance mechanism works as follows:
 
 1. **Auto-initialize Default Quota**: When `DEFAULT_SEND_BALANCE > 0`, the system automatically initializes the default quota when the user opens the send page or calls the send-mail API for the first time
-2. **Manual Request**: If `DEFAULT_SEND_BALANCE = 0`, users can still click "Request Send Permission" in the frontend to create a pending send-access record for admins to review
+2. **Manual Request**: If `DEFAULT_SEND_BALANCE = 0`, users can click "Request Access for This Address" on the current mailbox address's send page to create an address-specific request for admins to review
 3. **Unlimited Sending**: The following methods can bypass balance checks:
    - Add the address to the "No Limit Send Address List" in the admin console
    - Configure the `NO_LIMIT_SEND_ROLE` environment variable to specify roles that can send without limits

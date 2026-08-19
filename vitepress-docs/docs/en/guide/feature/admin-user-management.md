@@ -1,11 +1,11 @@
-# Admin User Management
+# Admin User Account Management
 
-## User Management Page
+## User Account Management Page
 
 ![admin-user-management](/feature/admin-user-management.png)
 
-## User Settings
+## User Account Settings
 
-Configure user login and authentication settings here
+Configure site user account login, registration, and authentication here. A user account binds and manages mailbox addresses; it is not itself a mailbox address.
 
 ![admin-user-page](/feature/admin-user-page.png)

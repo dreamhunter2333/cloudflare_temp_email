@@ -10,6 +10,10 @@
 
 ### Features
 
+- feat: |Frontend Next| Add a `frontend-next` Vite React non-admin mail client using shadcn CLI-generated components in the reference B style, covering address create/restore, inbox, compose, address management, user account integration, settings, and light/dark theme support
+
+- docs: |Frontend/Docs| Clarify mailbox address, user account, and Admin permission terminology, including address-specific send access and balances
+
 ### Bug Fixes
 
 ### Improvements

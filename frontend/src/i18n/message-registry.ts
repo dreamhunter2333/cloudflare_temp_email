@@ -289,8 +289,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "本地地址"
     },
     "userAddresses": {
-      "en": "User Addresses",
-      "zh": "用户地址"
+      "en": "Addresses Bound to User Account",
+      "zh": "用户账号绑定地址"
     }
   },
   "components.AddressCredentialModal": {
@@ -419,8 +419,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "关于"
     },
     "accountSettings": {
-      "en": "Account Settings",
-      "zh": "账户"
+      "en": "Mailbox Address Settings",
+      "zh": "邮箱地址设置"
     },
     "appearance": {
       "en": "Appearance",
@@ -565,8 +565,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "Cloudflare 临时邮件"
     },
     "user": {
-      "en": "User",
-      "zh": "用户"
+      "en": "User Account",
+      "zh": "用户账号"
     }
   },
   "views.user.BindAddress": {
@@ -589,16 +589,16 @@ export const MESSAGE_REGISTRY = {
       "zh": "请输入 Admin 密码"
     },
     "account": {
-      "en": "Account",
-      "zh": "账号"
+      "en": "Mailbox Addresses",
+      "zh": "邮箱地址"
     },
     "account_create": {
-      "en": "Create Account",
-      "zh": "创建账号"
+      "en": "Create Mailbox Address",
+      "zh": "创建邮箱地址"
     },
     "account_settings": {
-      "en": "Account Settings",
-      "zh": "账号设置"
+      "en": "Mailbox Address Settings",
+      "zh": "邮箱地址设置"
     },
     "adminAccount": {
       "en": "Admin",
@@ -705,20 +705,20 @@ export const MESSAGE_REGISTRY = {
       "zh": "无收件人邮件"
     },
     "user": {
-      "en": "User",
-      "zh": "用户"
+      "en": "User Accounts",
+      "zh": "用户账号"
     },
     "userOauth2Settings": {
       "en": "Oauth2 Settings",
       "zh": "Oauth2 设置"
     },
     "user_management": {
-      "en": "User Management",
-      "zh": "用户管理"
+      "en": "User Account Management",
+      "zh": "用户账号管理"
     },
     "user_settings": {
-      "en": "User Settings",
-      "zh": "用户设置"
+      "en": "User Account Settings",
+      "zh": "用户账号设置"
     },
     "webhookSettings": {
       "en": "Webhook Settings",
@@ -743,8 +743,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "收件箱"
     },
     "user_settings": {
-      "en": "User Settings",
-      "zh": "用户设置"
+      "en": "User Account Settings",
+      "zh": "用户账号设置"
     }
   },
   "views.user.UserLogin": {
@@ -823,8 +823,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.user.UserBar": {
     "currentUser": {
-      "en": "Current Login User",
-      "zh": "当前登录用户"
+      "en": "Current User Account",
+      "zh": "当前用户账号"
     },
     "fetchUserSettingsError": {
       "en": "Login password is invalid or account not exist, it may be network connection issue, please try again later.",
@@ -877,8 +877,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "转移地址"
     },
     "transferAddressTip": {
-      "en": "Transfer address to another user will remove the address from your account and transfer it to another user. Are you sure to transfer the address?",
-      "zh": "转移地址到其他用户将会从你的账户中移除此地址并转移给其他用户。确定要转移地址吗？"
+      "en": "Transferring this address removes it from your user account and binds it to another user account. Are you sure?",
+      "zh": "转移后，此邮箱地址将从你的用户账号解绑，并绑定到另一个用户账号。确定要转移吗？"
     },
     "unbindAddress": {
       "en": "Unbind Address",
@@ -915,12 +915,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "确认密码"
     },
     "deleteAccount": {
-      "en": "Delete Account",
-      "zh": "删除账户"
+      "en": "Delete Mailbox Address",
+      "zh": "删除邮箱地址"
     },
     "deleteAccountConfirm": {
-      "en": "Are you sure to delete your account and all emails for this account?",
-      "zh": "确定要删除你的账户和其中的所有邮件吗?"
+      "en": "Are you sure you want to delete this mailbox address and all of its emails?",
+      "zh": "确定要删除当前邮箱地址及其全部邮件吗？"
     },
     "logout": {
       "en": "Logout",
@@ -1055,12 +1055,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "预览"
     },
     "requestAccess": {
-      "en": "Request Access",
-      "zh": "申请权限"
+      "en": "Request Access for This Address",
+      "zh": "为当前地址申请发信权限"
     },
     "requestAccessTip": {
-      "en": "No send balance yet. If your admin enabled a default balance it should be assigned automatically; otherwise request access or contact the admin.",
-      "zh": "当前还没有可用的发信额度。如果管理员启用了默认额度，会自动发放；否则请申请权限或联系管理员处理。"
+      "en": "Send access and balance belong to the current mailbox address, not the user account. This address has no send balance yet. Request access for it or contact the admin.",
+      "zh": "发信权限和额度属于当前邮箱地址，不属于用户账号。当前地址还没有可用额度，请为该地址申请发信权限或联系管理员。"
     },
     "rich text": {
       "en": "Rich Text",
@@ -1105,8 +1105,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.index.SimpleIndex": {
     "accountSettings": {
-      "en": "Account Settings",
-      "zh": "账户设置"
+      "en": "Mailbox Address Settings",
+      "zh": "邮箱地址设置"
     },
     "addressCopied": {
       "en": "Address copied successfully",
@@ -1197,7 +1197,7 @@ export const MESSAGE_REGISTRY = {
       "zh": "邮箱地址凭证"
     },
     "addressCredentialTip": {
-      "en": "Please copy the Mail Address Credential and you can use it to login to your email account.",
+      "en": "Copy this mailbox address credential to log in to this address.",
       "zh": "请复制邮箱地址凭证，你可以使用它登录你的邮箱。"
     },
     "addressManage": {
@@ -1209,7 +1209,7 @@ export const MESSAGE_REGISTRY = {
       "zh": "地址密码"
     },
     "fetchAddressError": {
-      "en": "Mail address credential is invalid or account not exist, it may be network connection issue, please try again later.",
+      "en": "The mailbox address credential is invalid or the address does not exist. This may also be a network issue; please try again later.",
       "zh": "邮箱地址凭证无效或邮箱地址不存在，也可能是网络连接异常，请稍后再尝试。"
     },
     "linkWithAddressCredential": {
@@ -1221,8 +1221,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "确定"
     },
     "userLogin": {
-      "en": "User Login",
-      "zh": "用户登录"
+      "en": "User Account Login",
+      "zh": "用户账号登录"
     }
   },
   "views.admin.SendBox": {
@@ -1353,7 +1353,7 @@ export const MESSAGE_REGISTRY = {
       "zh": "邮箱地址凭证"
     },
     "addressCredentialTip": {
-      "en": "Please copy the Mail Address Credential and you can use it to login to your email account.",
+      "en": "Copy this mailbox address credential to log in to this address.",
       "zh": "请复制邮箱地址凭证，你可以使用它登录你的邮箱。"
     },
     "addressQueryTip": {
@@ -1385,8 +1385,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "删除"
     },
     "deleteAccount": {
-      "en": "Delete Account",
-      "zh": "删除邮箱"
+      "en": "Delete Mailbox Address",
+      "zh": "删除邮箱地址"
     },
     "deleteTip": {
       "en": "Are you sure to delete this email?",
@@ -1857,8 +1857,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "更改角色"
     },
     "createUser": {
-      "en": "Create User",
-      "zh": "创建用户"
+      "en": "Create User Account",
+      "zh": "创建用户账号"
     },
     "created_at": {
       "en": "Created At",
@@ -1869,12 +1869,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "删除"
     },
     "deleteUser": {
-      "en": "Delete User",
-      "zh": "删除用户"
+      "en": "Delete User Account",
+      "zh": "删除用户账号"
     },
     "deleteUserTip": {
-      "en": "Are you sure you want to delete this user?",
-      "zh": "确定要删除此用户吗？"
+      "en": "Are you sure you want to delete this user account?",
+      "zh": "确定要删除此用户账号吗？"
     },
     "domains": {
       "en": "Domains",
@@ -1921,12 +1921,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "成功"
     },
     "userAddressManagement": {
-      "en": "Address Management",
-      "zh": "地址管理"
+      "en": "Bound Address Management",
+      "zh": "绑定地址管理"
     },
     "user_email": {
-      "en": "User Email",
-      "zh": "用户邮箱"
+      "en": "User Account Email",
+      "zh": "用户账号邮箱"
     }
   },
   "views.admin.Telegram": {
@@ -1989,7 +1989,7 @@ export const MESSAGE_REGISTRY = {
       "zh": "邮箱地址凭证"
     },
     "addressCredentialTip": {
-      "en": "Please copy the Mail Address Credential and you can use it to login to your email account.",
+      "en": "Copy this mailbox address credential to log in to this address.",
       "zh": "请复制邮箱地址凭证，你可以使用它登录你的邮箱。"
     },
     "addressPassword": {
@@ -2465,8 +2465,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "请输入天数"
     },
     "unboundAddressLabel": {
-      "en": "Cleanup the unbound address before n days",
-      "zh": "清理 n 天前的未绑定用户地址"
+      "en": "Clean up mailbox addresses unbound for n days",
+      "zh": "清理已解绑 n 天的邮箱地址"
     }
   },
   "views.common.Login": {
@@ -2561,8 +2561,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.admin.Webhook": {
     "enableAllowList": {
-      "en": "Enable Allow List (Restrict webhook access to specific users)",
-      "zh": "启用白名单 (限制 webhook 访问权限，只有白名单中的用户可以使用)"
+      "en": "Enable Allow List (Restrict webhook access to specific mailbox addresses)",
+      "zh": "启用白名单（仅允许白名单中的邮箱地址使用 Webhook）"
     },
     "manualInputPrompt": {
       "en": "Type and press Enter to add",
