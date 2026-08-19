@@ -327,7 +327,7 @@ onMounted(async () => {
                         <n-form-item-row v-if="canUseRandomSubdomain">
                             <div style="width: 100%;">
                                 <n-radio-group v-model:value="subdomainMode">
-                                    <n-space>
+                                    <n-space vertical>
                                         <n-radio value="normal">{{ t('normalSubdomain') }}</n-radio>
                                         <n-radio value="random">{{ t('enableRandomSubdomain') }}</n-radio>
                                         <n-radio value="custom">{{ t('enableCustomSubdomain') }}</n-radio>
