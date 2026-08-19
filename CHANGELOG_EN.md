@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |Admin| Fix secondary tabs occasionally losing their active item, hiding content, and leaving the indicator offset after switching primary tabs
+
 ### Improvements
 
 ### Testing

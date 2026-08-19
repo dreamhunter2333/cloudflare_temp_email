@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |Admin| 修复切换一级标签页时二级标签页偶发无选中项、内容不显示及指示条偏移的问题
+
 ### Improvements
 
 ### Testing
