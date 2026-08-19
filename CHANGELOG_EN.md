@@ -16,6 +16,10 @@
 
 ### Improvements
 
+### Testing
+
+- test: |E2E| Cover the D1 database-size response, config-key isolation, and persistence of the database-page plan selection across reloads
+
 ## v1.11.0
 
 ### Features

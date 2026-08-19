@@ -16,6 +16,10 @@
 
 ### Improvements
 
+### Testing
+
+- test: |E2E| 覆盖 D1 数据库大小响应、配置键隔离，以及数据库页面套餐选择的持久化与刷新恢复
+
 ## v1.11.0
 
 ### Features
