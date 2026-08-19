@@ -116,7 +116,7 @@ const requestAccess = async () => {
                 body: JSON.stringify({})
             }
         )
-        message.success(t("success"))
+        message.success(t("requestSuccess"))
         await api.getSettings();
     } catch (error) {
         message.error(error.message || "error");
@@ -161,7 +161,7 @@ onMounted(async () => {
         <n-card :bordered="false" embedded>
             <div v-if="!settings.send_balance || settings.send_balance <= 0">
                 <n-alert type="warning" :show-icon="false" :bordered="false">
-                    {{ t('requestAccessTip') }}
+                    {{ t('requestAccessTip', { address: settings.address }) }}
                     <n-button type="primary" tertiary @click="requestAccess" size="small">{{ t('requestAccess')
                         }}</n-button>
                 </n-alert>

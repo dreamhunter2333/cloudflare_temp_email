@@ -150,12 +150,30 @@ cd worker
 wrangler secret put SMTP_CONFIG
 ```
 
+## User Accounts, Email Addresses, and Send Permission
+
+These concepts are related, but they identify different objects:
+
+| Concept | Description |
+|---------|-------------|
+| User account | Signs in to the user center and can bind and manage multiple email addresses. The user account's login email is not automatically a sending or receiving address |
+| Email address | The identity that actually receives and sends mail, such as `name@example.com`. The address currently selected on the frontend home page is authenticated by its Address JWT |
+| Send permission and balance | Permission and balance records in `address_sender` are managed independently **per email address**; user roles configured by `NO_LIMIT_SEND_ROLE` can bypass address balance checks |
+
+Multiple email addresses bound to the same user account therefore do not share send permission or balance. To request permission for an address:
+
+1. Switch to the email address that needs to send mail
+2. Open the **Send Mail** page
+3. Click **Request Access**
+
+The request affects only the address selected at that time. After switching to another address, check that address's own balance and request permission separately if needed. An email address can also hold send permission without being bound to a user account.
+
 ## Send Balance Mechanism
 
-Users need a send balance to send emails. The balance mechanism works as follows:
+An email address needs its own send balance to send emails. The balance mechanism works as follows:
 
 1. **Auto-initialize Default Quota**: When `DEFAULT_SEND_BALANCE > 0`, the system automatically initializes the default quota when the user opens the send page or calls the send-mail API for the first time
-2. **Manual Request**: If `DEFAULT_SEND_BALANCE = 0`, users can still click "Request Send Permission" in the frontend to create a pending send-access record for admins to review
+2. **Manual Request**: If `DEFAULT_SEND_BALANCE = 0`, switch to the target email address in the frontend and click **Request Access** to create a pending send-access record for the current address
 3. **Unlimited Sending**: The following methods can bypass balance checks:
    - Add the address to the "No Limit Send Address List" in the admin console
    - Configure the `NO_LIMIT_SEND_ROLE` environment variable to specify roles that can send without limits

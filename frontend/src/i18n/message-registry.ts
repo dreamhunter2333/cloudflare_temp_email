@@ -419,8 +419,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "关于"
     },
     "accountSettings": {
-      "en": "Account Settings",
-      "zh": "账户"
+      "en": "Email Settings",
+      "zh": "邮箱设置"
     },
     "appearance": {
       "en": "Appearance",
@@ -891,8 +891,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.index.AccountSettings": {
     "changePassword": {
-      "en": "Change Password",
-      "zh": "修改密码"
+      "en": "Change Address Password",
+      "zh": "修改地址密码"
     },
     "clearInbox": {
       "en": "Clear Inbox",
@@ -915,20 +915,20 @@ export const MESSAGE_REGISTRY = {
       "zh": "确认密码"
     },
     "deleteAccount": {
-      "en": "Delete Account",
-      "zh": "删除账户"
+      "en": "Delete Email Address",
+      "zh": "删除邮箱地址"
     },
     "deleteAccountConfirm": {
-      "en": "Are you sure to delete your account and all emails for this account?",
-      "zh": "确定要删除你的账户和其中的所有邮件吗?"
+      "en": "Are you sure you want to delete this email address and all of its emails? This does not delete your user account.",
+      "zh": "确定要删除当前邮箱地址及其中的所有邮件吗？此操作不会删除你的用户账号。"
     },
     "logout": {
-      "en": "Logout",
-      "zh": "退出登录"
+      "en": "Log Out of Address",
+      "zh": "退出地址登录"
     },
     "logoutConfirm": {
-      "en": "Are you sure to logout?",
-      "zh": "确定要退出登录吗？"
+      "en": "Are you sure you want to log out of the current email address?",
+      "zh": "确定要退出当前邮箱地址的登录吗？"
     },
     "newPassword": {
       "en": "New Password",
@@ -1059,8 +1059,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "申请权限"
     },
     "requestAccessTip": {
-      "en": "No send balance yet. If your admin enabled a default balance it should be assigned automatically; otherwise request access or contact the admin.",
-      "zh": "当前还没有可用的发信额度。如果管理员启用了默认额度，会自动发放；否则请申请权限或联系管理员处理。"
+      "en": "Send permission and balance are managed separately for each email address. The current address, {address}, has no available balance. Request permission for this address or contact the admin.",
+      "zh": "发信权限和额度按邮箱地址独立管理。当前地址 {address} 暂无可用额度，请为此地址申请发信权限或联系管理员。"
+    },
+    "requestSuccess": {
+      "en": "Send permission requested for the current address",
+      "zh": "已为当前地址提交发信权限申请"
     },
     "rich text": {
       "en": "Rich Text",
@@ -1071,8 +1075,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "发送"
     },
     "send_balance": {
-      "en": "Send Mail Balance Left",
-      "zh": "剩余发送邮件额度"
+      "en": "Current Address Send Balance",
+      "zh": "当前地址剩余发信额度"
     },
     "subject": {
       "en": "Subject",
@@ -1105,8 +1109,8 @@ export const MESSAGE_REGISTRY = {
   },
   "views.index.SimpleIndex": {
     "accountSettings": {
-      "en": "Account Settings",
-      "zh": "账户设置"
+      "en": "Email Settings",
+      "zh": "邮箱设置"
     },
     "addressCopied": {
       "en": "Address copied successfully",
