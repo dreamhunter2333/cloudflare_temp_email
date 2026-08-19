@@ -63,6 +63,8 @@ export type MailItem = {
   source?: string
   address?: string
   subject?: string
+  sender?: string
+  html?: string
   message?: string
   text?: string
   raw?: string
@@ -158,8 +160,8 @@ const normalizeOpenSettings = (payload: Record<string, unknown>): OpenSettings =
     title: String(payload.title || ""),
     prefix: String(payload.prefix || ""),
     addressRegex: String(payload.addressRegex || ""),
-    minAddressLen: Number(payload.minAddressLen || 1),
-    maxAddressLen: Number(payload.maxAddressLen || 30),
+    minAddressLen: Number(payload.minAddressLen ?? 1),
+    maxAddressLen: Number(payload.maxAddressLen ?? 30),
     needAuth: Boolean(payload.needAuth),
     enableUserCreateEmail: Boolean(payload.enableUserCreateEmail),
     disableAnonymousUserCreateEmail: Boolean(payload.disableAnonymousUserCreateEmail),
@@ -354,7 +356,7 @@ export class ApiClient {
   }
 
   async listMails(limit: number, offset: number) {
-    return this.request<MailListResponse>(`/api/mails?limit=${limit}&offset=${offset}`)
+    return this.request<MailListResponse>(`/api/parsed_mails?limit=${limit}&offset=${offset}`)
   }
 
   async deleteMail(id: string | number) {

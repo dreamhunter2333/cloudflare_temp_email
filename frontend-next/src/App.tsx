@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
+import DOMPurify from "dompurify"
 import {
   Archive,
   Check,
@@ -171,6 +172,7 @@ function App() {
     setMails([])
     setSelectedId("")
     setSettings(defaultAddressSettings)
+    setPage(1)
   }
 
   const logout = () => {
@@ -178,6 +180,7 @@ function App() {
     setSettings({ ...defaultAddressSettings, fetched: true })
     setMails([])
     setSelectedId("")
+    setPage(1)
   }
 
   return (
@@ -899,10 +902,14 @@ function NavItem({
 function AddressPill({ address, showNotice }: { address: string; showNotice: (notice: Notice) => void }) {
   const [copied, setCopied] = useState(false)
   const copyAddress = async () => {
-    await navigator.clipboard.writeText(address)
-    setCopied(true)
-    showNotice({ type: "success", text: "Address copied" })
-    window.setTimeout(() => setCopied(false), 1400)
+    try {
+      await navigator.clipboard.writeText(address)
+      setCopied(true)
+      showNotice({ type: "success", text: "Address copied" })
+      window.setTimeout(() => setCopied(false), 1400)
+    } catch (error) {
+      showNotice({ type: "error", text: `Copy failed: ${getErrorMessage(error)}` })
+    }
   }
 
   return (
@@ -1010,8 +1017,10 @@ function MessageReader({
     )
   }
 
-  const body = mail.message || mail.text || mail.raw || ""
-  const isHtml = /<\/?[a-z][\s\S]*>/i.test(body)
+  const htmlBody = mail.html || (mail.message && /<\/?[a-z][\s\S]*>/i.test(mail.message) ? mail.message : "")
+  const body = htmlBody || mail.text || mail.message || ""
+  const sender = mail.sender || mail.source
+  const safeHtml = htmlBody ? createSafeMailHtml(htmlBody) : ""
 
   return (
     <section className="reader">
@@ -1034,10 +1043,10 @@ function MessageReader({
       </div>
       <div className="reader-body">
         <div className="reader-meta">
-          <span className="sender-avatar large">{senderInitials(mail.source)}</span>
+          <span className="sender-avatar large">{senderInitials(sender)}</span>
           <div className="min-w-0">
             <h1>{mail.subject || "No Subject"}</h1>
-            <p>{mail.source || "Unknown sender"}</p>
+            <p>{sender || "Unknown sender"}</p>
             <p className="text-xs text-muted-foreground">
               to <span className="font-mono">{address}</span> · {formatDate(mail.created_at)}
             </p>
@@ -1045,8 +1054,14 @@ function MessageReader({
         </div>
         <Card className="message-card">
           <CardContent className="p-6">
-            {isHtml ? (
-              <iframe className="message-frame" title={`mail-${mail.id}`} sandbox="" srcDoc={body} />
+            {safeHtml ? (
+              <iframe
+                className="message-frame"
+                title={`mail-${mail.id}`}
+                sandbox=""
+                referrerPolicy="no-referrer"
+                srcDoc={safeHtml}
+              />
             ) : (
               <pre className="message-text">{body}</pre>
             )}
@@ -1407,8 +1422,12 @@ function SettingsPanel({
             <Button
               variant="outline"
               onClick={async () => {
-                await navigator.clipboard.writeText(jwt)
-                showNotice({ type: "success", text: "Credential copied" })
+                try {
+                  await navigator.clipboard.writeText(jwt)
+                  showNotice({ type: "success", text: "Credential copied" })
+                } catch (error) {
+                  showNotice({ type: "error", text: `Copy failed: ${getErrorMessage(error)}` })
+                }
               }}
             >
               <Copy className="size-4" />
@@ -1486,12 +1505,24 @@ function NoticeToast({ notice }: { notice: NonNullable<Notice> }) {
   )
 }
 
+function createSafeMailHtml(html: string) {
+  const sanitized = DOMPurify.sanitize(html, {
+    FORBID_TAGS: ["base", "embed", "form", "iframe", "link", "meta", "object", "script"],
+    FORBID_ATTR: ["action", "formaction", "srcset"],
+  })
+  const policy = "default-src 'none'; img-src data: blob: cid:; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'"
+  return `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="${policy}"></head><body>${sanitized}</body></html>`
+}
+
 function useLocalStorageState<T extends string = string>(key: string, defaultValue: T) {
-  const [value, setValue] = useState<string>(() => localStorage.getItem(key) ?? defaultValue)
+  const [value, setValue] = useState<string>(() => {
+    if (typeof window === "undefined") return defaultValue
+    return window.localStorage.getItem(key) ?? defaultValue
+  })
   const setStoredValue = useCallback(
     (nextValue: string) => {
       setValue(nextValue)
-      localStorage.setItem(key, nextValue)
+      if (typeof window !== "undefined") window.localStorage.setItem(key, nextValue)
     },
     [key],
   )
@@ -1500,8 +1531,9 @@ function useLocalStorageState<T extends string = string>(key: string, defaultVal
 
 function useLocalStorageArray(key: string) {
   const [value, setValue] = useState<string[]>(() => {
+    if (typeof window === "undefined") return []
     try {
-      const raw = localStorage.getItem(key)
+      const raw = window.localStorage.getItem(key)
       if (!raw) return []
       const parsed = JSON.parse(raw)
       return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : []
@@ -1513,7 +1545,7 @@ function useLocalStorageArray(key: string) {
     (nextValue: string[]) => {
       const deduped = Array.from(new Set(nextValue.filter(Boolean)))
       setValue(deduped)
-      localStorage.setItem(key, JSON.stringify(deduped))
+      if (typeof window !== "undefined") window.localStorage.setItem(key, JSON.stringify(deduped))
     },
     [key],
   )
