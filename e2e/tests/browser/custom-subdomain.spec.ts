@@ -20,20 +20,20 @@ test('create an address with a custom subdomain from the UI', async ({ page, req
     const customSubdomain = createForm.getByRole('radio', { name: 'Use Custom Subdomain' });
 
     await expect(normalSubdomain).toBeChecked();
-    await randomSubdomain.check();
+    await createForm.getByText('Use Random Subdomain', { exact: true }).click();
     await expect(normalSubdomain).not.toBeChecked();
     await expect(randomSubdomain).toBeChecked();
     await expect(customSubdomain).not.toBeChecked();
 
-    await customSubdomain.check();
+    await createForm.getByText('Use Custom Subdomain', { exact: true }).click();
     await expect(randomSubdomain).not.toBeChecked();
     await expect(customSubdomain).toBeChecked();
 
-    await randomSubdomain.check();
+    await createForm.getByText('Use Random Subdomain', { exact: true }).click();
     await expect(randomSubdomain).toBeChecked();
     await expect(customSubdomain).not.toBeChecked();
 
-    await customSubdomain.check();
+    await createForm.getByText('Use Custom Subdomain', { exact: true }).click();
     await createForm.locator('.n-input-group:visible .n-input input').last().fill('team');
 
     await createForm.getByRole('button', { name: 'Create New Email' }).click();
