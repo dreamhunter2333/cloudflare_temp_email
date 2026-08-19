@@ -219,11 +219,13 @@ export default {
     },
     getVersion: async (c: Context<HonoCustomType>) => {
         const version = await utils.getSetting(c, CONSTANTS.DB_VERSION_KEY);
+        const sizeResult = await c.env.DB.prepare("SELECT 1").run();
         return c.json({
             need_initialization: !version,
             need_migration: version && version != CONSTANTS.DB_VERSION,
             current_db_version: version,
-            code_db_version: CONSTANTS.DB_VERSION
+            code_db_version: CONSTANTS.DB_VERSION,
+            database_size: sizeResult.meta.size_after ?? null
         });
     },
 }

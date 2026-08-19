@@ -10,9 +10,15 @@
 
 ### Features
 
+- feat: |Admin| 数据库页面新增 D1 存储容量展示，支持选择并保存 Free 或 Workers Paid 套餐，对比当前数据库大小和容量上限
+
 ### Bug Fixes
 
 ### Improvements
+
+### Testing
+
+- test: |E2E| 覆盖 D1 数据库大小响应、配置键隔离，以及数据库页面套餐选择的持久化与刷新恢复
 
 ## v1.11.0
 
