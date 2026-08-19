@@ -7,7 +7,9 @@ keep_vars = true
 [vars]
 PREFIX = "TMP"
 DEFAULT_DOMAINS = []
-DOMAINS = ["TEST.EXAMPLE.COM"]
+DOMAINS = ["TEST.EXAMPLE.COM", "MANUAL.EXAMPLE.COM"]
+RANDOM_SUBDOMAIN_DOMAINS = ["TEST.EXAMPLE.COM"]
+CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST = true
 USER_ROLES = [
   { domains = ["TEST.EXAMPLE.COM"], role = "case-role", prefix = "ROLE" },
   { domains = [], role = "empty-role", prefix = "EMPTY" },

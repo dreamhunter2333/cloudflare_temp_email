@@ -37,7 +37,7 @@
 | `DEFAULT_DOMAINS`                     | JSON      | 默认用户可用的域名(未登录或未分配角色的用户)                                                                                      | `["awsl.uk", "dreamhunter2333.xyz"]`      |
 | `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` | 文本/JSON | 创建新地址时是否优先使用默认域名，如果设置为 true，当未指定域名时将使用第一个域名, 主要用于 telegram bot 场景                     | `false`                                   |
 | `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` | 文本/JSON | 是否允许创建邮箱 API 使用“基础域名后缀匹配”。开启后，如果允许域名里有 `example.com`，则 `/api/new_address` 与 `/admin/new_address` 可以接受 `foo.example.com`、`a.b.example.com` 这类子域名 | `true` |
-| `RANDOM_SUBDOMAIN_DOMAINS`            | JSON      | 允许启用随机子域名的基础域名列表，启用后可把 `name@abc.com` 创建成 `name@随机串.abc.com`                                         | `["abc.com"]`                             |
+| `RANDOM_SUBDOMAIN_DOMAINS`            | JSON      | 允许使用随机或手动子域名的基础域名列表，随机模式可把 `name@abc.com` 创建成 `name@随机串.abc.com`                              | `["abc.com"]`                             |
 | `RANDOM_SUBDOMAIN_LENGTH`             | 数字      | 随机子域名长度，默认 `8`，范围 `1-63`                                                                                            | `8`                                       |
 | `DOMAIN_LABELS`                       | JSON      | 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称                                                                       | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
 | `ENABLE_AUTO_REPLY`                   | 文本/JSON | 允许自动回复邮件。发件人过滤（`source_prefix`）支持三种模式：留空匹配所有发件人、填写前缀进行 `startsWith` 匹配、使用 `/regex/` 语法进行正则匹配（如 `/@example\.com$/`） | `true`                                    |
@@ -50,8 +50,8 @@
 > [!NOTE]
 > `DEFAULT_DOMAINS` 未配置或配置为空数组时，会回退使用 `DOMAINS`。
 >
-> `RANDOM_SUBDOMAIN_DOMAINS` 只负责“创建地址时自动补随机子域名”，不会自动帮你创建 Cloudflare
-> 侧的子域名路由。
+> `RANDOM_SUBDOMAIN_DOMAINS` 定义前端随机及手动子域名模式共同使用的基础域名范围，不会自动帮你
+> 创建 Cloudflare 侧的子域名路由。
 >
 > 要让 `name@<随机>.abc.com` 这种随机子域名地址真的能收到邮件，**必须在基础域名的 DNS 中为
 > `*` 子域添加通配 MX 记录**：把基础域名上现有的每一条 MX 记录都复制到 `*` 主机名上，
@@ -62,8 +62,8 @@
 >
 > 子域名地址通常更适合收件；如果要发件，仍建议优先使用主域名。
 >
-> `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` 与随机子域名功能不同：它允许 API 调用方**直接指定**
-> `foo.example.com` 这类子域名；而随机子域名功能是系统在创建时自动补一个随机前缀。
+> `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` 与上述前端模式独立：它允许 API 调用方在其他允许的
+> 基础域名下**直接指定** `foo.example.com` 这类子域名。
 >
 > `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` 的优先级为：当 env 明确设置为 `false` 时，全局硬禁用；
 > 其他情况下优先使用后台持久化设置，后台未设置时再回退到 env 值。

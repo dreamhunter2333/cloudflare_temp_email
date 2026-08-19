@@ -2000,6 +2000,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Create New Email",
       "zh": "创建新邮箱"
     },
+    "enableCustomSubdomain": {
+      "en": "Use Custom Subdomain",
+      "zh": "使用自定义子域名"
+    },
     "enablePrefix": {
       "en": "If enable Prefix",
       "zh": "是否启用前缀"
@@ -2015,6 +2019,10 @@ export const MESSAGE_REGISTRY = {
     "linkWithAddressCredential": {
       "en": "Open to auto login email link",
       "zh": "打开即可自动登录邮箱的链接"
+    },
+    "normalSubdomain": {
+      "en": "Normal Domain",
+      "zh": "普通域名"
     },
     "randomSubdomainTip": {
       "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain — see the random subdomain docs.",
@@ -2225,8 +2233,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "强制开启"
     },
     "create_address_subdomain_match_note": {
-      "en": "This is different from RANDOM_SUBDOMAIN_DOMAINS: this switch allows API callers to specify custom subdomains directly, while random subdomain only auto-generates one during creation.",
-      "zh": "这与 RANDOM_SUBDOMAIN_DOMAINS 不同：这里允许 API 调用方直接指定自定义子域名；随机子域名功能只是在创建时自动补一个随机子域名。"
+      "en": "RANDOM_SUBDOMAIN_DOMAINS already allows random or manual subdomains for listed base domains. This switch additionally allows API callers to specify subdomains under other allowed base domains.",
+      "zh": "RANDOM_SUBDOMAIN_DOMAINS 已允许在所列基础域名下随机生成或手动输入子域名；此开关额外允许 API 在其他已授权基础域名下指定子域名。"
     },
     "create_address_subdomain_match_tip": {
       "en": "Only affects /api/new_address and /admin/new_address domain validation. Example: when enabled, foo.example.com can match configured base domain example.com.",
@@ -2506,6 +2514,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Use Random Subdomain",
       "zh": "启用随机子域名"
     },
+    "enableCustomSubdomain": {
+      "en": "Use Custom Subdomain",
+      "zh": "使用自定义子域名"
+    },
     "generateName": {
       "en": "Generate Fake Name",
       "zh": "生成随机名字"
@@ -2513,6 +2525,10 @@ export const MESSAGE_REGISTRY = {
     "getNewEmail": {
       "en": "Create New Email",
       "zh": "创建新邮箱"
+    },
+    "normalSubdomain": {
+      "en": "Normal Domain",
+      "zh": "普通域名"
     },
     "getNewEmailTip1": {
       "en": "Please input the email you want to use. only allow: ",

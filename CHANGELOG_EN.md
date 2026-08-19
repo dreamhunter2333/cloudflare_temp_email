@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Frontend| Add Normal, Random, and Custom subdomain mode selection within the random-subdomain scope (issue #1108)
+
 ### Bug Fixes
 
 ### Improvements
