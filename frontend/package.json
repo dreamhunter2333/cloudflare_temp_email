@@ -32,8 +32,8 @@
     "dompurify": "^3.4.13",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.2",
-    "naive-ui": "^2.44.1",
-    "postal-mime": "^2.7.5",
+    "naive-ui": "^2.45.0",
+    "postal-mime": "^2.7.6",
     "vooks": "^0.2.12",
     "vue": "^3.5.41",
     "vue-clipboard3": "^2.0.0",
@@ -50,10 +50,10 @@
     "vite": "^7.3.6",
     "vite-plugin-pwa": "^1.3.0",
     "vite-plugin-wasm": "^3.6.0",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "workbox-build": "^7.4.1",
     "workbox-window": "^7.4.1",
-    "wrangler": "^4.119.0"
+    "wrangler": "^4.124.0"
   },
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }
