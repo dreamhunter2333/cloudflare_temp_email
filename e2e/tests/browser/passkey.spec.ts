@@ -62,8 +62,8 @@ test.describe('Passkey Browser Flow', () => {
       // Wait for user settings to load (shows user email)
       await expect(page.getByText(TEST_USER_EMAIL)).toBeVisible({ timeout: 15_000 });
 
-      // === Step 2: Click "User Account Settings" tab ===
-      await page.getByText('User Account Settings').click();
+      // === Step 2: Click "User Settings" tab ===
+      await page.getByText('User Settings').click();
 
       // === Step 3: Create a passkey ===
       await page.getByRole('button', { name: 'Create Passkey' }).click();

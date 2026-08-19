@@ -14,7 +14,7 @@
 
 ### Bug Fixes
 
-- fix: |Frontend| Distinguish user-account terminology from email-address operations, relabel address settings and deletion actions, and clarify that send permission and balance are managed independently for the current email address
+- fix: |Frontend| Relabel mailbox settings and deletion actions as email-address operations, and clarify that send permission and balance are managed independently for the current email address
 
 ### Improvements
 
