@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Admin| Add D1 storage capacity details to the database page, with persistent Free and Workers Paid plan selection and a comparison between the current database size and capacity limit
+
 ### Bug Fixes
 
 ### Improvements

@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Admin| 数据库页面新增 D1 存储容量展示，支持选择并保存 Free 或 Workers Paid 套餐，对比当前数据库大小和容量上限
+
 ### Bug Fixes
 
 ### Improvements

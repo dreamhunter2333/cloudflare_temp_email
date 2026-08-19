@@ -1694,6 +1694,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Current DB Version",
       "zh": "当前数据库版本"
     },
+    "current_database_size": {
+      "en": "Current Database Size",
+      "zh": "当前数据库大小"
+    },
+    "free_plan": {
+      "en": "Free",
+      "zh": "Free"
+    },
     "init": {
       "en": "Initialize Database",
       "zh": "初始化数据库"
@@ -1717,6 +1725,46 @@ export const MESSAGE_REGISTRY = {
     "need_migration_tip": {
       "en": "Database migration is required. Please migrate the database.",
       "zh": "需要迁移数据库，请迁移数据库"
+    },
+    "paid_plan": {
+      "en": "Workers Paid",
+      "zh": "Workers Paid"
+    },
+    "plan": {
+      "en": "Workers Plan",
+      "zh": "Workers 套餐"
+    },
+    "plan_placeholder": {
+      "en": "Select your Cloudflare Workers plan",
+      "zh": "请选择 Cloudflare Workers 套餐"
+    },
+    "planSaved": {
+      "en": "Workers plan saved",
+      "zh": "Workers 套餐已保存"
+    },
+    "single_database_limit": {
+      "en": "Database Capacity Limit",
+      "zh": "数据库容量上限"
+    },
+    "storage_description": {
+      "en": "Compare the current database size with your plan limits.",
+      "zh": "将当前数据库大小与套餐容量上限进行对比"
+    },
+    "storage_tip": {
+      "en": "Usage is calculated from the current database size and the selected plan limit.",
+      "zh": "使用率按当前数据库大小与所选套餐的数据库容量上限计算。"
+    },
+    "storage_title": {
+      "en": "D1 Storage Capacity",
+      "zh": "D1 存储容量"
+    },
+    "storage_usage": {
+      "en": "Capacity Usage",
+      "zh": "容量使用率"
+    },
+    "unavailable": {
+      "en": "Unavailable",
+      "zh": "暂不可用"
     }
   },
   "views.admin.IpBlacklistSettings": {

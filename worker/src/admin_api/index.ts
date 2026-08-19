@@ -18,6 +18,7 @@ import db_api from './db_api'
 import ip_blacklist_settings from './ip_blacklist_settings'
 import ai_extract_settings from './ai_extract_settings'
 import e2e_test_api from './e2e_test_api'
+import config_api from './config_api'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -95,6 +96,10 @@ api.post('/admin/send_mail_by_binding', sendMailByBindingAdmin)
 api.get('admin/db_version', db_api.getVersion)
 api.post('admin/db_initialize', db_api.initialize)
 api.post('admin/db_migration', db_api.migrate)
+
+// generic admin config
+api.get('/admin/config/:key', config_api.get)
+api.post('/admin/config', config_api.save)
 
 // IP blacklist settings
 api.get('/admin/ip_blacklist/settings', ip_blacklist_settings.getIpBlacklistSettings)
