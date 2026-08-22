@@ -200,15 +200,15 @@ onMounted(async () => {
                 <n-form class="composer-form" :model="sendMailModel" label-placement="top">
                     <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
                         <n-grid-item>
-                            <n-form-item :label="t('senderName')" :label-props="{ for: 'send-mail-sender-name' }">
-                                <n-input v-model:value="sendMailModel.fromName"
-                                    :input-props="{ id: 'send-mail-sender-name' }" />
-                            </n-form-item>
-                        </n-grid-item>
-                        <n-grid-item>
                             <n-form-item :label="t('senderAddress')" :label-props="{ for: 'send-mail-sender-address' }">
                                 <n-input :value="settings.address" readonly
                                     :input-props="{ id: 'send-mail-sender-address' }" />
+                            </n-form-item>
+                        </n-grid-item>
+                        <n-grid-item>
+                            <n-form-item :label="t('senderName')" :label-props="{ for: 'send-mail-sender-name' }">
+                                <n-input v-model:value="sendMailModel.fromName"
+                                    :input-props="{ id: 'send-mail-sender-name' }" />
                             </n-form-item>
                         </n-grid-item>
                         <n-grid-item>
@@ -385,8 +385,8 @@ onMounted(async () => {
     min-height: 360px;
 }
 
-.compose-textarea :deep(.n-input__textarea-el) {
-    padding: 18px;
+.compose-textarea :deep(.n-input__textarea-el),
+.compose-textarea :deep(.n-input__placeholder) {
     line-height: 1.7;
     text-align: left;
 }

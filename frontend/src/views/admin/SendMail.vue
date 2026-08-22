@@ -332,8 +332,8 @@ const handleCreated = (editor) => {
     min-height: 360px;
 }
 
-.compose-textarea :deep(.n-input__textarea-el) {
-    padding: 18px;
+.compose-textarea :deep(.n-input__textarea-el),
+.compose-textarea :deep(.n-input__placeholder) {
     line-height: 1.7;
     text-align: left;
 }
