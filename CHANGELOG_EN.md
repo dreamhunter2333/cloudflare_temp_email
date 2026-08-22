@@ -18,9 +18,12 @@
 
 ### Improvements
 
+- feat: |Send Mail| Improve the information hierarchy and responsive layout of the user and Admin composers, with a content-format toolbar, draft status, bottom send-action area, and isolated HTML preview
+
 ### Testing
 
 - test: |E2E| Cover the D1 database-size response, config-key isolation, and persistence of the database-page plan selection across reloads
+- fix: |E2E| Cover draft editing, content-format switching, and HTML preview in the send-mail composer
 
 ## v1.11.0
 

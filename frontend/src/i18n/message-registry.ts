@@ -1026,6 +1026,14 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.index.SendMail": {
+    "balanceUnavailable": {
+      "en": "No send balance for this address",
+      "zh": "当前地址暂无发信额度"
+    },
+    "composeMail": {
+      "en": "Compose email",
+      "zh": "写邮件"
+    },
     "content": {
       "en": "Content",
       "zh": "内容"
@@ -1033,6 +1041,14 @@ export const MESSAGE_REGISTRY = {
     "contentEmpty": {
       "en": "Content is empty",
       "zh": "内容不能为空"
+    },
+    "contentPlaceholder": {
+      "en": "Write your message...",
+      "zh": "输入邮件正文..."
+    },
+    "draftSaved": {
+      "en": "Draft saved in this browser",
+      "zh": "草稿已保存在当前浏览器"
     },
     "edit": {
       "en": "Edit",
@@ -1055,8 +1071,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "预览"
     },
     "requestAccess": {
-      "en": "Request Access",
-      "zh": "申请权限"
+      "en": "Request send access",
+      "zh": "申请发信权限"
     },
     "requestAccessTip": {
       "en": "Send permission and balance are managed separately for each email address. The current address, {address}, has no available balance. Request permission for this address or contact the admin.",
@@ -1065,6 +1081,14 @@ export const MESSAGE_REGISTRY = {
     "requestSuccess": {
       "en": "Send permission requested for the current address",
       "zh": "已为当前地址提交发信权限申请"
+    },
+    "recipientAddress": {
+      "en": "Recipient address",
+      "zh": "收件人邮箱"
+    },
+    "recipientName": {
+      "en": "Recipient name (optional)",
+      "zh": "收件人名称（可选）"
     },
     "rich text": {
       "en": "Rich Text",
@@ -1077,6 +1101,14 @@ export const MESSAGE_REGISTRY = {
     "send_balance": {
       "en": "Current Address Send Balance",
       "zh": "当前地址剩余发信额度"
+    },
+    "senderAddress": {
+      "en": "Sender address",
+      "zh": "发件邮箱"
+    },
+    "senderName": {
+      "en": "Sender name (optional)",
+      "zh": "发件人名称（可选）"
     },
     "subject": {
       "en": "Subject",
@@ -1092,7 +1124,7 @@ export const MESSAGE_REGISTRY = {
     },
     "text": {
       "en": "Text",
-      "zh": "文本"
+      "zh": "纯文本"
     },
     "toMailEmpty": {
       "en": "Recipient address is empty",
@@ -1278,6 +1310,14 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.admin.SendMail": {
+    "adminComposeTip": {
+      "en": "Send from a configured email address",
+      "zh": "使用已配置的邮箱地址发信"
+    },
+    "composeMail": {
+      "en": "Compose email",
+      "zh": "写邮件"
+    },
     "content": {
       "en": "Content",
       "zh": "内容"
@@ -1285,6 +1325,14 @@ export const MESSAGE_REGISTRY = {
     "contentEmpty": {
       "en": "Content is empty",
       "zh": "内容不能为空"
+    },
+    "contentPlaceholder": {
+      "en": "Write your message...",
+      "zh": "输入邮件正文..."
+    },
+    "draftSaved": {
+      "en": "Draft saved in this browser",
+      "zh": "草稿已保存在当前浏览器"
     },
     "edit": {
       "en": "Edit",
@@ -1310,6 +1358,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Preview",
       "zh": "预览"
     },
+    "recipientAddress": {
+      "en": "Recipient address",
+      "zh": "收件人邮箱"
+    },
+    "recipientName": {
+      "en": "Recipient name (optional)",
+      "zh": "收件人名称（可选）"
+    },
     "rich text": {
       "en": "Rich Text",
       "zh": "富文本"
@@ -1317,6 +1373,14 @@ export const MESSAGE_REGISTRY = {
     "send": {
       "en": "Send",
       "zh": "发送"
+    },
+    "senderAddress": {
+      "en": "Sender address",
+      "zh": "发件邮箱"
+    },
+    "senderName": {
+      "en": "Sender name (optional)",
+      "zh": "发件人名称（可选）"
     },
     "subject": {
       "en": "Subject",
@@ -1332,7 +1396,7 @@ export const MESSAGE_REGISTRY = {
     },
     "text": {
       "en": "Text",
-      "zh": "文本"
+      "zh": "纯文本"
     },
     "toMailEmpty": {
       "en": "Recipient address is empty",
