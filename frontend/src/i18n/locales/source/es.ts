@@ -650,5 +650,11 @@ export const esMessages = {
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "Usa estas credenciales solo con clientes y agentes de confianza.",
   "components.AddressCredentialModal.title": "Credenciales de dirección y métodos de conexión",
-  "components.AddressCredentialModal.username": "Usuario"
+  "components.AddressCredentialModal.username": "Usuario",
+  "views.User.send_mail": "Enviar correo",
+  "views.user.UserMailClient.noAddress": "Selecciona una dirección de correo vinculada",
+  "views.user.UserMailClient.selectAddress": "Dirección del remitente",
+  "views.user.UserMailClient.selectAddressTip": "Elige una dirección vinculada para redactar correos y ver los enviados",
+  "views.user.UserMailClient.sendbox": "Enviados",
+  "views.user.UserMailClient.sendMail": "Redactar"
 }

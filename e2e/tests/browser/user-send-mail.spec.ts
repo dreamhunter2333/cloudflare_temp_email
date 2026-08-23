@@ -1,0 +1,114 @@
+import { expect, request as apiRequest, test, type APIRequestContext } from '@playwright/test';
+
+import {
+  FRONTEND_URL,
+  WORKER_URL,
+  createTestAddress,
+  deleteAddress,
+  hashPassword,
+} from '../../fixtures/test-helpers';
+
+async function createUser(request: APIRequestContext) {
+  const email = `user-send-browser-${Date.now()}@test.example.com`;
+  const password = hashPassword('test-password-123');
+  const registerRes = await request.post(`${WORKER_URL}/user_api/register`, {
+    data: { email, password },
+  });
+  expect(registerRes.ok()).toBe(true);
+
+  const loginRes = await request.post(`${WORKER_URL}/user_api/login`, {
+    data: { email, password },
+  });
+  expect(loginRes.ok()).toBe(true);
+  const { jwt } = await loginRes.json();
+  const payload = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString('utf8'));
+  return { email, jwt, userId: payload.user_id as number };
+}
+
+test.describe('User send mail page', () => {
+  test('selects a bound address, sends mail, and opens its sent items', async ({ page }) => {
+    const request = await apiRequest.newContext();
+    let address: Awaited<ReturnType<typeof createTestAddress>> | undefined;
+    let userId: number | undefined;
+    let originalUserSettings: Record<string, unknown> | undefined;
+
+    try {
+      const settingsRes = await request.get(`${WORKER_URL}/admin/user_settings`);
+      expect(settingsRes.ok()).toBe(true);
+      originalUserSettings = await settingsRes.json();
+      const enableUserRes = await request.post(`${WORKER_URL}/admin/user_settings`, {
+        data: {
+          ...originalUserSettings,
+          enable: true,
+          enableMailVerify: false,
+          maxAddressCount: 0,
+        },
+      });
+      expect(enableUserRes.ok()).toBe(true);
+
+      const user = await createUser(request);
+      userId = user.userId;
+      address = await createTestAddress(request, 'user-send-browser-address-');
+      const bindRes = await request.post(`${WORKER_URL}/user_api/bind_address`, {
+        headers: {
+          Authorization: `Bearer ${address.jwt}`,
+          'x-user-token': user.jwt,
+        },
+      });
+      expect(bindRes.ok()).toBe(true);
+
+      await page.goto(`${FRONTEND_URL}/en/`);
+      await page.evaluate((userJwt) => {
+        localStorage.setItem('userJwt', userJwt);
+      }, user.jwt);
+      await page.goto(`${FRONTEND_URL}/en/user`);
+
+      await expect(page.getByText(user.email)).toBeVisible({ timeout: 15_000 });
+      await page.getByText('Send Mail', { exact: true }).click();
+
+      const addressSelect = page.locator('.address-picker-select');
+      await addressSelect.click();
+      const settingsResponse = page.waitForResponse((response) => (
+        new URL(response.url()).pathname
+          === `/user_api/address/${address!.address_id}/settings`
+      ));
+      await page.locator('.n-base-select-menu:visible')
+        .getByText(address.address, { exact: true })
+        .click();
+      expect((await settingsResponse).ok()).toBe(true);
+
+      await expect(page.getByRole('heading', { name: 'Compose email', exact: true })).toBeVisible();
+      await expect(page.locator('.composer-title')).toContainText(address.address);
+
+      const subject = `Browser user send ${Date.now()}`;
+      await page.getByRole('textbox', { name: /^Recipient address/ })
+        .fill('recipient@test.example.com');
+      await page.getByRole('textbox', { name: /^Subject/ }).fill(subject);
+      await page.locator('.compose-textarea textarea').fill('Sent from the user page');
+
+      const sendResponse = page.waitForResponse((response) => (
+        response.request().method() === 'POST'
+        && new URL(response.url()).pathname
+          === `/user_api/address/${address!.address_id}/send_mail`
+      ));
+      await page.getByRole('button', { name: 'Send', exact: true }).click();
+      expect((await sendResponse).ok()).toBe(true);
+
+      await expect(page.getByText(subject, { exact: true })).toBeVisible({ timeout: 15_000 });
+    } finally {
+      try {
+        if (address) await deleteAddress(request, address.jwt);
+        if (userId !== undefined) {
+          await request.delete(`${WORKER_URL}/admin/users/${userId}`);
+        }
+      } finally {
+        if (originalUserSettings) {
+          await request.post(`${WORKER_URL}/admin/user_settings`, {
+            data: originalUserSettings,
+          });
+        }
+        await request.dispose();
+      }
+    }
+  });
+});

@@ -650,5 +650,11 @@ export const jaMessages = {
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "これらの認証情報は信頼できるクライアントと Agent でのみ使用してください。",
   "components.AddressCredentialModal.title": "アドレス認証情報と接続方法",
-  "components.AddressCredentialModal.username": "ユーザー名"
+  "components.AddressCredentialModal.username": "ユーザー名",
+  "views.User.send_mail": "メール送信",
+  "views.user.UserMailClient.noAddress": "紐付け済みのメールアドレスを選択してください",
+  "views.user.UserMailClient.selectAddress": "送信元アドレス",
+  "views.user.UserMailClient.selectAddressTip": "紐付け済みアドレスを選択して、メール作成と送信済みメールの確認ができます",
+  "views.user.UserMailClient.sendbox": "送信済み",
+  "views.user.UserMailClient.sendMail": "作成"
 }

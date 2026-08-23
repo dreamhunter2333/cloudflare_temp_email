@@ -650,5 +650,11 @@ export const deMessages = {
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "Verwende diese Zugangsdaten nur mit Clients und Agents, denen du vertraust.",
   "components.AddressCredentialModal.title": "Adresszugangsdaten & Verbindungsmethoden",
-  "components.AddressCredentialModal.username": "Benutzername"
+  "components.AddressCredentialModal.username": "Benutzername",
+  "views.User.send_mail": "E-Mail senden",
+  "views.user.UserMailClient.noAddress": "Wähle eine verknüpfte E-Mail-Adresse aus",
+  "views.user.UserMailClient.selectAddress": "Absenderadresse",
+  "views.user.UserMailClient.selectAddressTip": "Wähle eine verknüpfte Adresse, um E-Mails zu schreiben und gesendete Nachrichten anzuzeigen",
+  "views.user.UserMailClient.sendbox": "Gesendet",
+  "views.user.UserMailClient.sendMail": "Verfassen"
 }

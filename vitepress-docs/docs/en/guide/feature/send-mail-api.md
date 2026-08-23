@@ -2,12 +2,13 @@
 
 ## Send Email via HTTP API
 
-There are two HTTP API endpoints for sending emails:
+There are three HTTP API endpoints for sending emails:
 
 | Endpoint | Authentication | Use Case |
 |----------|---------------|----------|
 | `/api/send_mail` | `Authorization: Bearer <address_JWT>` header | Internal calls, requires cookie / header auth |
 | `/external/api/send_mail` | `token` field in request body | External system integration, no header auth needed |
+| `/user_api/address/:address_id/send_mail` | `x-user-token: <user_JWT>` header | Signed-in users sending from one of their bound addresses |
 
 ::: tip What is "Address JWT"?
 The Address JWT is the `jwt` field returned when creating an email address via `/api/new_address` or `/admin/new_address`.
@@ -58,6 +59,41 @@ res = requests.post(
     }
 )
 ```
+
+### Method 3: User JWT (`/user_api/address/:address_id/send_mail`)
+
+Obtain `address_id` from the paginated `GET /user_api/bind_address` response. The backend verifies that the address belongs to the current user; clients cannot choose an arbitrary sender address.
+
+```python
+send_body = {
+    "from_name": "Sender Name",
+    "to_name": "Recipient Name",
+    "to_mail": "Recipient Address",
+    "subject": "Email Subject",
+    "is_html": False,
+    "content": "Email content",
+}
+
+res = requests.post(
+    "https://your_worker_domain/user_api/address/123/send_mail",
+    json=send_body,
+    headers={
+        "x-user-token": "<user_JWT>",
+        "Content-Type": "application/json",
+    },
+)
+```
+
+The same user-address API group also provides:
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/user_api/address/:address_id/settings` | Get the address and remaining send balance |
+| `POST` | `/user_api/address/:address_id/request_send_mail_access` | Request send access for the address |
+| `GET` | `/user_api/address/:address_id/sendbox?limit=20&offset=0` | List sent items for the address with pagination |
+| `DELETE` | `/user_api/address/:address_id/sendbox/:mail_id` | Delete one sent item for the address |
+
+All endpoints require a User JWT and verify that `address_id` is bound to the current user before performing the operation.
 
 ## Send Email via SMTP
 

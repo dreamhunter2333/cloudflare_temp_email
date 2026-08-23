@@ -650,5 +650,11 @@ export const ptBRMessages = {
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "Use estas credenciais somente com clientes e agents confiáveis.",
   "components.AddressCredentialModal.title": "Credenciais do endereço e métodos de conexão",
-  "components.AddressCredentialModal.username": "Nome de usuário"
+  "components.AddressCredentialModal.username": "Nome de usuário",
+  "views.User.send_mail": "Enviar e-mail",
+  "views.user.UserMailClient.noAddress": "Selecione um endereço de e-mail vinculado",
+  "views.user.UserMailClient.selectAddress": "Endereço do remetente",
+  "views.user.UserMailClient.selectAddressTip": "Escolha um endereço vinculado para escrever e ver e-mails enviados",
+  "views.user.UserMailClient.sendbox": "Enviados",
+  "views.user.UserMailClient.sendMail": "Escrever"
 }

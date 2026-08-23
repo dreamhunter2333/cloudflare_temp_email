@@ -1,0 +1,115 @@
+import { Context } from "hono";
+
+import { commonGetUserRole } from "../common";
+import i18n from "../i18n";
+import {
+    deleteSendbox,
+    getSendbox,
+    sendMail,
+} from "../mails_api/send_mail_api";
+import {
+    getSendBalanceState,
+    requestSendMailAccess,
+} from "../mails_api/send_balance";
+
+const getBindedAddress = async (
+    c: Context<HonoCustomType>
+): Promise<string | null> => {
+    const addressId = Number(c.req.param("address_id"));
+    if (!Number.isInteger(addressId) || addressId <= 0) {
+        return null;
+    }
+    const { user_id } = c.get("userPayload");
+    return await c.env.DB.prepare(
+        `SELECT a.name FROM users_address ua`
+        + ` JOIN address a ON a.id = ua.address_id`
+        + ` WHERE ua.user_id = ? AND a.id = ?`
+    ).bind(user_id, addressId).first<string>("name");
+}
+
+const getAddressOrError = async (
+    c: Context<HonoCustomType>
+): Promise<string | Response> => {
+    const address = await getBindedAddress(c);
+    if (address) {
+        return address;
+    }
+    const msgs = i18n.getMessagesbyContext(c);
+    return c.text(msgs.AddressNotBindedMsg, 400);
+}
+
+const setUserRole = async (c: Context<HonoCustomType>): Promise<void> => {
+    const { user_id } = c.get("userPayload");
+    const userRole = await commonGetUserRole(c, user_id);
+    c.set("userRolePayload", userRole?.role);
+}
+
+const settings = async (c: Context<HonoCustomType>): Promise<Response> => {
+    const address = await getAddressOrError(c);
+    if (address instanceof Response) {
+        return address;
+    }
+    await setUserRole(c);
+    const { balance } = await getSendBalanceState(c, address);
+    return c.json({
+        address,
+        send_balance: balance || 0,
+    });
+}
+
+const requestAccess = async (c: Context<HonoCustomType>): Promise<Response> => {
+    const address = await getAddressOrError(c);
+    if (address instanceof Response) {
+        return address;
+    }
+    const msgs = i18n.getMessagesbyContext(c);
+    const result = await requestSendMailAccess(c, address);
+    if (result.status === "ok") {
+        return c.json({ status: "ok" });
+    }
+    if (result.status === "already_requested") {
+        return c.text(msgs.AlreadyRequestedMsg, 400);
+    }
+    return c.text(msgs.OperationFailedMsg, 500);
+}
+
+const send = async (c: Context<HonoCustomType>): Promise<Response> => {
+    const address = await getAddressOrError(c);
+    if (address instanceof Response) {
+        return address;
+    }
+    await setUserRole(c);
+    try {
+        const reqJson = await c.req.json();
+        await sendMail(c, address, reqJson);
+    } catch (error) {
+        console.error("Failed to send user mail", error);
+        return c.text(`Failed to send mail ${(error as Error).message}`, 400);
+    }
+    return c.json({ status: "ok" });
+}
+
+const listSendbox = async (c: Context<HonoCustomType>): Promise<Response> => {
+    const address = await getAddressOrError(c);
+    if (address instanceof Response) {
+        return address;
+    }
+    const { limit, offset } = c.req.query();
+    return getSendbox(c, address, limit, offset);
+}
+
+const removeSendboxMail = async (c: Context<HonoCustomType>): Promise<Response> => {
+    const address = await getAddressOrError(c);
+    if (address instanceof Response) {
+        return address;
+    }
+    return deleteSendbox(c, address, c.req.param("mail_id"));
+}
+
+export default {
+    settings,
+    requestAccess,
+    send,
+    listSendbox,
+    removeSendboxMail,
+};
