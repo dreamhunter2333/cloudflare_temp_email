@@ -26,11 +26,6 @@ const API_PATHS = [
 	"/external/",
 ];
 
-const isUserSendMailRequest = (path: string): boolean => (
-	path.startsWith("/user_api/address/")
-	&& path.endsWith("/send_mail")
-);
-
 const app = new Hono<HonoCustomType>()
 //cors
 app.use('/*', cors());
@@ -66,18 +61,21 @@ app.use('/*', async (c, next) => {
 	}
 
 	// rate limit for specific endpoints
-	const userSendMailRequest = isUserSendMailRequest(c.req.path);
 	if (
 		c.req.path.startsWith("/api/new_address")
 		|| c.req.path.startsWith("/api/send_mail")
 		|| c.req.path.startsWith("/external/api/send_mail")
-		|| userSendMailRequest
+		|| (
+			c.req.path.startsWith("/user_api/address/")
+			&& c.req.path.endsWith("/send_mail")
+		)
 		|| c.req.path.startsWith("/user_api/register")
 		|| c.req.path.startsWith("/user_api/verify_code")
 	) {
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
-			const rateLimitPath = userSendMailRequest
+			const rateLimitPath = c.req.path.startsWith("/user_api/address/")
+				&& c.req.path.endsWith("/send_mail")
 				? "/user_api/address/:address_id/send_mail"
 				: c.req.path;
 			const { success } = await c.env.RATE_LIMITER.limit(
