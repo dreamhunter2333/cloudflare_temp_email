@@ -1,6 +1,6 @@
 import { Context } from "hono";
 
-import { commonGetUserRole, handleListQuery } from "../common";
+import { handleListQuery } from "../common";
 import i18n from "../i18n";
 import { sendMail } from "../mails_api/send_mail_api";
 import {
@@ -27,18 +27,11 @@ const getAddressOrError = async (
     return c.text(msgs.AddressNotBindedMsg, 400);
 }
 
-const setUserRole = async (c: Context<HonoCustomType>): Promise<void> => {
-    const { user_id } = c.get("userPayload");
-    const userRole = await commonGetUserRole(c, user_id);
-    c.set("userRolePayload", userRole?.role);
-}
-
 const settings = async (c: Context<HonoCustomType>): Promise<Response> => {
     const address = await getAddressOrError(c);
     if (address instanceof Response) {
         return address;
     }
-    await setUserRole(c);
     const { balance } = await getSendBalanceState(c, address);
     return c.json({
         address,
@@ -67,7 +60,6 @@ const send = async (c: Context<HonoCustomType>): Promise<Response> => {
     if (address instanceof Response) {
         return address;
     }
-    await setUserRole(c);
     const msgs = i18n.getMessagesbyContext(c);
     try {
         const reqJson = await c.req.json();
