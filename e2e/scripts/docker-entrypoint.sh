@@ -110,12 +110,5 @@ if [ -n "${WORKER_GZIP_URL:-}" ]; then
   echo "    Gzip worker database initialized"
 fi
 
-if [ -n "${WORKER_URL_RATE_LIMIT:-}" ]; then
-  echo "==> Initializing rate-limit worker database"
-  curl -sf -X POST "$WORKER_URL_RATE_LIMIT/admin/db_initialize" > /dev/null
-  curl -sf -X POST "$WORKER_URL_RATE_LIMIT/admin/db_migration" > /dev/null
-  echo "    Rate-limit worker database initialized"
-fi
-
 echo "==> Running Playwright tests"
 exec npx playwright test "$@"

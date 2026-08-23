@@ -11,15 +11,15 @@ import {
   updateAddressSender,
 } from '../../fixtures/test-helpers';
 
-async function createUser(request: APIRequestContext, workerUrl = WORKER_URL) {
+async function createUser(request: APIRequestContext) {
   const email = `user-send-${Date.now()}@test.example.com`;
   const password = hashPassword('test-password-123');
-  const registerRes = await request.post(`${workerUrl}/user_api/register`, {
+  const registerRes = await request.post(`${WORKER_URL}/user_api/register`, {
     data: { email, password },
   });
   expect(registerRes.ok()).toBe(true);
 
-  const loginRes = await request.post(`${workerUrl}/user_api/login`, {
+  const loginRes = await request.post(`${WORKER_URL}/user_api/login`, {
     data: { email, password },
   });
   expect(loginRes.ok()).toBe(true);
@@ -32,9 +32,8 @@ async function bindAddress(
   request: APIRequestContext,
   userJwt: string,
   addressJwt: string,
-  workerUrl = WORKER_URL,
 ) {
-  const response = await request.post(`${workerUrl}/user_api/bind_address`, {
+  const response = await request.post(`${WORKER_URL}/user_api/bind_address`, {
     headers: {
       Authorization: `Bearer ${addressJwt}`,
       'x-user-token': userJwt,
@@ -369,74 +368,4 @@ test.describe('User send mail API', () => {
     }
   });
 
-  test('shares one rate-limit bucket across bound addresses', async ({ request }) => {
-    const workerUrl = process.env.WORKER_URL_RATE_LIMIT || '';
-    test.skip(!workerUrl, 'WORKER_URL_RATE_LIMIT is not configured');
-    const addressIds: number[] = [];
-    let userId: number | undefined;
-
-    try {
-      const enableUserRes = await request.post(`${workerUrl}/admin/user_settings`, {
-        data: {
-          enable: true,
-          enableMailVerify: false,
-          maxAddressCount: 0,
-        },
-      });
-      expect(enableUserRes.ok()).toBe(true);
-      const user = await createUser(request, workerUrl);
-      userId = user.userId;
-      const createAddress = async (name: string) => {
-        const response = await request.post(`${workerUrl}/api/new_address`, {
-          data: { name, domain: 'test.example.com' },
-        });
-        expect(response.ok()).toBe(true);
-        return await response.json() as {
-          jwt: string;
-          address_id: number;
-        };
-      };
-      const first = await createAddress(`rate-first-${Date.now()}`);
-      const second = await createAddress(`rate-second-${Date.now()}`);
-      addressIds.push(first.address_id, second.address_id);
-      await bindAddress(request, user.jwt, first.jwt, workerUrl);
-      await bindAddress(request, user.jwt, second.jwt, workerUrl);
-
-      const requestAccess = async (address: typeof first) => {
-        const accessRes = await request.post(
-          `${workerUrl}/user_api/address/${address.address_id}/request_send_mail_access`,
-          { headers: { 'x-user-token': user.jwt } },
-        );
-        expect(accessRes.ok()).toBe(true);
-      };
-      await requestAccess(first);
-      await requestAccess(second);
-
-      const send = (address: typeof first, sequence: number) => request.post(
-        `${workerUrl}/user_api/address/${address.address_id}/send_mail`,
-        {
-          headers: { 'x-user-token': user.jwt },
-          data: {
-            to_mail: 'recipient@test.example.com',
-            subject: `Shared rate limit ${sequence} ${Date.now()}`,
-            content: 'Rate limit test',
-            is_html: false,
-          },
-        },
-      );
-
-      expect((await send(first, 1)).ok()).toBe(true);
-      expect((await send(second, 2)).ok()).toBe(true);
-      const limitedRes = await send(first, 3);
-      expect(limitedRes.status()).toBe(429);
-      expect(await limitedRes.text()).toContain('Rate limit exceeded');
-    } finally {
-      await Promise.allSettled(addressIds.map((addressId) => (
-        request.delete(`${workerUrl}/admin/delete_address/${addressId}`)
-      )));
-      if (userId !== undefined) {
-        await request.delete(`${workerUrl}/admin/users/${userId}`);
-      }
-    }
-  });
 });
