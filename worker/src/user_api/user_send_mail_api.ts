@@ -60,13 +60,12 @@ const send = async (c: Context<HonoCustomType>): Promise<Response> => {
     if (address instanceof Response) {
         return address;
     }
-    const msgs = i18n.getMessagesbyContext(c);
     try {
         const reqJson = await c.req.json();
         await sendMail(c, address, reqJson);
     } catch (error) {
         console.error("Failed to send user mail", error);
-        return c.text(msgs.OperationFailedMsg, 500);
+        return c.text(`Failed to send mail ${(error as Error).message}`, 400);
     }
     return c.json({ status: "ok" });
 }

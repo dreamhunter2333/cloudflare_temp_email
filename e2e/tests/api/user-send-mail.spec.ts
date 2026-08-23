@@ -5,8 +5,10 @@ import {
   createTestAddress,
   deleteAddress,
   deleteAllMailpitMessages,
+  getAddressSender,
   hashPassword,
   onMailpitMessage,
+  updateAddressSender,
 } from '../../fixtures/test-helpers';
 
 async function createUser(request: APIRequestContext) {
@@ -69,6 +71,12 @@ test.describe('User send mail API', () => {
       await bindAddress(request, user.jwt, bound.jwt);
       await bindAddress(request, user.jwt, accessRequest.jwt);
 
+      const invalidAddressSettingsRes = await request.get(
+        `${WORKER_URL}/user_api/address/0/settings`,
+        { headers: { 'x-user-token': user.jwt } },
+      );
+      expect(invalidAddressSettingsRes.status()).toBe(400);
+
       const outsiderSettingsRes = await request.get(
         `${WORKER_URL}/user_api/address/${outsider.address_id}/settings`,
         { headers: { 'x-user-token': user.jwt } },
@@ -111,6 +119,20 @@ test.describe('User send mail API', () => {
         { headers: { 'x-user-token': user.jwt } },
       );
       expect(requestAccessRes.ok()).toBe(true);
+
+      const accessSender = await getAddressSender(request, accessRequest.address);
+      await updateAddressSender(request, {
+        address: accessRequest.address,
+        address_id: accessSender.id,
+        balance: 0,
+        enabled: true,
+      });
+      const duplicateAccessRes = await request.post(
+        `${WORKER_URL}/user_api/address/${accessRequest.address_id}/request_send_mail_access`,
+        { headers: { 'x-user-token': user.jwt } },
+      );
+      expect(duplicateAccessRes.status()).toBe(400);
+      expect(await duplicateAccessRes.text()).toContain('Already');
 
       const addressSettingsRes = await request.get(
         `${WORKER_URL}/user_api/address/${bound.address_id}/settings`,
@@ -182,6 +204,28 @@ test.describe('User send mail API', () => {
         { headers: { 'x-user-token': user.jwt } },
       );
       expect((await updatedSettingsRes.json()).send_balance).toBe(9);
+
+      const sender = await getAddressSender(request, bound.address);
+      await updateAddressSender(request, {
+        address: bound.address,
+        address_id: sender.id,
+        balance: 0,
+        enabled: true,
+      });
+      const noBalanceRes = await request.post(
+        `${WORKER_URL}/user_api/address/${bound.address_id}/send_mail`,
+        {
+          headers: { 'x-user-token': user.jwt },
+          data: {
+            to_mail: 'recipient@test.example.com',
+            subject: 'No balance user send',
+            content: 'This message must not be sent',
+            is_html: false,
+          },
+        },
+      );
+      expect(noBalanceRes.status()).toBe(400);
+      expect(await noBalanceRes.text()).toContain('No balance');
 
       const userSendboxRes = await request.get(
         `${WORKER_URL}/user_api/sendbox?limit=20&offset=0`,
