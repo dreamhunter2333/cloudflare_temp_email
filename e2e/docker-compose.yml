@@ -90,6 +90,24 @@ services:
       start_period: 10s
       retries: 20
 
+  worker-rate-limit:
+    build:
+      context: ..
+      dockerfile: e2e/Dockerfile.worker
+      args:
+        WRANGLER_TOML: e2e/fixtures/wrangler.toml.e2e.rate-limit
+    ports:
+      - "8792:8792"
+    command: ["pnpm", "exec", "wrangler", "dev", "--port", "8792", "--ip", "0.0.0.0"]
+    depends_on:
+      - mailpit
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8792/health_check"]
+      interval: 3s
+      timeout: 5s
+      start_period: 10s
+      retries: 20
+
   frontend:
     build:
       context: ..
@@ -147,6 +165,7 @@ services:
       WORKER_URL_ENV_OFF: http://worker-env-off:8790
       WORKER_GZIP_URL: http://worker-gzip:8788
       WORKER_URL_SEND_MAIL_DOMAIN: http://worker-send-mail-domain:8791
+      WORKER_URL_RATE_LIMIT: http://worker-rate-limit:8792
       FRONTEND_URL: https://frontend:5173
       MAILPIT_API: http://mailpit:8025/api
       SMTP_PROXY_HOST: smtp-proxy
@@ -166,6 +185,8 @@ services:
       worker-gzip:
         condition: service_healthy
       worker-send-mail-domain:
+        condition: service_healthy
+      worker-rate-limit:
         condition: service_healthy
       frontend:
         condition: service_started

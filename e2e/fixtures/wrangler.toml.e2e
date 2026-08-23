@@ -39,8 +39,3 @@ id = "e2e-test-kv-00000000-0000-0000-0000-000000000000"
 binding = "DB"
 database_name = "e2e-temp-email"
 database_id = "e2e-test-db-00000000-0000-0000-0000-000000000000"
-
-[[ratelimits]]
-name = "RATE_LIMITER"
-namespace_id = "1001"
-simple = { limit = 2, period = 60 }
