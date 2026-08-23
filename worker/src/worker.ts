@@ -74,16 +74,11 @@ app.use('/*', async (c, next) => {
 	) {
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
-			const { success } = await c.env.RATE_LIMITER.limit(
-				{
-					key: `${
-						c.req.path.startsWith("/user_api/address/")
-						&& c.req.path.endsWith("/send_mail")
-							? "/user_api/address/:address_id/send_mail"
-							: c.req.path
-					}|${reqIp}`
-				}
-			)
+			const { success } = await c.env.RATE_LIMITER.limit({
+				key: `${c.req.path.startsWith("/user_api/address/")
+					? "/user_api/address/send_mail"
+					: c.req.path}|${reqIp}`
+			})
 			if (!success) {
 				return c.text(`IP=${reqIp} Rate limit exceeded for ${c.req.path}`, 429)
 			}
