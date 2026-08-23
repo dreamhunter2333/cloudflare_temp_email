@@ -653,8 +653,5 @@ export const deMessages = {
   "components.AddressCredentialModal.username": "Benutzername",
   "views.User.send_mail": "E-Mail senden",
   "views.user.UserMailClient.noAddress": "Wähle eine verknüpfte E-Mail-Adresse aus",
-  "views.user.UserMailClient.selectAddress": "Absenderadresse",
-  "views.user.UserMailClient.selectAddressTip": "Wähle eine verknüpfte Adresse, um E-Mails zu schreiben und gesendete Nachrichten anzuzeigen",
-  "views.user.UserMailClient.sendbox": "Gesendet",
-  "views.user.UserMailClient.sendMail": "Verfassen"
+  "views.user.UserMailClient.sendbox": "Gesendet"
 }

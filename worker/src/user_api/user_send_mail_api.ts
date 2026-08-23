@@ -1,6 +1,6 @@
 import { Context } from "hono";
 
-import { commonGetUserRole } from "../common";
+import { commonGetUserRole, handleListQuery } from "../common";
 import i18n from "../i18n";
 import {
     deleteSendbox,
@@ -11,6 +11,7 @@ import {
     getSendBalanceState,
     requestSendMailAccess,
 } from "../mails_api/send_balance";
+import { getBooleanValue } from "../utils";
 
 const getBindedAddress = async (
     c: Context<HonoCustomType>
@@ -106,10 +107,50 @@ const removeSendboxMail = async (c: Context<HonoCustomType>): Promise<Response> 
     return deleteSendbox(c, address, c.req.param("mail_id"));
 }
 
+const listUserSendbox = async (c: Context<HonoCustomType>): Promise<Response> => {
+    const { user_id } = c.get("userPayload");
+    const { address, limit, offset } = c.req.query();
+    const filters = ["ua.user_id = ?"];
+    const params = [String(user_id)];
+    if (address) {
+        filters.push("sb.address = ?");
+        params.push(address);
+    }
+    const fromQuery = ` FROM users_address ua`
+        + ` JOIN address a ON a.id = ua.address_id`
+        + ` JOIN sendbox sb ON sb.address = a.name`
+        + ` WHERE ${filters.join(" AND ")}`;
+    return await handleListQuery(c,
+        `SELECT sb.*${fromQuery}`,
+        `SELECT count(*) as count${fromQuery}`,
+        params, limit, offset, "sb.id desc"
+    );
+}
+
+const removeUserSendboxMail = async (c: Context<HonoCustomType>): Promise<Response> => {
+    const msgs = i18n.getMessagesbyContext(c);
+    if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
+        return c.text(msgs.UserDeleteEmailDisabledMsg, 403);
+    }
+    const { user_id } = c.get("userPayload");
+    const { mail_id } = c.req.param();
+    const { success } = await c.env.DB.prepare(
+        `DELETE FROM sendbox WHERE id = ?`
+        + ` AND EXISTS (`
+        + `SELECT 1 FROM users_address ua`
+        + ` JOIN address a ON a.id = ua.address_id`
+        + ` WHERE ua.user_id = ? AND a.name = sendbox.address`
+        + `)`
+    ).bind(mail_id, user_id).run();
+    return c.json({ success });
+}
+
 export default {
     settings,
     requestAccess,
     send,
     listSendbox,
     removeSendboxMail,
+    listUserSendbox,
+    removeUserSendboxMail,
 };

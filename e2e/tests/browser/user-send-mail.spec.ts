@@ -64,21 +64,27 @@ test.describe('User send mail page', () => {
       await page.goto(`${FRONTEND_URL}/en/user`);
 
       await expect(page.getByText(user.email)).toBeVisible({ timeout: 15_000 });
-      await page.getByText('Send Mail', { exact: true }).click();
+      const credentialResponse = page.waitForResponse((response) => (
+        response.request().method() === 'GET'
+        && new URL(response.url()).pathname
+          === `/user_api/bind_address_jwt/${address!.address_id}`
+      ));
+      const addressRow = page.getByRole('row').filter({ hasText: address.address });
+      await addressRow.getByRole('button', { name: 'Credentials & Connection Methods' }).click();
+      expect((await credentialResponse).ok()).toBe(true);
+      await expect(page.getByRole('dialog')).toContainText(address.address);
+      await page.getByRole('button', { name: 'close' }).click();
 
-      const addressSelect = page.locator('.address-picker-select');
-      await addressSelect.click();
       const settingsResponse = page.waitForResponse((response) => (
         new URL(response.url()).pathname
           === `/user_api/address/${address!.address_id}/settings`
       ));
-      await page.locator('.n-base-select-menu:visible')
-        .getByText(address.address, { exact: true })
-        .click();
+      await page.getByText('Send Mail', { exact: true }).click();
       expect((await settingsResponse).ok()).toBe(true);
 
       await expect(page.getByRole('heading', { name: 'Compose email', exact: true })).toBeVisible();
       await expect(page.locator('.composer-title')).toContainText(address.address);
+      await expect(page.locator('.address-picker-select')).toContainText(address.address);
 
       const subject = `Browser user send ${Date.now()}`;
       await page.getByRole('textbox', { name: /^Recipient address/ })
@@ -91,9 +97,15 @@ test.describe('User send mail page', () => {
         && new URL(response.url()).pathname
           === `/user_api/address/${address!.address_id}/send_mail`
       ));
+      const sendboxResponse = page.waitForResponse((response) => (
+        response.request().method() === 'GET'
+        && new URL(response.url()).pathname === '/user_api/sendbox'
+      ));
       await page.getByRole('button', { name: 'Send', exact: true }).click();
       expect((await sendResponse).ok()).toBe(true);
+      expect((await sendboxResponse).ok()).toBe(true);
 
+      await expect(page.locator('.n-tabs-tab--active')).toHaveText('Sent');
       await expect(page.getByText(subject, { exact: true })).toBeVisible({ timeout: 15_000 });
     } finally {
       try {

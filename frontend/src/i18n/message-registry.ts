@@ -756,21 +756,9 @@ export const MESSAGE_REGISTRY = {
       "en": "Select a bound email address to continue",
       "zh": "请选择一个已绑定的邮箱地址"
     },
-    "selectAddress": {
-      "en": "Sender address",
-      "zh": "发件邮箱"
-    },
-    "selectAddressTip": {
-      "en": "Choose a bound address to compose mail and view its sent items",
-      "zh": "选择已绑定邮箱后，可发送邮件并查看该邮箱的发件箱"
-    },
     "sendbox": {
       "en": "Sent",
       "zh": "发件箱"
-    },
-    "sendMail": {
-      "en": "Compose",
-      "zh": "写邮件"
     }
   },
   "views.user.UserLogin": {

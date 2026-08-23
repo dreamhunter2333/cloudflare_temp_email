@@ -26,9 +26,21 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
+    userAddressMode: {
+        type: Boolean,
+        default: false,
+    },
+    addressOptions: {
+        type: Array,
+        default: () => [],
+    },
+    addressLoading: {
+        type: Boolean,
+        default: false,
+    },
 })
 
-const emit = defineEmits(['sent'])
+const emit = defineEmits(['addressScroll', 'sent', 'update:addressId'])
 
 
 const {
@@ -38,7 +50,7 @@ const {
 
 const { t } = useScopedI18n('views.index.SendMail')
 
-const isUserAddressMode = computed(() => props.addressId > 0)
+const isUserAddressMode = computed(() => props.userAddressMode || props.addressId > 0)
 const mailSettings = computed(() => (
     isUserAddressMode.value ? userAddressSettings.value : settings.value
 ))
@@ -210,7 +222,7 @@ onMounted(async () => {
             <template #header>
                 <div class="composer-title">
                     <h2>{{ t('composeMail') }}</h2>
-                    <n-text depth="3">{{ mailSettings.address }}</n-text>
+                    <n-text v-if="!isUserAddressMode" depth="3">{{ mailSettings.address }}</n-text>
                 </div>
             </template>
             <template #header-extra>
@@ -235,7 +247,11 @@ onMounted(async () => {
                     <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
                         <n-grid-item>
                             <n-form-item :label="t('senderAddress')" :label-props="{ for: 'send-mail-sender-address' }">
-                                <n-input :value="mailSettings.address" readonly
+                                <n-select v-if="isUserAddressMode" class="address-picker-select" :value="addressId"
+                                    :options="addressOptions" :loading="addressLoading" filterable
+                                    @scroll="emit('addressScroll', $event)"
+                                    @update:value="emit('update:addressId', $event)" />
+                                <n-input v-else :value="mailSettings.address" readonly
                                     :input-props="{ id: 'send-mail-sender-address' }" />
                             </n-form-item>
                         </n-grid-item>

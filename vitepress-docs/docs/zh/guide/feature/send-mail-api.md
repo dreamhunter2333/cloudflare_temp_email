@@ -92,8 +92,10 @@ res = requests.post(
 | `POST` | `/user_api/address/:address_id/request_send_mail_access` | 为该地址申请发信权限 |
 | `GET` | `/user_api/address/:address_id/sendbox?limit=20&offset=0` | 分页获取该地址的发件箱 |
 | `DELETE` | `/user_api/address/:address_id/sendbox/:mail_id` | 删除该地址的一条发件记录 |
+| `GET` | `/user_api/sendbox?limit=20&offset=0&address=可选地址` | 分页获取当前用户的发件箱，可按绑定地址过滤 |
+| `DELETE` | `/user_api/sendbox/:mail_id` | 删除当前用户的一条发件记录 |
 
-以上接口都只接受用户 JWT，并在执行操作前验证 `address_id` 是否绑定到当前用户。
+以上接口都只接受用户 JWT。地址级接口验证 `address_id` 是否绑定到当前用户，用户级发件箱接口只返回或删除当前用户绑定地址的记录。
 
 ## 通过 SMTP 发送邮件
 
