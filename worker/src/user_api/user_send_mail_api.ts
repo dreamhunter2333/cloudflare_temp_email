@@ -8,27 +8,18 @@ import {
     requestSendMailAccess,
 } from "../mails_api/send_balance";
 import { getBooleanValue } from "../utils";
-
-const getBindedAddress = async (
-    c: Context<HonoCustomType>
-): Promise<string | null> => {
-    const addressId = Number(c.req.param("address_id"));
-    if (!Number.isInteger(addressId) || addressId <= 0) {
-        return null;
-    }
-    const { user_id } = c.get("userPayload");
-    const address = await c.env.DB.prepare(
-        `SELECT a.name FROM users_address ua`
-        + ` JOIN address a ON a.id = ua.address_id`
-        + ` WHERE ua.user_id = ? AND a.id = ?`
-    ).bind(user_id, addressId).first<string>("name");
-    return address ?? null;
-}
+import { getBindedAddressById } from "./bind_address";
 
 const getAddressOrError = async (
     c: Context<HonoCustomType>
 ): Promise<string | Response> => {
-    const address = await getBindedAddress(c);
+    const addressId = Number(c.req.param("address_id"));
+    if (!Number.isInteger(addressId) || addressId <= 0) {
+        const msgs = i18n.getMessagesbyContext(c);
+        return c.text(msgs.AddressNotBindedMsg, 400);
+    }
+    const { user_id } = c.get("userPayload");
+    const address = await getBindedAddressById(c, user_id, addressId);
     if (address) {
         return address;
     }
