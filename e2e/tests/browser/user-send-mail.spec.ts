@@ -80,7 +80,7 @@ test.describe('User send mail page', () => {
       await page.getByRole('button', { name: 'close' }).click();
 
       await page.getByText('Send Mail', { exact: true }).click();
-      await expect(page.getByRole('heading', { name: 'Compose email', exact: true })).toBeVisible();
+      await expect(page.locator('.composer-title h2')).toHaveText('Compose email');
 
       const settingsResponse = page.waitForResponse((response) => (
         new URL(response.url()).pathname
