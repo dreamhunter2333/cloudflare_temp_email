@@ -90,8 +90,6 @@ res = requests.post(
 | --- | --- | --- |
 | `GET` | `/user_api/address/:address_id/settings` | 获取地址和剩余发信额度 |
 | `POST` | `/user_api/address/:address_id/request_send_mail_access` | 为该地址申请发信权限 |
-| `GET` | `/user_api/address/:address_id/sendbox?limit=20&offset=0` | 分页获取该地址的发件箱 |
-| `DELETE` | `/user_api/address/:address_id/sendbox/:mail_id` | 删除该地址的一条发件记录 |
 | `GET` | `/user_api/sendbox?limit=20&offset=0&address=可选地址` | 分页获取当前用户的发件箱，可按绑定地址过滤 |
 | `DELETE` | `/user_api/sendbox/:mail_id` | 删除当前用户的一条发件记录 |
 

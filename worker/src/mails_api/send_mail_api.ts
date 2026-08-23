@@ -297,23 +297,17 @@ api.get('/api/sendbox', async (c) => {
     return getSendbox(c, address, limit, offset);
 })
 
-export const deleteSendbox = async (
-    c: Context<HonoCustomType>, address: string, id: string | number
-): Promise<Response> => {
+api.delete('/api/sendbox/:id', async (c) => {
     const msgs = i18n.getMessagesbyContext(c);
     if (!getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL)) {
         return c.text(msgs.UserDeleteEmailDisabledMsg, 403)
     }
+    const { address } = c.get("jwtPayload")
+    const { id } = c.req.param();
     const { success } = await c.env.DB.prepare(
         `DELETE FROM sendbox WHERE address = ? and id = ? `
     ).bind(address, id).run();
     return c.json({
         success: success
     })
-}
-
-api.delete('/api/sendbox/:id', async (c) => {
-    const { address } = c.get("jwtPayload")
-    const { id } = c.req.param();
-    return deleteSendbox(c, address, id);
 })

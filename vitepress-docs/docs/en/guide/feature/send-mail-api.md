@@ -90,8 +90,6 @@ The same user-address API group also provides:
 | --- | --- | --- |
 | `GET` | `/user_api/address/:address_id/settings` | Get the address and remaining send balance |
 | `POST` | `/user_api/address/:address_id/request_send_mail_access` | Request send access for the address |
-| `GET` | `/user_api/address/:address_id/sendbox?limit=20&offset=0` | List sent items for the address with pagination |
-| `DELETE` | `/user_api/address/:address_id/sendbox/:mail_id` | Delete one sent item for the address |
 | `GET` | `/user_api/sendbox?limit=20&offset=0&address=optional-address` | List the current user's sent items, optionally filtered by a bound address |
 | `DELETE` | `/user_api/sendbox/:mail_id` | Delete one sent item owned by the current user |
 

@@ -26,10 +26,6 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
-    userAddressMode: {
-        type: Boolean,
-        default: false,
-    },
     addressOptions: {
         type: Array,
         default: () => [],
@@ -50,7 +46,7 @@ const {
 
 const { t } = useScopedI18n('views.index.SendMail')
 
-const isUserAddressMode = computed(() => props.userAddressMode || props.addressId > 0)
+const isUserAddressMode = computed(() => props.addressId > 0)
 const mailSettings = computed(() => (
     isUserAddressMode.value ? userAddressSettings.value : settings.value
 ))

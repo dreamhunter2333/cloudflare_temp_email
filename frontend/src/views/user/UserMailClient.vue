@@ -97,10 +97,9 @@ onMounted(fetchAddresses)
     <div class="user-mail-client">
         <template v-if="mode === 'send_mail'">
             <n-empty v-if="!selectedAddressId" class="address-empty" :description="t('noAddress')" />
-            <SendMail v-else :key="selectedAddressId" user-address-mode :address-id="selectedAddressId"
+            <SendMail v-else :key="selectedAddressId" v-model:address-id="selectedAddressId"
                 :address-options="addressOptions" :address-loading="addressLoading"
-                @address-scroll="handleAddressScroll" @update:address-id="selectedAddressId = $event"
-                @sent="emit('sent')" />
+                @address-scroll="handleAddressScroll" @sent="emit('sent')" />
         </template>
         <template v-else>
             <n-input-group>

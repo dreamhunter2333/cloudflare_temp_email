@@ -2,11 +2,7 @@ import { Context } from "hono";
 
 import { commonGetUserRole, handleListQuery } from "../common";
 import i18n from "../i18n";
-import {
-    deleteSendbox,
-    getSendbox,
-    sendMail,
-} from "../mails_api/send_mail_api";
+import { sendMail } from "../mails_api/send_mail_api";
 import {
     getSendBalanceState,
     requestSendMailAccess,
@@ -21,11 +17,12 @@ const getBindedAddress = async (
         return null;
     }
     const { user_id } = c.get("userPayload");
-    return await c.env.DB.prepare(
+    const address = await c.env.DB.prepare(
         `SELECT a.name FROM users_address ua`
         + ` JOIN address a ON a.id = ua.address_id`
         + ` WHERE ua.user_id = ? AND a.id = ?`
     ).bind(user_id, addressId).first<string>("name");
+    return address ?? null;
 }
 
 const getAddressOrError = async (
@@ -80,31 +77,15 @@ const send = async (c: Context<HonoCustomType>): Promise<Response> => {
         return address;
     }
     await setUserRole(c);
+    const msgs = i18n.getMessagesbyContext(c);
     try {
         const reqJson = await c.req.json();
         await sendMail(c, address, reqJson);
     } catch (error) {
         console.error("Failed to send user mail", error);
-        return c.text(`Failed to send mail ${(error as Error).message}`, 400);
+        return c.text(msgs.OperationFailedMsg, 500);
     }
     return c.json({ status: "ok" });
-}
-
-const listSendbox = async (c: Context<HonoCustomType>): Promise<Response> => {
-    const address = await getAddressOrError(c);
-    if (address instanceof Response) {
-        return address;
-    }
-    const { limit, offset } = c.req.query();
-    return getSendbox(c, address, limit, offset);
-}
-
-const removeSendboxMail = async (c: Context<HonoCustomType>): Promise<Response> => {
-    const address = await getAddressOrError(c);
-    if (address instanceof Response) {
-        return address;
-    }
-    return deleteSendbox(c, address, c.req.param("mail_id"));
 }
 
 const listUserSendbox = async (c: Context<HonoCustomType>): Promise<Response> => {
@@ -149,8 +130,6 @@ export default {
     settings,
     requestAccess,
     send,
-    listSendbox,
-    removeSendboxMail,
     listUserSendbox,
     removeUserSendboxMail,
 };

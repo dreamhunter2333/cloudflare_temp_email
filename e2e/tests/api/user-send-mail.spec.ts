@@ -64,7 +64,7 @@ test.describe('User send mail API', () => {
       userId = user.userId;
       const bound = await createTestAddress(request, 'user-send-bound-');
       const accessRequest = await createTestAddress(request, 'user-send-access-');
-      const outsider = await createTestAddress(request, 'user-send-outsider-');
+      const outsider = await createTestAddress(request, 'usr-outsider-');
       addresses.push(bound, accessRequest, outsider);
       await bindAddress(request, user.jwt, bound.jwt);
       await bindAddress(request, user.jwt, accessRequest.jwt);
@@ -166,12 +166,6 @@ test.describe('User send mail API', () => {
       ));
       expect(outsiderMail).toBeTruthy();
 
-      const unauthorizedAddressDeleteRes = await request.delete(
-        `${WORKER_URL}/user_api/address/${outsider.address_id}/sendbox/${outsiderMail.id}`,
-        { headers: { 'x-user-token': user.jwt } },
-      );
-      expect(unauthorizedAddressDeleteRes.status()).toBe(400);
-
       const unauthorizedDeleteRes = await request.delete(
         `${WORKER_URL}/user_api/sendbox/${outsiderMail.id}`,
         { headers: { 'x-user-token': user.jwt } },
@@ -189,16 +183,6 @@ test.describe('User send mail API', () => {
       );
       expect((await updatedSettingsRes.json()).send_balance).toBe(9);
 
-      const sendboxRes = await request.get(
-        `${WORKER_URL}/user_api/address/${bound.address_id}/sendbox?limit=20&offset=0`,
-        { headers: { 'x-user-token': user.jwt } },
-      );
-      expect(sendboxRes.ok()).toBe(true);
-      const sendbox = await sendboxRes.json();
-      expect(sendbox.count).toBe(1);
-      expect(sendbox.results).toHaveLength(1);
-      expect(JSON.parse(sendbox.results[0].raw).subject).toBe(subject);
-
       const userSendboxRes = await request.get(
         `${WORKER_URL}/user_api/sendbox?limit=20&offset=0`,
         { headers: { 'x-user-token': user.jwt } },
@@ -207,6 +191,7 @@ test.describe('User send mail API', () => {
       const userSendbox = await userSendboxRes.json();
       expect(userSendbox.count).toBe(1);
       expect(userSendbox.results).toHaveLength(1);
+      expect(JSON.parse(userSendbox.results[0].raw).subject).toBe(subject);
 
       const filteredSendboxRes = await request.get(
         `${WORKER_URL}/user_api/sendbox?limit=20&offset=0&address=${encodeURIComponent(bound.address)}`,
@@ -222,20 +207,14 @@ test.describe('User send mail API', () => {
       expect(outsiderFilterRes.ok()).toBe(true);
       expect((await outsiderFilterRes.json()).count).toBe(0);
 
-      const outsiderSendboxRes = await request.get(
-        `${WORKER_URL}/user_api/address/${outsider.address_id}/sendbox?limit=20&offset=0`,
-        { headers: { 'x-user-token': user.jwt } },
-      );
-      expect(outsiderSendboxRes.status()).toBe(400);
-
       const deleteRes = await request.delete(
-        `${WORKER_URL}/user_api/sendbox/${sendbox.results[0].id}`,
+        `${WORKER_URL}/user_api/sendbox/${userSendbox.results[0].id}`,
         { headers: { 'x-user-token': user.jwt } },
       );
       expect(deleteRes.ok()).toBe(true);
 
       const emptySendboxRes = await request.get(
-        `${WORKER_URL}/user_api/address/${bound.address_id}/sendbox?limit=20&offset=0`,
+        `${WORKER_URL}/user_api/sendbox?limit=20&offset=0`,
         { headers: { 'x-user-token': user.jwt } },
       );
       const emptySendbox = await emptySendboxRes.json();

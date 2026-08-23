@@ -28,7 +28,7 @@ async function createUser(request: APIRequestContext) {
 test.describe('User send mail page', () => {
   test('selects a bound address, sends mail, and opens its sent items', async ({ page }) => {
     const request = await apiRequest.newContext();
-    let address: Awaited<ReturnType<typeof createTestAddress>> | undefined;
+    const addresses: Awaited<ReturnType<typeof createTestAddress>>[] = [];
     let userId: number | undefined;
     let originalUserSettings: Record<string, unknown> | undefined;
 
@@ -48,14 +48,18 @@ test.describe('User send mail page', () => {
 
       const user = await createUser(request);
       userId = user.userId;
-      address = await createTestAddress(request, 'user-send-browser-address-');
-      const bindRes = await request.post(`${WORKER_URL}/user_api/bind_address`, {
-        headers: {
-          Authorization: `Bearer ${address.jwt}`,
-          'x-user-token': user.jwt,
-        },
-      });
-      expect(bindRes.ok()).toBe(true);
+      const address = await createTestAddress(request, 'usr-browser-');
+      const secondAddress = await createTestAddress(request, 'usr-second-');
+      addresses.push(address, secondAddress);
+      for (const boundAddress of addresses) {
+        const bindRes = await request.post(`${WORKER_URL}/user_api/bind_address`, {
+          headers: {
+            Authorization: `Bearer ${boundAddress.jwt}`,
+            'x-user-token': user.jwt,
+          },
+        });
+        expect(bindRes.ok()).toBe(true);
+      }
 
       await page.goto(`${FRONTEND_URL}/en/`);
       await page.evaluate((userJwt) => {
@@ -67,7 +71,7 @@ test.describe('User send mail page', () => {
       const credentialResponse = page.waitForResponse((response) => (
         response.request().method() === 'GET'
         && new URL(response.url()).pathname
-          === `/user_api/bind_address_jwt/${address!.address_id}`
+          === `/user_api/bind_address_jwt/${address.address_id}`
       ));
       const addressRow = page.getByRole('row').filter({ hasText: address.address });
       await addressRow.getByRole('button', { name: 'Address Credential' }).click();
@@ -75,15 +79,16 @@ test.describe('User send mail page', () => {
       await expect(page.getByRole('dialog')).toContainText(address.address);
       await page.getByRole('button', { name: 'close' }).click();
 
+      await page.getByText('Send Mail', { exact: true }).click();
+      await expect(page.getByRole('heading', { name: 'Compose email', exact: true })).toBeVisible();
+
       const settingsResponse = page.waitForResponse((response) => (
         new URL(response.url()).pathname
-          === `/user_api/address/${address!.address_id}/settings`
+          === `/user_api/address/${address.address_id}/settings`
       ));
-      await page.getByText('Send Mail', { exact: true }).click();
+      await page.locator('.address-picker-select').click();
+      await page.locator('.n-base-select-option').filter({ hasText: address.address }).click();
       expect((await settingsResponse).ok()).toBe(true);
-
-      await expect(page.getByRole('heading', { name: 'Compose email', exact: true })).toBeVisible();
-      await expect(page.locator('.composer-title')).toContainText(address.address);
       await expect(page.locator('.address-picker-select')).toContainText(address.address);
 
       const subject = `Browser user send ${Date.now()}`;
@@ -95,7 +100,7 @@ test.describe('User send mail page', () => {
       const sendResponse = page.waitForResponse((response) => (
         response.request().method() === 'POST'
         && new URL(response.url()).pathname
-          === `/user_api/address/${address!.address_id}/send_mail`
+          === `/user_api/address/${address.address_id}/send_mail`
       ));
       const sendboxResponse = page.waitForResponse((response) => (
         response.request().method() === 'GET'
@@ -109,7 +114,7 @@ test.describe('User send mail page', () => {
       await expect(page.getByText(subject, { exact: true })).toBeVisible({ timeout: 15_000 });
     } finally {
       try {
-        if (address) await deleteAddress(request, address.jwt);
+        await Promise.allSettled(addresses.map((address) => deleteAddress(request, address.jwt)));
         if (userId !== undefined) {
           await request.delete(`${WORKER_URL}/admin/users/${userId}`);
         }
