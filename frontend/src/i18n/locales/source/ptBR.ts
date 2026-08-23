@@ -652,6 +652,6 @@ export const ptBRMessages = {
   "components.AddressCredentialModal.title": "Credenciais do endereço e métodos de conexão",
   "components.AddressCredentialModal.username": "Nome de usuário",
   "views.User.send_mail": "Enviar e-mail",
-  "views.user.UserMailClient.noAddress": "Selecione um endereço de e-mail vinculado",
-  "views.user.UserMailClient.sendbox": "Enviados"
+  "views.user.UserSendBox.noAddress": "Selecione um endereço de e-mail vinculado",
+  "views.user.UserSendBox.sendbox": "Enviados"
 }

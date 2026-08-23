@@ -751,7 +751,7 @@ export const MESSAGE_REGISTRY = {
       "zh": "用户设置"
     }
   },
-  "views.user.UserMailClient": {
+  "views.user.UserSendBox": {
     "noAddress": {
       "en": "Select a bound email address to continue",
       "zh": "请选择一个已绑定的邮箱地址"

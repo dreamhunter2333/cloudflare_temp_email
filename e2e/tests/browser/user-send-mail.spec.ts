@@ -116,7 +116,8 @@ test.describe('User send mail page', () => {
       expect((await sendboxResponse).ok()).toBe(true);
 
       await expect(page.locator('.n-tabs-tab--active')).toHaveText('Sent');
-      await expect(page.getByText(subject, { exact: true })).toBeVisible({ timeout: 15_000 });
+      await expect(page.locator('.n-thing-header__title').filter({ hasText: subject }))
+        .toHaveText(subject, { timeout: 15_000 });
     } finally {
       try {
         await Promise.allSettled(addresses.map((address) => deleteAddress(request, address.jwt)));

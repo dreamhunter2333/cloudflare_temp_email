@@ -21,7 +21,7 @@ const emit = defineEmits(['sent'])
 
 const message = useMessage()
 const { openSettings } = useGlobalState()
-const { t } = useScopedI18n('views.user.UserMailClient')
+const { t } = useScopedI18n('views.user.UserSendBox')
 const { t: mailboxT } = useScopedI18n('views.user.UserMailBox')
 
 const selectedAddressId = ref(null)
@@ -94,7 +94,7 @@ onMounted(fetchAddresses)
 </script>
 
 <template>
-    <div class="user-mail-client">
+    <div class="user-send-box">
         <template v-if="mode === 'send_mail'">
             <n-empty v-if="!selectedAddressId" class="address-empty" :description="t('noAddress')" />
             <SendMail v-else :key="selectedAddressId" v-model:address-id="selectedAddressId"
@@ -119,7 +119,7 @@ onMounted(fetchAddresses)
 </template>
 
 <style scoped>
-.user-mail-client {
+.user-send-box {
     padding-top: 10px;
     text-align: left;
 }

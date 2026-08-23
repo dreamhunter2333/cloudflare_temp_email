@@ -652,6 +652,6 @@ export const esMessages = {
   "components.AddressCredentialModal.title": "Credenciales de dirección y métodos de conexión",
   "components.AddressCredentialModal.username": "Usuario",
   "views.User.send_mail": "Enviar correo",
-  "views.user.UserMailClient.noAddress": "Selecciona una dirección de correo vinculada",
-  "views.user.UserMailClient.sendbox": "Enviados"
+  "views.user.UserSendBox.noAddress": "Selecciona una dirección de correo vinculada",
+  "views.user.UserSendBox.sendbox": "Enviados"
 }

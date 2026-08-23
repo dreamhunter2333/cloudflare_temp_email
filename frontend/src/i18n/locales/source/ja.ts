@@ -652,6 +652,6 @@ export const jaMessages = {
   "components.AddressCredentialModal.title": "アドレス認証情報と接続方法",
   "components.AddressCredentialModal.username": "ユーザー名",
   "views.User.send_mail": "メール送信",
-  "views.user.UserMailClient.noAddress": "紐付け済みのメールアドレスを選択してください",
-  "views.user.UserMailClient.sendbox": "送信済み"
+  "views.user.UserSendBox.noAddress": "紐付け済みのメールアドレスを選択してください",
+  "views.user.UserSendBox.sendbox": "送信済み"
 }
