@@ -65,7 +65,7 @@ app.use('/*', async (c, next) => {
 		c.req.path.startsWith("/api/new_address")
 		|| c.req.path.startsWith("/api/send_mail")
 		|| c.req.path.startsWith("/external/api/send_mail")
-		|| c.req.path.startsWith("/user_api/address/") && c.req.path.endsWith("/send_mail")
+		|| (c.req.path.startsWith("/user_api/address/") && c.req.path.endsWith("/send_mail"))
 		|| c.req.path.startsWith("/user_api/register")
 		|| c.req.path.startsWith("/user_api/verify_code")
 	) {
