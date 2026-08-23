@@ -6,7 +6,7 @@ import { api } from '../../api'
 import { useGlobalState } from '../../store'
 import SendBox from '../../components/SendBox.vue'
 
-const SendMail = defineAsyncComponent(() => import('../index/SendMail.vue'))
+const SendMail = defineAsyncComponent(() => import('./SendMail.vue'))
 
 const ADDRESS_PAGE_SIZE = 100
 

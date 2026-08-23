@@ -16,14 +16,39 @@ const message = useMessage()
 const isPreview = ref(false)
 const editorRef = shallowRef()
 const sending = ref(false)
+const settings = ref({
+    address: '',
+    send_balance: 0,
+})
 
+const props = defineProps({
+    addressId: {
+        type: Number,
+        default: 0,
+    },
+    addressOptions: {
+        type: Array,
+        default: () => [],
+    },
+    addressLoading: {
+        type: Boolean,
+        default: false,
+    },
+})
+
+const emit = defineEmits(['addressScroll', 'sent', 'update:addressId'])
 
 const {
-    settings, sendMailModel, indexTab, userSettings,
-    autoLoadRemoteImages, isDark,
+    sendMailModel, userSettings, autoLoadRemoteImages, isDark,
 } = useGlobalState()
 
 const { t } = useScopedI18n('views.index.SendMail')
+
+const getApiPath = (path) => `/user_api/address/${props.addressId}/${path}`
+
+const refreshSettings = async () => {
+    settings.value = await api.fetch(getApiPath('settings'))
+}
 
 const contentTypes = computed(() => [
     { label: t('text'), value: 'text' },
@@ -99,7 +124,7 @@ const send = async () => {
 
     sending.value = true
     try {
-        await api.fetch(`/api/send_mail`,
+        await api.fetch(getApiPath('send_mail'),
             {
                 method: 'POST',
                 body: JSON.stringify(payload)
@@ -114,7 +139,7 @@ const send = async () => {
         }
         isPreview.value = false
         message.success(t("successSend"));
-        indexTab.value = 'sendbox'
+        emit('sent')
     } catch (error) {
         message.error(error.message || "error");
     } finally {
@@ -124,14 +149,14 @@ const send = async () => {
 
 const requestAccess = async () => {
     try {
-        await api.fetch(`/api/request_send_mail_access`,
+        await api.fetch(getApiPath('request_send_mail_access'),
             {
                 method: 'POST',
                 body: JSON.stringify({})
             }
         )
         message.success(t("requestSuccess"))
-        await api.getSettings();
+        await refreshSettings();
     } catch (error) {
         message.error(error.message || "error");
     }
@@ -166,7 +191,7 @@ const handleCreated = (editor) => {
 onMounted(async () => {
     // make sure user_id is fetched
     if (!userSettings.value.user_id) await api.getUserSettings(message);
-    await api.getSettings();
+    await refreshSettings();
 })
 </script>
 
@@ -176,7 +201,6 @@ onMounted(async () => {
             <template #header>
                 <div class="composer-title">
                     <h2>{{ t('composeMail') }}</h2>
-                    <n-text depth="3">{{ settings.address }}</n-text>
                 </div>
             </template>
             <template #header-extra>
@@ -201,8 +225,10 @@ onMounted(async () => {
                     <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
                         <n-grid-item>
                             <n-form-item :label="t('senderAddress')" :label-props="{ for: 'send-mail-sender-address' }">
-                                <n-input :value="settings.address" readonly
-                                    :input-props="{ id: 'send-mail-sender-address' }" />
+                                <n-select class="address-picker-select" :value="addressId"
+                                    :options="addressOptions" :loading="addressLoading" filterable
+                                    @scroll="emit('addressScroll', $event)"
+                                    @update:value="emit('update:addressId', $event)" />
                             </n-form-item>
                         </n-grid-item>
                         <n-grid-item>
