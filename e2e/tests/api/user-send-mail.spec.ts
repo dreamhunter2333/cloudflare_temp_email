@@ -75,6 +75,37 @@ test.describe('User send mail API', () => {
       );
       expect(outsiderSettingsRes.status()).toBe(400);
 
+      const outsiderCredentialRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address_jwt/${outsider.address_id}`,
+        { headers: { 'x-user-token': user.jwt } },
+      );
+      expect(outsiderCredentialRes.status()).toBe(400);
+
+      const outsiderAccessRes = await request.post(
+        `${WORKER_URL}/user_api/address/${outsider.address_id}/request_send_mail_access`,
+        { headers: { 'x-user-token': user.jwt } },
+      );
+      expect(outsiderAccessRes.status()).toBe(400);
+
+      const outsiderUserSendRes = await request.post(
+        `${WORKER_URL}/user_api/address/${outsider.address_id}/send_mail`,
+        {
+          headers: { 'x-user-token': user.jwt },
+          data: {
+            to_mail: 'recipient@test.example.com',
+            subject: 'Forbidden user send',
+            content: 'This message must not be sent',
+            is_html: false,
+          },
+        },
+      );
+      expect(outsiderUserSendRes.status()).toBe(400);
+
+      const unauthenticatedSendboxRes = await request.get(
+        `${WORKER_URL}/user_api/sendbox?limit=20&offset=0`,
+      );
+      expect(unauthenticatedSendboxRes.status()).toBe(401);
+
       const requestAccessRes = await request.post(
         `${WORKER_URL}/user_api/address/${accessRequest.address_id}/request_send_mail_access`,
         { headers: { 'x-user-token': user.jwt } },
@@ -134,6 +165,12 @@ test.describe('User send mail API', () => {
         JSON.parse(item.raw).subject === outsiderSubject
       ));
       expect(outsiderMail).toBeTruthy();
+
+      const unauthorizedAddressDeleteRes = await request.delete(
+        `${WORKER_URL}/user_api/address/${outsider.address_id}/sendbox/${outsiderMail.id}`,
+        { headers: { 'x-user-token': user.jwt } },
+      );
+      expect(unauthorizedAddressDeleteRes.status()).toBe(400);
 
       const unauthorizedDeleteRes = await request.delete(
         `${WORKER_URL}/user_api/sendbox/${outsiderMail.id}`,
