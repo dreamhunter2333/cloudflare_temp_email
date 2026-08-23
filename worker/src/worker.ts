@@ -126,7 +126,8 @@ const checkUserPayload = async (
 }
 
 const checkoutUserRolePayload = async (
-	c: Context<HonoCustomType>
+	c: Context<HonoCustomType>,
+	userId?: number
 ): Promise<void> => {
 	try {
 		const token = c.req.raw.headers.get("x-user-access-token");
@@ -139,6 +140,7 @@ const checkoutUserRolePayload = async (
 			return;
 		}
 		if (typeof payload?.user_role !== "string") return;
+		if (userId !== undefined && payload.user_id !== userId) return;
 		c.set("userRolePayload", payload.user_role);
 	} catch (e) {
 		console.error(e);
@@ -207,7 +209,8 @@ app.use('/user_api/*', async (c, next) => {
 		c.req.path.startsWith("/user_api/bind_address")
 		|| c.req.path.startsWith("/user_api/address/")
 	) {
-		await checkoutUserRolePayload(c);
+		const { user_id } = c.get("userPayload");
+		await checkoutUserRolePayload(c, user_id);
 	}
 	if (c.req.path.startsWith('/user_api/bind_address')
 		&& c.req.method === 'POST'

@@ -282,7 +282,7 @@ test.describe('User send mail API', () => {
 
   test('applies unlimited balance from the user role access token', async ({ request }) => {
     const addresses: Awaited<ReturnType<typeof createTestAddress>>[] = [];
-    let userId: number | undefined;
+    const userIds: number[] = [];
     let originalUserSettings: Record<string, unknown> | undefined;
 
     try {
@@ -300,7 +300,7 @@ test.describe('User send mail API', () => {
       expect(enableUserRes.ok()).toBe(true);
 
       const user = await createUser(request);
-      userId = user.userId;
+      userIds.push(user.userId);
       const address = await createTestAddress(request, 'user-send-role-');
       addresses.push(address);
       await bindAddress(request, user.jwt, address.jwt);
@@ -355,11 +355,55 @@ test.describe('User send mail API', () => {
       );
       expect(sendRes.ok()).toBe(true);
       expect((await getAddressSender(request, address.address)).balance).toBe(0);
+
+      const otherUser = await createUser(request);
+      userIds.push(otherUser.userId);
+      const otherAddress = await createTestAddress(request, 'user-send-other-');
+      addresses.push(otherAddress);
+      await bindAddress(request, otherUser.jwt, otherAddress.jwt);
+      const otherAccessRes = await request.post(
+        `${WORKER_URL}/user_api/address/${otherAddress.address_id}/request_send_mail_access`,
+        { headers: { 'x-user-token': otherUser.jwt } },
+      );
+      expect(otherAccessRes.ok()).toBe(true);
+      const otherSender = await getAddressSender(request, otherAddress.address);
+      await updateAddressSender(request, {
+        address: otherAddress.address,
+        address_id: otherSender.id,
+        balance: 0,
+        enabled: true,
+      });
+
+      const mixedHeaders = {
+        'x-user-token': otherUser.jwt,
+        'x-user-access-token': accessToken,
+      };
+      const otherSettingsRes = await request.get(
+        `${WORKER_URL}/user_api/address/${otherAddress.address_id}/settings`,
+        { headers: mixedHeaders },
+      );
+      expect(otherSettingsRes.ok()).toBe(true);
+      expect((await otherSettingsRes.json()).send_balance).toBe(0);
+
+      const otherSendRes = await request.post(
+        `${WORKER_URL}/user_api/address/${otherAddress.address_id}/send_mail`,
+        {
+          headers: mixedHeaders,
+          data: {
+            to_mail: 'recipient@test.example.com',
+            subject: `Mismatched role token ${Date.now()}`,
+            content: 'This message must not be sent',
+            is_html: false,
+          },
+        },
+      );
+      expect(otherSendRes.status()).toBe(400);
+      expect(await otherSendRes.text()).toContain('No balance');
     } finally {
       await Promise.allSettled(addresses.map((address) => deleteAddress(request, address.jwt)));
-      if (userId !== undefined) {
-        await request.delete(`${WORKER_URL}/admin/users/${userId}`);
-      }
+      await Promise.allSettled(userIds.map((userId) => (
+        request.delete(`${WORKER_URL}/admin/users/${userId}`)
+      )));
       if (originalUserSettings) {
         await request.post(`${WORKER_URL}/admin/user_settings`, {
           data: originalUserSettings,
