@@ -70,7 +70,7 @@ test.describe('User send mail page', () => {
           === `/user_api/bind_address_jwt/${address!.address_id}`
       ));
       const addressRow = page.getByRole('row').filter({ hasText: address.address });
-      await addressRow.getByRole('button', { name: 'Credentials & Connection Methods' }).click();
+      await addressRow.getByRole('button', { name: 'Address Credential' }).click();
       expect((await credentialResponse).ok()).toBe(true);
       await expect(page.getByRole('dialog')).toContainText(address.address);
       await page.getByRole('button', { name: 'close' }).click();

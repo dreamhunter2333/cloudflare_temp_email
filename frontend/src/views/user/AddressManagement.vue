@@ -16,7 +16,7 @@ const message = useMessage()
 const router = useRouter()
 
 const { locale, t } = useScopedI18n('views.user.AddressManagement')
-const { t: accountSettingsT } = useScopedI18n('views.index.AccountSettings')
+const { t: credentialT } = useScopedI18n('components.AddressCredentialModal')
 
 const data = ref([])
 const count = ref(0)
@@ -168,7 +168,7 @@ const columns = [
                         type: "primary",
                         onClick: () => showCredential(row)
                     },
-                    { default: () => accountSettingsT('showAddressCredential') }
+                    { default: () => credentialT('addressCredential') }
                 ),
                 h(NPopconfirm,
                     {
