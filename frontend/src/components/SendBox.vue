@@ -82,7 +82,7 @@ const refresh = async () => {
       }
       return item;
     });
-    if (page.value === 1) {
+    if (totalCount > 0) {
       count.value = totalCount;
     }
     if (!isMobile.value && !curMail.value && data.value.length > 0) {

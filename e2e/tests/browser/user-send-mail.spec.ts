@@ -79,7 +79,12 @@ test.describe('User send mail page', () => {
       await expect(page.getByRole('dialog')).toContainText(address.address);
       await page.getByRole('button', { name: 'close' }).click();
 
+      const initialSettingsResponse = page.waitForResponse((response) => (
+        new URL(response.url()).pathname
+          === `/user_api/address/${secondAddress.address_id}/settings`
+      ));
       await page.getByText('Send Mail', { exact: true }).click();
+      expect((await initialSettingsResponse).ok()).toBe(true);
       await expect(page.locator('.composer-title h2')).toHaveText('Compose email');
 
       const settingsResponse = page.waitForResponse((response) => (
