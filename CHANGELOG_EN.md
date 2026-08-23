@@ -17,6 +17,7 @@
 
 - fix: |Admin| Fix secondary tabs occasionally losing their active item, hiding content, and leaving the indicator offset after switching primary tabs
 - fix: |Send Mail| Use a consistent address/name field order and align the empty content editor caret with its placeholder
+- fix: |User Send Mail| Apply role-based unlimited sending to user-address APIs and share one send-rate limit across all bound addresses for the same IP
 
 ### Improvements
 

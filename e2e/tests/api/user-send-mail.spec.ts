@@ -279,4 +279,126 @@ test.describe('User send mail API', () => {
       }
     }
   });
+
+  test('applies unlimited balance from the user role access token', async ({ request }) => {
+    const addresses: Awaited<ReturnType<typeof createTestAddress>>[] = [];
+    let userId: number | undefined;
+
+    try {
+      const user = await createUser(request);
+      userId = user.userId;
+      const address = await createTestAddress(request, 'user-send-role-');
+      addresses.push(address);
+      await bindAddress(request, user.jwt, address.jwt);
+
+      const updateRoleRes = await request.post(`${WORKER_URL}/admin/user_roles`, {
+        data: { user_id: user.userId, role_text: 'case-role' },
+      });
+      expect(updateRoleRes.ok()).toBe(true);
+
+      const accessRes = await request.post(
+        `${WORKER_URL}/user_api/address/${address.address_id}/request_send_mail_access`,
+        { headers: { 'x-user-token': user.jwt } },
+      );
+      expect(accessRes.ok()).toBe(true);
+      const sender = await getAddressSender(request, address.address);
+      await updateAddressSender(request, {
+        address: address.address,
+        address_id: sender.id,
+        balance: 0,
+        enabled: true,
+      });
+
+      const userSettingsRes = await request.get(`${WORKER_URL}/user_api/settings`, {
+        headers: { 'x-user-token': user.jwt },
+      });
+      expect(userSettingsRes.ok()).toBe(true);
+      const { access_token: accessToken } = await userSettingsRes.json();
+      expect(accessToken).toBeTruthy();
+      const userHeaders = {
+        'x-user-token': user.jwt,
+        'x-user-access-token': accessToken,
+      };
+
+      const addressSettingsRes = await request.get(
+        `${WORKER_URL}/user_api/address/${address.address_id}/settings`,
+        { headers: userHeaders },
+      );
+      expect(addressSettingsRes.ok()).toBe(true);
+      expect((await addressSettingsRes.json()).send_balance).toBe(99999);
+
+      const sendRes = await request.post(
+        `${WORKER_URL}/user_api/address/${address.address_id}/send_mail`,
+        {
+          headers: userHeaders,
+          data: {
+            to_mail: 'recipient@test.example.com',
+            subject: `Unlimited role send ${Date.now()}`,
+            content: 'Sent without consuming address balance',
+            is_html: false,
+          },
+        },
+      );
+      expect(sendRes.ok()).toBe(true);
+      expect((await getAddressSender(request, address.address)).balance).toBe(0);
+    } finally {
+      await Promise.allSettled(addresses.map((address) => deleteAddress(request, address.jwt)));
+      if (userId !== undefined) {
+        await request.delete(`${WORKER_URL}/admin/users/${userId}`);
+      }
+    }
+  });
+
+  test('shares one rate-limit bucket across bound addresses', async ({ request }) => {
+    const addresses: Awaited<ReturnType<typeof createTestAddress>>[] = [];
+    let userId: number | undefined;
+
+    try {
+      const user = await createUser(request);
+      userId = user.userId;
+      const first = await createTestAddress(request, 'user-rate-first-');
+      const second = await createTestAddress(request, 'user-rate-second-');
+      addresses.push(first, second);
+      await bindAddress(request, user.jwt, first.jwt);
+      await bindAddress(request, user.jwt, second.jwt);
+
+      const requestAccess = async (address: typeof first) => {
+        const accessRes = await request.post(
+          `${WORKER_URL}/user_api/address/${address.address_id}/request_send_mail_access`,
+          { headers: { 'x-user-token': user.jwt } },
+        );
+        expect(accessRes.ok()).toBe(true);
+      };
+      await requestAccess(first);
+      await requestAccess(second);
+
+      const reqIp = `198.51.100.${Math.floor(Math.random() * 200) + 1}`;
+      const send = (address: typeof first, sequence: number) => request.post(
+        `${WORKER_URL}/user_api/address/${address.address_id}/send_mail`,
+        {
+          headers: {
+            'x-user-token': user.jwt,
+            'cf-connecting-ip': reqIp,
+          },
+          data: {
+            to_mail: 'recipient@test.example.com',
+            subject: `Shared rate limit ${sequence} ${Date.now()}`,
+            content: 'Rate limit test',
+            is_html: false,
+          },
+        },
+      );
+
+      expect((await send(first, 1)).ok()).toBe(true);
+      expect((await send(second, 2)).ok()).toBe(true);
+      const limitedRes = await send(first, 3);
+      expect(limitedRes.status()).toBe(429);
+      expect(await limitedRes.text()).toContain('Rate limit exceeded');
+    } finally {
+      await Promise.allSettled(addresses.map((address) => deleteAddress(request, address.jwt)));
+      if (userId !== undefined) {
+        await request.delete(`${WORKER_URL}/admin/users/${userId}`);
+      }
+    }
+  });
 });

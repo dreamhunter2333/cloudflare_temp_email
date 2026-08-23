@@ -64,6 +64,8 @@ res = requests.post(
 
 `address_id` 可从分页接口 `GET /user_api/bind_address` 的结果中获取。后端会验证该地址属于当前用户，客户端不能自行指定发件邮箱。
 
+如果站点通过 `NO_LIMIT_SEND_ROLE` 为当前用户角色配置了无限发信额度，还需要传入 `GET /user_api/settings` 返回的 `access_token`。前端会自动处理该令牌。
+
 ```python
 send_body = {
     "from_name": "发件人名字",
@@ -79,6 +81,7 @@ res = requests.post(
     json=send_body,
     headers={
         "x-user-token": "<用户JWT>",
+        # "x-user-access-token": "<用户访问令牌>",  # 使用角色权限时需要
         "Content-Type": "application/json",
     },
 )
@@ -93,7 +96,7 @@ res = requests.post(
 | `GET` | `/user_api/sendbox?limit=20&offset=0&address=可选地址` | 分页获取当前用户的发件箱，可按绑定地址过滤 |
 | `DELETE` | `/user_api/sendbox/:mail_id` | 删除当前用户的一条发件记录 |
 
-以上接口都只接受用户 JWT。地址级接口验证 `address_id` 是否绑定到当前用户，用户级发件箱接口只返回或删除当前用户绑定地址的记录。
+以上接口都需要用户 JWT。地址级接口验证 `address_id` 是否绑定到当前用户，用户级发件箱接口只返回或删除当前用户绑定地址的记录；用户访问令牌仅用于应用可选的角色权限。
 
 ## 通过 SMTP 发送邮件
 

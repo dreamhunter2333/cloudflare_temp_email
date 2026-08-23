@@ -64,6 +64,8 @@ res = requests.post(
 
 Obtain `address_id` from the paginated `GET /user_api/bind_address` response. The backend verifies that the address belongs to the current user; clients cannot choose an arbitrary sender address.
 
+If the site grants unlimited sending to the current user's role through `NO_LIMIT_SEND_ROLE`, also send the `access_token` returned by `GET /user_api/settings`. The frontend handles this token automatically.
+
 ```python
 send_body = {
     "from_name": "Sender Name",
@@ -79,6 +81,7 @@ res = requests.post(
     json=send_body,
     headers={
         "x-user-token": "<user_JWT>",
+        # "x-user-access-token": "<user_access_token>",  # Required for role permissions
         "Content-Type": "application/json",
     },
 )
@@ -93,7 +96,7 @@ The same user-address API group also provides:
 | `GET` | `/user_api/sendbox?limit=20&offset=0&address=optional-address` | List the current user's sent items, optionally filtered by a bound address |
 | `DELETE` | `/user_api/sendbox/:mail_id` | Delete one sent item owned by the current user |
 
-All endpoints require a User JWT. Address-scoped endpoints verify that `address_id` is bound to the current user, while user-level sent-item endpoints only return or delete records for the user's bound addresses.
+All endpoints require a User JWT. Address-scoped endpoints verify that `address_id` is bound to the current user, while user-level sent-item endpoints only return or delete records for the user's bound addresses. The user access token is only used to apply optional role permissions.
 
 ## Send Email via SMTP
 
