@@ -209,34 +209,37 @@ onMounted(async () => {
                 </n-tag>
             </template>
 
-            <div v-if="!settings.send_balance || settings.send_balance <= 0">
-                <div class="access-state">
-                    <div class="access-copy">
-                        <h3>{{ t('balanceUnavailable') }}</h3>
-                        <p>{{ t('requestAccessTip', { address: settings.address }) }}</p>
-                    </div>
-                    <n-button type="primary" @click="requestAccess">{{ t('requestAccess') }}</n-button>
-                </div>
-                <div class="admin-contact"><AdminContact /></div>
-            </div>
+            <n-form class="composer-form" :model="sendMailModel" label-placement="top">
+                <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
+                    <n-grid-item>
+                        <n-form-item :label="t('senderAddress')" :label-props="{ for: 'send-mail-sender-address' }">
+                            <n-select class="address-picker-select" :value="addressId"
+                                :options="addressOptions" :loading="addressLoading" filterable
+                                @scroll="emit('addressScroll', $event)"
+                                @update:value="emit('update:addressId', $event)" />
+                        </n-form-item>
+                    </n-grid-item>
+                    <n-grid-item>
+                        <n-form-item :label="t('senderName')" :label-props="{ for: 'send-mail-sender-name' }">
+                            <n-input v-model:value="sendMailModel.fromName"
+                                :input-props="{ id: 'send-mail-sender-name' }" />
+                        </n-form-item>
+                    </n-grid-item>
+                </n-grid>
 
-            <template v-else>
-                <n-form class="composer-form" :model="sendMailModel" label-placement="top">
+                <div v-if="!settings.send_balance || settings.send_balance <= 0">
+                    <div class="access-state">
+                        <div class="access-copy">
+                            <h3>{{ t('balanceUnavailable') }}</h3>
+                            <p>{{ t('requestAccessTip', { address: settings.address }) }}</p>
+                        </div>
+                        <n-button type="primary" @click="requestAccess">{{ t('requestAccess') }}</n-button>
+                    </div>
+                    <div class="admin-contact"><AdminContact /></div>
+                </div>
+
+                <template v-else>
                     <n-grid cols="1 m:2" responsive="screen" :x-gap="16">
-                        <n-grid-item>
-                            <n-form-item :label="t('senderAddress')" :label-props="{ for: 'send-mail-sender-address' }">
-                                <n-select class="address-picker-select" :value="addressId"
-                                    :options="addressOptions" :loading="addressLoading" filterable
-                                    @scroll="emit('addressScroll', $event)"
-                                    @update:value="emit('update:addressId', $event)" />
-                            </n-form-item>
-                        </n-grid-item>
-                        <n-grid-item>
-                            <n-form-item :label="t('senderName')" :label-props="{ for: 'send-mail-sender-name' }">
-                                <n-input v-model:value="sendMailModel.fromName"
-                                    :input-props="{ id: 'send-mail-sender-name' }" />
-                            </n-form-item>
-                        </n-grid-item>
                         <n-grid-item>
                             <n-form-item :label="t('recipientAddress')" required
                                 :label-props="{ for: 'send-mail-recipient-address' }">
@@ -295,8 +298,8 @@ onMounted(async () => {
                             {{ t('send') }}
                         </n-button>
                     </div>
-                </n-form>
-            </template>
+                </template>
+            </n-form>
         </n-card>
     </div>
 </template>
