@@ -650,5 +650,8 @@ export const jaMessages = {
   "components.AddressCredentialModal.starttls": "STARTTLS",
   "components.AddressCredentialModal.tip": "これらの認証情報は信頼できるクライアントと Agent でのみ使用してください。",
   "components.AddressCredentialModal.title": "アドレス認証情報と接続方法",
-  "components.AddressCredentialModal.username": "ユーザー名"
+  "components.AddressCredentialModal.username": "ユーザー名",
+  "views.User.send_mail": "メール送信",
+  "views.user.UserSendBox.noAddress": "紐付け済みのメールアドレスを選択してください",
+  "views.user.UserSendBox.sendbox": "送信済み"
 }

@@ -6,6 +6,22 @@ import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
 import { updateAddressUpdatedAt, commonGetUserRole, handleListQuery, hideObjectFields } from '../common';
 
+export const getBindedAddressById = async (
+    c: Context<HonoCustomType>,
+    user_id: number | string,
+    address_id: number | string
+): Promise<string | null> => {
+    if (!user_id || !address_id) {
+        return null;
+    }
+    const address = await c.env.DB.prepare(
+        `SELECT a.name FROM users_address ua`
+        + ` JOIN address a ON a.id = ua.address_id`
+        + ` WHERE ua.user_id = ? AND ua.address_id = ?`
+    ).bind(user_id, address_id).first<string>('name');
+    return address ?? null;
+}
+
 const UserBindAddressModule = {
     bind: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
@@ -158,17 +174,10 @@ const UserBindAddressModule = {
         if (!address_id || !user_id) {
             return c.text(msgs.InvalidAddressOrUserTokenMsg, 400)
         }
-        // check users_address if address binded
-        const db_user_id = await c.env.DB.prepare(
-            `SELECT user_id FROM users_address WHERE address_id = ? and user_id = ?`
-        ).bind(address_id, user_id).first("user_id");
-        if (!db_user_id) {
+        const name = await getBindedAddressById(c, user_id, address_id);
+        if (!name) {
             return c.text(msgs.AddressNotBindedMsg, 400)
         }
-        // generate jwt
-        const name = await c.env.DB.prepare(
-            `SELECT name FROM address WHERE id = ? `
-        ).bind(address_id).first("name");
         const jwt = await Jwt.sign({
             address: name,
             address_id: address_id

@@ -738,6 +738,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Bind Mail Address",
       "zh": "绑定邮箱地址"
     },
+    "send_mail": {
+      "en": "Send Mail",
+      "zh": "发送邮件"
+    },
     "user_mail_box_tab": {
       "en": "Mail Box",
       "zh": "收件箱"
@@ -745,6 +749,16 @@ export const MESSAGE_REGISTRY = {
     "user_settings": {
       "en": "User Settings",
       "zh": "用户设置"
+    }
+  },
+  "views.user.UserSendBox": {
+    "noAddress": {
+      "en": "Select a bound email address to continue",
+      "zh": "请选择一个已绑定的邮箱地址"
+    },
+    "sendbox": {
+      "en": "Sent",
+      "zh": "发件箱"
     }
   },
   "views.user.UserLogin": {
