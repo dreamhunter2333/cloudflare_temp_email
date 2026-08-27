@@ -24,6 +24,7 @@ export const useGlobalState = createGlobalState(
             disableAnonymousUserCreateEmail: false,
             disableCustomAddressName: false,
             enableUserDeleteEmail: false,
+            enableMailReadStatus: false,
             enableAutoReply: false,
             enableIndexAbout: false,
             /** @type {string[]} */

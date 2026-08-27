@@ -34,6 +34,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  enableMailReadStatus: {
+    type: Boolean,
+    default: false
+  },
   // 回调函数 props
   onDelete: {
     type: Function,
@@ -50,6 +54,10 @@ const props = defineProps({
   onSaveToS3: {
     type: Function,
     default: () => { }
+  },
+  onUpdateMailReadStatus: {
+    type: Function,
+    default: () => { }
   }
 });
 
@@ -57,6 +65,7 @@ const showTextMail = ref(preferShowTextMail.value);
 const showAttachments = ref(false);
 const curAttachments = ref([]);
 const attachmentLoding = ref(false);
+const readStatusUpdating = ref(false);
 const showFullscreen = ref(false);
 
 // Per-mail consent, deliberately independent of the global setting: it only
@@ -94,6 +103,15 @@ const handleReply = () => {
 
 const handleForward = () => {
   props.onForward();
+};
+
+const handleUpdateMailReadStatus = async () => {
+  readStatusUpdating.value = true;
+  try {
+    await props.onUpdateMailReadStatus();
+  } finally {
+    readStatusUpdating.value = false;
+  }
 };
 
 
@@ -136,6 +154,11 @@ const handleSaveToS3 = async (filename, blob) => {
       <n-button v-if="mail.attachments && mail.attachments.length > 0" size="small" tertiary type="info"
         @click="handleViewAttachments">
         {{ t('attachments') }}
+      </n-button>
+
+      <n-button v-if="enableMailReadStatus" size="small" tertiary type="info" :loading="readStatusUpdating"
+        @click="handleUpdateMailReadStatus">
+        {{ mail.is_unread === 1 ? t('markAsRead') : t('markAsUnread') }}
       </n-button>
 
       <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="mail.id + '.eml'"

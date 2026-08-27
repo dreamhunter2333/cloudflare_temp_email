@@ -29,6 +29,7 @@ api.post('/api/attachment/get_url', s3_attachment.getSignedGetUrl)
 api.get('/api/mails', mails_crud.listMails)
 api.get('/api/mail/:mail_id', mails_crud.getMail)
 api.delete('/api/mails/:id', mails_crud.deleteMail)
+api.patch('/api/mails/:id/read', mails_crud.updateMailReadStatus)
 
 // parsed mail (server-side parsed subject/text/html/attachments)
 api.get('/api/parsed_mails', parsed_mail_api.listParsedMails)

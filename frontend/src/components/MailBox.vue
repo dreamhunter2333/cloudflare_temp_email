@@ -55,6 +55,14 @@ const props = defineProps({
     default: false,
     required: false
   },
+  enableMailReadStatus: {
+    type: Boolean,
+    default: false
+  },
+  updateMailReadStatus: {
+    type: Function,
+    default: () => { }
+  },
 })
 
 const localFilterKeyword = ref('')
@@ -94,6 +102,29 @@ const data = computed(() => {
   });
 })
 
+const openMail = (mail) => {
+  curMail.value = mail
+  if (mail?.is_unread !== 1 || !props.enableMailReadStatus) return
+  mail.is_unread = 0
+  void props.updateMailReadStatus(mail.id, false).catch(() => {
+    mail.is_unread = 1
+  })
+}
+
+const toggleCurrentMailUnread = async () => {
+  if (!curMail.value || !props.enableMailReadStatus) return
+  const mail = curMail.value
+  const previousValue = mail.is_unread
+  const isUnread = previousValue !== 1
+  mail.is_unread = isUnread ? 1 : 0
+  try {
+    await props.updateMailReadStatus(mail.id, isUnread)
+    message.success(t("success"))
+  } catch {
+    mail.is_unread = previousValue
+  }
+}
+
 const canGoPrevMail = computed(() => {
   if (!curMail.value) return false
   const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
@@ -111,12 +142,12 @@ const prevMail = async () => {
   const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
 
   if (currentIndex > 0) {
-    curMail.value = data.value[currentIndex - 1]
+    openMail(data.value[currentIndex - 1])
   } else if (page.value > 1) {
     page.value--
     await refresh()
     if (data.value.length > 0) {
-      curMail.value = data.value[data.value.length - 1]
+      openMail(data.value[data.value.length - 1])
     }
   }
 }
@@ -126,12 +157,12 @@ const nextMail = async () => {
   const currentIndex = data.value.findIndex(mail => mail.id === curMail.value.id)
 
   if (currentIndex < data.value.length - 1) {
-    curMail.value = data.value[currentIndex + 1]
+    openMail(data.value[currentIndex + 1])
   } else if (count.value > page.value * pageSize.value) {
     page.value++
     await refresh()
     if (data.value.length > 0) {
-      curMail.value = data.value[0]
+      openMail(data.value[0])
     }
   }
 }
@@ -205,7 +236,7 @@ const backFirstPageAndRefresh = async () => {
   await refresh();
 }
 
-const clickRow = async (row) => {
+const clickRow = (row) => {
   if (multiActionMode.value) {
     row.checked = !row.checked;
     curMail.value = row;
@@ -215,7 +246,7 @@ const clickRow = async (row) => {
     curMail.value = null;
     return;
   }
-  curMail.value = row;
+  openMail(row);
 };
 
 
@@ -397,7 +428,7 @@ onBeforeUnmount(() => {
           <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
-                :class="mailItemClass(row)">
+                :class="[mailItemClass(row), { 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }]">
                 <template #prefix v-if="multiActionMode">
                   <n-checkbox v-model:checked="row.checked" />
                 </template>
@@ -461,6 +492,7 @@ onBeforeUnmount(() => {
             style="overflow: auto; max-height: 100vh;">
             <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
               :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
+              :enableMailReadStatus="enableMailReadStatus" :onUpdateMailReadStatus="toggleCurrentMailUnread"
               :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
@@ -475,7 +507,7 @@ onBeforeUnmount(() => {
       <div v-else class="mail-list-scroll">
         <n-list hoverable clickable>
           <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
-            :class="mailItemClass(row)">
+            :class="[mailItemClass(row), { 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }]">
             <template #prefix v-if="multiActionMode">
               <n-checkbox v-model:checked="row.checked" />
             </template>
@@ -536,7 +568,8 @@ onBeforeUnmount(() => {
       </div>
       <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
         <n-list hoverable clickable>
-          <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
+          <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
+            :class="{ 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }">
             <n-thing :title="row.subject">
               <template #description>
                 <n-tag type="info">
@@ -567,6 +600,7 @@ onBeforeUnmount(() => {
           <n-card :bordered="false" embedded style="overflow: auto;">
             <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
               :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
+              :enableMailReadStatus="enableMailReadStatus" :onUpdateMailReadStatus="toggleCurrentMailUnread"
               :useUTCDate="useUTCDate" :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail"
               :onSaveToS3="saveToS3Proxy" />
           </n-card>
@@ -674,6 +708,21 @@ onBeforeUnmount(() => {
 
 .mail-list-scroll :deep(.n-list-item__main) {
   min-width: 0;
+}
+
+.mail-list-unread :deep(.n-thing-header__title) {
+  font-weight: 700;
+}
+
+.mail-list-unread :deep(.n-thing-header__title)::before {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #2080f0;
+  content: '';
+  vertical-align: middle;
 }
 
 pre {

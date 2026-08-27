@@ -20,6 +20,23 @@ const listMails = async (c: Context<HonoCustomType>) => {
     );
 };
 
+const updateMailReadStatus = async (c: Context<HonoCustomType>) => {
+    if (!getBooleanValue(c.env.ENABLE_MAIL_READ_STATUS)) {
+        return c.json({ error: 'Mail read status is disabled' }, 403);
+    }
+    const { address } = c.get("jwtPayload");
+    const { id } = c.req.param();
+    const { isUnread } = await c.req.json<{ isUnread?: boolean }>().catch(() => ({ isUnread: undefined }));
+    if (typeof isUnread !== 'boolean') {
+        return c.json({ error: 'isUnread must be a boolean' }, 400);
+    }
+    const value = isUnread ? 1 : 0;
+    const { success } = await c.env.DB.prepare(
+        `UPDATE raw_mails SET is_unread = ? WHERE id = ? AND address = ? AND COALESCE(is_unread, 0) != ?`
+    ).bind(value, id, address, value).run();
+    return c.json({ success });
+};
+
 const getMail = async (c: Context<HonoCustomType>) => {
     const { address } = c.get("jwtPayload")
     const { mail_id } = c.req.param();
@@ -117,4 +134,4 @@ const clearSentItems = async (c: Context<HonoCustomType>) => {
     return c.json({ success });
 };
 
-export default { listMails, getMail, deleteMail, getSettings, deleteAddress, clearInbox, clearSentItems };
+export default { listMails, getMail, updateMailReadStatus, deleteMail, getSettings, deleteAddress, clearInbox, clearSentItems };

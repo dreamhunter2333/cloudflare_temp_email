@@ -190,6 +190,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Fullscreen",
       "zh": "全屏"
     },
+    "markAsRead": {
+      "en": "Mark as Read",
+      "zh": "标为已读"
+    },
+    "markAsUnread": {
+      "en": "Mark as Unread",
+      "zh": "标为未读"
+    },
     "loadRemoteImages": {
       "en": "Load Images",
       "zh": "加载图片"
@@ -1197,6 +1205,10 @@ export const MESSAGE_REGISTRY = {
     "prevPage": {
       "en": "Previous",
       "zh": "上一页"
+    },
+    "readStatusUpdated": {
+      "en": "Read status updated",
+      "zh": "已读状态已更新"
     },
     "refreshAfter": {
       "en": "Refresh After {msg} Seconds",

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     raw TEXT,
     raw_blob BLOB,
     metadata TEXT,
+    is_unread INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
