@@ -23,6 +23,40 @@ const result = ref("")
 const addressPassword = ref("")
 const createdAddress = ref("")
 
+const addressRegex = computed(() => {
+    try {
+        if (openSettings.value.addressRegex) {
+            return new RegExp(openSettings.value.addressRegex, 'g');
+        }
+    } catch (error) {
+        console.error(error);
+        message.error(`Invalid addressRegex: ${openSettings.value.addressRegex}`);
+    }
+    return /[^a-z0-9]/g;
+});
+
+const generateNameLoading = ref(false);
+const generateName = async () => {
+    try {
+        generateNameLoading.value = true;
+        const { faker } = await import('https://esm.sh/@faker-js/faker');
+        emailName.value = faker.internet.email()
+            .split('@')[0]
+            .replace(/\s+/g, '.')
+            .replace(/\.{2,}/g, '.')
+            .replace(addressRegex.value, '')
+            .toLowerCase();
+        // support maxAddressLen
+        if (emailName.value.length > openSettings.value.maxAddressLen) {
+            emailName.value = emailName.value.slice(0, openSettings.value.maxAddressLen);
+        }
+    } catch (error) {
+        message.error(error.message || "error");
+    } finally {
+        generateNameLoading.value = false;
+    }
+};
+
 const canUseRandomSubdomain = computed(() => {
     if (!emailDomain.value) {
         return false
@@ -81,15 +115,22 @@ onMounted(async () => {
                 <n-switch v-model:value="enablePrefix" :round="false" />
             </n-form-item-row>
             <n-form-item-row :label="t('address')">
-                <n-input-group>
-                    <n-input-group-label v-if="enablePrefix && openSettings.prefix">
-                        {{ openSettings.prefix }}
-                    </n-input-group-label>
-                    <n-input v-model:value="emailName" />
-                    <n-input-group-label>@</n-input-group-label>
-                    <n-select v-model:value="emailDomain" :consistent-menu-width="false"
-                        :options="openSettings.domains" />
-                </n-input-group>
+                <n-spin :show="generateNameLoading" style="width: 100%;">
+                    <div>
+                        <n-button @click="generateName" style="margin-bottom: 10px;">
+                            {{ t('generateName') }}
+                        </n-button>
+                        <n-input-group>
+                            <n-input-group-label v-if="enablePrefix && openSettings.prefix">
+                                {{ openSettings.prefix }}
+                            </n-input-group-label>
+                            <n-input v-model:value="emailName" />
+                            <n-input-group-label>@</n-input-group-label>
+                            <n-select v-model:value="emailDomain" :consistent-menu-width="false"
+                                :options="openSettings.domains" />
+                        </n-input-group>
+                    </div>
+                </n-spin>
             </n-form-item-row>
             <n-form-item-row v-if="canUseRandomSubdomain">
                 <div style="width: 100%;">

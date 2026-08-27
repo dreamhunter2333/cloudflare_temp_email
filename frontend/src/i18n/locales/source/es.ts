@@ -402,6 +402,7 @@ export const esMessages = {
   "views.user.UserSettings.renamePasskeyNamePlaceholder": "Introduce el nuevo nombre de la passkey",
   "views.user.UserSettings.passkeyNamePlaceholder": "Introduce el nombre de la passkey o déjalo vacío para generarlo aleatoriamente",
   "views.admin.CreateAccount.fillInAllFields": "Rellena todos los campos",
+  "views.admin.CreateAccount.generateName": "Generar nombre aleatorio",
   "views.admin.SendBox.queryTip": "Introduce la dirección a consultar; vacío para todas",
   "views.user.UserLogin.pleaseInputCode": "Introduce el código",
   "views.admin.UserManagement.pleaseInput": "Introduce la información completa",

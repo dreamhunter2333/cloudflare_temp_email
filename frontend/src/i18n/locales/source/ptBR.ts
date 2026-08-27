@@ -402,6 +402,7 @@ export const ptBRMessages = {
   "views.user.UserSettings.renamePasskeyNamePlaceholder": "Informe o novo nome da passkey",
   "views.user.UserSettings.passkeyNamePlaceholder": "Informe o nome da passkey ou deixe em branco para gerar um aleatório",
   "views.admin.CreateAccount.fillInAllFields": "Preencha todos os campos",
+  "views.admin.CreateAccount.generateName": "Gerar nome aleatório",
   "views.admin.SendBox.queryTip": "Informe o endereço para consulta; deixe em branco para consultar todos",
   "views.user.UserLogin.pleaseInputCode": "Informe o código",
   "views.admin.UserManagement.pleaseInput": "Informe todas as informações",

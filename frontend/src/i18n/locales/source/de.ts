@@ -402,6 +402,7 @@ export const deMessages = {
   "views.user.UserSettings.renamePasskeyNamePlaceholder": "Bitte den neuen Passkey-Namen eingeben",
   "views.user.UserSettings.passkeyNamePlaceholder": "Bitte den Passkey-Namen eingeben oder leer lassen, um einen zufälligen zu erzeugen",
   "views.admin.CreateAccount.fillInAllFields": "Bitte alle Felder ausfüllen",
+  "views.admin.CreateAccount.generateName": "Zufälligen Namen erzeugen",
   "views.admin.SendBox.queryTip": "Bitte die abzufragende Adresse eingeben; leer lassen für alle",
   "views.user.UserLogin.pleaseInputCode": "Bitte den Code eingeben",
   "views.admin.UserManagement.pleaseInput": "Bitte alle erforderlichen Informationen eingeben",

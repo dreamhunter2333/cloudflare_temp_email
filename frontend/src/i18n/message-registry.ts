@@ -2146,6 +2146,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Please fill in all fields",
       "zh": "请填写完整信息"
     },
+    "generateName": {
+      "en": "Generate Fake Name",
+      "zh": "生成随机名字"
+    },
     "linkWithAddressCredential": {
       "en": "Open to auto login email link",
       "zh": "打开即可自动登录邮箱的链接"
