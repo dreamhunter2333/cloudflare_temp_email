@@ -165,7 +165,7 @@ const menuOptions = computed(() => [
                 }
             },
             {
-                default: () => "Admin",
+                default: () => t('admin'),
                 icon: () => h(NIcon, { component: AdminPanelSettingsFilled }),
             }
         ),

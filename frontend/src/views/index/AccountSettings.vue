@@ -126,7 +126,7 @@ const changePassword = async () => {
             </template>
         </n-modal>
         <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteAccount')">
-            <p>{{ t('deleteAccountConfirm') }}</p>
+            <p>{{ t('deleteAccountConfirm', { address: settings.address }) }}</p>
             <template #action>
                 <n-button :loading="loading" @click="deleteAccount" size="small" tertiary type="error">
                     {{ t('deleteAccount') }}

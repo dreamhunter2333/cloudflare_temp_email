@@ -34,7 +34,7 @@ GitHub 个人资料中选择了 `Public email` 时，可以继续使用默认的
 
 - [Authentik OAuth2 Provider](https://docs.goauthentik.io/docs/providers/oauth2/)
 
-## Admin 后台配置 OAuth2
+## 在管理后台配置 OAuth2
 
 ![oauth2](/feature/oauth2.png)
 

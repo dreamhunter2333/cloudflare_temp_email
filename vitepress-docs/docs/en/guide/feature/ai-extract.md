@@ -57,7 +57,7 @@ When a Workers AI binding is configured, AI extraction is still preferred (recog
 
 ## Address Allowlist (Optional)
 
-To control costs and resource usage, you can configure an address allowlist in the Admin console's **AI Extract Settings** page:
+To control costs and resource usage, configure an email-address allowlist under **Admin Console → Mailbox Management → AI Extract Settings**:
 
 ### Configuration
 

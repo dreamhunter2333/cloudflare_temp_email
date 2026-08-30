@@ -23,6 +23,7 @@
 
 ### Improvements
 
+- refactor: |Frontend| Unify mailbox, email-address, user-account, and Admin Console terminology across all supported languages, and keep the document `lang` synchronized with the active locale (issue #1129)
 - feat: |Send Mail| Improve the information hierarchy and responsive layout of the user and Admin composers, with a content-format toolbar, draft status, bottom send-action area, and isolated HTML preview
 
 ### Testing

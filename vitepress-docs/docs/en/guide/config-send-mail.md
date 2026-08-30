@@ -150,19 +150,20 @@ cd worker
 wrangler secret put SMTP_CONFIG
 ```
 
-## User Accounts, Email Addresses, and Send Permission
+## User Accounts, Mailboxes, Email Addresses, and Send Permission
 
 These concepts are related, but they identify different objects:
 
 | Concept | Description |
 |---------|-------------|
-| User account | Signs in to the user center and can bind and manage multiple email addresses. The user account's login email is not automatically a sending or receiving address |
-| Email address | The identity that actually receives and sends mail, such as `name@example.com`. The address currently selected on the frontend home page is authenticated by its Address JWT |
+| User account | Signs in to the user center and can link and manage multiple mailboxes. The account email is not automatically a sending or receiving address |
+| Mailbox | The user-facing object that contains an inbox, sent mail, sending capability, and mailbox settings |
+| Email address | The concrete value that identifies a mailbox, such as `name@example.com`. The current mailbox is authenticated by its Address JWT |
 | Send permission and balance | Permission and balance records in `address_sender` are managed independently **per email address**; user roles configured by `NO_LIMIT_SEND_ROLE` can bypass address balance checks |
 
 Multiple email addresses bound to the same user account therefore do not share send permission or balance. To request permission for an address:
 
-1. Switch to the email address that needs to send mail
+1. Switch to the mailbox that needs to send mail
 2. Open the **Send Mail** page
 3. Click **Request Access**
 

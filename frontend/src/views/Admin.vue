@@ -137,7 +137,7 @@ onMounted(async () => {
       </n-tab-pane>
       <n-tab-pane name="account" :tab="t('account')">
         <n-tabs key="account-tabs" type="bar" justify-content="center" animated>
-          <n-tab-pane name="account" :tab="t('account')">
+          <n-tab-pane name="account" :tab="t('account_list')">
             <Account />
           </n-tab-pane>
           <n-tab-pane name="account_create" :tab="t('account_create')">
