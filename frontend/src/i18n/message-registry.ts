@@ -289,12 +289,12 @@ export const MESSAGE_REGISTRY = {
       "zh": "已复制"
     },
     "copy": {
-      "en": "Copy Email Address",
-      "zh": "复制邮箱地址"
+      "en": "Copy",
+      "zh": "复制"
     },
     "localAddresses": {
-      "en": "Local Mailboxes",
-      "zh": "本地邮箱"
+      "en": "Local Email Addresses",
+      "zh": "本地邮箱地址"
     },
     "userAddresses": {
       "en": "Linked Mailboxes",
@@ -1175,8 +1175,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "邮箱设置"
     },
     "addressCopied": {
-      "en": "Email address copied",
-      "zh": "邮箱地址已复制"
+      "en": "Address copied successfully",
+      "zh": "地址复制成功"
     },
     "addressCredential": {
       "en": "Address Credential",
