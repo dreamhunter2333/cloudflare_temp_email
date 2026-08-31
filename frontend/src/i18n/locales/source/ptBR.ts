@@ -656,5 +656,12 @@ export const ptBRMessages = {
   "components.AddressCredentialModal.username": "Nome de usuário",
   "views.User.send_mail": "Enviar e-mail",
   "views.user.UserSendBox.noAddress": "Selecione um endereço de e-mail vinculado",
-  "views.user.UserSendBox.sendbox": "Enviados"
+  "views.user.UserSendBox.sendbox": "Enviados",
+  "components.MailContentRenderer.markAsRead": "Marcar como lido",
+  "components.MailContentRenderer.markAsUnread": "Marcar como não lido",
+  "components.MailContentRenderer.loadRemoteImages": "Carregar imagens",
+  "components.MailContentRenderer.remoteImagesBlocked": "{count} recursos externos foram bloqueados para proteger sua privacidade",
+  "views.user.AddressManagement.itemCount": "Total",
+  "views.index.SimpleIndex.readStatusUpdated": "Status de leitura atualizado",
+  "views.common.Appearance.autoLoadRemoteImages": "Carregar automaticamente imagens externas no corpo do e-mail"
 }

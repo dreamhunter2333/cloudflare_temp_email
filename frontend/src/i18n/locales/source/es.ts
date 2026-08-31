@@ -656,5 +656,12 @@ export const esMessages = {
   "components.AddressCredentialModal.username": "Usuario",
   "views.User.send_mail": "Enviar correo",
   "views.user.UserSendBox.noAddress": "Selecciona una dirección de correo vinculada",
-  "views.user.UserSendBox.sendbox": "Enviados"
+  "views.user.UserSendBox.sendbox": "Enviados",
+  "components.MailContentRenderer.markAsRead": "Marcar como leído",
+  "components.MailContentRenderer.markAsUnread": "Marcar como no leído",
+  "components.MailContentRenderer.loadRemoteImages": "Cargar imágenes",
+  "components.MailContentRenderer.remoteImagesBlocked": "Se bloquearon {count} recursos remotos para proteger tu privacidad",
+  "views.user.AddressManagement.itemCount": "Total",
+  "views.index.SimpleIndex.readStatusUpdated": "Estado de lectura actualizado",
+  "views.common.Appearance.autoLoadRemoteImages": "Cargar automáticamente las imágenes externas del correo"
 }

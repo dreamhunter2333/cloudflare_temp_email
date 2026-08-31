@@ -656,5 +656,12 @@ export const deMessages = {
   "components.AddressCredentialModal.username": "Benutzername",
   "views.User.send_mail": "E-Mail senden",
   "views.user.UserSendBox.noAddress": "Wähle eine verknüpfte E-Mail-Adresse aus",
-  "views.user.UserSendBox.sendbox": "Gesendet"
+  "views.user.UserSendBox.sendbox": "Gesendet",
+  "components.MailContentRenderer.markAsRead": "Als gelesen markieren",
+  "components.MailContentRenderer.markAsUnread": "Als ungelesen markieren",
+  "components.MailContentRenderer.loadRemoteImages": "Bilder laden",
+  "components.MailContentRenderer.remoteImagesBlocked": "{count} externe Ressourcen wurden zum Schutz deiner Privatsphäre blockiert",
+  "views.user.AddressManagement.itemCount": "Gesamt",
+  "views.index.SimpleIndex.readStatusUpdated": "Lesestatus aktualisiert",
+  "views.common.Appearance.autoLoadRemoteImages": "Externe Bilder im E-Mail-Inhalt automatisch laden"
 }

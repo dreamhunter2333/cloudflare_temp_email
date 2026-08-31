@@ -656,5 +656,12 @@ export const jaMessages = {
   "components.AddressCredentialModal.username": "ユーザー名",
   "views.User.send_mail": "メール送信",
   "views.user.UserSendBox.noAddress": "紐付け済みのメールアドレスを選択してください",
-  "views.user.UserSendBox.sendbox": "送信済み"
+  "views.user.UserSendBox.sendbox": "送信済み",
+  "components.MailContentRenderer.markAsRead": "既読にする",
+  "components.MailContentRenderer.markAsUnread": "未読にする",
+  "components.MailContentRenderer.loadRemoteImages": "画像を読み込む",
+  "components.MailContentRenderer.remoteImagesBlocked": "プライバシー保護のため、{count} 件の外部リソースをブロックしました",
+  "views.user.AddressManagement.itemCount": "合計",
+  "views.index.SimpleIndex.readStatusUpdated": "既読状態を更新しました",
+  "views.common.Appearance.autoLoadRemoteImages": "メール本文の外部画像を自動的に読み込む"
 }
