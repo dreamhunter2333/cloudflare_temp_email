@@ -1491,7 +1491,7 @@ export const MESSAGE_REGISTRY = {
       "zh": "删除邮箱"
     },
     "deleteTip": {
-      "en": "Are you sure to delete this email?",
+      "en": "Are you sure you want to delete this mailbox?",
       "zh": "确定要删除这个邮箱吗？"
     },
     "itemCount": {

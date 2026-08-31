@@ -6,7 +6,7 @@
 
 部署前端应用之后，点击左上角 logo 5 次或访问 `/admin` 路径即可进入管理后台。
 
-需要在后端配置 `ADMIN_PASSWORDS` 或者当前用户角色为 `ADMIN_USER_ROLE`，否则不允许访问控制台。
+需要在后端配置 `ADMIN_PASSWORDS` 或者当前用户角色为 `ADMIN_USER_ROLE`，否则不允许访问管理后台。
 
 ## 管理员密码和用户账号的区别
 

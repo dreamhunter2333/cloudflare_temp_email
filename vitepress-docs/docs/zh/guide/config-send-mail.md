@@ -194,4 +194,4 @@ wrangler secret put SMTP_CONFIG
 
 适合未完成 Email Routing onboarding 的域名，或 Workers 免费版。
 
-只有收件人在 admin 后台的 `已验证地址列表` 中时，才会通过 `SEND_MAIL` binding 发信。
+只有收件人在管理后台的 `已验证地址列表` 中时，才会通过 `SEND_MAIL` binding 发信。
