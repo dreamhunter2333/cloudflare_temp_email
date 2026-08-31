@@ -1,7 +1,7 @@
 import { Context } from 'hono'
 
 import i18n from '../i18n'
-import { sendAdminInternalMail } from '../utils'
+import { sendAdminInternalMail } from '../email/storage'
 import { handleListQuery } from '../common'
 
 const list = async (c: Context<HonoCustomType>) => {

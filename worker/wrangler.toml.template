@@ -77,6 +77,8 @@ ENABLE_USER_CREATE_EMAIL = true
 # DISABLE_ANONYMOUS_USER_CREATE_EMAIL = true
 # Allow users to delete messages
 ENABLE_USER_DELETE_EMAIL = true
+# Track read and unread mail. Run the database migration before enabling.
+# ENABLE_MAIL_READ_STATUS = true
 # Allow automatic replies to emails
 ENABLE_AUTO_REPLY = false
 # Allow webhook

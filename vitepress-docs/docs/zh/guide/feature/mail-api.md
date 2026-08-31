@@ -49,6 +49,12 @@ print(response.json())
 
 **注意**：后端 API 已移除关键词过滤功能。如需按内容过滤邮件，请使用前端界面的过滤输入框，该功能可过滤当前显示的页面。
 
+## 邮件已读状态 API
+
+启用 `ENABLE_MAIL_READ_STATUS` 并升级数据库后可使用。历史邮件的 `is_unread` 为 `NULL`，视为已读；新邮件为 `1`。用户在网页邮件列表中点击未读邮件后会将其设为已读，也可以在邮件详情中手动切换状态；刷新页面不会自动标记：
+
+- `PATCH /api/mails/:id/read`：设置当前地址下单封邮件的状态，请求体为 `{ "isUnread": true }`（未读）或 `{ "isUnread": false }`（已读）
+
 ## admin 获取单封邮件 API
 
 无需邮箱 JWT，通过邮件 ID 获取单封邮件，并使用 `x-admin-auth` 认证。

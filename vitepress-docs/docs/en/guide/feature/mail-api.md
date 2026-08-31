@@ -49,6 +49,12 @@ print(response.json())
 
 **Note**: Keyword filtering has been removed from the backend API. If you need to filter emails by content, please use the frontend filter input in the UI, which filters the currently displayed page.
 
+## Mail Read Status API
+
+Enable `ENABLE_MAIL_READ_STATUS` and upgrade the database first. Historical mail has `is_unread = NULL` and is treated as read; new mail has `is_unread = 1`. Opening unread mail from the web mail list marks it as read, and its detail view can switch the state manually. Refreshing the page does not mark it as read:
+
+- `PATCH /api/mails/:id/read`: set one mail belonging to the current address; use `{ "isUnread": true }` for unread or `{ "isUnread": false }` for read
+
 ## Admin Get Mail API
 
 Fetch a single mail by mail ID without a mailbox JWT. Authenticate with `x-admin-auth`.

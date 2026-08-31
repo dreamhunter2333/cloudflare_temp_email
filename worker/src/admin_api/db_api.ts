@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     raw TEXT,
     raw_blob BLOB,
     metadata TEXT,
+    is_unread INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -195,6 +196,14 @@ export default {
             );
             if (!hasRawBlob) {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_blob BLOB;`);
+            }
+        }
+        if (version && version <= "v0.0.7") {
+            const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(raw_mails)`).all();
+            if (!tableInfo.results?.some((col: any) => col.name === 'is_unread')) {
+                await c.env.DB.exec(
+                    `ALTER TABLE raw_mails ADD COLUMN is_unread INTEGER;`
+                );
             }
         }
         if (version != CONSTANTS.DB_VERSION) {

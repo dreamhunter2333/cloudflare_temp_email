@@ -45,6 +45,14 @@ const deleteMail = async (curMailId) => {
   await api.fetch(`/api/mails/${curMailId}`, { method: 'DELETE' });
 };
 
+const updateMailReadStatus = async (id, isUnread) => {
+  await api.fetch(`/api/mails/${id}/read`, {
+    method: 'PATCH',
+    body: JSON.stringify({ isUnread }),
+    showLoading: false
+  })
+}
+
 const deleteSenboxMail = async (curMailId) => {
   await api.fetch(`/api/sendbox/${curMailId}`, { method: 'DELETE' });
 };
@@ -127,7 +135,8 @@ onMounted(() => {
           </div>
           <MailBox :key="mailBoxKey" :showEMailTo="false" :showReply="openSettings.enableSendMail" :showSaveS3="openSettings.isS3Enabled"
             :saveToS3="saveToS3" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
-            :fetchMailData="fetchMailData" :deleteMail="deleteMail" :showFilterInput="true" />
+            :fetchMailData="fetchMailData" :deleteMail="deleteMail" :showFilterInput="true"
+            :enableMailReadStatus="openSettings.enableMailReadStatus" :updateMailReadStatus="updateMailReadStatus" />
         </n-tab-pane>
         <n-tab-pane v-if="openSettings.enableSendMail" name="sendbox" :tab="t('sendbox')">
           <SendBox :fetchMailData="fetchSenboxData" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"

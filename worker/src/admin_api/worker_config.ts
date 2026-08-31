@@ -40,6 +40,7 @@ export default {
             "ENABLE_USER_CREATE_EMAIL": utils.getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
             "DISABLE_ANONYMOUS_USER_CREATE_EMAIL": utils.getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL),
             "ENABLE_USER_DELETE_EMAIL": utils.getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),
+            "ENABLE_MAIL_READ_STATUS": utils.getBooleanValue(c.env.ENABLE_MAIL_READ_STATUS),
             "ENABLE_AUTO_REPLY": utils.getBooleanValue(c.env.ENABLE_AUTO_REPLY),
             "COPYRIGHT": c.env.COPYRIGHT,
             "ENABLE_WEBHOOK": utils.getBooleanValue(c.env.ENABLE_WEBHOOK),
