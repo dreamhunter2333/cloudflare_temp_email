@@ -6,7 +6,7 @@ test('create an address with a custom subdomain from the UI', async ({ page, req
 
   try {
     await page.goto(`${FRONTEND_URL}/en/`);
-    await page.getByRole('button', { name: 'Create New Email' }).click();
+    await page.getByRole('button', { name: 'Create Email Address' }).click();
 
     const name = `subui${Date.now()}`;
     const createForm = page.locator('.n-tab-pane:visible form');
@@ -36,7 +36,7 @@ test('create an address with a custom subdomain from the UI', async ({ page, req
     await createForm.getByText('Use Custom Subdomain', { exact: true }).click();
     await createForm.locator('.n-input-group:visible .n-input input').last().fill('team');
 
-    await createForm.getByRole('button', { name: 'Create New Email' }).click();
+    await createForm.getByRole('button', { name: 'Create Email Address' }).click();
 
     const domain = `team.${TEST_DOMAIN}`;
     const address = `tmp${name}@${domain}`;
