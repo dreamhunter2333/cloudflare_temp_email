@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
                                 <SettingsFilled />
                             </n-icon>
                         </template>
-                        {{ t('accountSettings') }}
+                        {{ t('mailboxSettings') }}
                     </n-button>
                 </n-flex>
                 <div v-if="isFirstPage" style="text-align: center; margin-top: 12px;">
@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
 
             <!-- 账户设置卡片 -->
             <n-card v-if="showAccountSettingsCard" :bordered="false" embedded closable
-                @close="showAccountSettingsCard = false" :title="t('accountSettings')">
+                @close="showAccountSettingsCard = false" :title="t('mailboxSettings')">
                 <AccountSettings />
             </n-card>
 

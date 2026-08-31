@@ -123,7 +123,7 @@ const menuOptions = computed(() => [
                 }
             },
             {
-                default: () => t('home'),
+                default: () => t('mailbox'),
                 icon: () => h(NIcon, { component: Envelope })
             }),
         key: "home"
@@ -142,7 +142,7 @@ const menuOptions = computed(() => [
                 }
             },
             {
-                default: () => t('user'),
+                default: () => t('userCenter'),
                 icon: () => h(NIcon, { component: User }),
             }
         ),

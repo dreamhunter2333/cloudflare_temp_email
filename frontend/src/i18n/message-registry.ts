@@ -280,7 +280,7 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "components.AddressSelect": {
-    "address": {
+    "selectMailbox": {
       "en": "Select Mailbox",
       "zh": "选择邮箱"
     },
@@ -296,7 +296,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Local Email Addresses",
       "zh": "本地邮箱地址"
     },
-    "userAddresses": {
+    "linkedMailboxes": {
       "en": "Linked Mailboxes",
       "zh": "已绑定邮箱"
     }
@@ -426,7 +426,7 @@ export const MESSAGE_REGISTRY = {
       "en": "About",
       "zh": "关于"
     },
-    "accountSettings": {
+    "mailboxSettings": {
       "en": "Mailbox Settings",
       "zh": "邮箱设置"
     },
@@ -442,7 +442,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Simple Mode",
       "zh": "极简模式"
     },
-    "mailbox": {
+    "inbox": {
       "en": "Inbox",
       "zh": "收件箱"
     },
@@ -552,7 +552,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Dark",
       "zh": "深色"
     },
-    "home": {
+    "mailbox": {
       "en": "Mailbox",
       "zh": "邮箱"
     },
@@ -576,7 +576,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Cloudflare Temp Email",
       "zh": "Cloudflare 临时邮件"
     },
-    "user": {
+    "userCenter": {
       "en": "User Center",
       "zh": "用户中心"
     }
@@ -600,19 +600,19 @@ export const MESSAGE_REGISTRY = {
       "en": "Please enter the admin password",
       "zh": "请输入管理员密码"
     },
-    "account": {
+    "mailbox_management": {
       "en": "Mailbox Management",
       "zh": "邮箱管理"
     },
-    "account_list": {
+    "mailbox_list": {
       "en": "Mailboxes",
       "zh": "邮箱列表"
     },
-    "account_create": {
+    "mailbox_create": {
       "en": "Create Email Address",
       "zh": "创建邮箱"
     },
-    "account_settings": {
+    "mailbox_settings": {
       "en": "Global Mailbox Settings",
       "zh": "全局邮箱设置"
     },
@@ -870,7 +870,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Mailboxes",
       "zh": "邮箱列表"
     },
-    "changeMailAddress": {
+    "openMailbox": {
       "en": "Open Mailbox",
       "zh": "进入邮箱"
     },
@@ -886,7 +886,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Total",
       "zh": "总数"
     },
-    "name": {
+    "emailAddress": {
       "en": "Email Address",
       "zh": "邮箱地址"
     },
@@ -944,7 +944,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Confirm Password",
       "zh": "确认密码"
     },
-    "deleteAccount": {
+    "deleteMailbox": {
       "en": "Delete Mailbox",
       "zh": "删除邮箱"
     },
@@ -1170,7 +1170,7 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.index.SimpleIndex": {
-    "accountSettings": {
+    "mailboxSettings": {
       "en": "Mailbox Settings",
       "zh": "邮箱设置"
     },
@@ -1290,7 +1290,7 @@ export const MESSAGE_REGISTRY = {
       "en": "OK",
       "zh": "确定"
     },
-    "userLogin": {
+    "userCenter": {
       "en": "User Center",
       "zh": "用户中心"
     }
@@ -1486,7 +1486,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Delete",
       "zh": "删除"
     },
-    "deleteAccount": {
+    "deleteMailbox": {
       "en": "Delete Mailbox",
       "zh": "删除邮箱"
     },
@@ -1526,7 +1526,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Are you sure to delete selected addresses?",
       "zh": "确定要删除选中的邮箱吗？"
     },
-    "name": {
+    "emailAddress": {
       "en": "Email Address",
       "zh": "邮箱地址"
     },
@@ -1980,7 +1980,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Mail Count",
       "zh": "邮件数量"
     },
-    "name": {
+    "emailAddress": {
       "en": "Email Address",
       "zh": "邮箱地址"
     },
@@ -2146,7 +2146,7 @@ export const MESSAGE_REGISTRY = {
       "en": "Mailbox Password",
       "zh": "邮箱密码"
     },
-    "creatNewEmail": {
+    "createEmailAddress": {
       "en": "Create Email Address",
       "zh": "创建邮箱"
     },

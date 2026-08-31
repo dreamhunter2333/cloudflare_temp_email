@@ -152,7 +152,7 @@ onMounted(async () => {
             </n-form-item-row>
             <n-button @click="newEmail" type="primary" block :loading="loading"
                 :disabled="subdomainMode === 'custom' && !customSubdomain.trim()">
-                {{ t('creatNewEmail') }}
+                {{ t('createEmailAddress') }}
             </n-button>
         </n-card>
     </div>
