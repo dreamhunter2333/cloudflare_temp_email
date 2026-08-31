@@ -9,7 +9,7 @@ import {
     AdminPanelSettingsFilled, MonitorHeartFilled,
     KeyboardArrowDownOutlined, OpenInNewOutlined
 } from '@vicons/material'
-import { GithubAlt, Language, User, Home } from '@vicons/fa'
+import { Envelope, GithubAlt, Language, User } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -124,7 +124,7 @@ const menuOptions = computed(() => [
             },
             {
                 default: () => t('home'),
-                icon: () => h(NIcon, { component: Home })
+                icon: () => h(NIcon, { component: Envelope })
             }),
         key: "home"
     },
