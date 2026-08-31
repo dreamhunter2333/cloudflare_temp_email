@@ -265,7 +265,7 @@ const columns = computed(() => [
         sortOrder: sortBy.value === 'id' ? sortOrder.value : false
     },
     {
-        title: t('name'),
+        title: t('emailAddress'),
         key: "name",
         sorter: true,
         sortOrder: sortBy.value === 'name' ? sortOrder.value : false
@@ -479,11 +479,11 @@ onMounted(async () => {
     <div style="margin-top: 10px;">
         <AddressCredentialModal v-model:show="showEmailCredential" :address="curEmailAddress"
             :jwt="curEmailCredential" />
-        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteAccount')">
+        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteMailbox')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
                 <n-button :loading="loading" @click="deleteEmail" size="small" tertiary type="error">
-                    {{ t('deleteAccount') }}
+                    {{ t('deleteMailbox') }}
                 </n-button>
             </template>
         </n-modal>

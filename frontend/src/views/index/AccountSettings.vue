@@ -113,7 +113,7 @@ const changePassword = async () => {
             <n-divider v-if="openSettings.enableUserDeleteEmail" />
             <n-button v-if="openSettings.enableUserDeleteEmail" @click="showDeleteAccount = true" type="error" secondary
                 block strong>
-                {{ t('deleteAccount') }}
+                {{ t('deleteMailbox') }}
             </n-button>
         </n-card>
 
@@ -125,11 +125,11 @@ const changePassword = async () => {
                 </n-button>
             </template>
         </n-modal>
-        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteAccount')">
+        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteMailbox')">
             <p>{{ t('deleteAccountConfirm') }}</p>
             <template #action>
                 <n-button :loading="loading" @click="deleteAccount" size="small" tertiary type="error">
-                    {{ t('deleteAccount') }}
+                    {{ t('deleteMailbox') }}
                 </n-button>
             </template>
         </n-modal>

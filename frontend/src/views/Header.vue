@@ -9,7 +9,7 @@ import {
     AdminPanelSettingsFilled, MonitorHeartFilled,
     KeyboardArrowDownOutlined, OpenInNewOutlined
 } from '@vicons/material'
-import { GithubAlt, Language, User, Home } from '@vicons/fa'
+import { Envelope, GithubAlt, Language, User } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -123,8 +123,8 @@ const menuOptions = computed(() => [
                 }
             },
             {
-                default: () => t('home'),
-                icon: () => h(NIcon, { component: Home })
+                default: () => t('mailbox'),
+                icon: () => h(NIcon, { component: Envelope })
             }),
         key: "home"
     },
@@ -142,7 +142,7 @@ const menuOptions = computed(() => [
                 }
             },
             {
-                default: () => t('user'),
+                default: () => t('userCenter'),
                 icon: () => h(NIcon, { component: User }),
             }
         ),
@@ -165,7 +165,7 @@ const menuOptions = computed(() => [
                 }
             },
             {
-                default: () => "Admin",
+                default: () => t('admin'),
                 icon: () => h(NIcon, { component: AdminPanelSettingsFilled }),
             }
         ),

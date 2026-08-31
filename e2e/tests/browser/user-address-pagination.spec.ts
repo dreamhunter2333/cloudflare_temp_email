@@ -100,7 +100,7 @@ test.describe('User address pagination browser flow', () => {
         return url.pathname === '/user_api/bind_address'
           && url.searchParams.get('limit') === '100';
       });
-      await page.getByText('Mail Box', { exact: true }).click();
+      await page.getByText('Inbox', { exact: true }).click();
       const initialMailboxResponse = await initialMailboxAddressesResponse;
       expect(initialMailboxResponse.ok()).toBe(true);
       const mailboxAddressSelect = page.locator('.n-input-group .n-select').first();

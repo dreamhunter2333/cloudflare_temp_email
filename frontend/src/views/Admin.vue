@@ -124,7 +124,7 @@ onMounted(async () => {
           <n-tab-pane name="database" :tab="t('database')">
             <DatabaseManager />
           </n-tab-pane>
-          <n-tab-pane name="account_settings" :tab="t('account_settings')">
+          <n-tab-pane name="account_settings" :tab="t('mailbox_settings')">
             <AccountSettings />
           </n-tab-pane>
           <n-tab-pane name="user_settings" :tab="t('user_settings')">
@@ -135,15 +135,15 @@ onMounted(async () => {
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
-      <n-tab-pane name="account" :tab="t('account')">
+      <n-tab-pane name="account" :tab="t('mailbox_management')">
         <n-tabs key="account-tabs" type="bar" justify-content="center" animated>
-          <n-tab-pane name="account" :tab="t('account')">
+          <n-tab-pane name="account" :tab="t('mailbox_list')">
             <Account />
           </n-tab-pane>
-          <n-tab-pane name="account_create" :tab="t('account_create')">
+          <n-tab-pane name="account_create" :tab="t('mailbox_create')">
             <CreateAccount />
           </n-tab-pane>
-          <n-tab-pane name="account_settings" :tab="t('account_settings')">
+          <n-tab-pane name="account_settings" :tab="t('mailbox_settings')">
             <AccountSettings />
           </n-tab-pane>
           <n-tab-pane name="senderAccess" :tab="t('senderAccess')">

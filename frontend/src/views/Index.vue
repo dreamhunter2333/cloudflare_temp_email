@@ -124,7 +124,7 @@ onMounted(() => {
             {{ t('enterSimpleMode') }}
           </n-button>
         </template>
-        <n-tab-pane name="mailbox" :tab="t('mailbox')">
+        <n-tab-pane name="mailbox" :tab="t('inbox')">
           <div v-if="showMailIdQuery" style="margin-bottom: 10px;">
             <n-input-group>
               <n-input v-model:value="mailIdQuery" />
@@ -145,7 +145,7 @@ onMounted(() => {
         <n-tab-pane v-if="openSettings.enableSendMail" name="sendmail" :tab="t('sendmail')">
           <SendMail />
         </n-tab-pane>
-        <n-tab-pane name="accountSettings" :tab="t('accountSettings')">
+        <n-tab-pane name="accountSettings" :tab="t('mailboxSettings')">
           <AccountSettings />
         </n-tab-pane>
         <n-tab-pane name="appearance" :tab="t('appearance')">

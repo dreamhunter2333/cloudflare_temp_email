@@ -44,7 +44,6 @@ const showCredential = async (row) => {
 const changeMailAddress = async (address_id) => {
     try {
         const res = await api.fetch(`/user_api/bind_address_jwt/${address_id}`);
-        message.success(t('changeMailAddress') + " " + t('success'));
         if (!res.jwt) {
             message.error("jwt not found");
             return;
@@ -130,7 +129,7 @@ const fetchData = async () => {
 
 const columns = [
     {
-        title: t('name'),
+        title: t('emailAddress'),
         key: "name"
     },
     {
@@ -180,9 +179,9 @@ const columns = [
                                 tertiary: true,
                                 type: "primary",
                             },
-                            { default: () => t('changeMailAddress') }
+                            { default: () => t('openMailbox') }
                         ),
-                        default: () => `${t('changeMailAddress')}?`
+                        default: () => `${t('openMailbox')}?`
                     }
                 ),
                 h(NButton,

@@ -71,7 +71,7 @@ onMounted(async () => {
                     <template #icon>
                         <n-icon :component="User" />
                     </template>
-                    {{ t('userLogin') }}
+                    {{ t('userCenter') }}
                 </n-button>
             </n-card>
         </div>
