@@ -4,18 +4,19 @@
 > You need to configure `ADMIN_PASSWORDS` or `ADMIN_USER_ROLE` to access the admin console
 > Admin role configuration: if the user role equals ADMIN_USER_ROLE, they can access the admin console
 
-After deploying the frontend application, click the upper-left logo five times or visit `/admin` to open the Admin Console.
+After deploying the frontend application, click the upper-left logo 5 times or visit the `/admin` path to enter the Admin Console.
 
 You need to configure `ADMIN_PASSWORDS` in the backend or ensure the current user role is `ADMIN_USER_ROLE`, otherwise access to the console will be denied.
 
 ## Admin Passwords vs User Accounts
 
-`ADMIN_PASSWORDS` configures passwords for the Admin Console. An admin password is not a site user
-account and does not correspond to a mailbox. It grants access to the console but cannot receive mail.
+`ADMIN_PASSWORDS` is the password for the Admin Console. It is not a site user account
+and does not correspond to any mailbox. Logging in with an admin password grants access to
+the console, but that login itself cannot receive mail.
 
 Site user accounts are stored in the `users` table and use the user login flow. Whether a user can
-receive mail depends on whether they created or linked a mailbox. A normal user whose account email
-is `admin@example.com` does not automatically receive admin permissions.
+receive mail depends on whether they created or bound a mailbox. Creating a normal user
+whose account email is `admin@example.com` does not automatically grant admin permissions.
 
 If you want a user account to access the Admin console, configure `ADMIN_USER_ROLE` and assign the
 same role to that user in user management.
@@ -24,7 +25,7 @@ same role to that user in user management.
 
 ## Mailbox List Sorting
 
-**Admin Console → Mailbox Management → Mailboxes** supports column sorting. Click a column header to toggle ascending or descending order for:
+**Admin Console → Mailbox Management → Mailboxes** supports column sorting. Click a column header to toggle ascending/descending order for:
 
 - ID
 - Email Address

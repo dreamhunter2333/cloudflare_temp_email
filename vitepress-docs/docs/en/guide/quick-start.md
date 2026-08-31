@@ -34,7 +34,7 @@ Upgrading does not mean editing the old code already running in the Cloudflare c
 
 - If you use UI deployment, download the latest release `worker.js` and `frontend.zip`, then upload them again using the same deployment method.
 - If you use GitHub Actions, sync your fork first and rerun the corresponding workflow.
-- If the changelog lists database changes, run the upgrade in `Admin Console -> Quick Setup -> Database`, or execute the corresponding SQL according to the D1 guide.
+- If the changelog lists database changes, run the upgrade in `Admin -> Quick Setup -> Database`, or execute the corresponding SQL according to the D1 guide.
 - If the frontend still shows an old error after upgrading, test in an incognito window or clear browser cache so it stops loading the old frontend assets.
 
 ### CLI Deployment

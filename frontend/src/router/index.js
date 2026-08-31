@@ -54,7 +54,6 @@ router.beforeEach((to, from, next) => {
     const routeLocale = resolveSupportedLocale(to.path.split('/')[1])
     const resolvedLocale = routeLocale || DEFAULT_LOCALE
     i18n.global.locale.value = resolvedLocale
-    document.documentElement.lang = resolvedLocale
 
     if (routeLocale) {
         preferredLocale.value = routeLocale

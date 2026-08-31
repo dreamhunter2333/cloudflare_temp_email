@@ -40,7 +40,7 @@ Reference: [Creating an OAuth App](https://docs.github.com/en/apps/oauth-apps/bu
 
 - [Authentik OAuth2 Provider](https://docs.goauthentik.io/docs/providers/oauth2/)
 
-## Configure OAuth2 in the Admin Console
+## Configure OAuth2 in Admin Backend
 
 ![oauth2](/feature/oauth2.png)
 

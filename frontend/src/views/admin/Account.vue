@@ -22,7 +22,6 @@ const showEmailCredential = ref(false)
 const curEmailCredential = ref("")
 const curEmailAddress = ref("")
 const curDeleteAddressId = ref(0);
-const curDeleteAddress = ref("");
 const curClearInboxAddressId = ref(0);
 const curClearSentItemsAddressId = ref(0);
 const showResetPassword = ref(false);
@@ -452,7 +451,6 @@ const columns = computed(() => [
                                             text: true,
                                             onClick: () => {
                                                 curDeleteAddressId.value = row.id;
-                                                curDeleteAddress.value = row.name;
                                                 showDeleteAccount.value = true;
                                             }
                                         },
@@ -482,7 +480,7 @@ onMounted(async () => {
         <AddressCredentialModal v-model:show="showEmailCredential" :address="curEmailAddress"
             :jwt="curEmailCredential" />
         <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteAccount')">
-            <p>{{ t('deleteTip', { address: curDeleteAddress }) }}</p>
+            <p>{{ t('deleteTip') }}</p>
             <template #action>
                 <n-button :loading="loading" @click="deleteEmail" size="small" tertiary type="error">
                     {{ t('deleteAccount') }}
