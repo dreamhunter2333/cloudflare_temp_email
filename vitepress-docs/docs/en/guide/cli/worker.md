@@ -67,6 +67,8 @@ JWT_SECRET = "xxx"
 
 # Admin console password, if not configured, console access is not allowed
 # ADMIN_PASSWORDS = ["123", "456"]
+# Admin API IP whitelist; applies to admin-password and Admin user-token access
+# ADMIN_API_IP_WHITELIST = ["203.0.113.10"]
 
 # Whether to allow users to create emails, not allowed if not configured
 ENABLE_USER_CREATE_EMAIL = true

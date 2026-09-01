@@ -67,6 +67,8 @@ JWT_SECRET = "xxx"
 
 # admin 控制台密码, 不配置则不允许访问控制台
 # ADMIN_PASSWORDS = ["123", "456"]
+# Admin API IP 白名单，同时限制管理员密码和 Admin 用户令牌访问
+# ADMIN_API_IP_WHITELIST = ["203.0.113.10"]
 
 # 是否允许用户创建邮件, 不配置则不允许
 ENABLE_USER_CREATE_EMAIL = true
