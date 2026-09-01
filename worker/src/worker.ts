@@ -14,7 +14,7 @@ import { api as telegramApi } from './telegram_api'
 import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
-import { getPasswords, getBooleanValue, getDomains, checkIsAdmin } from './utils';
+import { getPasswords, getBooleanValue, getDomains, checkIsAdmin, getEnvStringList } from './utils';
 import { checkAccessControl } from './ip_blacklist';
 
 const API_PATHS = [
@@ -221,14 +221,23 @@ app.use('/user_api/*', async (c, next) => {
 });
 // admin auth
 app.use('/admin/*', async (c, next) => {
+	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
+	const msgs = i18n.getMessages(lang);
+	const ipWhitelist = getEnvStringList(c.env.ADMIN_API_IP_WHITELIST)
+		.map(ip => ip.trim())
+		.filter(Boolean);
+	if (ipWhitelist.length > 0) {
+		const reqIp = c.req.raw.headers.get("cf-connecting-ip");
+		if (!reqIp || !ipWhitelist.includes(reqIp)) {
+			return c.text(msgs.AdminApiIpNotAllowedMsg, 403);
+		}
+	}
 
 	// check header x-admin-auth
 	if (checkIsAdmin(c)) {
 		await next();
 		return;
 	}
-	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
-	const msgs = i18n.getMessages(lang);
 	// check if user is admin
 	const access_token = c.req.raw.headers.get("x-user-access-token");
 	if (c.env.ADMIN_USER_ROLE && access_token) {

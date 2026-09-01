@@ -23,7 +23,10 @@
 | Variable Name                  | Type      | Description                                             | Example          |
 | ------------------------------ | --------- | ------------------------------------------------------- | ---------------- |
 | `PASSWORDS`                    | JSON      | Website private passwords, required after configuration | `["123", "456"]` |
+| `ADMIN_API_IP_WHITELIST`       | JSON      | Admin API IP whitelist; when configured, only listed IPs may access `/admin/*` | `["203.0.113.10"]` |
 | `DISABLE_ADMIN_PASSWORD_CHECK` | Text/JSON | Warning: Admin console without password or user check   | `false`          |
+
+When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. Once configured, it applies to both admin-password and Admin user-token access, trusts only Cloudflare's `CF-Connecting-IP` header, and denies requests without that header.
 
 ## Email Related Variables
 

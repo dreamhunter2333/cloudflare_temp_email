@@ -45,6 +45,8 @@ PREFIX = "tmp"
 # PASSWORDS = ["123", "456"]
 # For admin panel
 # ADMIN_PASSWORDS = ["123", "456"]
+# Restrict all /admin/* APIs to exact client IPv4 or IPv6 addresses
+# ADMIN_API_IP_WHITELIST = ["203.0.113.10", "2001:db8::1"]
 # warning: no password or user check for admin portal
 # DISABLE_ADMIN_PASSWORD_CHECK = false
 # ADMIN CONTACT, CAN BE ANY STRING
