@@ -223,14 +223,19 @@ app.use('/user_api/*', async (c, next) => {
 app.use('/admin/*', async (c, next) => {
 	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;
 	const msgs = i18n.getMessages(lang);
-	const ipWhitelist = getEnvStringList(c.env.ADMIN_API_IP_WHITELIST)
-		.map(ip => ip.trim())
-		.filter(Boolean);
-	if (ipWhitelist.length > 0) {
-		const reqIp = c.req.raw.headers.get("cf-connecting-ip");
-		if (!reqIp || !ipWhitelist.includes(reqIp)) {
-			return c.text(msgs.AdminApiIpNotAllowedMsg, 403);
+	try {
+		const ipWhitelist = getEnvStringList(c.env.ADMIN_API_IP_WHITELIST)
+			.filter(ip => typeof ip === "string")
+			.map(ip => ip.trim())
+			.filter(Boolean);
+		if (ipWhitelist.length > 0) {
+			const reqIp = c.req.raw.headers.get("cf-connecting-ip")?.trim();
+			if (!reqIp || !ipWhitelist.includes(reqIp)) {
+				return c.text(msgs.AdminApiIpNotAllowedMsg, 403);
+			}
 		}
+	} catch (e) {
+		console.error("Failed to check admin API IP whitelist", e);
 	}
 
 	// check header x-admin-auth
