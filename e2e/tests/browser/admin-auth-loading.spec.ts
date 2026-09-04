@@ -18,7 +18,7 @@ test('waits for access settings before showing the Admin password dialog', async
     await route.continue();
   });
 
-  await page.goto(`${FRONTEND_URL}/admin`);
+  await page.goto(`${FRONTEND_URL}/zh/admin`);
   await settingsRequested;
 
   await expect(page.getByText('管理员密码', { exact: true })).toHaveCount(0);
