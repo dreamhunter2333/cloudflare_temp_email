@@ -140,6 +140,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             collapsed: false,
             items: [
                 { text: 'Worker Variables', link: 'worker-vars' },
+                { text: 'Frontend Variables', link: 'frontend-vars' },
                 { text: 'Configure Email Sending', link: 'config-send-mail' },
             ]
         },
