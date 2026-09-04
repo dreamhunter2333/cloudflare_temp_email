@@ -12,12 +12,13 @@ import Footer from './views/Footer.vue';
 import { api } from './api'
 import { getNaiveLocaleConfig } from './i18n/naive-locale'
 import { DEFAULT_LOCALE, isSupportedLocale } from './i18n/utils'
+import { APP_CONFIG } from './config'
 
 const {
   isDark, loading, useSideMargin, telegramApp, isTelegram
 } = useGlobalState()
-const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
-const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
+const adClient = APP_CONFIG.GOOGLE_AD_CLIENT;
+const adSlot = APP_CONFIG.GOOGLE_AD_SLOT;
 const { locale } = useI18n({ useScope: 'global' });
 const theme = computed(() => isDark.value ? darkTheme : null)
 const localeConfig = computed(() => getNaiveLocaleConfig(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE))
@@ -47,7 +48,7 @@ onMounted(async () => {
     console.error(error);
   }
 
-  const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
+  const token = APP_CONFIG.CF_WEB_ANALY_TOKEN;
 
   const exist = document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]') !== null
   if (token && !exist) {
@@ -66,7 +67,7 @@ onMounted(async () => {
 
 
   // check if telegram is enabled
-  const enableTelegram = import.meta.env.VITE_IS_TELEGRAM;
+  const enableTelegram = APP_CONFIG.IS_TELEGRAM;
   if (
     (typeof enableTelegram === 'boolean' && enableTelegram === true)
     ||

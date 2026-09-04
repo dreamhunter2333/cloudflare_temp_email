@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
+import { APP_CONFIG } from '@/config'
 
 import { useGlobalState } from '../store'
 
@@ -34,7 +35,7 @@ const modalShow = computed({
   set: (value) => emit('update:show', value),
 })
 
-const configuredApiBaseUrl = import.meta.env.VITE_API_BASE || ''
+const configuredApiBaseUrl = APP_CONFIG.API_BASE || ''
 const frontendBaseUrl = computed(() => window.location.origin)
 const apiBaseUrl = computed(() => (configuredApiBaseUrl || frontendBaseUrl.value).replace(/\/$/, ''))
 const docLocale = computed(() => locale.value === 'zh' ? 'zh' : 'en')

@@ -68,24 +68,34 @@ const generate = async () => {
         const arrayBuffer = await response.arrayBuffer();
         var zip = new JSZip();
         await zip.loadAsync(arrayBuffer);
-        let target_path = ""
-        const directory = zip.folder("assets");
-        if (directory) {
-            for (const [relativePath, zipEntry] of Object.entries(directory.files)) {
-                console.log(relativePath);
-                if (relativePath.startsWith("assets/index-") && relativePath.endsWith(".js")){
-                    let content = await zipEntry.async("string");
-                    content = content.replaceAll("https://temp-email-api.xxx.xxx", normalizedDomain);
-                    target_path = relativePath;
-                    zip.file(relativePath, content);
-                    break;
-                }
-            }
-        }
-        if (!target_path) {
-            errorMessage.value = "没有找到前端入口文件，生成失败"
+        const indexEntry = zip.file("index.html");
+        if (!indexEntry) {
+            errorMessage.value = "没有找到 index.html，生成失败"
             return
         }
+        const content = await indexEntry.async("string");
+        const configPattern = /(<script id="app-config" type="application\/json">)([\s\S]*?)(<\/script>)/;
+        const configMatch = content.match(configPattern);
+        if (!configMatch) {
+            errorMessage.value = "没有找到 app-config，生成失败"
+            return
+        }
+        let appConfig = {};
+        try {
+            appConfig = JSON.parse(configMatch[2]);
+        } catch {
+            errorMessage.value = "app-config 格式错误，生成失败"
+            return
+        }
+        if (!appConfig || typeof appConfig !== "object" || Array.isArray(appConfig)) {
+            errorMessage.value = "app-config 格式错误，生成失败"
+            return
+        }
+        appConfig.API_BASE = normalizedDomain;
+        zip.file("index.html", content.replace(
+            configPattern,
+            (_, openTag, _config, closeTag) => `${openTag}${JSON.stringify(appConfig)}${closeTag}`
+        ));
         const blob = await zip.generateAsync({ type: "blob" });
         const url = window.URL.createObjectURL(blob);
         errorMessage.value = ""
@@ -133,11 +143,20 @@ const generate = async () => {
     > [!NOTE]
     > 你也可以手动部署，从这里下载 zip, [frontend.zip](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/frontend.zip)
     >
-    > 修改压缩包里面的 index-xxx.js 文件 ，xx 是随机的字符串
-    >
-    > 搜索 `https://temp-email-api.xxx.xxx` ，替换成你 worker 的后端 API 根地址，然后部署新的 zip 文件。如果填成前端 Pages 域名，常见现象就是页面报 `map` 错误或接口返回 `405`
+    > 解压后编辑 `index.html` 中的 `app-config`，完成后重新压缩全部文件并上传。不要把外层目录一起压缩。
     >
     > 如果第一次填错后重新部署仍然报错，请用无痕窗口测试或清理浏览器缓存，避免浏览器继续使用旧的前端资源。
+
+    ```html
+    <script id="app-config" type="application/json">
+    {
+      "API_BASE": "https://temp-email-api.example.com",
+      "DEFAULT_LANG": "en"
+    }
+    </script>
+    ```
+
+    `API_BASE` 是后端 API 根地址，不要带结尾 `/`；`DEFAULT_LANG` 支持 `zh`、`en`、`es`、`pt-BR`、`ja`、`de`。还可以设置 `CF_WEB_ANALY_TOKEN`、`IS_TELEGRAM`、`GOOGLE_AD_CLIENT`、`GOOGLE_AD_SLOT`，用途和取值请查看 [前端变量说明](/zh/guide/frontend-vars)。`app-config` 中存在的字段会覆盖构建进 JS 的对应配置，未填写的字段继续使用原配置。
 
 4. 选择 `Pages`，点击 `Create Pages`, 修改名称，上传下载的 zip 包
 

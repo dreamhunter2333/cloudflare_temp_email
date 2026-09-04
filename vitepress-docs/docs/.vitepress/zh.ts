@@ -140,6 +140,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             collapsed: false,
             items: [
                 { text: 'Worker 变量说明', link: 'worker-vars' },
+                { text: '前端变量说明', link: 'frontend-vars' },
                 { text: '配置发送邮件', link: 'config-send-mail' },
             ]
         },

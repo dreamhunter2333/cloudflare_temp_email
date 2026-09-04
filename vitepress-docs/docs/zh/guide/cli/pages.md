@@ -29,6 +29,12 @@ cp .env.example .env.prod
 
 例如: `VITE_API_BASE=https://xxx.xxx.workers.dev`
 
+可通过 `VITE_DEFAULT_LANG` 设置前端默认语言，支持 `zh`、`en`、`es`、`pt-BR`、`ja`、`de`，未配置或配置无效时使用 `zh`。
+
+例如: `VITE_DEFAULT_LANG=en`
+
+其他配置项请查看 [前端变量说明](/zh/guide/frontend-vars)。
+
 ```bash
 pnpm build --emptyOutDir
 # 第一次部署会提示创建项目, production 分支请填写 production
@@ -46,6 +52,8 @@ pnpm run deploy
 第一次部署会提示创建项目, `production` 分支请填写 `production`
 
 如果你的 worker 后端 名称不为 `cloudflare_temp_email` 请修改 `pages/wrangler.toml`
+
+如需设置默认语言，在 `frontend/.env.pages.local` 中添加 `VITE_DEFAULT_LANG=en`。同域请求不需要设置 `VITE_API_BASE`，其他配置项请查看 [前端变量说明](/zh/guide/frontend-vars)。
 
 ```bash
 cd frontend
