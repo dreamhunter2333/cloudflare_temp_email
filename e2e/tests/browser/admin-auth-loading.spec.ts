@@ -21,9 +21,12 @@ test('waits for access settings before showing the Admin password dialog', async
   await page.goto(`${FRONTEND_URL}/zh/admin`);
   await settingsRequested;
 
-  await expect(page.getByText('管理员密码', { exact: true })).toHaveCount(0);
+  try {
+    await expect(page.getByText('管理员密码', { exact: true })).toHaveCount(0);
+  } finally {
+    releaseSettings();
+  }
 
-  releaseSettings();
   await expect(page.getByText('快速设置', { exact: true })).toBeVisible();
   await expect(page.getByText('管理员密码', { exact: true })).toHaveCount(0);
 });
