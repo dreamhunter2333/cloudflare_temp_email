@@ -3,7 +3,7 @@ import {
   darkTheme,
 } from 'naive-ui'
 import { computed, onMounted, watchEffect } from 'vue'
-import { useScript } from '@unhead/vue'
+import { useHead } from '@unhead/vue'
 import { useI18n } from 'vue-i18n'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
@@ -32,12 +32,13 @@ watchEffect(() => {
   document.documentElement.lang = isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE
 })
 
-// Load Google Ad script at top level (not inside onMounted)
 if (showAd.value) {
-  useScript({
-    src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`,
-    async: true,
-    crossorigin: "anonymous",
+  useHead({
+    script: [{
+      src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`,
+      async: true,
+      crossorigin: 'anonymous',
+    }],
   })
 }
 

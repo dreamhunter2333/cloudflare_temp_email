@@ -19,6 +19,7 @@
 
 ### Bug Fixes
 
+- fix: |Frontend| Remove unsupported `data-onload` and `data-onerror` attributes from the AdSense script
 - fix: |Admin| Avoid briefly showing the Admin password dialog before access settings finish loading
 - fix: |Admin| Fix secondary tabs occasionally losing their active item, hiding content, and leaving the indicator offset after switching primary tabs
 - fix: |Send Mail| Use a consistent address/name field order and align the empty content editor caret with its placeholder
