@@ -7,7 +7,9 @@ export const WORKER_URL_SUBDOMAIN = process.env.WORKER_URL_SUBDOMAIN || '';
 export const WORKER_URL_ENV_OFF = process.env.WORKER_URL_ENV_OFF || '';
 export const WORKER_GZIP_URL = process.env.WORKER_GZIP_URL || '';
 export const WORKER_URL_SEND_MAIL_DOMAIN = process.env.WORKER_URL_SEND_MAIL_DOMAIN || '';
+export const WORKER_URL_SITE_PASSWORD = process.env.WORKER_URL_SITE_PASSWORD || '';
 export const FRONTEND_URL = process.env.FRONTEND_URL!;
+export const FRONTEND_URL_ENV_OFF = process.env.FRONTEND_URL_ENV_OFF || '';
 export const MAILPIT_API = process.env.MAILPIT_API!;
 export const TEST_DOMAIN = 'test.example.com';
 
@@ -165,14 +167,20 @@ export function onMailpitMessage(
     ws.on('open', () => readyResolve());
 
     ws.on('message', (data: WebSocket.Data) => {
-      try {
-        const event = JSON.parse(data.toString());
-        if (event.Type === 'new' && predicate(event.Data)) {
-          clearTimeout(timer);
-          ws.close();
-          if (!settled) { settled = true; resolve(event.Data); }
-        }
-      } catch { /* ignore parse errors */ }
+      // Mailpit may batch multiple newline-separated events in one message.
+      for (const line of data.toString().split('\n')) {
+        if (settled) return;
+        try {
+          const event = JSON.parse(line);
+          if (event.Type === 'new' && predicate(event.Data)) {
+            clearTimeout(timer);
+            settled = true;
+            ws.close();
+            resolve(event.Data);
+            return;
+          }
+        } catch { /* ignore malformed events without dropping the remaining ones */ }
+      }
     });
 
     ws.on('close', () => {

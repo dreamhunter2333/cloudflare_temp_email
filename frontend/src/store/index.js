@@ -43,6 +43,8 @@ export const useGlobalState = createGlobalState(
             disableAdminPasswordCheck: false,
             enableAddressPassword: false,
             enableAgentEmailInfo: false,
+            enableRedeemCode: false,
+            redeemCodeUrl: '',
             smtpImapProxyConfig: {
                 smtp: {
                     host: '',

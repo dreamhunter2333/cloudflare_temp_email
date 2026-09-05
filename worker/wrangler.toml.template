@@ -79,6 +79,10 @@ ENABLE_USER_CREATE_EMAIL = true
 # DISABLE_ANONYMOUS_USER_CREATE_EMAIL = true
 # Allow users to delete messages
 ENABLE_USER_DELETE_EMAIL = true
+# Enable the redemption code page and APIs
+# ENABLE_REDEEM_CODE = true
+# Optional external link for obtaining redemption codes
+# REDEEM_CODE_URL = "https://example.com/redeem-codes"
 # Track read and unread mail. Run the database migration before enabling.
 # ENABLE_MAIL_READ_STATUS = true
 # Allow automatic replies to emails

@@ -170,6 +170,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 { text: '配置 S3 附件', link: 'feature/s3-attachment' },
                 { text: '配置 worker 使用 wasm 解析邮件', link: 'feature/mail_parser_wasm_worker' },
                 { text: '配置其他 worker 增强', link: 'feature/another-worker-enhanced' },
+                { text: '配置兑换码', link: 'feature/redeem-code' },
                 { text: '给网页增加 Google Ads', link: 'feature/google-ads.md' },
             ]
         },

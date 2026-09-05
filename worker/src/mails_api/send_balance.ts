@@ -3,7 +3,7 @@ import { Context } from 'hono'
 import { CONSTANTS } from '../constants'
 import { getJsonSetting, getIntValue, getSplitStringListValue } from '../utils'
 
-const ensureDefaultSendBalance = async (
+export const ensureDefaultSendBalance = async (
     c: Context<HonoCustomType>,
     address: string
 ): Promise<void> => {

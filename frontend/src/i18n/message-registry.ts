@@ -307,8 +307,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "地址凭证"
     },
     "addressCredentialLabel": {
-      "en": "Address JWT",
-      "zh": "Address JWT"
+      "en": "Mailbox access credential",
+      "zh": "邮箱访问凭证"
     },
     "addressPassword": {
       "en": "Mailbox Password",
@@ -351,8 +351,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "已复制"
     },
     "currentAddress": {
-      "en": "Current Email Address",
-      "zh": "当前邮箱地址"
+      "en": "Email address",
+      "zh": "邮箱地址"
     },
     "docs": {
       "en": "Docs",
@@ -692,6 +692,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Quick Setup",
       "zh": "快速设置"
     },
+    "redeemCodes": {
+      "en": "Redemption Codes",
+      "zh": "兑换码"
+    },
     "roleAddressConfig": {
       "en": "Role Address Config",
       "zh": "角色地址配置"
@@ -743,6 +747,180 @@ export const MESSAGE_REGISTRY = {
     "workerconfig": {
       "en": "Worker Config",
       "zh": "Worker 配置"
+    }
+  },
+  "views.admin.RedeemCodes": {
+    "actions": {
+      "en": "Actions",
+      "zh": "操作"
+    },
+    "amount": {
+      "en": "Sending credits",
+      "zh": "发信额度"
+    },
+    "batchCreate": {
+      "en": "Batch Generate",
+      "zh": "批量生成"
+    },
+    "countLimit": {
+      "en": "Generate 1-{max} codes at a time.",
+      "zh": "每次可生成 1-{max} 个兑换码。"
+    },
+    "createdResult": {
+      "en": "Redemption codes generated: {created}.",
+      "zh": "已生成兑换码：{created} 个。"
+    },
+    "copy": {
+      "en": "Copy",
+      "zh": "复制"
+    },
+    "copied": {
+      "en": "Redemption code copied",
+      "zh": "兑换码已复制"
+    },
+    "copyFailed": {
+      "en": "Unable to copy the redemption code",
+      "zh": "复制兑换码失败"
+    },
+    "delete": {
+      "en": "Delete",
+      "zh": "删除"
+    },
+    "deleteConfirm": {
+      "en": "Delete this redemption code?",
+      "zh": "确定删除这个兑换码吗？"
+    },
+    "downloadCsv": {
+      "en": "Download CSV",
+      "zh": "下载 CSV"
+    },
+    "edit": {
+      "en": "Edit",
+      "zh": "编辑"
+    },
+    "emptyPrefix": {
+      "en": "No prefix",
+      "zh": "无前缀"
+    },
+    "emptyPrefixTip": {
+      "en": "Leave empty to redeem a mailbox without a prefix",
+      "zh": "留空即兑换无前缀邮箱地址"
+    },
+    "enabled": {
+      "en": "Enabled",
+      "zh": "启用"
+    },
+    "expiresAt": {
+      "en": "Expires at",
+      "zh": "有效期至"
+    },
+    "expired": {
+      "en": "Expired",
+      "zh": "已过期"
+    },
+    "export": {
+      "en": "Export",
+      "zh": "导出"
+    },
+    "exportLimit": {
+      "en": "Export rows (maximum {max})",
+      "zh": "导出条数（上限 {max}）"
+    },
+    "generationCount": {
+      "en": "Number to generate",
+      "zh": "生成数量"
+    },
+    "generate": {
+      "en": "Generate",
+      "zh": "生成"
+    },
+    "invalidExpiration": {
+      "en": "Select a future expiration time",
+      "zh": "请选择未来的有效期"
+    },
+    "invalidPrefix": {
+      "en": "Use only letters and digits, up to {max} characters. Leave empty for no prefix.",
+      "zh": "前缀仅支持英文字母和数字，最多 {max} 个字符；留空表示无前缀。"
+    },
+    "roleRequired": {
+      "en": "Select a role",
+      "zh": "请选择角色"
+    },
+    "code": {
+      "en": "Redemption code",
+      "zh": "兑换码"
+    },
+    "no": {
+      "en": "No",
+      "zh": "否"
+    },
+    "prefix": {
+      "en": "Address prefix",
+      "zh": "地址前缀"
+    },
+    "redeemedAt": {
+      "en": "Redeemed at",
+      "zh": "兑换时间"
+    },
+    "redeemedUser": {
+      "en": "Recipient account",
+      "zh": "兑换账号"
+    },
+    "resultAddress": {
+      "en": "Redeemed mailbox",
+      "zh": "已兑换邮箱"
+    },
+    "role": {
+      "en": "Role",
+      "zh": "角色"
+    },
+    "save": {
+      "en": "Save",
+      "zh": "保存"
+    },
+    "saved": {
+      "en": "Saved",
+      "zh": "保存成功"
+    },
+    "search": {
+      "en": "Search",
+      "zh": "查询"
+    },
+    "searchPlaceholder": {
+      "en": "Search redemption code",
+      "zh": "搜索兑换码"
+    },
+    "targetAddress": {
+      "en": "Recipient mailbox",
+      "zh": "兑换邮箱"
+    },
+    "type": {
+      "en": "Type",
+      "zh": "类型"
+    },
+    "typeFilter": {
+      "en": "Redemption code type",
+      "zh": "兑换码类型"
+    },
+    "typeAddress": {
+      "en": "Custom mailbox",
+      "zh": "专属邮箱"
+    },
+    "typeBalance": {
+      "en": "Sending credits",
+      "zh": "发信额度"
+    },
+    "typeRole": {
+      "en": "Role benefits",
+      "zh": "角色权益"
+    },
+    "valid": {
+      "en": "Active",
+      "zh": "有效"
+    },
+    "yes": {
+      "en": "Yes",
+      "zh": "是"
     }
   },
   "views.User": {
@@ -2680,6 +2858,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Create Email Address",
       "zh": "创建邮箱"
     },
+    "useRedeemCode": {
+      "en": "Use Redemption Code",
+      "zh": "使用兑换码"
+    },
+    "redeemEntryTip": {
+      "en": "Use a redemption code to unlock advanced access.",
+      "zh": "使用兑换码可解锁高级权限"
+    },
     "normalSubdomain": {
       "en": "Normal Domain",
       "zh": "普通域名"
@@ -2727,6 +2913,164 @@ export const MESSAGE_REGISTRY = {
     "randomSubdomainTip": {
       "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain — see the random subdomain docs.",
       "zh": "启用后，创建出来的地址会自动挂在随机子域名下，建议仅用于收件。需要在基础域名 DNS 中配置通配 MX 记录，详见随机子域名文档。"
+    }
+  },
+  "views.Redeem": {
+    "address": {
+      "en": "Email address",
+      "zh": "邮箱地址"
+    },
+    "addressCredential": {
+      "en": "Mailbox access credential",
+      "zh": "邮箱访问凭证"
+    },
+    "addressPassword": {
+      "en": "Address password",
+      "zh": "邮箱密码"
+    },
+    "addressSuccess": {
+      "en": "Redemption complete. Keep the mailbox credentials below secure.",
+      "zh": "兑换成功，请妥善保存以下邮箱凭证。"
+    },
+    "autoName": {
+      "en": "Generated automatically",
+      "zh": "自动生成"
+    },
+    "back": {
+      "en": "Back to mailbox",
+      "zh": "返回邮箱"
+    },
+    "balanceDescription": {
+      "en": "Redeem {amount} sending credits for a mailbox.",
+      "zh": "为指定邮箱兑换 {amount} 次发信额度。"
+    },
+    "balanceSuccess": {
+      "en": "Added {amount} sending credits to {address}.",
+      "zh": "已为 {address} 增加 {amount} 次发信额度。"
+    },
+    "balanceTitle": {
+      "en": "Sending credits",
+      "zh": "发信额度"
+    },
+    "checkCode": {
+      "en": "Look up code",
+      "zh": "查询兑换码"
+    },
+    "codeLabel": {
+      "en": "Redemption code",
+      "zh": "兑换码"
+    },
+    "codePlaceholder": {
+      "en": "Enter your code",
+      "zh": "输入你的兑换码"
+    },
+    "categoryTitle": {
+      "en": "Available benefits",
+      "zh": "可兑换权益"
+    },
+    "confirmBalance": {
+      "en": "Confirm redemption",
+      "zh": "确认兑换"
+    },
+    "confirmRole": {
+      "en": "Confirm redemption",
+      "zh": "确认兑换"
+    },
+    "createAddress": {
+      "en": "Redeem mailbox",
+      "zh": "兑换邮箱地址"
+    },
+    "customSubdomain": {
+      "en": "Custom subdomain",
+      "zh": "自定义子域名"
+    },
+    "expired": {
+      "en": "Expired",
+      "zh": "已过期"
+    },
+    "getCode": {
+      "en": "Get a redemption code",
+      "zh": "获取兑换码"
+    },
+    "noPrefixDescription": {
+      "en": "Redeem one mailbox without a prefix.",
+      "zh": "可兑换 1 个无前缀邮箱地址。"
+    },
+    "normalDomain": {
+      "en": "Normal domain",
+      "zh": "普通域名"
+    },
+    "openAddress": {
+      "en": "Open mailbox",
+      "zh": "打开邮箱"
+    },
+    "prefixDescription": {
+      "en": "Redeem one mailbox beginning with {prefix}.",
+      "zh": "可兑换 1 个以 {prefix} 开头的邮箱地址。"
+    },
+    "prefixTitle": {
+      "en": "Custom mailbox",
+      "zh": "专属邮箱"
+    },
+    "randomName": {
+      "en": "Generate name",
+      "zh": "随机生成"
+    },
+    "randomSubdomain": {
+      "en": "Random subdomain",
+      "zh": "随机子域名"
+    },
+    "redeemAnother": {
+      "en": "Redeem another code",
+      "zh": "继续兑换"
+    },
+    "redeemed": {
+      "en": "Used",
+      "zh": "已使用"
+    },
+    "redeemNow": {
+      "en": "Redeem now",
+      "zh": "立即兑换"
+    },
+    "roleDescription": {
+      "en": "Grant the {role} benefits to a specified account.",
+      "zh": "为指定账号开通 {role} 角色权益。"
+    },
+    "roleSuccess": {
+      "en": "The {role} benefits are now active for {email}.",
+      "zh": "已为 {email} 开通 {role} 角色权益。"
+    },
+    "roleTitle": {
+      "en": "Role benefits",
+      "zh": "角色权益"
+    },
+    "targetAddress": {
+      "en": "Target email address",
+      "zh": "目标邮箱地址"
+    },
+    "unused": {
+      "en": "Unused",
+      "zh": "未使用"
+    },
+    "success": {
+      "en": "Redemption complete",
+      "zh": "兑换成功"
+    },
+    "title": {
+      "en": "Redeem benefits",
+      "zh": "兑换权益"
+    },
+    "userEmail": {
+      "en": "Recipient account",
+      "zh": "接收账号"
+    },
+    "viewResult": {
+      "en": "View redemption result",
+      "zh": "查看兑换结果"
+    },
+    "userEmailPlaceholder": {
+      "en": "Enter the account email",
+      "zh": "请输入账号邮箱"
     }
   },
   "views.admin.Webhook": {

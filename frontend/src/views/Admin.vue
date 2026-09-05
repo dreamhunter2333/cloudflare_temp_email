@@ -30,6 +30,7 @@ import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
 import IpBlacklistSettings from './admin/IpBlacklistSettings.vue';
 import AiExtractSettings from './admin/AiExtractSettings.vue';
+import RedeemCodes from './admin/RedeemCodes.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
@@ -200,6 +201,9 @@ onMounted(async () => {
       </n-tab-pane>
       <n-tab-pane name="statistics" :tab="t('statistics')">
         <Statistics />
+      </n-tab-pane>
+      <n-tab-pane v-if="openSettings.enableRedeemCode" name="redeemCodes" :tab="t('redeemCodes')">
+        <RedeemCodes />
       </n-tab-pane>
       <n-tab-pane name="maintenance" :tab="t('maintenance')">
         <n-tabs key="maintenance-tabs" type="bar" justify-content="center" animated>

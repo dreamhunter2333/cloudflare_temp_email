@@ -28,6 +28,11 @@ const router = createRouter({
             component: User
         },
         {
+            path: '/redeem',
+            alias: '/:lang/redeem',
+            component: () => import('../views/Redeem.vue')
+        },
+        {
             path: '/user/oauth2/callback',
             alias: '/:lang/user/oauth2/callback',
             component: UserOauth2Callback

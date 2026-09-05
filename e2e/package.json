@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:unit": "node --experimental-strip-types --test tests/unit/*.test.mjs",
     "test": "docker compose up --build --abort-on-container-exit --exit-code-from e2e-runner",
     "test:down": "docker compose down -v"
   },

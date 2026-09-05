@@ -90,6 +90,24 @@ services:
       start_period: 10s
       retries: 20
 
+  worker-site-password:
+    build:
+      context: ..
+      dockerfile: e2e/Dockerfile.worker
+      args:
+        WRANGLER_TOML: e2e/fixtures/wrangler.toml.e2e.site-password
+    ports:
+      - "8792:8792"
+    command: ["pnpm", "exec", "wrangler", "dev", "--port", "8792", "--ip", "0.0.0.0"]
+    depends_on:
+      - mailpit
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-H", "x-custom-auth: e2e-site-pass", "http://localhost:8792/health_check"]
+      interval: 3s
+      timeout: 5s
+      start_period: 10s
+      retries: 20
+
   frontend:
     build:
       context: ..
@@ -98,6 +116,19 @@ services:
       - "5173:5173"
     depends_on:
       worker:
+        condition: service_healthy
+
+  frontend-env-off:
+    build:
+      context: ..
+      dockerfile: e2e/Dockerfile.frontend
+    ports:
+      - "5174:5174"
+    command: ["pnpm", "exec", "vite", "--port", "5174", "--host", "0.0.0.0"]
+    environment:
+      VITE_WORKER_URL: http://worker-env-off:8790
+    depends_on:
+      worker-env-off:
         condition: service_healthy
 
   smtp-proxy:
@@ -147,7 +178,9 @@ services:
       WORKER_URL_ENV_OFF: http://worker-env-off:8790
       WORKER_GZIP_URL: http://worker-gzip:8788
       WORKER_URL_SEND_MAIL_DOMAIN: http://worker-send-mail-domain:8791
+      WORKER_URL_SITE_PASSWORD: http://worker-site-password:8792
       FRONTEND_URL: https://frontend:5173
+      FRONTEND_URL_ENV_OFF: https://frontend-env-off:5174
       MAILPIT_API: http://mailpit:8025/api
       SMTP_PROXY_HOST: smtp-proxy
       SMTP_PROXY_SMTP_PORT: "8025"
@@ -167,7 +200,11 @@ services:
         condition: service_healthy
       worker-send-mail-domain:
         condition: service_healthy
+      worker-site-password:
+        condition: service_healthy
       frontend:
+        condition: service_started
+      frontend-env-off:
         condition: service_started
       smtp-proxy:
         condition: service_started
