@@ -19,6 +19,7 @@ import ip_blacklist_settings from './ip_blacklist_settings'
 import ai_extract_settings from './ai_extract_settings'
 import e2e_test_api from './e2e_test_api'
 import config_api from './config_api'
+import redeem_code_api from '../redeem_api/admin_redeem_code_api'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -100,6 +101,15 @@ api.post('admin/db_migration', db_api.migrate)
 // generic admin config
 api.get('/admin/config/:key', config_api.get)
 api.post('/admin/config', config_api.save)
+
+// redemption codes
+api.use('/admin/redeem_codes', redeem_code_api.requireRedeemCodeEnabled)
+api.use('/admin/redeem_codes/*', redeem_code_api.requireRedeemCodeEnabled)
+api.get('/admin/redeem_codes', redeem_code_api.listRedeemCodes)
+api.get('/admin/redeem_codes/export', redeem_code_api.exportRedeemCodes)
+api.post('/admin/redeem_codes/batch', redeem_code_api.createRedeemCodes)
+api.put('/admin/redeem_codes/:id', redeem_code_api.updateRedeemCode)
+api.delete('/admin/redeem_codes/:id', redeem_code_api.deleteRedeemCode)
 
 // IP blacklist settings
 api.get('/admin/ip_blacklist/settings', ip_blacklist_settings.getIpBlacklistSettings)

@@ -111,6 +111,8 @@ const getOpenSettings = async (message, notification) => {
             showGithubForUser: res["showGithubForUser"] ?? openSettings.value.showGithubForUser,
             enableAddressPassword: res["enableAddressPassword"] || false,
             enableAgentEmailInfo: res["enableAgentEmailInfo"] || false,
+            enableRedeemCode: res["enableRedeemCode"] || false,
+            redeemCodeUrl: res["redeemCodeUrl"] || "",
             smtpImapProxyConfig: res["smtpImapProxyConfig"] || openSettings.value.smtpImapProxyConfig,
             statusUrl: res["statusUrl"] || "",
             enableGlobalTurnstileCheck: res["enableGlobalTurnstileCheck"] || false,

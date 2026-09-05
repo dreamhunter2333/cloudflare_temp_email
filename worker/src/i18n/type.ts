@@ -20,6 +20,10 @@ export type LocaleMessages = {
     InvalidAddressCredentialMsg: string
     UserDeleteEmailDisabledMsg: string
 
+    RedeemCodeUnavailableMsg: string
+    RedeemCodeInvalidMsg: string
+    RedeemRoleConflictMsg: string
+
     UserNotFoundMsg: string
     UserAlreadyExistsMsg: string
     FailedToRegisterMsg: string

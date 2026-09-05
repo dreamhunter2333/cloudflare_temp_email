@@ -331,6 +331,32 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+:deep(.n-page-header) {
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+:deep(.n-page-header__main) {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+:deep(.n-page-header__title) {
+    min-width: 0;
+    overflow: hidden;
+}
+
+:deep(.n-page-header__title h3) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:deep(.n-page-header__extra) {
+    flex: 0 0 auto;
+}
+
 .n-layout-header {
     display: flex;
     align-items: center;
@@ -436,7 +462,7 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 10px;
+        padding: 10px 12px;
     }
 
     :deep(.n-page-header__title) {
@@ -444,10 +470,11 @@ onMounted(async () => {
     }
 
     :deep(.n-page-header__title h3) {
-        max-width: calc(100vw - 136px);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        max-width: calc(100vw - 104px);
+        margin: 0;
+        font-size: clamp(16px, 5vw, 20px);
+        line-height: 1.2;
     }
 }
+
 </style>

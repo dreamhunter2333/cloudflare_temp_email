@@ -10,6 +10,7 @@ import { api as userApi } from './user_api';
 import { api as adminApi } from './admin_api';
 import { api as apiSendMail } from './mails_api/send_mail_api'
 import { api as telegramApi } from './telegram_api'
+import { api as redeemApi } from './redeem_api'
 
 import i18n from './i18n';
 import { email } from './email';
@@ -24,6 +25,7 @@ const API_PATHS = [
 	"/admin/",
 	"/telegram/",
 	"/external/",
+	"/redeem_api/",
 ];
 
 const app = new Hono<HonoCustomType>()
@@ -53,7 +55,10 @@ app.use('/*', async (c, next) => {
 
 	// check header x-custom-auth
 	const passwords = getPasswords(c);
-	if (!c.req.path.startsWith("/open_api") && !c.req.path.startsWith("/telegram/") && passwords && passwords.length > 0) {
+	if (!c.req.path.startsWith("/open_api")
+		&& !c.req.path.startsWith("/telegram/")
+		&& passwords && passwords.length > 0
+	) {
 		const auth = c.req.raw.headers.get("x-custom-auth");
 		if (!auth || !passwords.includes(auth)) {
 			return c.text(msgs.CustomAuthPasswordMsg, 401)
@@ -68,6 +73,7 @@ app.use('/*', async (c, next) => {
 		|| (c.req.path.startsWith("/user_api/address/") && c.req.path.endsWith("/send_mail"))
 		|| c.req.path.startsWith("/user_api/register")
 		|| c.req.path.startsWith("/user_api/verify_code")
+		|| c.req.path.startsWith("/redeem_api/")
 	) {
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
@@ -281,6 +287,7 @@ app.route('/', userApi)
 app.route('/', adminApi)
 app.route('/', apiSendMail)
 app.route('/', telegramApi)
+app.route('/', redeemApi)
 
 const health_check = async (c: Context<HonoCustomType>) => {
 	const lang = c.req.raw.headers.get("x-lang") || c.env.DEFAULT_LANG;

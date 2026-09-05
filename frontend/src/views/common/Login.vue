@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
-import { NewLabelOutlined, EmailOutlined } from '@vicons/material'
+import { NewLabelOutlined, EmailOutlined, RedeemOutlined } from '@vicons/material'
 
 import AdminContact from '../common/AdminContact.vue'
 import Turnstile from '../../components/Turnstile.vue'
@@ -192,6 +192,10 @@ const newEmail = async () => {
     }
 };
 
+const openRedeemPage = async () => {
+    await router.push(getRouterPathWithLang('/redeem', locale.value));
+};
+
 const addressPrefix = computed(() => {
     // if user has role, return role prefix
     if (userSettings.value?.user_role) {
@@ -298,6 +302,16 @@ onMounted(async () => {
                         </template>
                         {{ t('getNewEmail') }}
                     </n-button>
+                    <div v-if="openSettings.enableRedeemCode" class="redeem-entry-section">
+                        <n-divider />
+                        <n-text type="info" class="redeem-entry-tip">{{ t('redeemEntryTip') }}</n-text>
+                        <n-button data-testid="redeem-entry" block secondary strong @click="openRedeemPage">
+                            <template #icon>
+                                <n-icon :component="RedeemOutlined" />
+                            </template>
+                            {{ t('useRedeemCode') }}
+                        </n-button>
+                    </div>
                 </n-form>
             </n-tab-pane>
             <n-tab-pane v-if="showNewAddressTab" name="register" :tab="t('getNewEmail')">
@@ -350,6 +364,17 @@ onMounted(async () => {
                             </template>
                             {{ t('getNewEmail') }}
                         </n-button>
+                        <div v-if="openSettings.enableRedeemCode" class="redeem-entry-section">
+                            <n-divider />
+                            <n-text type="info" class="redeem-entry-tip">{{ t('redeemEntryTip') }}</n-text>
+                            <n-button data-testid="redeem-entry-register" block secondary strong
+                                @click="openRedeemPage">
+                                <template #icon>
+                                    <n-icon :component="RedeemOutlined" />
+                                </template>
+                                {{ t('useRedeemCode') }}
+                            </n-button>
+                        </div>
                     </n-form>
                 </n-spin>
             </n-tab-pane>
@@ -373,6 +398,21 @@ onMounted(async () => {
 
 .n-form .n-button {
     margin-top: 10px;
+}
+
+.redeem-entry-section {
+    margin-top: 18px;
+}
+
+.redeem-entry-section :deep(.n-divider) {
+    margin: 0 0 14px;
+}
+
+.redeem-entry-tip {
+    display: block;
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: center;
 }
 
 .switch-login-button {

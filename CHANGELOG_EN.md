@@ -11,6 +11,7 @@
 ### Features
 
 - feat: |Frontend| Add the `VITE_DEFAULT_LANG` build variable and support overriding frontend settings through runtime configuration in `index.html`
+- feat: |Redemption Codes| Add role, sending-credit and custom-mailbox redemption with Admin management, concurrency protection and form validation
 - feat: |Mail| Add optional read/unread status with click-to-read and manual status switching
 - feat: |Admin| Add D1 storage capacity details to the database page, with persistent Free and Workers Paid plan selection and a comparison between the current database size and capacity limit
 - feat: |Admin| Add one-click random email-name generation to the address creation page (issue #1126)

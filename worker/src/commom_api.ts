@@ -53,6 +53,8 @@ api.get('/open_api/settings', async (c) => {
         "disableAdminPasswordCheck": utils.getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK),
         "enableAddressPassword": utils.getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD),
         "enableAgentEmailInfo": utils.getBooleanValue(c.env.ENABLE_AGENT_EMAIL_INFO),
+        "enableRedeemCode": utils.getBooleanValue(c.env.ENABLE_REDEEM_CODE),
+        "redeemCodeUrl": utils.getStringValue(c.env.REDEEM_CODE_URL),
         "smtpImapProxyConfig": {
             "smtp": {
                 "host": utils.getStringValue(smtpProxyConfig.host),

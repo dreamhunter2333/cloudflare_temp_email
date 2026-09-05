@@ -22,6 +22,10 @@ const messages: LocaleMessages = {
     InvalidAddressCredentialMsg: "无效的邮箱地址凭据",
     UserDeleteEmailDisabledMsg: "用户删除邮箱/邮件已禁用, 请联系管理员",
 
+    RedeemCodeUnavailableMsg: "兑换码无效、已使用或已过期",
+    RedeemCodeInvalidMsg: "兑换码配置无效",
+    RedeemRoleConflictMsg: "当前用户已有其他角色，无法兑换",
+
     UserNotFoundMsg: "用户不存在",
     UserAlreadyExistsMsg: "用户已存在, 请登录",
     FailedToRegisterMsg: "注册失败",
