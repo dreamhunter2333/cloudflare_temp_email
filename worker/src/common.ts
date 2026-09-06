@@ -243,9 +243,10 @@ export function updateAddressUpdatedAt(
     c: Context<HonoCustomType>,
     address: string | undefined | null
 ): void {
-    if (!address || getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) {
+    if (!address) {
         return;
     }
+    if (getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) return;
     // update address updated_at asynchronously
     c.executionCtx.waitUntil((async () => {
         try {
@@ -265,9 +266,10 @@ export function updateUserAddressesUpdatedAt(
     c: Context<HonoCustomType>,
     userId: number | string | undefined | null
 ): void {
-    if (!userId || getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) {
+    if (!userId) {
         return;
     }
+    if (getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) return;
     c.executionCtx.waitUntil((async () => {
         try {
             await c.env.DB.prepare(
