@@ -101,7 +101,7 @@ for (const { base, disabled, secret, stateDir } of [
 
     function executeSql(sql: string, params: (string | number | null)[]) {
       const directory = join(process.cwd(), stateDir, 'v3/d1/miniflare-D1DatabaseObject');
-      const files = readdirSync(directory).filter(name => name.endsWith('.sqlite'));
+      const files = readdirSync(directory).filter(name => name.endsWith('.sqlite') && name !== 'metadata.sqlite');
       expect(files).toHaveLength(1);
       const db = new DatabaseSync(join(directory, files[0]));
       try {
