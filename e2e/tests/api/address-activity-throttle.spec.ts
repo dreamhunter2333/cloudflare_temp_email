@@ -9,6 +9,9 @@ import {
 } from '../../fixtures/test-helpers';
 
 import { createHmac } from 'node:crypto';
+import { readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 
 const waitForNextTimestamp = () => new Promise((resolve) => setTimeout(resolve, 1_100));
 
@@ -87,14 +90,27 @@ const RECENT = new Date(Date.now() - 3_600_000).toISOString().replace('T', ' ').
 type Mailbox = { address: string; address_id: number; jwt: string; password: string };
 type User = { id: number; email: string; jwt: string };
 
-for (const { base, disabled, secret } of [
-  { base: WORKER_URL, disabled: false, secret: 'e2e-test-secret-key' },
-  { base: WORKER_URL_ENV_OFF, disabled: true, secret: 'e2e-test-secret-key-env-off' },
+for (const { base, disabled, secret, stateDir } of [
+  { base: WORKER_URL, disabled: false, secret: 'e2e-test-secret-key', stateDir: 'worker-state' },
+  { base: WORKER_URL_ENV_OFF, disabled: true, secret: 'e2e-test-secret-key-env-off', stateDir: 'worker-env-off-state' },
 ]) {
   test.describe(`Address activity disabled: ${disabled}`, () => {
     let mailboxes: Mailbox[];
     let users: User[];
     let orphanAddresses: string[];
+
+    function executeSql(sql: string, params: (string | number | null)[]) {
+      const directory = join(process.cwd(), stateDir, 'v3/d1/miniflare-D1DatabaseObject');
+      const files = readdirSync(directory).filter(name => name.endsWith('.sqlite'));
+      expect(files).toHaveLength(1);
+      const db = new DatabaseSync(join(directory, files[0]));
+      try {
+        db.exec('PRAGMA busy_timeout = 5000');
+        db.prepare(sql).run(...params);
+      } finally {
+        db.close();
+      }
+    }
 
     async function call(request: APIRequestContext, path: string,
       options: Parameters<APIRequestContext['fetch']>[1] = {}, status = 200) {
@@ -142,9 +158,13 @@ for (const { base, disabled, secret } of [
       await call(request, '/admin/test/seed_mail', {
         method: 'POST', data: {
           address: mailbox.address, raw: `From: sender@test.example.com\r\nTo: ${mailbox.address}\r\nSubject: activity\r\n\r\nBody`,
-          address_updated_at: updatedAt, address_created_at: createdAt, created_at: OLD,
         },
       });
+      executeSql('UPDATE address SET updated_at = ? WHERE name = ?', [updatedAt, mailbox.address]);
+      if (createdAt !== undefined) {
+        executeSql('UPDATE address SET created_at = ? WHERE name = ?', [createdAt, mailbox.address]);
+      }
+      executeSql('UPDATE raw_mails SET created_at = ? WHERE address = ?', [OLD, mailbox.address]);
       expect((await addressRow(request, mailbox)).updated_at).toBe(updatedAt);
     }
     async function expectActivity(request: APIRequestContext, mailbox: Mailbox, previous: string | null) {
@@ -343,7 +363,8 @@ for (const { base, disabled, secret } of [
         expect(await relatedCounts(request, mailbox, user)).toEqual(disabled ? [1, 1, 1, 1, 1, 1] : [0, 0, 0, 0, 0, 0]);
         expect(await addressRow(request, created)).toBeUndefined();
       } finally {
-        await call(request, '/admin/auto_cleanup', { method: 'POST', data: original || {} });
+        if (original) await call(request, '/admin/auto_cleanup', { method: 'POST', data: original });
+        else executeSql('DELETE FROM settings WHERE key = ?', ['auto_cleanup']);
       }
     });
 
@@ -357,15 +378,16 @@ for (const { base, disabled, secret } of [
           queryAddress = `unknown${Date.now()}@test.example.com`;
           orphanAddresses.push(queryAddress);
           await call(request, '/admin/test/seed_mail', {
-            method: 'POST', data: { address: queryAddress, raw: 'old unknown mail', created_at: OLD },
+            method: 'POST', data: { address: queryAddress, raw: 'old unknown mail' },
           });
+          executeSql('UPDATE raw_mails SET created_at = ? WHERE address = ?', [OLD, queryAddress]);
         }
         if (cleanType === 'sendbox') {
           await send(request, mailbox);
-          await waitForNextTimestamp();
+          executeSql('UPDATE sendbox SET created_at = ? WHERE address = ?', [OLD, mailbox.address]);
         }
         await call(request, '/admin/cleanup', {
-          method: 'POST', data: { cleanType, cleanDays: cleanType === 'sendbox' ? 0 : 1 },
+          method: 'POST', data: { cleanType, cleanDays: 1 },
         });
         if (['addressCreated', 'unboundAddress', 'emptyAddress'].includes(cleanType)) {
           expect(await addressRow(request, mailbox)).toBeUndefined();
