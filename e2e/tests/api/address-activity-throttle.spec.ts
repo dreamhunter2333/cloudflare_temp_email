@@ -109,7 +109,7 @@ for (const { base, disabled } of [
         .find((row: { name: string }) => row.name === mailbox.address);
     }
     async function newMailbox(request: APIRequestContext) {
-      const response = await call(request, '/api/new_address', {
+      const response = await call(request, '/admin/new_address', {
         method: 'POST', data: { name: `activity${Date.now()}${mailboxes.length}`, domain: 'test.example.com' },
       });
       const mailbox: Mailbox = await response.json();
@@ -119,7 +119,7 @@ for (const { base, disabled } of [
     async function newUser(request: APIRequestContext) {
       const email = `activity${Date.now()}${users.length}@test.example.com`;
       const password = hashPassword('test-password-123');
-      await call(request, '/user_api/register', { method: 'POST', data: { email, password } });
+      await call(request, '/admin/users', { method: 'POST', data: { email, password } });
       const response = await call(request, '/user_api/login', { method: 'POST', data: { email, password } });
       const { jwt } = await response.json();
       const { user_id: id } = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString('utf8'));
@@ -130,8 +130,8 @@ for (const { base, disabled } of [
     const addressAuth = (mailbox: Mailbox) => ({ Authorization: `Bearer ${mailbox.jwt}` });
     const userAuth = (user: User) => ({ 'x-user-token': user.jwt });
     async function bind(request: APIRequestContext, mailbox: Mailbox, user: User) {
-      await call(request, '/user_api/bind_address', {
-        method: 'POST', headers: { ...addressAuth(mailbox), ...userAuth(user) },
+      await call(request, '/admin/users/bind_address', {
+        method: 'POST', data: { user_id: user.id, address_id: mailbox.address_id },
       });
     }
     async function seed(request: APIRequestContext, mailbox: Mailbox, updatedAt: string | null = OLD, createdAt?: string) {
