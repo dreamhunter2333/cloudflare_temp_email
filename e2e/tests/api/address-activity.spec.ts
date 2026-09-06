@@ -1,6 +1,6 @@
 import { test, expect, type APIRequestContext, type APIResponse } from '@playwright/test';
 import { createHmac } from 'node:crypto';
-import { WORKER_URL, WORKER_URL_ENV_OFF, hashPassword, onMailpitMessage } from '../../fixtures/test-helpers';
+import { WORKER_URL_ENV_OFF, hashPassword, onMailpitMessage } from '../../fixtures/test-helpers';
 
 const OLD = '2020-01-01 00:00:00';
 const ADDRESS = 'activitye2eold@test.example.com';
@@ -21,12 +21,15 @@ function token(payload: Record<string, unknown>, secret: string) {
 
 type Statement = { sql: string; params?: unknown[] };
 
-for (const { label, base, secret, value, disabled } of [
-  { label: 'unset', base: WORKER_URL, secret: 'e2e-test-secret-key', value: undefined, disabled: false },
-  { label: 'false', base: WORKER_URL, secret: 'e2e-test-secret-key', value: false, disabled: false },
-  { label: 'string false', base: WORKER_URL, secret: 'e2e-test-secret-key', value: 'false', disabled: false },
-  { label: 'true', base: WORKER_URL_ENV_OFF, secret: 'e2e-test-secret-key-env-off', value: undefined, disabled: true },
-  { label: 'string true', base: WORKER_URL_ENV_OFF, secret: 'e2e-test-secret-key-env-off', value: 'true', disabled: true },
+const base = WORKER_URL_ENV_OFF;
+const secret = 'e2e-test-secret-key-env-off';
+
+for (const { label, value, disabled } of [
+  { label: 'unset', value: null, disabled: false },
+  { label: 'false', value: false, disabled: false },
+  { label: 'string false', value: 'false', disabled: false },
+  { label: 'true', value: undefined, disabled: true },
+  { label: 'string true', value: 'true', disabled: true },
 ]) {
   test.describe(`Address activity: ${label}`, () => {
     test.use({ extraHTTPHeaders: {

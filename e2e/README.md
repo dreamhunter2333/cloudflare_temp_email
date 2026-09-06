@@ -56,7 +56,7 @@ The E2E worker uses `fixtures/wrangler.toml.e2e` with:
 - `DEFAULT_SEND_BALANCE = 10` — allows sending without admin approval
 - SMTP pointed at Mailpit container (`mailpit:1025`)
 
-`tests/api/address-activity.spec.ts` reuses `worker` and `worker-env-off` to test
+`tests/api/address-activity.spec.ts` reuses `worker-env-off` to test
 address activity updates and cleanup with `DISABLE_ADDRESS_UPDATED_AT` enabled
-and disabled. Their test entry point prepares timestamps in D1, records address
+and disabled. Its test entry point prepares timestamps in D1, records address
 UPDATE statements, and waits for background tasks only for activity-test requests.

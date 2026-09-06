@@ -33,6 +33,7 @@ export default {
         },
       }),
     };
+    if (flag === 'null') delete runtimeEnv.DISABLE_ADDRESS_UPDATED_AT;
     const pending: Promise<unknown>[] = [];
     const executionCtx = {
       waitUntil: (promise: Promise<unknown>) => { pending.push(promise); },
