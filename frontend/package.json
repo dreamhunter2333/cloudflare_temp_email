@@ -28,16 +28,16 @@
     "@vueuse/core": "^14.4.0",
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
-    "axios": "^1.19.0",
-    "dompurify": "^3.4.13",
+    "axios": "^1.20.0",
+    "dompurify": "^3.4.15",
     "jszip": "^3.10.1",
     "mail-parser-wasm": "^0.2.2",
-    "naive-ui": "^2.45.0",
+    "naive-ui": "^2.45.3",
     "postal-mime": "^2.7.6",
     "vooks": "^0.2.12",
-    "vue": "^3.5.41",
+    "vue": "^3.5.42",
     "vue-clipboard3": "^2.0.0",
-    "vue-i18n": "^11.4.8",
+    "vue-i18n": "^11.4.10",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
@@ -53,7 +53,7 @@
     "vitest": "^4.1.11",
     "workbox-build": "^7.4.1",
     "workbox-window": "^7.4.1",
-    "wrangler": "^4.124.0"
+    "wrangler": "^4.129.0"
   },
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }
