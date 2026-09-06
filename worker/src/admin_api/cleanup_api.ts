@@ -104,7 +104,7 @@ export default {
             }
         } catch (error) {
             console.error(error);
-            return c.text(msgs.CleanupFailedMsg, 500)
+            return c.text(`${msgs.OperationFailedMsg}: ${(error as Error).message}`, 500)
         }
         return c.json({ success: true })
     },
