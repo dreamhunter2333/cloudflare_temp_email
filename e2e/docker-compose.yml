@@ -42,7 +42,7 @@ services:
       dockerfile: e2e/Dockerfile.worker
     ports:
       - "8790:8790"
-    command: ["pnpm", "exec", "wrangler", "dev", "--port", "8790", "--ip", "0.0.0.0"]
+    command: ["pnpm", "exec", "wrangler", "dev", "--port", "8790", "--ip", "0.0.0.0", "--test-scheduled"]
     volumes:
       - ./fixtures/wrangler.toml.e2e.env-off:/app/worker/wrangler.toml:ro
     depends_on:

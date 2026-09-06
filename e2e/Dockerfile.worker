@@ -11,10 +11,9 @@ RUN pnpm install --frozen-lockfile || (echo "WARN: frozen-lockfile failed, falli
 
 COPY worker/src/ src/
 COPY worker/tsconfig.json ./
-COPY e2e/fixtures/address-activity-worker.ts /app/e2e/fixtures/address-activity-worker.ts
 ARG WRANGLER_TOML=e2e/fixtures/wrangler.toml.e2e
 COPY ${WRANGLER_TOML} wrangler.toml
 
 EXPOSE 8787
 
-CMD ["pnpm", "exec", "wrangler", "dev", "--port", "8787", "--ip", "0.0.0.0"]
+CMD ["pnpm", "exec", "wrangler", "dev", "--port", "8787", "--ip", "0.0.0.0", "--test-scheduled"]
