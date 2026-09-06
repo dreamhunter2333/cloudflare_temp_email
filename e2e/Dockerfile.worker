@@ -11,6 +11,7 @@ RUN pnpm install --frozen-lockfile || (echo "WARN: frozen-lockfile failed, falli
 
 COPY worker/src/ src/
 COPY worker/tsconfig.json ./
+COPY e2e/fixtures/address-activity-worker.ts /app/e2e/fixtures/address-activity-worker.ts
 ARG WRANGLER_TOML=e2e/fixtures/wrangler.toml.e2e
 COPY ${WRANGLER_TOML} wrangler.toml
 
