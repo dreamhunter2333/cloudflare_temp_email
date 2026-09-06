@@ -86,7 +86,7 @@ export type LocaleMessages = {
     EnableSendMailForDomainMsg: string
     InvalidCleanupConfigMsg: string
     InvalidCleanTypeMsg: string
-    InactiveAddressCleanupDisabledMsg: string
+    CleanupFailedMsg: string
     EnableKVForMailVerifyMsg: string
     VerifyMailDomainInvalidMsg: string
     InvalidMaxAddressCountMsg: string
