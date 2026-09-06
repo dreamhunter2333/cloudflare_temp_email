@@ -246,6 +246,7 @@ export function updateAddressUpdatedAt(
     if (!address) {
         return;
     }
+    // Skip activity timestamp writes when activity tracking is disabled.
     if (getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) return;
     // update address updated_at asynchronously
     c.executionCtx.waitUntil((async () => {
@@ -269,6 +270,7 @@ export function updateUserAddressesUpdatedAt(
     if (!userId) {
         return;
     }
+    // Apply the same activity tracking switch to bulk updates.
     if (getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) return;
     c.executionCtx.waitUntil((async () => {
         try {
@@ -496,6 +498,7 @@ export const cleanup = async (
     cleanType: string | undefined | null,
     cleanDays: number | undefined | null
 ): Promise<boolean> => {
+    // Frozen activity timestamps cannot reliably identify inactive addresses.
     if (cleanType === "inactiveAddress" && getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) {
         return false;
     }

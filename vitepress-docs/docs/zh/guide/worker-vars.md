@@ -38,7 +38,7 @@
 | `MIN_ADDRESS_LEN`                     | 数字      | `邮箱名称` 的最小长度                                                                                                             | `1`                                       |
 | `MAX_ADDRESS_LEN`                     | 数字      | `邮箱名称` 的最大长度                                                                                                             | `30`                                      |
 | `DISABLE_CUSTOM_ADDRESS_NAME`         | 文本/JSON | 禁用自定义邮箱地址名称，如果设置为 true，则用户无法输入自定义邮箱名称，将由后台自动生成                                           | `true`                                    |
-| `DISABLE_ADDRESS_UPDATED_AT` | 文本/JSON | 设为 `true` 时停止单地址及用户批量的主动保活刷新，并禁止内置手动及定时不活跃地址清理；默认 `false` | `true` |
+| `DISABLE_ADDRESS_UPDATED_AT` | 文本/JSON | 默认 `false`。设为 `true` 时跳过用户设置、邮箱访问、发信等触发的单地址及批量活跃时间更新。创建地址的初始时间、生成/修改/重置密码及其 `updated_at` 更新不变。手动 `/admin/cleanup` 的 `cleanType=inactiveAddress` 返回 `403`，定时任务跳过该项并继续其他清理；按创建时间清理、其他清理类型及管理员自定义 SQL 不受影响。改回 `false` 恢复原有行为，不补齐禁用期间的活跃记录 | `true` |
 | `ADDRESS_CHECK_REGEX`                 | 文本      | `邮箱名称` 的正则表达式, 只用于检查                                                                                               | `^(?!.*admin).*`                          |
 | `ADDRESS_REGEX`                       | 文本      | `邮箱名称` 替换非法符号的正则表达式, 不在其中的符号将被替换，如果不设置，默认为 `[^a-z0-9]`, 需谨慎使用, 有些符号可能导致无法收件 | `[^a-z0-9]`                               |
 | `DEFAULT_DOMAINS`                     | JSON      | 默认用户可用的域名(未登录或未分配角色的用户)                                                                                      | `["awsl.uk", "dreamhunter2333.xyz"]`      |
@@ -53,8 +53,6 @@
 | `ENABLE_AGENT_EMAIL_INFO`             | 文本/JSON | 是否在前端“地址凭证与连接方式”弹窗中展示 AI Agent 接入信息（Address JWT、parsed-mail API、skill 链接）                         | `true`                                    |
 | `SMTP_IMAP_PROXY_CONFIG`              | JSON      | 在前端“地址凭证与连接方式”弹窗中展示 SMTP/IMAP 代理连接信息；仅用于展示给用户，不会启动代理服务，代理服务仍需单独部署           | 见下方示例                                |
 | `SEND_MAIL_DOMAINS`                   | JSON      | 限制 `SEND_MAIL` binding 可用于哪些发件域名；留空或不配置时允许所有域名                                                            | `["example.com", "mail.example.com"]`     |
-
-> `DISABLE_ADDRESS_UPDATED_AT=true` 会跳过用户设置、邮箱访问、发信等触发的单地址及批量活跃时间更新；创建地址仍由数据库初始化时间，生成、修改或重置密码及其附带的 `updated_at` 更新保持原样。手动调用 `/admin/cleanup` 且 `cleanType=inactiveAddress` 时返回 `403`，定时任务跳过该项并继续其他清理。按创建时间清理、其他清理类型及管理员自定义 SQL 不受此开关限制。重新设为 `false` 后恢复原有行为，不会补齐禁用期间的活跃记录。
 
 > [!NOTE]
 > `DEFAULT_DOMAINS` 未配置或配置为空数组时，会回退使用 `DOMAINS`。

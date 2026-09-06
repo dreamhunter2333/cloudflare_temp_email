@@ -99,6 +99,7 @@ export default {
         const { cleanType, cleanDays } = await c.req.json();
         try {
             const success = await cleanup(c, cleanType, cleanDays);
+            // Report disabled cleanup as forbidden rather than successful.
             if (!success) {
                 return c.text(msgs.InactiveAddressCleanupDisabledMsg, 403);
             }
