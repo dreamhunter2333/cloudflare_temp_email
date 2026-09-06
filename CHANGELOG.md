@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Worker| 新增 `DISABLE_ADDRESS_UPDATED_AT`，可关闭单地址及用户批量的主动保活刷新，并禁止内置手动及定时不活跃地址清理，降低 D1 写入量
 - feat: |Frontend| 新增 `VITE_DEFAULT_LANG` 构建变量，并支持通过 `index.html` 运行时配置覆盖前端设置
 - feat: |兑换码| 新增角色、发信额度及专属邮箱兑换与管理，完善并发保护和表单提示
 - feat: |邮件| 新增可选的已读/未读状态，支持点击邮件自动已读和手动切换状态

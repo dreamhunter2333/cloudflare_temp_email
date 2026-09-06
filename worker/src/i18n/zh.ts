@@ -88,6 +88,7 @@ const messages: LocaleMessages = {
     EnableSendMailForDomainMsg: "请先为此域名启用 SEND_MAIL",
     InvalidCleanupConfigMsg: "无效的 cleanType 或 cleanDays",
     InvalidCleanTypeMsg: "无效的 cleanType",
+    InactiveAddressCleanupDisabledMsg: "已禁用地址活跃时间更新，不能按不活跃时间清理地址",
     EnableKVForMailVerifyMsg: "如果要启用邮件验证，请先启用 KV",
     VerifyMailDomainInvalidMsg: "验证邮件发送者域名必须在",
     InvalidMaxAddressCountMsg: "无效的 maxAddressCount",

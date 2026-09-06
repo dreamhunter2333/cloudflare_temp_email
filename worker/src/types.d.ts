@@ -42,6 +42,7 @@ type Bindings = {
     RANDOM_SUBDOMAIN_DOMAINS: string | string[] | undefined
     RANDOM_SUBDOMAIN_LENGTH: string | number | undefined
     DISABLE_CUSTOM_ADDRESS_NAME: string | boolean | undefined
+    DISABLE_ADDRESS_UPDATED_AT: string | boolean | undefined
     CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST: string | boolean | undefined
     ADMIN_USER_ROLE: string | undefined
     USER_DEFAULT_ROLE: string | UserRole | undefined

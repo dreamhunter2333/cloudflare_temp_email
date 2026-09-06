@@ -88,6 +88,7 @@ const messages: LocaleMessages = {
     EnableSendMailForDomainMsg: "Please enable SEND_MAIL for this domain first",
     InvalidCleanupConfigMsg: "Invalid cleanType or cleanDays",
     InvalidCleanTypeMsg: "Invalid cleanType",
+    InactiveAddressCleanupDisabledMsg: "Address activity updates are disabled; cleanup by inactivity is not allowed",
     EnableKVForMailVerifyMsg: "Please enable KV first if you want to enable mail verify",
     VerifyMailDomainInvalidMsg: "VerifyMailSender domain must be in",
     InvalidMaxAddressCountMsg: "Invalid maxAddressCount",

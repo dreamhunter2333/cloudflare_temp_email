@@ -243,7 +243,7 @@ export function updateAddressUpdatedAt(
     c: Context<HonoCustomType>,
     address: string | undefined | null
 ): void {
-    if (!address) {
+    if (!address || getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) {
         return;
     }
     // update address updated_at asynchronously
@@ -265,7 +265,7 @@ export function updateUserAddressesUpdatedAt(
     c: Context<HonoCustomType>,
     userId: number | string | undefined | null
 ): void {
-    if (!userId) {
+    if (!userId || getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) {
         return;
     }
     c.executionCtx.waitUntil((async () => {
@@ -494,6 +494,9 @@ export const cleanup = async (
     cleanType: string | undefined | null,
     cleanDays: number | undefined | null
 ): Promise<boolean> => {
+    if (cleanType === "inactiveAddress" && getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) {
+        return false;
+    }
     const msgs = i18n.getMessagesbyContext(c);
     if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
         throw new Error(msgs.InvalidCleanupConfigMsg)

@@ -41,6 +41,8 @@ PREFIX = "tmp"
 # MAX_ADDRESS_LEN = 30
 # Disable custom email address name, if set true, users cannot input custom email name, will auto generate
 # DISABLE_CUSTOM_ADDRESS_NAME = true
+# Disable address activity keep-alive updates and built-in manual/scheduled cleanup by inactivity. Defaults to false.
+# DISABLE_ADDRESS_UPDATED_AT = true
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
 # PASSWORDS = ["123", "456"]
 # For admin panel
