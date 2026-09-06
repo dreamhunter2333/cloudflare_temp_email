@@ -400,9 +400,12 @@ for (const { base, disabled, secret, stateDir } of [
     }
 
     test('invalid cleanup requests keep their original error details', async ({ request }) => {
-      for (const data of [{ cleanType: 'invalid', cleanDays: 1 }, { cleanType: 'mails', cleanDays: -1 }]) {
+      for (const { data, message } of [
+        { data: { cleanType: 'invalid', cleanDays: 1 }, message: 'Operation failed: Invalid cleanType' },
+        { data: { cleanType: 'mails', cleanDays: -1 }, message: 'Operation failed: Invalid cleanType or cleanDays' },
+      ]) {
         const response = await call(request, '/admin/cleanup', { method: 'POST', data }, 500);
-        expect(await response.text()).toContain('Operation failed: Invalid cleanType');
+        expect(await response.text()).toBe(message);
       }
     });
   });
