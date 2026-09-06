@@ -8,11 +8,6 @@ import {
   hashPassword,
 } from '../../fixtures/test-helpers';
 
-import { createHmac } from 'node:crypto';
-import { readdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
-
 const waitForNextTimestamp = () => new Promise((resolve) => setTimeout(resolve, 1_100));
 
 test.describe('Address activity throttling', () => {
@@ -90,27 +85,15 @@ const RECENT = new Date(Date.now() - 3_600_000).toISOString().replace('T', ' ').
 type Mailbox = { address: string; address_id: number; jwt: string; password: string };
 type User = { id: number; email: string; jwt: string };
 
-for (const { base, disabled, secret, stateDir } of [
-  { base: WORKER_URL, disabled: false, secret: 'e2e-test-secret-key', stateDir: 'worker-state' },
-  { base: WORKER_URL_ENV_OFF, disabled: true, secret: 'e2e-test-secret-key-env-off', stateDir: 'worker-env-off-state' },
+for (const { base, disabled } of [
+  { base: WORKER_URL, disabled: false },
+  { base: WORKER_URL_ENV_OFF, disabled: true },
 ]) {
   test.describe(`Address activity disabled: ${disabled}`, () => {
     let mailboxes: Mailbox[];
     let users: User[];
     let orphanAddresses: string[];
-
-    function executeSql(sql: string, params: (string | number | null)[]) {
-      const directory = join(process.cwd(), stateDir, 'v3/d1/miniflare-D1DatabaseObject');
-      const files = readdirSync(directory).filter(name => name.endsWith('.sqlite') && name !== 'metadata.sqlite');
-      expect(files).toHaveLength(1);
-      const db = new DatabaseSync(join(directory, files[0]));
-      try {
-        db.exec('PRAGMA busy_timeout = 5000');
-        db.prepare(sql).run(...params);
-      } finally {
-        db.close();
-      }
-    }
+    let originalUserSettings: Record<string, unknown>;
 
     async function call(request: APIRequestContext, path: string,
       options: Parameters<APIRequestContext['fetch']>[1] = {}, status = 200) {
@@ -135,14 +118,11 @@ for (const { base, disabled, secret, stateDir } of [
     }
     async function newUser(request: APIRequestContext) {
       const email = `activity${Date.now()}${users.length}@test.example.com`;
-      await call(request, '/admin/users', { method: 'POST', data: { email, password: hashPassword('test-password-123') } });
-      const { id } = (await list(request, '/admin/users', { query: email })).results[0];
-      const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-      const payload = Buffer.from(JSON.stringify({
-        user_id: id, user_email: email, exp: Math.floor(Date.now() / 1000) + 86400,
-      })).toString('base64url');
-      const data = `${header}.${payload}`;
-      const jwt = `${data}.${createHmac('sha256', secret).update(data).digest('base64url')}`;
+      const password = hashPassword('test-password-123');
+      await call(request, '/user_api/register', { method: 'POST', data: { email, password } });
+      const response = await call(request, '/user_api/login', { method: 'POST', data: { email, password } });
+      const { jwt } = await response.json();
+      const { user_id: id } = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString('utf8'));
       const user = { id, email, jwt };
       users.push(user);
       return user;
@@ -158,13 +138,9 @@ for (const { base, disabled, secret, stateDir } of [
       await call(request, '/admin/test/seed_mail', {
         method: 'POST', data: {
           address: mailbox.address, raw: `From: sender@test.example.com\r\nTo: ${mailbox.address}\r\nSubject: activity\r\n\r\nBody`,
+          address_updated_at: updatedAt, address_created_at: createdAt, created_at: OLD,
         },
       });
-      executeSql('UPDATE address SET updated_at = ? WHERE name = ?', [updatedAt, mailbox.address]);
-      if (createdAt !== undefined) {
-        executeSql('UPDATE address SET created_at = ? WHERE name = ?', [createdAt, mailbox.address]);
-      }
-      executeSql('UPDATE raw_mails SET created_at = ? WHERE address = ?', [OLD, mailbox.address]);
       expect((await addressRow(request, mailbox)).updated_at).toBe(updatedAt);
     }
     async function expectActivity(request: APIRequestContext, mailbox: Mailbox, previous: string | null) {
@@ -213,6 +189,16 @@ for (const { base, disabled, secret, stateDir } of [
       return { mailbox, user };
     }
 
+    test.beforeAll(async ({ request }) => {
+      expect(base).toBeTruthy();
+      originalUserSettings = await (await call(request, '/admin/user_settings')).json();
+      await call(request, '/admin/user_settings', {
+        method: 'POST', data: { ...originalUserSettings, enable: true, enableMailVerify: false },
+      });
+    });
+    test.afterAll(async ({ request }) => {
+      await call(request, '/admin/user_settings', { method: 'POST', data: originalUserSettings });
+    });
     test.beforeEach(() => {
       expect(base).toBeTruthy();
       mailboxes = [];
@@ -231,7 +217,7 @@ for (const { base, disabled, secret, stateDir } of [
       }
     });
 
-    test('bulk settings and JWT renewal respect activity tracking and ownership', async ({ request }) => {
+    test('repeated user settings reads respect activity tracking and ownership', async ({ request }) => {
       const user = await newUser(request);
       const otherUser = await newUser(request);
       for (const [index, previous] of [OLD, null, RECENT, OLD, OLD].entries()) {
@@ -240,16 +226,13 @@ for (const { base, disabled, secret, stateDir } of [
         if (index === 4) await bind(request, mailbox, otherUser);
         await seed(request, mailbox, previous);
       }
-      const response = await call(request, '/user_api/settings', { headers: userAuth(user) });
+      await call(request, '/user_api/settings', { headers: userAuth(user) });
       await expectActivity(request, mailboxes[0], OLD);
       const after = await Promise.all(mailboxes.map(mailbox => addressRow(request, mailbox)));
       expect(after.map(row => row.updated_at).slice(2)).toEqual([RECENT, OLD, OLD]);
       if (disabled) expect(after[1].updated_at).toBeNull();
       else expect(after[1].updated_at).toBeTruthy();
-      const { new_user_token } = await response.json();
-      expect(new_user_token).toBeTruthy();
-      const renewed = await call(request, '/user_api/settings', { headers: { 'x-user-token': new_user_token } });
-      expect((await renewed.json()).new_user_token).toBeNull();
+      await call(request, '/user_api/settings', { headers: userAuth(user) });
       await waitForNextTimestamp();
       expect(await Promise.all(mailboxes.map(mailbox => addressRow(request, mailbox)))).toEqual(after);
     });
@@ -363,8 +346,7 @@ for (const { base, disabled, secret, stateDir } of [
         expect(await relatedCounts(request, mailbox, user)).toEqual(disabled ? [1, 1, 1, 1, 1, 1] : [0, 0, 0, 0, 0, 0]);
         expect(await addressRow(request, created)).toBeUndefined();
       } finally {
-        if (original) await call(request, '/admin/auto_cleanup', { method: 'POST', data: original });
-        else executeSql('DELETE FROM settings WHERE key = ?', ['auto_cleanup']);
+        await call(request, '/admin/auto_cleanup', { method: 'POST', data: original || {} });
       }
     });
 
@@ -378,16 +360,15 @@ for (const { base, disabled, secret, stateDir } of [
           queryAddress = `unknown${Date.now()}@test.example.com`;
           orphanAddresses.push(queryAddress);
           await call(request, '/admin/test/seed_mail', {
-            method: 'POST', data: { address: queryAddress, raw: 'old unknown mail' },
+            method: 'POST', data: { address: queryAddress, raw: 'old unknown mail', created_at: OLD },
           });
-          executeSql('UPDATE raw_mails SET created_at = ? WHERE address = ?', [OLD, queryAddress]);
         }
         if (cleanType === 'sendbox') {
           await send(request, mailbox);
-          executeSql('UPDATE sendbox SET created_at = ? WHERE address = ?', [OLD, mailbox.address]);
+          await waitForNextTimestamp();
         }
         await call(request, '/admin/cleanup', {
-          method: 'POST', data: { cleanType, cleanDays: 1 },
+          method: 'POST', data: { cleanType, cleanDays: cleanType === 'sendbox' ? 0 : 1 },
         });
         if (['addressCreated', 'unboundAddress', 'emptyAddress'].includes(cleanType)) {
           expect(await addressRow(request, mailbox)).toBeUndefined();

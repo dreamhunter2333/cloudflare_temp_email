@@ -11,8 +11,6 @@ services:
       dockerfile: e2e/Dockerfile.worker
     ports:
       - "8787:8787"
-    volumes:
-      - worker-state:/app/worker/.wrangler/state
     depends_on:
       - mailpit
     healthcheck:
@@ -47,7 +45,6 @@ services:
     command: ["pnpm", "exec", "wrangler", "dev", "--port", "8790", "--ip", "0.0.0.0", "--test-scheduled"]
     volumes:
       - ./fixtures/wrangler.toml.e2e.env-off:/app/worker/wrangler.toml:ro
-      - worker-env-off-state:/app/worker/.wrangler/state
     depends_on:
       - mailpit
     healthcheck:
@@ -216,9 +213,3 @@ services:
     volumes:
       - ./test-results:/app/e2e/test-results
       - ./playwright-report:/app/e2e/playwright-report
-      - worker-state:/app/e2e/worker-state
-      - worker-env-off-state:/app/e2e/worker-env-off-state
-
-volumes:
-  worker-state:
-  worker-env-off-state:
