@@ -13,6 +13,7 @@ import { api as telegramApi } from './telegram_api'
 import { api as redeemApi } from './redeem_api'
 
 import i18n from './i18n';
+import { ErrorCode } from './error_codes';
 import { email } from './email';
 import { scheduled } from './scheduled';
 import { getPasswords, getBooleanValue, getDomains, checkIsAdmin, getEnvStringList } from './utils';
@@ -34,7 +35,7 @@ app.use('/*', cors());
 // error handler
 app.onError((err, c) => {
 	console.error(err)
-	return c.text(`${err.name} ${err.message}`, 500)
+	return c.json({ code: ErrorCode.INTERNAL_SERVER_ERROR, message: `${err.name} ${err.message}` }, 500)
 })
 // global middlewares
 app.use('/*', async (c, next) => {
@@ -134,16 +135,16 @@ const checkUserPayload = async (
 const checkoutUserRolePayload = async (
 	c: Context<HonoCustomType>,
 	userId?: number
-): Promise<void> => {
+): Promise<Response | void> => {
 	try {
 		const token = c.req.raw.headers.get("x-user-access-token");
 		if (!token) return;
-		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
+		const payload = await Jwt.verify(token, c.env.JWT_SECRET, { alg: "HS256", exp: false });
 		// check expired
 		if (!payload.exp) return;
 		// exp is in seconds
 		if (payload.exp < Math.floor(Date.now() / 1000)) {
-			return;
+			return c.json({ code: ErrorCode.AUTH_USER_ACCESS_TOKEN_EXPIRED, message: i18n.getMessagesbyContext(c).UserAcceesTokenExpiredMsg }, 401);
 		}
 		if (typeof payload?.user_role !== "string") return;
 		if (userId !== undefined && payload.user_id !== userId) return;
@@ -163,7 +164,8 @@ app.use('/api/*', async (c, next) => {
 	if (c.req.path.startsWith("/api/settings")
 		|| c.req.path.startsWith("/api/send_mail")
 	) {
-		await checkoutUserRolePayload(c);
+		const response = await checkoutUserRolePayload(c);
+		if (response) return response;
 	}
 	if (c.req.path.startsWith("/api/address_login")) {
 		await next();
@@ -216,7 +218,8 @@ app.use('/user_api/*', async (c, next) => {
 		|| c.req.path.startsWith("/user_api/address/")
 	) {
 		const { user_id } = c.get("userPayload");
-		await checkoutUserRolePayload(c, user_id);
+		const response = await checkoutUserRolePayload(c, user_id);
+		if (response) return response;
 	}
 	if (c.req.path.startsWith('/user_api/bind_address')
 		&& c.req.method === 'POST'
@@ -253,12 +256,13 @@ app.use('/admin/*', async (c, next) => {
 	const access_token = c.req.raw.headers.get("x-user-access-token");
 	if (c.env.ADMIN_USER_ROLE && access_token) {
 		try {
-			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, "HS256");
+			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, { alg: "HS256", exp: false });
 			// check expired
 			if (!payload.exp) return c.text(msgs.UserAcceesTokenExpiredMsg, 401);
 			// exp is in seconds
 			if (payload.exp < Math.floor(Date.now() / 1000)) {
-				return c.text(msgs.UserAcceesTokenExpiredMsg, 401)
+				if (getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK)) return await next();
+				return c.json({ code: ErrorCode.AUTH_USER_ACCESS_TOKEN_EXPIRED, message: msgs.UserAcceesTokenExpiredMsg }, 401);
 			}
 			if (payload.user_role !== c.env.ADMIN_USER_ROLE) {
 				return c.text(msgs.UserRoleIsNotAdminMsg, 401)
