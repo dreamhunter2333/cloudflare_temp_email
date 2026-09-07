@@ -25,12 +25,18 @@ for (const scenario of ['expired role', 'valid role', 'invalid signature', 'miss
       });
     } else if (scenario === 'missing expiry') {
       expect(response.status()).toBe(401);
-      expect(await response.text()).toBe('Your access token has expired, please refresh the page');
+      expect(await response.json()).toEqual({
+        code: 'AUTH_ADMIN_CREDENTIAL_INVALID',
+        message: 'Your access token has expired, please refresh the page',
+      });
     } else if (scenario === 'valid role' || scenario === 'admin password') {
       expect(response.ok()).toBe(true);
     } else {
       expect(response.status()).toBe(401);
-      expect(await response.text()).toBe('You need to provide the admin password to access this page');
+      expect(await response.json()).toEqual({
+        code: 'AUTH_ADMIN_CREDENTIAL_INVALID',
+        message: 'You need to provide the admin password to access this page',
+      });
     }
   });
 }

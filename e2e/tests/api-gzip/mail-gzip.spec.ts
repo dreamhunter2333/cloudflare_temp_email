@@ -48,7 +48,7 @@ async function receiveGzipMail(
     `--${boundary}--`,
   ].join('\r\n');
 
-  const res = await ctx.post(`${WORKER_GZIP_URL}/admin/test/receive_mail`, {
+  const res = await ctx.post(`${WORKER_GZIP_URL}/__test/receive_mail`, {
     data: { from, to: address, raw },
   });
   if (!res.ok()) throw new Error(`Failed to receive mail: ${res.status()} ${await res.text()}`);
@@ -74,7 +74,7 @@ async function seedPlaintextMail(
     opts.text || 'Hello plaintext from E2E',
   ].join('\r\n');
 
-  const res = await ctx.post(`${WORKER_GZIP_URL}/admin/test/seed_mail`, {
+  const res = await ctx.post(`${WORKER_GZIP_URL}/__test/seed_mail`, {
     data: { address, source: from, raw, message_id: messageId },
   });
   if (!res.ok()) throw new Error(`Failed to seed mail: ${res.status()} ${await res.text()}`);

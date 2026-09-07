@@ -10,6 +10,8 @@ COPY worker/patches/ patches/
 RUN pnpm install --frozen-lockfile || (echo "WARN: frozen-lockfile failed, falling back to pnpm install" && pnpm install)
 
 COPY worker/src/ src/
+COPY e2e/fixtures/*.ts /app/e2e/fixtures/
+RUN ln -s /app/worker/node_modules /app/e2e/node_modules
 COPY worker/tsconfig.json ./
 ARG WRANGLER_TOML=e2e/fixtures/wrangler.toml.e2e
 COPY ${WRANGLER_TOML} wrangler.toml

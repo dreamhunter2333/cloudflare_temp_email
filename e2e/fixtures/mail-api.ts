@@ -1,45 +1,41 @@
-import { Context } from 'hono'
-import { getBooleanValue } from '../utils'
-
 // Direct DB insert — bypasses the email() handler.
-const seedMail = async (c: Context<HonoCustomType>) => {
-    if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
-        return c.text("Not available", 404);
-    }
-    const { address, source, raw, message_id, created_at, address_updated_at, address_created_at } = await c.req.json();
+const seedMail = async (request: Request, env: Bindings) => {
+    const { address, source, raw, message_id, created_at, address_updated_at, address_created_at } = await request.json<{
+        address: string; source?: string; raw: string; message_id?: string;
+        created_at?: string; address_updated_at?: string; address_created_at?: string;
+    }>();
     if (!address || !raw) {
-        return c.text("address and raw are required", 400);
+        return new Response("address and raw are required", { status: 400 });
     }
     if (raw.length > 1_000_000) {
-        return c.text("raw content too large", 400);
+        return new Response("raw content too large", { status: 400 });
     }
     if (message_id && message_id.length > 255) {
-        return c.text("message_id too long", 400);
+        return new Response("message_id too long", { status: 400 });
     }
     if (address_updated_at !== undefined) {
-        await c.env.DB.prepare(`UPDATE address SET updated_at = ? WHERE name = ?`)
+        await env.DB.prepare(`UPDATE address SET updated_at = ? WHERE name = ?`)
             .bind(address_updated_at, address).run();
     }
     if (address_created_at !== undefined) {
-        await c.env.DB.prepare(`UPDATE address SET created_at = ? WHERE name = ?`)
+        await env.DB.prepare(`UPDATE address SET created_at = ? WHERE name = ?`)
             .bind(address_created_at, address).run();
     }
     const msgId = message_id || `<e2e-${Date.now()}@test>`;
-    const { success } = await c.env.DB.prepare(
+    const { success } = await env.DB.prepare(
         `INSERT INTO raw_mails (message_id, source, address, raw, created_at)`
         + ` VALUES (?, ?, ?, ?, COALESCE(?, datetime('now')))`
     ).bind(msgId, source || address, address, raw, created_at ?? null).run();
-    return c.json({ success });
+    return Response.json({ success });
 };
 
 // Exercises the real email() handler with a mock ForwardableEmailMessage.
-const receiveMail = async (c: Context<HonoCustomType>) => {
-    if (!getBooleanValue(c.env.E2E_TEST_MODE)) {
-        return c.text("Not available", 404);
-    }
-    const { from, to, raw, ai_extract_result } = await c.req.json();
+const receiveMail = async (request: Request, env: Bindings, ctx: ExecutionContext) => {
+    const { from, to, raw, ai_extract_result } = await request.json<{
+        from: string; to: string; raw: string; ai_extract_result?: unknown;
+    }>();
     if (!from || !to || !raw) {
-        return c.text("from, to and raw are required", 400);
+        return new Response("from, to and raw are required", { status: 400 });
     }
 
     // Parse MIME headers (unfold continuation lines, extract key:value pairs)
@@ -61,24 +57,19 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
         forward: async (recipient: string) => { state.forwardedTo.push(recipient); return { messageId: '' }; },
         reply: async () => { state.replyCalled = true; return { messageId: '' }; },
     };
-    const { email: emailHandler } = await import('../email');
+    const { email: emailHandler } = await import('../../worker/src/email');
     const aiExtractEnvOverrides: Partial<Bindings> = {
         ENABLE_AI_EMAIL_EXTRACT: true,
         AI: {
             run: async () => ({ response: ai_extract_result })
         } as unknown as Ai,
     };
-    const env = ai_extract_result
-        ? { ...c.env, ...aiExtractEnvOverrides }
-        : c.env;
-    const executionContext: ExecutionContext = {
-        waitUntil: () => {},
-        passThroughOnException: () => {},
-        props: {}
-    };
-    await emailHandler(mockMessage, env, executionContext);
+    const emailEnv = ai_extract_result
+        ? { ...env, ...aiExtractEnvOverrides }
+        : env;
+    await emailHandler(mockMessage, emailEnv, ctx);
 
-    return c.json({
+    return Response.json({
         success: !state.rejected,
         replyCalled: state.replyCalled,
         forwardedTo: state.forwardedTo,

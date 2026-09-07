@@ -1,5 +1,5 @@
 import { Context, Hono } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
+import { verifyAddressToken } from '../address_auth';
 import { createMimeMessage } from 'mimetext';
 import { Resend } from 'resend';
 import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
@@ -261,14 +261,11 @@ api.post('/api/send_mail', async (c) => {
 })
 
 api.post('/external/api/send_mail', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    const { token } = await c.req.json();
+    const body = await c.req.json();
     try {
-        const { address } = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
-        if (!address) {
-            return c.text(msgs.AddressNotFoundMsg, 400)
-        }
-        const reqJson = await c.req.json();
+        const { address } = await verifyAddressToken(c, body?.token);
+        const { from_name, to_mail, to_name, subject, content, is_html } = body;
+        const reqJson = { from_name, to_mail, to_name, subject, content, is_html };
         await sendMail(c, address as string, reqJson);
         return c.json({ status: "ok" })
     } catch (e) {

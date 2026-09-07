@@ -18,7 +18,7 @@ test.describe('Telegram AI extraction rendering', () => {
         'Telegram AI extraction realtime body',
       ].join('\r\n');
 
-      const receiveRes = await request.post(`${WORKER_URL}/admin/test/receive_mail`, {
+      const receiveRes = await request.post(`${WORKER_URL}/__test/receive_mail`, {
         data: {
           from: 'sender@test.example.com',
           to: address,

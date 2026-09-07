@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { Jwt } from 'hono/utils/jwt'
+import { verifyAddressToken } from '../address_auth';
 import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
 import { checkCfTurnstile, checkIsAdmin, getBooleanValue } from "../utils";
@@ -69,7 +69,7 @@ async function getTelegramBindAddress(c: Context<HonoCustomType>): Promise<Respo
         const res = [];
         for (const jwt of jwtList) {
             try {
-                const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
+                const { address } = await verifyAddressToken(c, jwt);
                 res.push({ address, jwt });
             } catch (e) {
                 console.error(`failed to verify jwt with error: ${e}`)

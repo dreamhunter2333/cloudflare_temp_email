@@ -70,7 +70,7 @@ test.describe('Mail Deletion', () => {
         `--${boundary}--`,
       ].join('\r\n');
 
-      const seedRes = await request.post(`${WORKER_URL_ENV_OFF}/admin/test/receive_mail`, {
+      const seedRes = await request.post(`${WORKER_URL_ENV_OFF}/__test/receive_mail`, {
         data: { from, to: address, raw },
       });
       expect(seedRes.ok()).toBe(true);

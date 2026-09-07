@@ -135,7 +135,7 @@ for (const { base, disabled } of [
       });
     }
     async function seed(request: APIRequestContext, mailbox: Mailbox, updatedAt: string | null = OLD, createdAt?: string) {
-      await call(request, '/admin/test/seed_mail', {
+      await call(request, '/__test/seed_mail', {
         method: 'POST', data: {
           address: mailbox.address, raw: `From: sender@test.example.com\r\nTo: ${mailbox.address}\r\nSubject: activity\r\n\r\nBody`,
           address_updated_at: updatedAt, address_created_at: createdAt, created_at: OLD,
@@ -170,7 +170,17 @@ for (const { base, disabled } of [
       const inbox = await list(request, '/admin/mails', { address: mailbox.address });
       const sent = await list(request, '/admin/sendbox', { address: mailbox.address });
       const sender = await list(request, '/admin/address_sender', { address: mailbox.address });
-      const reply = await (await call(request, '/api/auto_reply', { headers: addressAuth(mailbox) })).json();
+      let replyMailbox = mailbox;
+      if (!address) {
+        await call(request, '/api/auto_reply', { headers: addressAuth(mailbox) }, 401);
+        // A new credential lets us check that no old auto-reply data survived cleanup.
+        const [name, domain] = mailbox.address.split('@');
+        replyMailbox = await (await call(request, '/admin/new_address', {
+          method: 'POST', data: { name, domain, enablePrefix: false },
+        })).json();
+      }
+      const reply = await (await call(request, '/api/auto_reply', { headers: addressAuth(replyMailbox) })).json();
+      if (!address) await call(request, `/admin/delete_address/${replyMailbox.address_id}`, { method: 'DELETE' });
       const bound = await (await call(request, '/user_api/bind_address', { headers: userAuth(user) })).json();
       return [Number(!!address), inbox.count, sent.count, sender.count, Number(!!reply.subject),
         bound.results.filter((row: { name: string }) => row.name === mailbox.address).length];
@@ -267,7 +277,7 @@ for (const { base, disabled } of [
       await bind(request, mailbox, user);
       await seed(request, mailbox);
       const raw = `From: sender@test.example.com\r\nTo: ${mailbox.address}\r\nSubject: incoming\r\n\r\nBody`;
-      const received = await call(request, '/admin/test/receive_mail', {
+      const received = await call(request, '/__test/receive_mail', {
         method: 'POST', data: { from: 'sender@test.example.com', to: mailbox.address, raw },
       });
       expect((await received.json()).success).toBe(true);
@@ -359,7 +369,7 @@ for (const { base, disabled } of [
         if (cleanType === 'mails_unknow') {
           queryAddress = `unknown${Date.now()}@test.example.com`;
           orphanAddresses.push(queryAddress);
-          await call(request, '/admin/test/seed_mail', {
+          await call(request, '/__test/seed_mail', {
             method: 'POST', data: { address: queryAddress, raw: 'old unknown mail', created_at: OLD },
           });
         }

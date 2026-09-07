@@ -7,7 +7,8 @@ import { getFingerprint } from '../utils/fingerprint'
 import { safeBearerHeader, safeHeaderValue } from '../utils/headers'
 import { sanitizeHtml } from '../utils/sanitize-html'
 import { APP_CONFIG } from '../config'
-import { isUserAccessTokenError, createUserAccessTokenInterceptor } from './user-access-token-interceptor'
+import { createUserAccessTokenInterceptor } from './user-access-token-interceptor'
+import { ErrorCode } from './error-codes'
 
 const API_BASE = APP_CONFIG.API_BASE || "";
 const {
@@ -63,10 +64,10 @@ const apiFetch = async (path, options = {}) => {
             headers,
         });
         const response = await interceptResponse(path, initialResponse);
-        if (response.status === 401 && path.startsWith("/admin") && !isUserAccessTokenError(response)) {
+        if (ErrorCode.isAdminAuthError(response)) {
             showAdminAuth.value = true;
         }
-        if (response.status === 401 && openSettings.value.needAuth && !isUserAccessTokenError(response)) {
+        if (ErrorCode.isSiteAuthError(response)) {
             showAuth.value = true;
         }
         if (response.status >= 300) {

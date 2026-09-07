@@ -51,4 +51,33 @@ test.describe('Send Mail via SMTP', () => {
     // Cleanup
     await deleteAddress(request, jwt);
   });
+
+  test('external sending stores mail fields without bearer credentials', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'external-sender');
+    const mail = {
+      from_name: 'External sender', to_name: 'Recipient', to_mail: 'recipient@test.example.com',
+      subject: `External ${Date.now()}`, content: 'External message', is_html: false,
+    };
+    try {
+      const listener = onMailpitMessage(message => message.Subject === mail.subject);
+      await listener.ready;
+      const response = await request.post(`${WORKER_URL}/external/api/send_mail`, {
+        data: { ...mail, token: jwt, extra_credential: 'must-not-be-stored' },
+      });
+      expect(response.ok(), await response.text()).toBe(true);
+      expect((await listener.message).From.Address).toBe(address);
+      const sendbox = await request.get(`${WORKER_URL}/api/sendbox?limit=20&offset=0`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      expect(sendbox.ok()).toBe(true);
+      const { results } = await sendbox.json();
+      expect(results).toHaveLength(1);
+      const stored = JSON.parse(results[0].raw);
+      expect(stored).toMatchObject(mail);
+      expect(stored).not.toHaveProperty('token');
+      expect(stored).not.toHaveProperty('extra_credential');
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
 });

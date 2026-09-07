@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
+import { verifyAddressToken } from '../address_auth';
 
 import utils, { checkCfTurnstile, getPasswords, getAdminPasswords, hashPassword } from '../utils';
 import i18n from '../i18n';
+import { ErrorCode } from '../error_codes';
 
 const api = new Hono<HonoCustomType>()
 
@@ -19,7 +20,7 @@ api.post('/open_api/site_login', async (c) => {
     const passwords = getPasswords(c);
     const hashedPasswords = await Promise.all(passwords.map(p => hashPassword(p)));
     if (!hashedPasswords.length || !password || !hashedPasswords.includes(password)) {
-        return c.text(msgs.CustomAuthPasswordMsg, 401)
+        return c.json({ code: ErrorCode.AUTH_SITE_PASSWORD_INVALID, message: msgs.CustomAuthPasswordMsg }, 401)
     }
     return c.json({ success: true })
 })
@@ -37,7 +38,7 @@ api.post('/open_api/admin_login', async (c) => {
     const adminPasswords = getAdminPasswords(c);
     const hashedPasswords = await Promise.all(adminPasswords.map(p => hashPassword(p)));
     if (!hashedPasswords.length || !password || !hashedPasswords.includes(password)) {
-        return c.text(msgs.NeedAdminPasswordMsg, 401)
+        return c.json({ code: ErrorCode.AUTH_ADMIN_CREDENTIAL_INVALID, message: msgs.NeedAdminPasswordMsg }, 401)
     }
     return c.json({ success: true })
 })
@@ -56,10 +57,7 @@ api.post('/open_api/credential_login', async (c) => {
         return c.text(msgs.InvalidAddressCredentialMsg, 401)
     }
     try {
-        const payload = await Jwt.verify(credential, c.env.JWT_SECRET, "HS256");
-        if (!payload.address) {
-            return c.text(msgs.InvalidAddressCredentialMsg, 401)
-        }
+        await verifyAddressToken(c, credential);
     } catch (error) {
         return c.text(msgs.InvalidAddressCredentialMsg, 401)
     }

@@ -65,7 +65,7 @@ test.describe('Email forward domain normalization', () => {
         `Forward domain normalization test`,
       ].join('\r\n');
 
-      const res = await request.post(`${WORKER_URL}/admin/test/receive_mail`, {
+      const res = await request.post(`${WORKER_URL}/__test/receive_mail`, {
         data: { from: 'sender@test.example.com', to, raw },
       });
       expect(res.ok()).toBe(true);
@@ -118,7 +118,7 @@ test.describe('Email forward domain normalization', () => {
         `Forward domain boundary test`,
       ].join('\r\n');
 
-      const res = await request.post(`${WORKER_URL}/admin/test/receive_mail`, {
+      const res = await request.post(`${WORKER_URL}/__test/receive_mail`, {
         data: { from: 'sender@test.example.com', to, raw },
       });
       expect(res.ok()).toBe(true);
@@ -161,7 +161,7 @@ test.describe('Email forward domain normalization', () => {
         `Forward catch-all domain test`,
       ].join('\r\n');
 
-      const res = await request.post(`${WORKER_URL}/admin/test/receive_mail`, {
+      const res = await request.post(`${WORKER_URL}/__test/receive_mail`, {
         data: { from: 'sender@test.example.com', to: address, raw },
       });
       expect(res.ok()).toBe(true);

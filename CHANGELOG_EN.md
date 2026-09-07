@@ -21,6 +21,7 @@
 
 ### Bug Fixes
 
+- fix: |Mailbox Auth| Fix stale mailbox credentials retaining API access, unauthorized Telegram unbinding, ineffective rebinding and credential storage in external sent mail; distinguish authentication errors to prompt for site and Admin login correctly; move E2E test endpoints out of production code
 - fix: |Frontend| Remove unsupported `data-onload` and `data-onerror` attributes from the AdSense script
 - fix: |Admin| Avoid briefly showing the Admin password dialog before access settings finish loading
 - fix: |Admin| Fix secondary tabs occasionally losing their active item, hiding content, and leaving the indicator offset after switching primary tabs
@@ -242,7 +243,7 @@
 
 - test: |E2E| Add Dockerized E2E test environment (Playwright + Mailpit), run with `cd e2e && npm test`
 - test: |E2E| Cover API health check, address lifecycle, SMTP send, inbox UI, HTML reply & XSS sanitization
-- test: |Worker| Add `/admin/test/seed_mail` test endpoint, only available when `E2E_TEST_MODE` is enabled
+- test: |Worker| Add `/admin/test/seed_mail` test endpoint
 
 ### Improvements
 

@@ -17,6 +17,41 @@ const openApiTestPage = async (page: Page) => {
 
 const expiredTokenResponse = { status: 401, json: { code: 'AUTH_USER_ACCESS_TOKEN_EXPIRED', message: 'Access token expired' } };
 
+for (const scenario of [
+  { name: 'mailbox credential', path: '/api/settings', site: false, admin: false, needAuth: true },
+  { name: 'account credential', path: '/user_api/settings', site: false, admin: false, needAuth: true },
+  { name: 'site password', path: '/api/settings', site: true, admin: false, needAuth: true },
+  { name: 'site password on admin API', path: '/admin/db_version', site: true, admin: false, needAuth: true },
+  { name: 'admin password', path: '/admin/db_version', site: false, admin: true, needAuth: true },
+  { name: 'admin login', path: '/open_api/admin_login', site: false, admin: true, needAuth: false },
+  { name: 'site password after authentication', path: '/api/settings', site: true, admin: false, needAuth: false },
+  { name: 'site password on admin API after authentication', path: '/admin/db_version', site: true, admin: false, needAuth: false },
+]) {
+  test(`Authentication dialog distinguishes ${scenario.name}`, async ({ page }) => {
+    await openApiTestPage(page);
+    await page.route(`**${scenario.path}`, route => route.fulfill(scenario.site
+      ? { status: 401, json: { code: 'AUTH_SITE_PASSWORD_INVALID', message: 'Site password required' } }
+      : scenario.admin
+        ? { status: 401, json: { code: 'AUTH_ADMIN_CREDENTIAL_INVALID', message: 'Admin password required' } }
+        : { status: 401, body: 'Invalid credential' }));
+    const result = await page.evaluate(async ({ path, needAuth }) => {
+      const apiModule = '/src/api/index.js';
+      const storeModule = '/src/store/index.js';
+      const { api } = await import(apiModule);
+      const state = (await import(storeModule)).useGlobalState();
+      state.openSettings.value.needAuth = needAuth;
+      state.showAuth.value = false;
+      state.showAdminAuth.value = false;
+      try {
+        await api.fetch(path);
+      } catch {
+        return { site: state.showAuth.value, admin: state.showAdminAuth.value };
+      }
+    }, { path: scenario.path, needAuth: scenario.needAuth });
+    expect(result).toEqual({ site: scenario.site, admin: scenario.admin });
+  });
+}
+
 for (const scenario of ['expired', 'expiring', 'valid', 'no account', 'login expired', 'wrong password', 'text zh', 'text en', 'retry expired', 'retry unauthorized', 'unmatched path', 'server error', 'json client error', 'json server error'] as const) {
   test(`Access token response handling: ${scenario}`, async ({ page }) => {
     await openApiTestPage(page);
@@ -54,7 +89,7 @@ for (const scenario of ['expired', 'expiring', 'valid', 'no account', 'login exp
         return;
       }
       await route.fulfill(['wrong password', 'retry unauthorized'].includes(scenario)
-        ? { status: 401, contentType: 'text/plain', body: 'Admin password required' }
+        ? { status: 401, json: { code: 'AUTH_ADMIN_CREDENTIAL_INVALID', message: 'Admin password required' } }
         : { json: { current_db_version: 'test-version' } });
     });
 
@@ -77,7 +112,7 @@ for (const scenario of ['expired', 'expiring', 'valid', 'no account', 'login exp
     const needsRefresh = !['valid', 'expiring', 'no account', 'wrong password', 'text zh', 'text en', 'unmatched path', 'server error', 'json client error', 'json server error'].includes(scenario);
     expect(refreshCount).toBe(needsRefresh ? 1 : 0);
     expect(attempts).toEqual(needsRefresh && scenario !== 'login expired' ? [initialToken, freshToken] : [initialToken]);
-    expect(result.showAdminAuth).toBe(['wrong password', 'retry unauthorized'].includes(scenario) || scenario.startsWith('text'));
+    expect(result.showAdminAuth).toBe(['wrong password', 'retry unauthorized'].includes(scenario));
     if (scenario === 'login expired') expect(result.error).toContain('Please login again');
     else if (['wrong password', 'retry unauthorized'].includes(scenario)) expect(result.error).toContain('Admin password required');
     else if (['retry expired', 'no account', 'unmatched path'].includes(scenario)) expect(result.error).toContain('Access token expired');

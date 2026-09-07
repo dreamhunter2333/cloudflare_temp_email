@@ -49,18 +49,14 @@ export const auto_reply = async (
                     contentType: 'text/plain',
                     data: results.message || "This is an auto-reply message, please reconact later."
                 });
-                if (getBooleanValue(env.E2E_TEST_MODE)) {
-                    await message.reply(msg.asRaw());
-                } else {
-                    const { EmailMessage } = await import('cloudflare:email');
-                    const replyMessage = new EmailMessage(
-                        toAddress,
-                        message.from,
-                        msg.asRaw()
-                    );
-                    // @ts-ignore
-                    await message.reply(replyMessage);
-                }
+                const { EmailMessage } = await import('cloudflare:email');
+                const replyMessage = new EmailMessage(
+                    toAddress,
+                    message.from,
+                    msg.asRaw()
+                );
+                // @ts-ignore
+                await message.reply(replyMessage);
             }
         } catch (error) {
             console.log("reply email error", error);

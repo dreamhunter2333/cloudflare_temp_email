@@ -51,7 +51,8 @@ Test results and HTML reports are exported via volumes:
 ## Configuration
 
 The E2E worker uses `fixtures/wrangler.toml.e2e` with:
-- `E2E_TEST_MODE = true` — enables test seed endpoint
 - `DISABLE_ADMIN_PASSWORD_CHECK = true` — allows unauthenticated admin calls
 - `DEFAULT_SEND_BALANCE = 10` — allows sending without admin approval
 - SMTP pointed at Mailpit container (`mailpit:1025`)
+
+Test-only endpoints under `/__test/*` are registered in `e2e/fixtures/worker.ts` and are excluded from the production Worker.

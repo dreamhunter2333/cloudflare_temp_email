@@ -62,32 +62,7 @@ const deleteMail = async (c: Context<HonoCustomType>) => {
 };
 
 const getSettings = async (c: Context<HonoCustomType>) => {
-    const { address, address_id } = c.get("jwtPayload")
-    const msgs = i18n.getMessagesbyContext(c);
-    if (address_id && address_id > 0) {
-        try {
-            const db_address_id = await c.env.DB.prepare(
-                `SELECT id FROM address where id = ? `
-            ).bind(address_id).first("id");
-            if (!db_address_id) {
-                return c.text(msgs.InvalidAddressMsg, 400)
-            }
-        } catch (error) {
-            return c.text(msgs.InvalidAddressMsg, 400)
-        }
-    }
-    try {
-        if (!address_id) {
-            const db_address_id = await c.env.DB.prepare(
-                `SELECT id FROM address where name = ? `
-            ).bind(address).first("id");
-            if (!db_address_id) {
-                return c.text(msgs.InvalidAddressMsg, 400)
-            }
-        }
-    } catch (error) {
-        return c.text(msgs.InvalidAddressMsg, 400)
-    }
+    const { address } = c.get("jwtPayload")
 
     updateAddressUpdatedAt(c, address);
 

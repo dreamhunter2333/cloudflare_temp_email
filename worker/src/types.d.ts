@@ -123,9 +123,6 @@ type Bindings = {
     ENABLE_MAIL_GZIP: string | boolean | undefined
     ENABLE_MAIL_READ_STATUS: string | boolean | undefined
     CLEANUP_BATCH_SIZE: string | number | undefined
-
-    // E2E testing
-    E2E_TEST_MODE: string | boolean | undefined
 }
 
 type JwtPayload = {

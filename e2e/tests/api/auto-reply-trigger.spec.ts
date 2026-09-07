@@ -175,7 +175,7 @@ async function seedTestMailWithReply(
     text,
   ].join('\r\n');
 
-  const res = await ctx.post(`${WORKER_URL}/admin/test/receive_mail`, {
+  const res = await ctx.post(`${WORKER_URL}/__test/receive_mail`, {
     data: { from, to: address, raw },
   });
   if (!res.ok()) {

@@ -83,6 +83,7 @@ test.describe('Redemption feature access boundaries', () => {
       },
     );
     expect(blockedAdminResponse.status()).toBe(401);
+    expect(await blockedAdminResponse.json()).toMatchObject({ code: 'AUTH_SITE_PASSWORD_INVALID' });
 
     const createResponse = await request.post(
       `${WORKER_URL_SITE_PASSWORD}/admin/redeem_codes/batch`,
@@ -106,11 +107,13 @@ test.describe('Redemption feature access boundaries', () => {
         { data: { code } },
       );
       expect(missingPassword.status()).toBe(401);
+      expect(await missingPassword.json()).toMatchObject({ code: 'AUTH_SITE_PASSWORD_INVALID' });
       const wrongPassword = await request.post(
         `${WORKER_URL_SITE_PASSWORD}/redeem_api/${path}`,
         { headers: { 'x-custom-auth': 'wrong' }, data: { code } },
       );
       expect(wrongPassword.status()).toBe(401);
+      expect(await wrongPassword.json()).toMatchObject({ code: 'AUTH_SITE_PASSWORD_INVALID' });
     }
     const validPassword = await request.post(`${WORKER_URL_SITE_PASSWORD}/redeem_api/query`, {
       headers: SITE_HEADERS,
@@ -248,6 +251,10 @@ test.describe('Redemption Admin authentication', () => {
         ]);
         for (const response of responses) {
           expect(response.status(), response.url()).toBe(401);
+          expect(await response.json()).toMatchObject({
+            code: credentials.name === 'expired Admin role token'
+              ? 'AUTH_USER_ACCESS_TOKEN_EXPIRED' : 'AUTH_ADMIN_CREDENTIAL_INVALID',
+          });
           expect(await response.text()).not.toContain(code);
         }
         const after = await request.get(listUrl, { headers: ADMIN_HEADERS });

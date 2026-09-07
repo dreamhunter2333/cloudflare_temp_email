@@ -13,7 +13,7 @@ test.describe('Bounded cleanup', () => {
   test('cleans at most one batch and continues on the next run', async ({ request }) => {
     const address = `cleanup-batch-${Date.now()}@test.example.com`;
     const seedResponses = await Promise.all(Array.from({ length: 11 }, (_, index) =>
-      request.post(`${WORKER_URL}/admin/test/seed_mail`, {
+      request.post(`${WORKER_URL}/__test/seed_mail`, {
         data: {
           address,
           raw: 'old cleanup mail',
@@ -40,7 +40,7 @@ test.describe('Bounded cleanup', () => {
     const afterSecondCleanup = await listMails(request, address);
     expect(afterSecondCleanup.count).toBe(0);
 
-    const recentMailResponse = await request.post(`${WORKER_URL}/admin/test/seed_mail`, {
+    const recentMailResponse = await request.post(`${WORKER_URL}/__test/seed_mail`, {
       data: {
         address,
         raw: 'recent cleanup mail',
@@ -63,7 +63,7 @@ test.describe('Bounded cleanup', () => {
   test('deletes one address batch and its related data', async ({ request }) => {
     const oldAddress = await createTestAddress(request, 'cleanup-old');
 
-    const seedResponse = await request.post(`${WORKER_URL}/admin/test/seed_mail`, {
+    const seedResponse = await request.post(`${WORKER_URL}/__test/seed_mail`, {
       data: {
         address: oldAddress.address,
         raw: 'address cleanup mail',

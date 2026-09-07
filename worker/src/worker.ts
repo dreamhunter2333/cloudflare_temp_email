@@ -1,7 +1,7 @@
 import { Context, Hono } from 'hono'
 import { cors } from 'hono/cors';
-import { jwt } from 'hono/jwt'
 import { Jwt } from 'hono/utils/jwt'
+import { addressJwtAuth } from './address_auth';
 
 import { api as commonApi } from './commom_api';
 import { api as openAuthApi } from './open_api/auth';
@@ -62,7 +62,7 @@ app.use('/*', async (c, next) => {
 	) {
 		const auth = c.req.raw.headers.get("x-custom-auth");
 		if (!auth || !passwords.includes(auth)) {
-			return c.text(msgs.CustomAuthPasswordMsg, 401)
+			return c.json({ code: ErrorCode.AUTH_SITE_PASSWORD_INVALID, message: msgs.CustomAuthPasswordMsg }, 401)
 		}
 	}
 
@@ -173,7 +173,7 @@ app.use('/api/*', async (c, next) => {
 	}
 
 	try {
-		return await jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
+		return await addressJwtAuth(c, next);
 	} catch (e) {
 		console.warn(e);
 		const lang = c.get("lang") || c.env.DEFAULT_LANG;
@@ -224,7 +224,7 @@ app.use('/user_api/*', async (c, next) => {
 	if (c.req.path.startsWith('/user_api/bind_address')
 		&& c.req.method === 'POST'
 	) {
-		return jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
+		return addressJwtAuth(c, next);
 	}
 	await next();
 });
@@ -258,14 +258,14 @@ app.use('/admin/*', async (c, next) => {
 		try {
 			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, { alg: "HS256", exp: false });
 			// check expired
-			if (!payload.exp) return c.text(msgs.UserAcceesTokenExpiredMsg, 401);
+			if (!payload.exp) return c.json({ code: ErrorCode.AUTH_ADMIN_CREDENTIAL_INVALID, message: msgs.UserAcceesTokenExpiredMsg }, 401);
 			// exp is in seconds
 			if (payload.exp < Math.floor(Date.now() / 1000)) {
 				if (getBooleanValue(c.env.DISABLE_ADMIN_PASSWORD_CHECK)) return await next();
 				return c.json({ code: ErrorCode.AUTH_USER_ACCESS_TOKEN_EXPIRED, message: msgs.UserAcceesTokenExpiredMsg }, 401);
 			}
 			if (payload.user_role !== c.env.ADMIN_USER_ROLE) {
-				return c.text(msgs.UserRoleIsNotAdminMsg, 401)
+				return c.json({ code: ErrorCode.AUTH_ADMIN_CREDENTIAL_INVALID, message: msgs.UserRoleIsNotAdminMsg }, 401)
 			}
 			await next();
 			return;
@@ -280,7 +280,7 @@ app.use('/admin/*', async (c, next) => {
 		return;
 	}
 
-	return c.text(msgs.NeedAdminPasswordMsg, 401)
+	return c.json({ code: ErrorCode.AUTH_ADMIN_CREDENTIAL_INVALID, message: msgs.NeedAdminPasswordMsg }, 401)
 });
 
 

@@ -1,9 +1,11 @@
 import { Context } from "hono";
 import { Jwt } from "hono/utils/jwt";
+import { validateAddressPayload, verifyAddressToken } from '../address_auth';
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getIntValue, getJsonSetting } from "../utils";
 import { deleteAddressWithData, newAddress, generateRandomName } from "../common";
 import { LocaleMessages } from "../i18n/type";
+import i18n from '../i18n';
 
 export const tgUserNewAddress = async (
     c: Context<HonoCustomType>, userId: string, address: string,
@@ -63,15 +65,7 @@ export const jwtListToAddressData = async (
     const invalidJwtList = [] as string[];
     for (const jwt of jwtList) {
         try {
-            const { address, address_id } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
-            const name = await c.env.DB.prepare(
-                `SELECT name FROM address WHERE id = ? `
-            ).bind(address_id).first("name");
-            if (!name) {
-                addressList.push(msgs.TgInvalidAddressMsg);
-                invalidJwtList.push(jwt);
-                continue;
-            }
+            const { address, address_id } = await verifyAddressToken(c, jwt);
             addressList.push(address as string);
             addressIdMap[address as string] = address_id as number;
         } catch (e) {
@@ -87,13 +81,11 @@ export const bindTelegramAddress = async (
     c: Context<HonoCustomType>, userId: string, jwt: string,
     msgs: LocaleMessages
 ): Promise<string> => {
-    const { address } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
-    if (!address) {
-        throw Error(msgs.TgInvalidCredentialMsg);
-    }
+    const { address } = await verifyAddressToken(c, jwt);
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     const { addressIdMap } = await jwtListToAddressData(c, jwtList, msgs);
     if (address as string in addressIdMap) {
+        await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${address}`, userId.toString());
         return address as string;
     }
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
@@ -105,25 +97,45 @@ export const bindTelegramAddress = async (
     return address as string;
 }
 
+const getTelegramBindings = async (c: Context<HonoCustomType>, userId: string) => {
+    const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
+    return Promise.all(jwtList.map(async (jwt) => {
+        try {
+            return { jwt, payload: await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256") };
+        } catch (e) {
+            console.log(`解绑失败: ${(e as Error).message}`);
+            return { jwt, payload: null };
+        }
+    }));
+}
+
+const removeTelegramBinding = async (
+    c: Context<HonoCustomType>, userId: string, address: string,
+    bindings: Awaited<ReturnType<typeof getTelegramBindings>>
+): Promise<boolean> => {
+    const newJwtList = bindings.filter(({ payload }) => payload?.address !== address).map(({ jwt }) => jwt);
+    await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify(newJwtList));
+    const owner = await c.env.KV.get<string>(`${CONSTANTS.TG_KV_PREFIX}:${address}`);
+    if (owner === userId) await c.env.KV.delete(`${CONSTANTS.TG_KV_PREFIX}:${address}`);
+    return true;
+}
+
 export const unbindTelegramAddress = async (
     c: Context<HonoCustomType>, userId: string, address: string
 ): Promise<boolean> => {
-    const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
-    const newJwtList = [];
-    for (const jwt of jwtList) {
+    const msgs = i18n.getMessagesbyContext(c);
+    const bindings = await getTelegramBindings(c, userId);
+    for (const { payload } of bindings) {
+        if (payload?.address !== address) continue;
         try {
-            const { address: kvAddress } = await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256");
-            if (kvAddress == address) {
-                continue;
-            }
+            if (!await validateAddressPayload(c, payload)) continue;
         } catch (e) {
-            console.log(`解绑失败: ${(e as Error).message}`);
+            console.log(`Failed to validate Telegram binding: ${(e as Error).message}`);
+            continue;
         }
-        newJwtList.push(jwt);
+        return await removeTelegramBinding(c, userId, address, bindings);
     }
-    await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify(newJwtList));
-    await c.env.KV.delete(`${CONSTANTS.TG_KV_PREFIX}:${address}`);
-    return true;
+    throw Error(msgs.TgAddressNotYoursMsg);
 }
 
 export const unbindTelegramByAddress = async (
@@ -132,7 +144,8 @@ export const unbindTelegramByAddress = async (
     if (!c.env.KV) return true;
     const userId = await c.env.KV.get<string>(`${CONSTANTS.TG_KV_PREFIX}:${address}`)
     if (userId) {
-        return await unbindTelegramAddress(c, userId, address);
+        const bindings = await getTelegramBindings(c, userId);
+        return await removeTelegramBinding(c, userId, address, bindings);
     }
     return true;
 }

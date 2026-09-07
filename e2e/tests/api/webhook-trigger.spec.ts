@@ -95,7 +95,7 @@ test.describe('Webhook — triggered on incoming mail', () => {
         `Webhook trigger test body`,
       ].join('\r\n');
 
-      const res = await request.post(`${WORKER_URL}/admin/test/receive_mail`, {
+      const res = await request.post(`${WORKER_URL}/__test/receive_mail`, {
         data: {
           from,
           to: address,
@@ -157,7 +157,7 @@ test.describe('Webhook — triggered on incoming mail', () => {
         `Should not trigger webhook`,
       ].join('\r\n');
 
-      const res = await request.post(`${WORKER_URL}/admin/test/receive_mail`, {
+      const res = await request.post(`${WORKER_URL}/__test/receive_mail`, {
         data: { from: 'sender@test.example.com', to: address, raw },
       });
       expect(res.ok()).toBe(true);

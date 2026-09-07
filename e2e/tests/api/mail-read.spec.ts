@@ -14,7 +14,7 @@ test.describe('Mail read status', () => {
   test('keeps historical mail read and switches one new mail state', async ({ request }) => {
     const mailbox = await createTestAddress(request, 'mail-read');
     try {
-      const historical = await request.post(`${WORKER_URL}/admin/test/seed_mail`, {
+      const historical = await request.post(`${WORKER_URL}/__test/seed_mail`, {
         data: {
           address: mailbox.address,
           source: 'sender@test.example.com',

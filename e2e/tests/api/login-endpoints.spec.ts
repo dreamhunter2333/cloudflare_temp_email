@@ -19,6 +19,7 @@ test.describe('Turnstile Login Endpoints (ENABLE_GLOBAL_TURNSTILE_CHECK disabled
         }
       });
       expect(res.status()).toBe(401);
+      expect(await res.json()).toMatchObject({ code: 'AUTH_SITE_PASSWORD_INVALID', message: expect.any(String) });
     });
   });
 
@@ -43,6 +44,7 @@ test.describe('Turnstile Login Endpoints (ENABLE_GLOBAL_TURNSTILE_CHECK disabled
         }
       });
       expect(res.status()).toBe(401);
+      expect(await res.json()).toMatchObject({ code: 'AUTH_ADMIN_CREDENTIAL_INVALID', message: expect.any(String) });
     });
 
     test('empty password returns 401', async ({ request }) => {
@@ -53,6 +55,7 @@ test.describe('Turnstile Login Endpoints (ENABLE_GLOBAL_TURNSTILE_CHECK disabled
         }
       });
       expect(res.status()).toBe(401);
+      expect(await res.json()).toMatchObject({ code: 'AUTH_ADMIN_CREDENTIAL_INVALID', message: expect.any(String) });
     });
   });
 

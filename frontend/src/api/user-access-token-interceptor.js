@@ -8,15 +8,12 @@ const mailboxPaths = new Set(['/api/settings', '/api/send_mail']);
 const paths = ['/admin/', ...mailboxPaths, '/user_api/bind_address', '/user_api/address/'];
 const getPathname = (url) => new URL(url, window.location.origin).pathname;
 
-export const isUserAccessTokenError = (response) => response.status === 401
-    && response.data?.code === ErrorCode.AUTH_USER_ACCESS_TOKEN_EXPIRED;
-
 const isCurrentSession = ({ headers }) =>
     safeHeaderValue(headers.get('x-user-token')) === safeHeaderValue(userJwt.value)
     && safeHeaderValue(headers.get('Authorization')) === safeBearerHeader(jwt.value);
 
 const matches = (path, response) => {
-    if (!isUserAccessTokenError(response)) return false;
+    if (!ErrorCode.isUserAccessTokenError(response)) return false;
     const pathname = getPathname(path);
     if (!paths.some(prefix => pathname.startsWith(prefix))) return false;
     const { config } = response;
