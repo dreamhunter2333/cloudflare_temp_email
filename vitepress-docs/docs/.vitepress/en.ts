@@ -165,6 +165,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             text: 'Advanced Features',
             collapsed: false,
             items: [
+                { text: 'Mailbox Password Login', link: 'feature/mailbox-password-login' },
                 { text: 'AI Email Recognition', link: 'feature/ai-extract' },
                 { text: 'Configure Subdomain Email', link: 'feature/subdomain' },
                 { text: 'Configure S3 Attachments', link: 'feature/s3-attachment' },

@@ -1,5 +1,9 @@
 # 查看邮件 API
 
+::: info 邮箱密码登录
+仅密码登录、登录 JWT 自动续期及绑定邮箱密码重置见[邮箱密码登录](./mailbox-password-login)。
+:::
+
 ## 通过 邮件 API 查看邮件
 
 这是一个 `python` 的例子，使用 `requests` 库查看邮件。

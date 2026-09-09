@@ -302,6 +302,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "components.AddressCredentialModal": {
+    "passwordOnlyTip": {
+      "en": "Save your mailbox password. Credential and login-link access are disabled. Bound mailboxes can also be opened from the user center.",
+      "zh": "请保存邮箱密码。凭据及链接登录已禁用；已绑定邮箱仍可从用户中心进入。"
+    },
     "addressCredential": {
       "en": "Address Credential",
       "zh": "地址凭证"
@@ -1040,6 +1044,22 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.user.AddressManagement": {
+    "resetPassword": {
+      "en": "Reset Password",
+      "zh": "重置密码"
+    },
+    "resetPasswordTip": {
+      "en": "Set a new password for this bound mailbox without its old password.",
+      "zh": "为已绑定邮箱设置新密码，无需提供原邮箱密码。"
+    },
+    "newPasswordRequired": {
+      "en": "Enter a new password.",
+      "zh": "请输入新密码。"
+    },
+    "unbindPasswordTip": {
+      "en": "Save the mailbox password before unlinking so you can log in again.",
+      "zh": "解绑前请保存邮箱密码，以便之后重新登录。"
+    },
     "actions": {
       "en": "Actions",
       "zh": "操作"
@@ -1928,6 +1948,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.index.LocalAddress": {
+    "savedMailbox": {
+      "en": "Saved mailbox {index}",
+      "zh": "已保存邮箱 {index}"
+    },
     "actions": {
       "en": "Actions",
       "zh": "操作"

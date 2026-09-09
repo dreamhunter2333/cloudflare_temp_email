@@ -5,6 +5,7 @@ import { getBooleanValue } from '../utils';
 import { handleMailListQuery, deleteAddressWithData, updateAddressUpdatedAt } from '../common'
 import { resolveRawEmailRow } from '../gzip'
 import { getSendBalanceState } from './send_balance';
+import { createAddressPasswordLoginToken, ADDRESS_PASSWORD_LOGIN_RENEWAL_WINDOW_SECONDS } from '../address_auth';
 
 const listMails = async (c: Context<HonoCustomType>) => {
     const { address } = c.get("jwtPayload")
@@ -62,14 +63,19 @@ const deleteMail = async (c: Context<HonoCustomType>) => {
 };
 
 const getSettings = async (c: Context<HonoCustomType>) => {
-    const { address } = c.get("jwtPayload")
+    const payload = c.get("jwtPayload");
+    const { address } = payload;
+    const renewedAddressToken = payload.type === 'address_password_login'
+        && payload.exp < Math.floor(Date.now() / 1000) + ADDRESS_PASSWORD_LOGIN_RENEWAL_WINDOW_SECONDS
+        ? await createAddressPasswordLoginToken(c, address, payload.address_id) : null;
 
     updateAddressUpdatedAt(c, address);
 
     const { balance } = await getSendBalanceState(c, address);
     return c.json({
-        address: address,
+        ...payload,
         send_balance: balance || 0,
+        new_address_token: renewedAddressToken,
     });
 };
 

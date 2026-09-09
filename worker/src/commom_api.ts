@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 
-import utils from './utils';
+import utils, { isAddressPasswordLoginOnly } from './utils';
 import { CONSTANTS } from './constants';
 import { isS3Enabled } from './mails_api/s3_attachment';
 import { isAnySendMailEnabled } from './common';
@@ -22,6 +22,7 @@ api.get('/open_api/settings', async (c) => {
     const imapProxyConfig = smtpImapProxyConfig.imap || {};
 
     return c.json({
+        "addressPasswordLoginOnly": isAddressPasswordLoginOnly(c),
         "title": c.env.TITLE,
         "announcement": utils.getStringValue(c.env.ANNOUNCEMENT),
         "alwaysShowAnnouncement": utils.getBooleanValue(c.env.ALWAYS_SHOW_ANNOUNCEMENT),

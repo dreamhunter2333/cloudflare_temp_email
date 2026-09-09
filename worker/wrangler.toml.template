@@ -93,6 +93,9 @@ ENABLE_AUTO_REPLY = false
 # ENABLE_WEBHOOK = true
 # Enable address password feature, if set true, will generate password for new address and support password login and change
 # ENABLE_ADDRESS_PASSWORD = false
+# Only allow password login to mailboxes (requires ENABLE_ADDRESS_PASSWORD).
+# Rejects legacy mailbox credentials, including direct API access.
+# ADDRESS_PASSWORD_LOGIN_ONLY = false
 # Show AI Agent mailbox connection info in the address credential modal
 # ENABLE_AGENT_EMAIL_INFO = true
 # Show SMTP/IMAP client connection info in the address credential modal
