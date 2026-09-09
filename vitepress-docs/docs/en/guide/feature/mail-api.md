@@ -1,5 +1,9 @@
 # Mail API
 
+::: info Mailbox password login
+See [mailbox password login](./mailbox-password-login) for password-only login, login JWT renewal and bound-mailbox password resets.
+:::
+
 ## Viewing Emails via Mail API
 
 This is a `python` example using the `requests` library to view emails.

@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { verifyAddressToken } from '../address_auth';
 
-import utils, { checkCfTurnstile, getPasswords, getAdminPasswords, hashPassword } from '../utils';
+import utils, { checkCfTurnstile, getPasswords, getAdminPasswords, hashPassword, isAddressPasswordLoginOnly } from '../utils';
 import i18n from '../i18n';
 import { ErrorCode } from '../error_codes';
 
@@ -44,8 +44,9 @@ api.post('/open_api/admin_login', async (c) => {
 })
 
 api.post('/open_api/credential_login', async (c) => {
-    const { credential, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
+    if (isAddressPasswordLoginOnly(c)) return c.text(msgs.CredentialLoginDisabledMsg, 403);
+    const { credential, cf_token } = await c.req.json();
     if (utils.isGlobalTurnstileEnabled(c)) {
         try {
             await checkCfTurnstile(c, cf_token);

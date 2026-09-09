@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { Jwt } from "hono/utils/jwt";
-import { validateAddressPayload, verifyAddressToken } from '../address_auth';
+import { validateAddressIdentity, verifyAddressToken } from '../address_auth';
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getIntValue, getJsonSetting } from "../utils";
 import { deleteAddressWithData, newAddress, generateRandomName } from "../common";
@@ -13,9 +13,11 @@ const createTelegramBindingToken = (c: Context<HonoCustomType>, address: string,
 // Only for tokens read from the authenticated Telegram user's stored bindings.
 export const verifyTelegramBindingToken = async (c: Context<HonoCustomType>, token: string) => {
     const payload = await Jwt.verify(token, c.env.JWT_SECRET, { alg: 'HS256', exp: false });
-    const identity = payload.type === undefined || payload.type === 'telegram_binding'
-        ? await validateAddressPayload(c, payload)
-        : null;
+    if (payload.type !== undefined && payload.type !== 'telegram_binding'
+        && payload.type !== 'address_password_login') {
+        throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
+    }
+    const identity = await validateAddressIdentity(c, payload);
     if (!identity) throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
     return identity;
 };
@@ -140,11 +142,11 @@ export const unbindTelegramAddress = async (
 ): Promise<boolean> => {
     const msgs = i18n.getMessagesbyContext(c);
     const bindings = await getTelegramBindings(c, userId);
-    for (const { payload } of bindings) {
+    for (const { jwt, payload } of bindings) {
         if (payload?.address !== address) continue;
         if (payload.type !== undefined && payload.type !== 'telegram_binding') continue;
         try {
-            if (!await validateAddressPayload(c, payload)) continue;
+            await verifyTelegramBindingToken(c, jwt);
         } catch (e) {
             console.log(`Failed to validate Telegram binding: ${(e as Error).message}`);
             continue;

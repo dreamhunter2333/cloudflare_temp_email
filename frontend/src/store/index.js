@@ -42,6 +42,7 @@ export const useGlobalState = createGlobalState(
             showGithubForUser: true,
             disableAdminPasswordCheck: false,
             enableAddressPassword: false,
+            addressPasswordLoginOnly: false,
             enableAgentEmailInfo: false,
             enableRedeemCode: false,
             redeemCodeUrl: '',
