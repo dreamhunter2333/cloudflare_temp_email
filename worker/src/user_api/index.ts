@@ -7,7 +7,6 @@ import passkey from './passkey';
 import oauth2 from './oauth2';
 import user_mail_api from './user_mail_api';
 import user_send_mail_api from './user_send_mail_api';
-import { resetBoundAddressPassword } from './address_password';
 
 export const api = new Hono<HonoCustomType>();
 
@@ -39,7 +38,7 @@ api.post('/user_api/oauth2/callback', oauth2.oauth2Login);
 api.get('/user_api/bind_address', bind_address.getBindedAddresses);
 api.post('/user_api/bind_address', bind_address.bind);
 api.get('/user_api/bind_address_jwt/:address_id', bind_address.getBindedAddressJwt);
-api.post('/user_api/address/:address_id/reset_password', resetBoundAddressPassword);
+api.post('/user_api/address/:address_id/reset_password', bind_address.resetPassword);
 api.post('/user_api/unbind_address', bind_address.unbind);
 api.post('/user_api/transfer_address', bind_address.transferAddress);
 
