@@ -165,7 +165,6 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             text: '高级功能',
             collapsed: false,
             items: [
-                { text: '邮箱密码登录', link: 'feature/mailbox-password-login' },
                 { text: 'AI 邮件识别', link: 'feature/ai-extract' },
                 { text: '配置子域名邮箱', link: 'feature/subdomain' },
                 { text: '配置 S3 附件', link: 'feature/s3-attachment' },

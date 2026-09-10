@@ -2,10 +2,6 @@
 
 试用地址：[@cf_temp_mail_bot](https://t.me/cf_temp_mail_bot)
 
-::: info 邮箱登录与绑定
-Telegram 内部绑定使用不过期 token，网页邮箱登录 JWT 单独签发和续期。详见[邮箱密码登录](./mailbox-password-login#telegram-绑定)。
-:::
-
 ::: warning 注意
 worker 默认的 `worker.dev` 域名的证书是不被 telegram 支持的，配置 Telegram Bot 请使用自定义域名
 :::

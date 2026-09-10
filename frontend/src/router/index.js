@@ -4,7 +4,6 @@ import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
-import { api } from '../api'
 import {
     DEFAULT_LOCALE,
     getBrowserLocales,
@@ -13,7 +12,7 @@ import {
     resolveSupportedLocale,
 } from '../i18n/utils'
 
-const { jwt, preferredLocale, openSettings } = useGlobalState()
+const { jwt, preferredLocale } = useGlobalState()
 
 const router = createRouter({
     history: createWebHistory(),
@@ -56,7 +55,7 @@ const router = createRouter({
     ]
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach((to, from, next) => {
     const routeLocale = resolveSupportedLocale(to.path.split('/')[1])
     const resolvedLocale = routeLocale || DEFAULT_LOCALE
     i18n.global.locale.value = resolvedLocale
@@ -70,12 +69,7 @@ router.beforeEach(async (to, from, next) => {
     if (Object.prototype.hasOwnProperty.call(to.query, 'jwt')) {
         const jwtQuery = Array.isArray(to.query.jwt) ? to.query.jwt[0] : to.query.jwt
         if (typeof jwtQuery === 'string') {
-            try {
-                const config = openSettings.value.fetched ? openSettings.value : await api.fetch('/open_api/settings');
-                if (!config.addressPasswordLoginOnly) jwt.value = jwtQuery;
-            } catch {
-                // Do not import a login link until the server policy is known.
-            }
+            jwt.value = jwtQuery
         }
         const query = { ...to.query }
         delete query.jwt
