@@ -2,10 +2,6 @@
 
 Try it here: [@cf_temp_mail_bot](https://t.me/cf_temp_mail_bot)
 
-::: info Mailbox login and bindings
-Telegram uses non-expiring internal binding tokens. Web mailbox login JWTs are issued and renewed separately. See [mailbox password login](./mailbox-password-login#telegram-bindings).
-:::
-
 ::: warning Note
 The default `worker.dev` domain certificate for worker is not supported by Telegram. Please use a custom domain when configuring Telegram Bot.
 :::
