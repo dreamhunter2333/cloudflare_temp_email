@@ -118,3 +118,5 @@
 ```
 
 启用 AI 邮件内容提取后，Webhook 模板可使用 `aiExtractType`、`aiExtractResult`、`aiExtractResultText` 占位符。未提取到结果时这些字段为空字符串。
+
+点击“测试”会弹出选择框：默认随机选择邮件，也可以选择“指定 ID”并输入邮件 ID。指定邮件不存在时会报错，不会回退随机；邮箱页面只能使用当前邮箱的邮件，管理员页面可指定任意邮件。现有测试接口 `/api/webhook/test` 和 `/admin/mail_webhook/test` 的请求 Body 支持可选正整数 `mail_id`，不传则沿用随机逻辑。页面仅在测试请求中传入该参数，不会保存到 Webhook 配置。

@@ -1,4 +1,9 @@
 export const deMessages = {
+  "components.WebhookComponent.randomMail": "Zufällige E-Mail",
+  "components.WebhookComponent.specifiedMail": "ID angeben",
+  "components.WebhookComponent.mailId": "E-Mail-ID",
+  "components.WebhookComponent.invalidMailId": "Gib eine gültige positive ganze Zahl als E-Mail-ID ein",
+  "components.WebhookComponent.cancel": "Abbrechen",
   "views.index.SendMail.balanceUnavailable": "Kein Sendeguthaben für diese Adresse",
   "views.index.SendMail.composeMail": "E-Mail verfassen",
   "views.index.SendMail.contentPlaceholder": "Nachricht schreiben...",

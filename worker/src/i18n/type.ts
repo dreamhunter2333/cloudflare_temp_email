@@ -1,4 +1,7 @@
 export type LocaleMessages = {
+    InvalidRequestBodyMsg: string
+    InvalidMailIdMsg: string
+    MailNotFoundMsg: string
     CustomAuthPasswordMsg: string
     UserTokenExpiredMsg: string
     UserAcceesTokenExpiredMsg: string

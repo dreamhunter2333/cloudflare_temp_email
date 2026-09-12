@@ -1,4 +1,9 @@
 export const jaMessages = {
+  "components.WebhookComponent.randomMail": "ランダムなメール",
+  "components.WebhookComponent.specifiedMail": "ID を指定",
+  "components.WebhookComponent.mailId": "メール ID",
+  "components.WebhookComponent.invalidMailId": "有効な正の整数のメール ID を入力してください",
+  "components.WebhookComponent.cancel": "キャンセル",
   "views.index.SendMail.balanceUnavailable": "このアドレスには送信残高がありません",
   "views.index.SendMail.composeMail": "メールを作成",
   "views.index.SendMail.contentPlaceholder": "メッセージを入力...",

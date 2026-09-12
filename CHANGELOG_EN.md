@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Webhook| Support random or specified email IDs in the test dialog, with request-body validation, mailbox ownership checks, existing UI languages and Chinese/English errors
 - feat: |Worker| Add `DISABLE_ADDRESS_UPDATED_AT` to disable individual and user-wide address activity keep-alive updates and built-in manual/scheduled inactive-address cleanup, reducing D1 writes
 - feat: |Frontend| Add the `VITE_DEFAULT_LANG` build variable and support overriding frontend settings through runtime configuration in `index.html`
 - feat: |Redemption Codes| Add role, sending-credit and custom-mailbox redemption with Admin management, concurrency protection and form validation

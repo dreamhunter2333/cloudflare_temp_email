@@ -1,4 +1,9 @@
 export const ptBRMessages = {
+  "components.WebhookComponent.randomMail": "E-mail aleatório",
+  "components.WebhookComponent.specifiedMail": "Especificar ID",
+  "components.WebhookComponent.mailId": "ID do e-mail",
+  "components.WebhookComponent.invalidMailId": "Digite um ID de e-mail válido que seja um número inteiro positivo",
+  "components.WebhookComponent.cancel": "Cancelar",
   "views.index.SendMail.balanceUnavailable": "Sem saldo de envio para este endereço",
   "views.index.SendMail.composeMail": "Escrever e-mail",
   "views.index.SendMail.contentPlaceholder": "Escreva sua mensagem...",
