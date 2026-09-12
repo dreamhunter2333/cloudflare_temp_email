@@ -4,6 +4,7 @@ import { WebhookSettings, RawMailRow } from "../models";
 import { commonParseMail, sendWebhook } from "../common";
 import { resolveRawEmail } from "../gzip";
 import i18n from "../i18n";
+import { getWebhookAttachments } from '../utils/webhook';
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.env.KV.get<WebhookSettings>(
@@ -43,6 +44,7 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
     const parsedEmail = await commonParseMail(parsedEmailContext);
     const res = await sendWebhook(settings, {
+        attachments: await getWebhookAttachments(c.env, mailRow, parsedEmail?.attachments),
         id: mailId || "0",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
         from: parsedEmail?.sender || "test@test.com",

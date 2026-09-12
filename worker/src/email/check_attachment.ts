@@ -48,4 +48,8 @@ export const remove_attachment_if_need = async (
         });
     }
     parsedEmailContext.rawEmail = msg.asRaw();
+    parsedEmailContext.parsedEmail = {
+        ...parsedEmail,
+        attachments: [],
+    };
 }

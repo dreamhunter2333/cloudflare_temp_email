@@ -18,6 +18,7 @@ ENABLE_ADDRESS_PASSWORD = true
 DISABLE_ADMIN_PASSWORD_CHECK = true
 ADMIN_PASSWORDS = '["e2e-admin-pass"]'
 ENABLE_WEBHOOK = true
+BACKEND_URL = "http://worker-gzip:8788"
 ENABLE_MAIL_GZIP = true
 SMTP_CONFIG = """
 {"test.example.com":{"host":"mailpit","port":1025,"secure":false}}

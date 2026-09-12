@@ -4,6 +4,7 @@ import utils from './utils';
 import { CONSTANTS } from './constants';
 import { isS3Enabled } from './mails_api/s3_attachment';
 import { isAnySendMailEnabled } from './common';
+import { getWebhookAttachment } from './open_api/webhook_attachment';
 
 const api = new Hono<HonoCustomType>
 
@@ -71,5 +72,7 @@ api.get('/open_api/settings', async (c) => {
         "enableGlobalTurnstileCheck": utils.isGlobalTurnstileEnabled(c)
     });
 })
+
+api.get('/open_api/a/:mail_id/:index/:expires/:signature', getWebhookAttachment)
 
 export { api }
