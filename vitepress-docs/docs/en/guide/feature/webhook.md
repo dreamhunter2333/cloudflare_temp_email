@@ -118,3 +118,5 @@ To get the url, you need to configure the worker's `FRONTEND_URL` to your fronte
 ```
 
 When AI email extraction is enabled, webhook templates can use the `aiExtractType`, `aiExtractResult`, and `aiExtractResultText` placeholders. They are empty strings when no extraction result is available.
+
+Click **Test** to choose a random email (default) or specify an email ID. Missing specified emails return an error without falling back to a random email. Mailbox tests can only use that mailbox's emails; administrators can select any email. The existing `/api/webhook/test` and `/admin/mail_webhook/test` endpoints accept an optional positive integer `mail_id` in the request body. Omitting it preserves random selection. The UI sends this field only for testing, without saving it in the Webhook configuration.

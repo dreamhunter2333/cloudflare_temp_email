@@ -1,5 +1,10 @@
 export const MESSAGE_REGISTRY = {
   "components.WebhookComponent": {
+    "randomMail": { "en": "Random email", "zh": "随机邮件" },
+    "specifiedMail": { "en": "Specify ID", "zh": "指定 ID" },
+    "mailId": { "en": "Email ID", "zh": "邮件 ID" },
+    "invalidMailId": { "en": "Enter a valid positive integer email ID", "zh": "请输入有效的正整数邮件 ID" },
+    "cancel": { "en": "Cancel", "zh": "取消" },
     "enable": {
       "en": "Enable",
       "zh": "启用"

@@ -1,6 +1,9 @@
 import { LocaleMessages } from "./type";
 
 const messages: LocaleMessages = {
+    InvalidRequestBodyMsg: "Invalid request body",
+    InvalidMailIdMsg: "Invalid mail ID",
+    MailNotFoundMsg: "Mail not found",
     CustomAuthPasswordMsg: "You have enabled the private site password, please provide the password",
     UserTokenExpiredMsg: "Your token has expired, please login again",
     UserAcceesTokenExpiredMsg: "Your access token has expired, please refresh the page",

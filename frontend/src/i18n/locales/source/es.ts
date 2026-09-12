@@ -1,4 +1,9 @@
 export const esMessages = {
+  "components.WebhookComponent.randomMail": "Correo aleatorio",
+  "components.WebhookComponent.specifiedMail": "Especificar ID",
+  "components.WebhookComponent.mailId": "ID del correo",
+  "components.WebhookComponent.invalidMailId": "Introduce un ID de correo válido que sea un entero positivo",
+  "components.WebhookComponent.cancel": "Cancelar",
   "views.index.SendMail.balanceUnavailable": "No hay saldo de envío para esta dirección",
   "views.index.SendMail.composeMail": "Redactar correo",
   "views.index.SendMail.contentPlaceholder": "Escribe tu mensaje...",
