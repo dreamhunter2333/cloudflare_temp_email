@@ -5,14 +5,15 @@ import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { hashPassword } from '../../utils'
+import { hashPassword, utcToLocalDate } from '../../utils'
 import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 const {
     loading, adminTab, openSettings,
-    adminMailTabAddress, adminSendBoxTabAddress
+    adminMailTabAddress, adminSendBoxTabAddress,
+    useUTCDate
 } = useGlobalState()
 const message = useMessage()
 
@@ -274,13 +275,19 @@ const columns = computed(() => [
         title: t('created_at'),
         key: "created_at",
         sorter: true,
-        sortOrder: sortBy.value === 'created_at' ? sortOrder.value : false
+        sortOrder: sortBy.value === 'created_at' ? sortOrder.value : false,
+        render(row) {
+            return utcToLocalDate(row.created_at, useUTCDate.value);
+        }
     },
     {
         title: t('updated_at'),
         key: "updated_at",
         sorter: true,
-        sortOrder: sortBy.value === 'updated_at' ? sortOrder.value : false
+        sortOrder: sortBy.value === 'updated_at' ? sortOrder.value : false,
+        render(row) {
+            return utcToLocalDate(row.updated_at, useUTCDate.value);
+        }
     },
     {
         title: t('source_meta'),
