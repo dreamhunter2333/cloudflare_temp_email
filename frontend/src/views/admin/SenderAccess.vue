@@ -4,8 +4,9 @@ import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import { utcToLocalDate } from '../../utils';
 
-const { loading } = useGlobalState()
+const { loading, useUTCDate } = useGlobalState()
 const message = useMessage()
 
 const { t } = useScopedI18n('views.admin.SenderAccess')
@@ -70,7 +71,10 @@ const columns = [
   },
   {
     title: t('created_at'),
-    key: "created_at"
+    key: "created_at",
+    render(row) {
+      return utcToLocalDate(row.created_at, useUTCDate.value);
+    }
   },
   {
     title: t('balance'),
