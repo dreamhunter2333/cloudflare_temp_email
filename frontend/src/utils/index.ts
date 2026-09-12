@@ -19,7 +19,8 @@ export const getRouterPathWithLang = (path: string, lang: string) => {
     return getPathWithLocale(path, normalizedLang);
 }
 
-export const utcToLocalDate = (utcDate: string, useUTCDate: boolean) => {
+export const utcToLocalDate = (utcDate: string | null | undefined, useUTCDate: boolean) => {
+    if (!utcDate) return '';
     const utcDateString = `${utcDate} UTC`;
     if (useUTCDate) {
         return utcDateString;
