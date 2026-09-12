@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Mailbox Login| Add a password-only switch that rejects legacy credentials, 30-day mailbox login JWTs renewed with less than 7 days remaining, and password reset for bound mailboxes
 - feat: |Worker| Add `DISABLE_ADDRESS_UPDATED_AT` to disable individual and user-wide address activity keep-alive updates and built-in manual/scheduled inactive-address cleanup, reducing D1 writes
 - feat: |Frontend| Add the `VITE_DEFAULT_LANG` build variable and support overriding frontend settings through runtime configuration in `index.html`
 - feat: |Redemption Codes| Add role, sending-credit and custom-mailbox redemption with Admin management, concurrency protection and form validation
@@ -21,6 +22,7 @@
 
 ### Bug Fixes
 
+- fix: |Mailbox Login| Cache both login methods using backend settings without decoding JWTs in the frontend; use non-expiring Telegram binding tokens independently of web mailbox login JWTs
 - fix: |Mailbox Auth| Fix stale mailbox credentials retaining API access, unauthorized Telegram unbinding, ineffective rebinding and credential storage in external sent mail; distinguish authentication errors to prompt for site and Admin login correctly; move E2E test endpoints out of production code
 - fix: |Frontend| Remove unsupported `data-onload` and `data-onerror` attributes from the AdSense script
 - fix: |Admin| Avoid briefly showing the Admin password dialog before access settings finish loading

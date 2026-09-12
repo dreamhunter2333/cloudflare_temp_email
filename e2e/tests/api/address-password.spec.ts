@@ -30,6 +30,10 @@ test.describe('Address Password Login', () => {
         headers: { Authorization: `Bearer ${loginBody.jwt}` },
       });
       expect(settingsRes.ok()).toBe(true);
+      const settings = await settingsRes.json();
+      expect(settings.type).toBe('address_password_login');
+      expect(settings.exp - settings.iat).toBe(30 * 24 * 60 * 60);
+      expect(settings.new_address_token).toBeNull();
     } finally {
       await deleteAddress(request, jwt);
     }
@@ -160,6 +164,46 @@ test.describe('Address Password Login', () => {
       const listedAddress = listBody.results.find((row: { name: string }) => row.name === address);
       expect(listedAddress).toBeTruthy();
       expect(listedAddress).not.toHaveProperty('password');
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
+
+  test('users can reset a mailbox password only while it is bound to them', async ({ request }) => {
+    const { jwt, address, address_id } = await createTestAddress(request, 'pwd-user-reset');
+    const email = `pwd-reset-user-${Date.now()}@test.example.com`;
+    const password = hashPassword('password-reset-user');
+    const newPassword = hashPassword('replacement-mailbox-password');
+    try {
+      const enable = await request.post(`${WORKER_URL}/admin/user_settings`, {
+        data: { enable: true, enableMailVerify: false },
+      });
+      expect(enable.ok()).toBe(true);
+      const register = await request.post(`${WORKER_URL}/user_api/register`, { data: { email, password } });
+      expect(register.ok()).toBe(true);
+      const login = await request.post(`${WORKER_URL}/user_api/login`, { data: { email, password } });
+      expect(login.ok()).toBe(true);
+      const { jwt: userJwt } = await login.json();
+      const headers = { 'x-user-token': userJwt };
+      const reset = (value = newPassword) => request.post(`${WORKER_URL}/user_api/address/${address_id}/reset_password`, {
+        headers, data: { new_password: value },
+      });
+      expect((await reset()).status()).toBe(403);
+      const bind = await request.post(`${WORKER_URL}/user_api/bind_address`, {
+        headers: { ...headers, Authorization: `Bearer ${jwt}` },
+      });
+      expect(bind.ok()).toBe(true);
+      expect((await reset('plaintext')).status()).toBe(400);
+      expect((await reset()).ok()).toBe(true);
+      const mailboxLogin = await request.post(`${WORKER_URL}/api/address_login`, {
+        data: { email: address, password: newPassword },
+      });
+      expect(mailboxLogin.ok()).toBe(true);
+      const unbind = await request.post(`${WORKER_URL}/user_api/unbind_address`, {
+        headers, data: { address_id },
+      });
+      expect(unbind.ok()).toBe(true);
+      expect((await reset()).status()).toBe(403);
     } finally {
       await deleteAddress(request, jwt);
     }

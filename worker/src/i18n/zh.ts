@@ -49,6 +49,7 @@ const messages: LocaleMessages = {
     NewPasswordRequiredMsg: "新密码不能为空",
     InvalidAddressTokenMsg: "无效的地址令牌",
     FailedUpdatePasswordMsg: "更新密码失败",
+    CredentialLoginDisabledMsg: "仅允许邮箱密码登录，凭据登录已禁用",
     PasswordLoginDisabledMsg: "密码登录已禁用",
     EmailPasswordRequiredMsg: "邮箱和密码不能为空",
     AddressNotFoundMsg: "邮箱地址不存在",

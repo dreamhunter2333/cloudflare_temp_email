@@ -6,12 +6,12 @@ import { NBadge, NPopconfirm, NButton } from 'naive-ui'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { getRouterPathWithLang } from '../../utils'
+import { getRouterPathWithLang, hashPassword } from '../../utils'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 import Login from '../common/Login.vue';
 
-const { jwt } = useGlobalState()
+const { jwt, openSettings, loading } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
 
@@ -29,6 +29,43 @@ const targetUserEmail = ref('')
 const showAddressCredential = ref(false)
 const currentAddressCredential = ref('')
 const credentialAddress = ref('')
+const passwordResetAddress = ref(null)
+const newPassword = ref('')
+const confirmPassword = ref('')
+const isResettingPassword = ref(false)
+const { t: accountSettingsT } = useScopedI18n('views.index.AccountSettings')
+
+const clearPasswordResetForm = () => {
+    passwordResetAddress.value = null;
+    newPassword.value = '';
+    confirmPassword.value = '';
+}
+
+const resetBoundAddressPassword = async () => {
+    if (!passwordResetAddress.value || isResettingPassword.value) return;
+    if (!newPassword.value) {
+        message.error(t('newPasswordRequired'));
+        return;
+    }
+    if (newPassword.value !== confirmPassword.value) {
+        message.error(accountSettingsT('passwordMismatch'));
+        return;
+    }
+    isResettingPassword.value = true;
+    try {
+        await api.fetch(`/user_api/address/${passwordResetAddress.value.id}/reset_password`, {
+            method: 'POST',
+            body: JSON.stringify({ new_password: await hashPassword(newPassword.value) }),
+        });
+        message.success(accountSettingsT('passwordChanged'));
+        clearPasswordResetForm();
+    } catch (error) {
+        message.error(error.message || 'error');
+    } finally {
+        isResettingPassword.value = false;
+    }
+}
+
 
 const showCredential = async (row) => {
     try {
@@ -161,14 +198,26 @@ const columns = [
         key: 'actions',
         render(row) {
             return h('div', [
-                h(NButton,
+                !openSettings.value.addressPasswordLoginOnly ? h(NButton,
                     {
                         tertiary: true,
                         type: "primary",
                         onClick: () => showCredential(row)
                     },
                     { default: () => credentialT('addressCredential') }
-                ),
+                ) : null,
+                openSettings.value.enableAddressPassword ? h(NButton,
+                    {
+                        tertiary: true,
+                        type: 'warning',
+                        onClick: () => {
+                            newPassword.value = '';
+                            confirmPassword.value = '';
+                            passwordResetAddress.value = row;
+                        },
+                    },
+                    { default: () => t('resetPassword') }
+                ) : null,
                 h(NPopconfirm,
                     {
                         onPositiveClick: () => changeMailAddress(row.id)
@@ -208,7 +257,7 @@ const columns = [
                             },
                             { default: () => t('unbindAddress') }
                         ),
-                        default: () => t('unbindAddressTip')
+                        default: () => t(openSettings.value.addressPasswordLoginOnly ? 'unbindPasswordTip' : 'unbindAddressTip')
                     }
                 ),
             ])
@@ -227,6 +276,23 @@ watch([page, pageSize], async () => {
 
 <template>
     <div>
+        <n-modal :show="!!passwordResetAddress" @update:show="show => { if (!show && !isResettingPassword) clearPasswordResetForm() }"
+            preset="dialog" :title="t('resetPassword')" :mask-closable="!isResettingPassword" :closable="!isResettingPassword">
+            <p>{{ passwordResetAddress?.name }}</p>
+            <p>{{ t('resetPasswordTip') }}</p>
+            <n-form @submit.prevent="resetBoundAddressPassword">
+                <n-form-item :label="accountSettingsT('newPassword')">
+                    <n-input v-model:value="newPassword" type="password" show-password-on="click" :disabled="isResettingPassword" />
+                </n-form-item>
+                <n-form-item :label="accountSettingsT('confirmPassword')">
+                    <n-input v-model:value="confirmPassword" type="password" show-password-on="click"
+                        :disabled="isResettingPassword" @keyup.enter="resetBoundAddressPassword" />
+                </n-form-item>
+            </n-form>
+            <template #action>
+                <n-button type="warning" :loading="isResettingPassword" @click="resetBoundAddressPassword">{{ t('resetPassword') }}</n-button>
+            </template>
+        </n-modal>
         <AddressCredentialModal v-model:show="showAddressCredential" :address="credentialAddress"
             :jwt="currentAddressCredential" />
         <n-modal v-model:show="showTranferAddress" preset="dialog" :title="t('transferAddress')">

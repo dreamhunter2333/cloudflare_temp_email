@@ -2,6 +2,10 @@ import { Context } from "hono";
 import { UserSettings, RoleAddressConfig } from "./models";
 import { CONSTANTS } from "./constants";
 
+export const isAddressPasswordLoginOnly = (c: Context<HonoCustomType>): boolean =>
+    getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)
+    && getBooleanValue(c.env.ADDRESS_PASSWORD_LOGIN_ONLY);
+
 export const getJsonObjectValue = <T = any>(
     value: string | any
 ): T | null => {

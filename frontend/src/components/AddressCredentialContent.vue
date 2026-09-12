@@ -98,10 +98,10 @@ const copyText = async (text) => {
 <template>
   <div class="credential-content">
     <n-alert type="info" :show-icon="false" :bordered="false">
-      {{ t('tip') }}
+      {{ t(openSettings.addressPasswordLoginOnly ? 'passwordOnlyTip' : 'tip') }}
     </n-alert>
     <section class="credential-panel">
-      <h3 class="credential-title">{{ t('addressCredential') }}</h3>
+      <h3 class="credential-title">{{ t(openSettings.addressPasswordLoginOnly ? 'addressPassword' : 'addressCredential') }}</h3>
       <div class="credential-section">
         <div v-if="address" class="credential-field">
           <span class="credential-label">{{ t('currentAddress') }}</span>
@@ -112,7 +112,7 @@ const copyText = async (text) => {
             </n-button>
           </div>
         </div>
-        <div class="credential-field">
+        <div v-if="!openSettings.addressPasswordLoginOnly" class="credential-field">
           <span class="credential-label">{{ t('addressCredentialLabel') }}</span>
           <div class="credential-copy-row">
             <code data-testid="address-credential-jwt" class="credential-code">{{ jwt }}</code>
@@ -128,7 +128,7 @@ const copyText = async (text) => {
       </div>
     </section>
 
-    <n-collapse accordion class="credential-collapse">
+    <n-collapse v-if="!openSettings.addressPasswordLoginOnly" accordion class="credential-collapse">
       <n-collapse-item v-if="showAgent" name="agent" :title="t('agentAccess')">
         <template #header-extra>
           <n-button size="tiny" tertiary type="primary" @click.stop="copyText(agentText)">

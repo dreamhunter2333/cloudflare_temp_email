@@ -49,6 +49,7 @@ const messages: LocaleMessages = {
     NewPasswordRequiredMsg: "New password is required",
     InvalidAddressTokenMsg: "Invalid address token",
     FailedUpdatePasswordMsg: "Failed to update password",
+    CredentialLoginDisabledMsg: "Mailbox password login is required; credential login is disabled",
     PasswordLoginDisabledMsg: "Password login is disabled",
     EmailPasswordRequiredMsg: "Email and password are required",
     AddressNotFoundMsg: "Address not found",

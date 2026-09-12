@@ -59,6 +59,7 @@ type Bindings = {
     ENABLE_USER_CREATE_EMAIL: string | boolean | undefined
     DISABLE_ANONYMOUS_USER_CREATE_EMAIL: string | boolean | undefined
     ENABLE_USER_DELETE_EMAIL: string | boolean | undefined
+    ADDRESS_PASSWORD_LOGIN_ONLY: string | boolean | undefined
     ENABLE_ADDRESS_PASSWORD: string | boolean | undefined
     ENABLE_AGENT_EMAIL_INFO: string | boolean | undefined
     ENABLE_REDEEM_CODE: string | boolean | undefined
@@ -125,10 +126,21 @@ type Bindings = {
     CLEANUP_BATCH_SIZE: string | number | undefined
 }
 
-type JwtPayload = {
+type AddressCredentialPayload = {
     address: string
     address_id: number
+    type?: never
 }
+
+type AddressPasswordLoginPayload = {
+    address: string
+    address_id: number
+    type: 'address_password_login'
+    iat: number
+    exp: number
+}
+
+type JwtPayload = AddressCredentialPayload | AddressPasswordLoginPayload
 
 type UserPayload = {
     user_email: string

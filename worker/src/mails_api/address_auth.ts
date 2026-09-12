@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import i18n from '../i18n';
-import utils, { getBooleanValue, hashPassword, checkCfTurnstile } from '../utils';
-import { Jwt } from 'hono/utils/jwt';
+import utils, { getBooleanValue, checkCfTurnstile } from '../utils';
+import { createAddressPasswordLoginToken } from '../address_auth';
 
 export default {
     // 修改地址密码
@@ -61,7 +61,7 @@ export default {
         // 查找地址
         const address = await c.env.DB.prepare(
             `SELECT * FROM address WHERE name = ?`
-        ).bind(email).first();
+        ).bind(email).first<{ id: number; name: string; password: string | null }>();
 
         if (!address) {
             return c.text(msgs.AddressNotFoundMsg, 404);
@@ -73,10 +73,7 @@ export default {
         }
 
         // 创建JWT
-        const jwt = await Jwt.sign({
-            address: address.name,
-            address_id: address.id
-        }, c.env.JWT_SECRET, "HS256");
+        const jwt = await createAddressPasswordLoginToken(c, address.name, address.id);
 
         return c.json({
             jwt: jwt,

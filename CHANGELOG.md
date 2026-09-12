@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |邮箱登录| 新增仅密码登录开关以禁用旧凭据，邮箱登录 JWT 有效期 30 天、低于 7 天自动续期，支持用户重置已绑定邮箱的密码
 - feat: |Worker| 新增 `DISABLE_ADDRESS_UPDATED_AT`，可关闭单地址及用户批量的主动保活刷新，并禁止内置手动及定时不活跃地址清理，降低 D1 写入量
 - feat: |Frontend| 新增 `VITE_DEFAULT_LANG` 构建变量，并支持通过 `index.html` 运行时配置覆盖前端设置
 - feat: |兑换码| 新增角色、发信额度及专属邮箱兑换与管理，完善并发保护和表单提示
@@ -21,6 +22,7 @@
 
 ### Bug Fixes
 
+- fix: |邮箱登录| 本地邮箱使用后端 settings 信息缓存两种登录方式，无需前端解码 JWT；Telegram 内部绑定使用不过期 token，与网页邮箱登录 JWT 分离
 - fix: |邮箱鉴权| 修复旧邮箱凭证仍可访问 API、Telegram 越权解绑、重新绑定失效及外部发信保存凭证的问题，区分认证错误以准确提示站点及管理员登录，并将 E2E 测试接口移出生产代码
 - fix: |Frontend| 修复 AdSense 脚本包含不受支持的 `data-onload` 和 `data-onerror` 属性
 - fix: |Admin| 修复权限设置加载完成前短暂显示管理员密码输入框的问题

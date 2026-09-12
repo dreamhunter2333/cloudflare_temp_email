@@ -1,5 +1,5 @@
 import { Context } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
+import { createAddressToken } from '../address_auth';
 
 import i18n from '../i18n'
 import { getBooleanValue } from '../utils'
@@ -134,11 +134,9 @@ const showPassword = async (c: Context<HonoCustomType>) => {
     const { id } = c.req.param();
     const name = await c.env.DB.prepare(
         `SELECT name FROM address WHERE id = ? `
-    ).bind(id).first("name");
-    const jwt = await Jwt.sign({
-        address: name,
-        address_id: id
-    }, c.env.JWT_SECRET, "HS256")
+    ).bind(id).first<string>("name");
+    if (!name) return c.text(i18n.getMessagesbyContext(c).AddressNotFoundMsg, 404);
+    const jwt = await createAddressToken(c, name, Number(id));
     return c.json({ jwt });
 };
 
