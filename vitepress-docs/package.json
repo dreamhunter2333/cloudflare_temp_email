@@ -4,9 +4,9 @@
   "version": "1.13.0",
   "type": "module",
   "devDependencies": {
-    "@types/node": "^26.4.1",
+    "@types/node": "^26.5.1",
     "vitepress": "^1.6.4",
-    "wrangler": "^4.129.0"
+    "wrangler": "^4.131.1"
   },
   "scripts": {
     "dev": "vitepress dev docs",
@@ -15,7 +15,7 @@
     "deploy": "npm run build && wrangler pages deploy ./docs/.vitepress/dist --project-name=temp-mail-docs --branch production"
   },
   "dependencies": {
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.2"
   },
   "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
 }
