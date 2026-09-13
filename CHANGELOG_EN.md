@@ -14,7 +14,7 @@
 
 ### Improvements
 
-- docs: |Release| Check database migrations in the release skill and require dedicated bilingual upgrade steps and data-impact notes
+- docs: |Release| Check database migrations and add three bilingual feature sub-bullets for switches, database upgrades and behavior, identifying optional migrations
 
 ## v1.12.0
 

@@ -5,14 +5,12 @@ Release notes body 使用以下格式，内容从 CHANGELOG.md 的对应版本�
 ```markdown
 ## What's Changed
 
-### 数据库变更
-
-- |功能名称| 说明受影响的表、字段或索引，以及对应迁移。对于已验证可选的迁移，明确写出“仅在使用此功能时需要执行；不使用此功能可跳过，后续启用前再执行”。基础功能必需的迁移应另行明确标注。按执行顺序链接到本次发布标签下的迁移文件；仅在验证支持后提供 Admin 数据库更新按钮作为替代方式。
-- |数据影响| 根据 SQL 说明是否保留、改写或删除已有数据；提醒升级前备份、不要重复执行非幂等迁移，并区分新安装与已有数据库升级。
-
 ### Features
 
 - feat: |模块| 描述
+  - 功能开关：设置对应环境变量开启。
+  - 数据库变更：执行对应迁移 SQL，或在已验证的 Admin 数据库页面升级；可选功能不使用时可跳过。
+  - 功能说明：简述启用后的行为。
 
 ### Bug Fixes
 
@@ -29,12 +27,14 @@ Release notes body 使用以下格式，内容从 CHANGELOG.md 的对应版本�
 <details>
 <summary>English</summary>
 
-### Database Changes
+### Features
 
-- |Feature name| Describe affected tables, columns or indexes and the corresponding migration. For verified optional migrations, explicitly state: "Required only when using this feature; otherwise, you can skip it and apply it before enabling the feature later." Separately identify migrations required for normal operation. Link migrations at the release tag in execution order; mention the Admin database-update button only if verified to support them.
-- |Data impact| Explain whether existing data is preserved, rewritten or deleted based on the SQL. Advise backing up, avoiding repeated non-idempotent migrations, and distinguish fresh installations from upgrades.
+- feat: |Module| Description
+  - Feature switch: Set the corresponding environment variable to enable it.
+  - Database changes: Apply the migration SQL or use the verified Admin database-upgrade action; skip it if the optional feature is unused.
+  - Functionality: Briefly describe the enabled behavior.
 
-<!-- Copy the matching English changelog sections here. -->
+<!-- Copy the remaining matching English changelog sections here. -->
 
 </details>
 
@@ -53,7 +53,7 @@ Release notes body 使用以下格式，内容从 CHANGELOG.md 的对应版本�
 ## Notes
 
 - Sections without entries should be omitted
-- Database upgrade notes belong in standalone 数据库变更 / Database Changes sections before Features, not only in feature bullets or under Breaking Changes. Replace the template guidance with verified release-specific instructions; omit it when no database changes exist.
+- For features requiring migrations, use three concise sub-bullets under the feature: switch, database changes, functionality. Replace guidance with verified variables, release-tag-pinned SQL links and supported UI actions. Do not add a separate Database Changes section. Features without migrations do not need this format.
 - Verify whether each migration is optional or mandatory from actual feature dependencies. Preserve any separate Breaking Changes entries and provide matching Chinese and English upgrade notes.
 - PRs section uses `<details>` to collapse by default
 - PRs are sorted by PR number ascending
