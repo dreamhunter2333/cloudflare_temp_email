@@ -14,6 +14,8 @@
 
 ### Improvements
 
+- docs: |Release| Check database migrations in the release skill and require dedicated bilingual upgrade steps and data-impact notes
+
 ## v1.12.0
 
 ### Features

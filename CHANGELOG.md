@@ -14,6 +14,8 @@
 
 ### Improvements
 
+- docs: |发布| 发布 Skill 增加数据库迁移检查，并要求中英文 Release Notes 单独列出升级步骤与数据影响
+
 ## v1.12.0
 
 ### Features
