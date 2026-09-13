@@ -26,6 +26,7 @@ export class AdminWebhookSettings {
 export type WebhookMail = {
     id: string;
     url?: string;
+    attachments?: { filename: string, mimeType: string, url: string }[];
     from: string;
     to: string;
     subject: string;

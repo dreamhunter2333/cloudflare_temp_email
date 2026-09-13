@@ -128,6 +128,7 @@ When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. 
 | ---------------- | --------- | ------------------------------------------------- | ------------------ |
 | `ENABLE_WEBHOOK` | Text/JSON | Whether to enable webhook                         | `true`             |
 | `FRONTEND_URL`   | Text      | Frontend URL, used for sending webhook email URLs | `https://xxxx.xxx` |
+| `BACKEND_URL` | Text | Public backend base URL for signed attachment links; attachment URLs are empty when unset | `https://temp-email-api.example.com` |
 
 > [!NOTE]
 > Webhook functionality requires email parsing, free tier CPU is limited, may cause large email parsing timeout

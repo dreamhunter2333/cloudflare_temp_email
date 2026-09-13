@@ -123,6 +123,7 @@
 | ---------------- | --------- | ------------------------------------- | ------------------ |
 | `ENABLE_WEBHOOK` | 文本/JSON | 是否启用 webhook                      | `true`             |
 | `FRONTEND_URL`   | 文本      | 前端地址，用于发送 webhook 的邮件 url | `https://xxxx.xxx` |
+| `BACKEND_URL` | 文本 | 后端公网根地址，用于附件签名链接；未配置时附件 URL 为空 | `https://temp-email-api.example.com` |
 
 > [!NOTE]
 > webhook 功能需要解析邮件，免费版 CPU 有限，可能会导致大邮件解析超时

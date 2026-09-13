@@ -30,6 +30,8 @@ DISABLE_ADMIN_PASSWORD_CHECK = true
 ADMIN_USER_ROLE = "admin"
 ADMIN_PASSWORDS = '["e2e-admin-pass"]'
 ENABLE_WEBHOOK = true
+BACKEND_URL = "http://worker:8787/"
+REMOVE_EXCEED_SIZE_ATTACHMENT = true
 CLEANUP_BATCH_SIZE = 10
 SMTP_CONFIG = """
 {"TEST.EXAMPLE.COM":{"host":"mailpit","port":1025,"secure":false}}
