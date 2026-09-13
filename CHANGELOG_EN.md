@@ -14,8 +14,6 @@
 
 ### Improvements
 
-- docs: |Release| Check database migrations and add three bilingual feature sub-bullets for switches, database upgrades and behavior, identifying optional migrations
-
 ## v1.12.0
 
 ### Features
