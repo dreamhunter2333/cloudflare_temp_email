@@ -14,6 +14,8 @@
 
 ### Improvements
 
+- style: |Frontend| Compact the split-pane mail list with tighter spacing and truncated subjects and addresses, reducing wrapping in narrow lists and preserving space for message content
+
 ## v1.12.0
 
 ### Features
