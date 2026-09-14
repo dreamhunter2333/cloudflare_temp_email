@@ -31,8 +31,10 @@ test('keeps refresh unread and supports automatic and manual state changes', asy
     expect(mail.is_unread).toBe(1);
     await expect(page.locator('.mail-list-unread').filter({ hasText: subject })).toBeVisible();
 
+    const readUpdates = Array.from({ length: 3 }, () => Promise.withResolvers<void>());
+    const pendingReadUpdates = [...readUpdates];
     await page.route('**/api/mails/*/read', async route => {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await pendingReadUpdates.shift()!.promise;
       await route.continue();
     });
     const waitForReadUpdate = (isUnread: boolean) => page.waitForResponse(response =>
@@ -44,7 +46,10 @@ test('keeps refresh unread and supports automatic and manual state changes', asy
     await page.getByText(subject, { exact: true }).click();
     expect(await page.locator('.mail-list-unread').filter({ hasText: subject }).count()).toBe(0);
     expect(await page.locator('.n-spin-content--spinning').count()).toBe(0);
+    const more = page.getByRole('button', { name: 'More actions', exact: true });
+    await more.click();
     await expect(page.getByRole('button', { name: 'Mark as Unread' })).not.toHaveClass(/n-button--loading/);
+    readUpdates[0].resolve();
     expect((await readResponse).ok()).toBe(true);
     await expect(page.getByRole('button', { name: 'Mark as Unread' })).not.toHaveClass(/n-button--loading/);
 
@@ -52,7 +57,11 @@ test('keeps refresh unread and supports automatic and manual state changes', asy
     await page.getByRole('button', { name: 'Mark as Unread' }).click();
     expect(await page.locator('.mail-list-unread').filter({ hasText: subject }).count()).toBe(1);
     expect(await page.locator('.n-spin-content--spinning').count()).toBe(0);
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    await expect(more).toBeFocused();
+    await more.click();
     await expect(page.getByRole('button', { name: 'Mark as Read' })).toHaveClass(/n-button--loading/);
+    readUpdates[1].resolve();
     expect((await unreadResponse).ok()).toBe(true);
     await expect(page.getByRole('button', { name: 'Mark as Read' })).not.toHaveClass(/n-button--loading/);
 
@@ -60,7 +69,11 @@ test('keeps refresh unread and supports automatic and manual state changes', asy
     await page.getByRole('button', { name: 'Mark as Read' }).click();
     expect(await page.locator('.mail-list-unread').filter({ hasText: subject }).count()).toBe(0);
     expect(await page.locator('.n-spin-content--spinning').count()).toBe(0);
+    await expect(more).toHaveAttribute('aria-expanded', 'false');
+    await expect(more).toBeFocused();
+    await more.click();
     await expect(page.getByRole('button', { name: 'Mark as Unread' })).toHaveClass(/n-button--loading/);
+    readUpdates[2].resolve();
     expect((await manualReadResponse).ok()).toBe(true);
     await expect(page.getByRole('button', { name: 'Mark as Unread' })).not.toHaveClass(/n-button--loading/);
 

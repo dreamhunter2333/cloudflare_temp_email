@@ -1,4 +1,9 @@
 export const jaMessages = {
+  "components.MailContentRenderer.from": "差出人",
+  "components.MailContentRenderer.to": "宛先",
+  "components.MailContentRenderer.mailDetails": "メール詳細",
+  "components.MailContentRenderer.moreActions": "その他の操作",
+  "components.MailContentRenderer.more": "その他",
   "components.FilterEditor.hint": "条件なし：すべて一致",
   "components.FilterEditor.visual": "ビジュアル",
   "components.FilterEditor.invalid": "無効なルールです。構造・演算子・オプション・正規表現を確認してください。最大8階層・100ノードです。",
@@ -637,7 +642,7 @@ export const jaMessages = {
   "views.user.UserLogin.verifyCodeSent": "認証コードを送信しました, 有効期限 {timeout} 秒",
   "views.admin.AccountSettings.verified_address_list": "検証済みアドレス一覧 (cf internal api でメール送信可能)",
   "views.admin.UserSettings.verifyMailSender": "メール送信元を検証",
-  "components.MailContentRenderer.attachments": "添付ファイルを表示",
+  "components.MailContentRenderer.attachments": "添付ファイル",
   "views.admin.Account.viewMails": "メールを表示",
   "views.admin.Account.viewSendBox": "送信箱を表示",
   "views.user.UserLogin.waitforVerifyCode": "待機 {timeout} 秒",

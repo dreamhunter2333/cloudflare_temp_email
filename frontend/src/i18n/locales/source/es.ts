@@ -1,4 +1,9 @@
 export const esMessages = {
+  "components.MailContentRenderer.from": "De",
+  "components.MailContentRenderer.to": "Para",
+  "components.MailContentRenderer.mailDetails": "Detalles del correo",
+  "components.MailContentRenderer.moreActions": "Más acciones",
+  "components.MailContentRenderer.more": "Más",
   "components.FilterEditor.hint": "Sin condiciones: todo coincide",
   "components.FilterEditor.visual": "Visual",
   "components.FilterEditor.invalid": "Regla inválida: revisa la estructura, los operadores, las opciones y la expresión regular. Máximo 8 niveles y 100 nodos.",
@@ -637,7 +642,7 @@ export const esMessages = {
   "views.user.UserLogin.verifyCodeSent": "Código de verificación enviado, expira en {timeout} segundos",
   "views.admin.AccountSettings.verified_address_list": "Lista de direcciones verificadas (puede enviar correo mediante la API interna de cf)",
   "views.admin.UserSettings.verifyMailSender": "Verificar remitente de correo",
-  "components.MailContentRenderer.attachments": "Ver adjuntos",
+  "components.MailContentRenderer.attachments": "Adjuntos",
   "views.admin.Account.viewMails": "Ver correos",
   "views.admin.Account.viewSendBox": "Ver bandeja de salida",
   "views.user.UserLogin.waitforVerifyCode": "Espera {timeout} segundos",
