@@ -425,34 +425,30 @@ onBeforeUnmount(() => {
           </div>
         </template>
         <template #1>
-          <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
+          <div class="mail-list-scroll mail-list-compact">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="[mailItemClass(row), { 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }]">
                 <template #prefix v-if="multiActionMode">
-                  <n-checkbox v-model:checked="row.checked" />
+                  <n-checkbox v-model:checked="row.checked" @click.stop />
                 </template>
-                <n-thing :title="row.subject">
-                  <template #description>
-                    <n-tag type="info">
-                      ID: {{ row.id }}
-                    </n-tag>
-                    <n-tag type="info">
+                <div class="mail-summary">
+                  <div class="mail-summary-header">
+                    <n-ellipsis class="mail-summary-sender">{{ row.source }}</n-ellipsis>
+                    <n-ellipsis class="mail-summary-date">
                       {{ utcToLocalDate(row.created_at, useUTCDate) }}
-                    </n-tag>
-                    <n-tag type="info">
-                      <n-ellipsis style="max-width: 240px;">
-                        {{ showEMailTo ? "FROM: " + row.source : row.source }}
-                      </n-ellipsis>
-                    </n-tag>
-                    <n-tag v-if="showEMailTo" type="info">
-                      <n-ellipsis style="max-width: 240px;">
-                        TO: {{ row.address }}
-                      </n-ellipsis>
-                    </n-tag>
-                    <AiExtractInfo :metadata="row.metadata" compact />
-                  </template>
-                </n-thing>
+                    </n-ellipsis>
+                  </div>
+                  <div class="mail-summary-subject" :title="`ID: ${row.id}
+${row.subject || ''}`">
+                    <span v-if="enableMailReadStatus && row.is_unread === 1" class="mail-summary-unread-dot" />
+                    <n-ellipsis>{{ row.subject || '—' }}</n-ellipsis>
+                  </div>
+                  <n-ellipsis v-if="showEMailTo" class="mail-summary-recipient">
+                    TO: {{ row.address }}
+                  </n-ellipsis>
+                  <AiExtractInfo :metadata="row.metadata" compact />
+                </div>
               </n-list-item>
             </n-list>
           </div>
@@ -662,6 +658,69 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   min-height: 60vh;
   max-height: 100vh;
+}
+
+.mail-list-compact :deep(.n-list-item) {
+  height: auto;
+  padding: 8px 10px;
+}
+
+.mail-summary {
+  min-width: 0;
+  line-height: 20px;
+}
+
+.mail-summary-header,
+.mail-summary-subject {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mail-summary-sender {
+  flex: 1;
+  min-width: 0;
+}
+
+.mail-summary-date {
+  max-width: 48%;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.mail-summary-subject :deep(.n-ellipsis) {
+  min-width: 0;
+}
+
+.mail-summary-recipient {
+  display: block;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.mail-list-unread .mail-summary-sender,
+.mail-list-unread .mail-summary-subject {
+  font-weight: 700;
+}
+
+.mail-summary-unread-dot {
+  flex: 0 0 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2080f0;
+}
+
+.mail-summary :deep(.ai-extract-info) {
+  margin: 2px 0 0;
+}
+
+.mail-summary :deep(.n-tag) {
+  max-width: 100%;
+}
+
+.mail-summary :deep(.n-tag__content) {
+  min-width: 0;
 }
 
 .mail-list-thing,
