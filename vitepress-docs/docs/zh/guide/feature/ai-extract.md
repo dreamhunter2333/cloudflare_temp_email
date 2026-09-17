@@ -57,7 +57,7 @@
 
 ## AI 模式（ai）
 
-推荐使用 `@cf/meta/llama-3.1-8b-instruct-fast` 作为默认模型，它支持当前实现依赖的 JSON Mode，且 Cloudflare 说明 `-fast` 变体会保持可用。价格更低的 `@cf/meta/llama-3.1-8b-instruct-fp8-fast` 目前不在 JSON Mode 支持列表中，不建议用于本功能。Cloudflare 推荐的新模型 `@cf/zai-org/glm-4.7-flash` 适合多语言场景，但用于本功能前请先确认它在你的账号/区域支持结构化 JSON 输出。旧默认模型 `@cf/meta/llama-3.1-8b-instruct` 将于 2026-05-30 被 Cloudflare 弃用，不建议继续使用。
+推荐使用 `@cf/meta/llama-3.1-8b-instruct-fast` 作为默认模型，它支持当前实现依赖的 JSON Mode，且 Cloudflare 说明 `-fast` 变体会保持可用。价格更低的 `@cf/meta/llama-3.1-8b-instruct-fp8-fast` 目前不在 JSON Mode 支持列表中，不建议用于本功能。Cloudflare 推荐的新模型 `@cf/zai-org/glm-4.7-flash` 适合多语言场景，但用于本功能前请先确认它在你的账号/区域支持结构化 JSON 输出。旧默认模型 `@cf/meta/llama-3.1-8b-instruct` 已于 2026-05-30 被 Cloudflare 弃用，不建议继续使用。
 
 ### 内容长度限制
 

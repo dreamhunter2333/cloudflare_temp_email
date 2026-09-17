@@ -102,13 +102,26 @@ const PATTERNS: RegExp[] = [
     new RegExp(`${KW}[^\\n\\d]{0,60}\\n\\s{0,8}${OPEN}${ANY_CODE}${CLOSE}[ \\t]{0,8}(?:\\n|$)`, 'giu'),
 ];
 
-// Words suggesting the mail is about verification; gate for the fallback patterns.
-// Generic words like "sign in" are deliberately excluded: they appear in most mail footers.
-const VERIFY_CONTEXT = new RegExp(
-    `${KW}|verif|confirm|authenticat|authori[sz]|two[\\s-]?factor|\\b2FA\\b|`
-    + '验证|驗證|校验|認証|인증|подтвержд|bestätig|vérif|verifica',
-    'iu'
-);
+// Phrases showing the mail asks the recipient to verify something; gate for the fallback patterns.
+// Single words like "confirm", "verified" or "sign in" are deliberately not enough: they also
+// appear in order confirmations, payment notices and most mail footers.
+const VERIFY_TARGET = '(?:e-?mail(?:\\s{1,3}address)?|account|identity|registration|sign[\\s-]?(?:in|up)|log[\\s-]?in|device)';
+const VERIFY_CONTEXT = new RegExp([
+    KW,
+    // "verify your email" / "confirm your account" / "authorize this transaction"
+    `\\b(?:verify|confirm|activate|validate)\\s{1,3}(?:(?:your|this|the)\\s{1,3})?${VERIFY_TARGET}`,
+    `\\b(?:e-?mail|account|identity|log[\\s-]?in|sign[\\s-]?in)\\s{1,3}(?:verification|confirmation|authentication)`,
+    '\\bauthori[sz]e\\s{1,3}(?:(?:this|the|your)\\s{1,3})?(?:transaction|payment|login|sign[\\s-]?in|request|device)',
+    '\\btwo[\\s-]?factor\\b|\\b2FA\\b',
+    // zh / ja / ko
+    '验证(?:您|你)?的?(?:邮箱|账号|帐号|账户|身份)|(?:邮箱|账号|帐号|身份|登录)验证|驗證(?:您|你)?的?(?:信箱|帳號|身分|身份)',
+    '認証|인증',
+    // ru / de / fr / es / pt / it
+    'подтверд\\p{L}{0,20}\\s{1,3}(?:ваш\\p{L}{0,6}\\s{1,3})?(?:почт|e-?mail|аккаунт|учётн|учетн|вход|личност)',
+    '(?:bestätigen|verifizieren)\\s{1,3}sie\\s{1,3}ihre\\s{1,3}(?:e-?mail|konto|identität)|(?:e-?mail|konto)[\\s-]?(?:adresse\\s{1,3})?(?:bestätigung|verifizierung)',
+    'v[ée]rifi(?:er|ez)\\s{1,3}votre\\s{1,3}(?:adresse|e-?mail|compte|identit[ée])',
+    'verific\\p{L}{0,20}\\s{1,3}(?:(?:tu|su|seu|sua|il\\s{1,3}tuo|la\\s{1,3}tua)\\s{1,3})?(?:correo|e-?mail|cuenta|conta|account|identidad|identidade|identità)',
+].join('|'), 'iu');
 
 const FALLBACK_PATTERNS: RegExp[] = [
     // A code on its own line, e.g. "Please verify your email.\n\n706215"

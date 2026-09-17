@@ -65,7 +65,7 @@ const receiveMail = async (request: Request, env: Bindings, ctx: ExecutionContex
             run: async () => ({ response: ai_extract_result })
         } as unknown as Ai,
     };
-    const emailEnv = ai_extract_result || extract_mode
+    const emailEnv = ai_extract_result || extract_mode !== undefined
         ? { ...env, ...aiExtractEnvOverrides }
         : env;
     await emailHandler(mockMessage, emailEnv, ctx);
