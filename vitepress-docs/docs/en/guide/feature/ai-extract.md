@@ -44,10 +44,16 @@ The two modes **never fall back to each other**:
 
 - Extracts **verification codes** (`auth_code`) only; links are not extracted
 - Zero dependency, zero cost, runs locally inside the Worker; mail content never leaves the Worker
-- Supports common formats in English, Chinese, Japanese and Korean, e.g. `验证码：123456`, `123456 is your Instagram code`, `認証コードは 123456 です`, `인증번호 [123456]`, `G-123456 is your Google verification code`
-- Supports grouped codes (e.g. `123-456`, `591 204`); separators and letter prefixes such as `G-` are removed from the result
-- Rejects years (e.g. `2026`) and `YYYYMMDD` dates, and ignores promo codes, zip codes and other non-verification codes
+- Reads both the **subject** and the body, so codes in the subject (e.g. `123456 is your verification code`) are extracted too
+- Supports common formats in Chinese, English, Japanese and Korean, plus Russian, Spanish, Portuguese, French, German, Italian, Turkish and Hebrew, e.g.:
+  - Keyword first: `验证码：123456`, `Apple ID代码为：724818`, `認証コードは 123456 です`, `인증번호 [123456]`, `Ваш код: 123456`
+  - Code first: `123456 是您的验证码`, `116352（动态验证码）`, `G-123456 is your Google verification code`, `123456 est votre code de sécurité`
+  - Words between keyword and code: `Your OTP for payment of Rs 5000 is 482913`
+- Supports codes with separators, spaces, zero-width characters or full-width digits (e.g. `123-456`, `8 4 9 2 0 1`, `K9X-4B2`, `１２３４５６`); separators and letter prefixes such as `G-` are removed from the result
+- Alphanumeric codes must contain a digit; letters-only codes (e.g. `QGFDAE`) are not recognized, so words like `EXPIRED` are never taken as codes
+- Automatically rejects years and `YYYYMMDD` dates, numbers longer than 8 digits (e.g. phone numbers), decimals and amounts, times, digits inside URLs and email addresses, and promo / tracking / order / reference / voucher codes
 - Without an explicit keyword, a number is only recognized in a verification-looking mail when it is **on its own line** or right after "use / enter / 输入", so order numbers, hotlines and zip codes are not mistaken for codes
+- Only the first 20000 characters of subject and body are analyzed, keeping CPU time predictable for large mails
 
 ## AI Mode (ai)
 

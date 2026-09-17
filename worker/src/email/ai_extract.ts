@@ -293,14 +293,12 @@ export async function extractEmailInfo(
         const parsedEmail = await commonParseMail(parsedEmailContext);
         const emailContent = getEmailContentForExtract(parsedEmail);
 
-        if (!emailContent) {
-            return null;
-        }
-
         // Local mode: built-in rules only, mail content is never sent to any AI model.
-        // Telegram / webhook reuse the same ExtractResult.
+        // The subject is included because many services put the code there,
+        // e.g. "123456 is your verification code". Telegram / webhook reuse the same ExtractResult.
         if (mode === 'local') {
-            const code = extractCode(emailContent);
+            const localContent = [parsedEmail?.subject, emailContent].filter(Boolean).join('\n\n');
+            const code = localContent ? extractCode(localContent) : null;
             if (!code) {
                 return null;
             }
@@ -308,6 +306,10 @@ export async function extractEmailInfo(
             await saveExtractMetadata(env, message_id, result);
             console.log(`Local code extraction completed for ${message_id}`);
             return result;
+        }
+
+        if (!emailContent) {
+            return null;
         }
 
         // Truncate content if too long (max 4000 characters to avoid token limits)

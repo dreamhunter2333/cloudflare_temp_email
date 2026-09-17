@@ -53,19 +53,19 @@ test.describe('Telegram AI extraction rendering', () => {
     }
   });
 
-  test('local extract mode uses built-in rules and never calls AI', async ({ request }) => {
+  test('local extract mode uses built-in rules on subject and body, never calling AI', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'tg-local');
 
     try {
       const raw = [
         'From: sender@test.example.com',
         `To: ${address}`,
-        `Subject: Local extract ${Date.now()}`,
+        'Subject: G-482913 is your Google verification code',
         `Message-ID: <local-extract-${Date.now()}@test>`,
         'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=utf-8',
         '',
-        'G-482913 is your Google verification code',
+        'Thanks for signing up. This message has no code in its body.',
       ].join('\r\n');
 
       const receiveRes = await request.post(`${WORKER_URL}/__test/receive_mail`, {
