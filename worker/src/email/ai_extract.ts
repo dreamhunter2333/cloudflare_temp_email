@@ -7,7 +7,7 @@
  */
 
 import { commonParseMail } from "../common";
-import { extractCode } from "./extract_code";
+import { extractCode, joinSubjectAndBody } from "./extract_code";
 import { resolveExtractMode } from "./extract_mode";
 import { getBooleanValue, getJsonSetting } from "../utils";
 import { CONSTANTS } from "../constants";
@@ -294,10 +294,10 @@ export async function extractEmailInfo(
         const emailContent = getEmailContentForExtract(parsedEmail);
 
         // Local mode: built-in rules only, mail content is never sent to any AI model.
-        // The subject is included because many services put the code there,
-        // e.g. "123456 is your verification code". Telegram / webhook reuse the same ExtractResult.
+        // The subject is included because many services put the code there.
+        // Telegram / webhook reuse the same ExtractResult.
         if (mode === 'local') {
-            const localContent = [parsedEmail?.subject, emailContent].filter(Boolean).join('\n\n');
+            const localContent = joinSubjectAndBody(parsedEmail?.subject, emailContent);
             const code = localContent ? extractCode(localContent) : null;
             if (!code) {
                 return null;

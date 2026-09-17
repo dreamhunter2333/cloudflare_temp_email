@@ -139,6 +139,17 @@ const FALLBACK_PATTERNS: RegExp[] = [
 // Verification codes appear near the top of a mail; bounding the input keeps
 // the CPU time predictable within Workers limits for very large mails.
 const MAX_TEXT_LENGTH = 20000;
+// RFC 5322 limits a header line to 998 characters, so a real subject fits; a longer
+// one is trimmed so it can never push the body out of MAX_TEXT_LENGTH.
+const MAX_SUBJECT_LENGTH = 1000;
+
+/**
+ * Combine subject and body into the text passed to extractCode.
+ * Many services put the code in the subject, e.g. "123456 is your verification code".
+ */
+export function joinSubjectAndBody(subject: string | undefined, body: string | undefined): string {
+    return [subject?.slice(0, MAX_SUBJECT_LENGTH), body].filter(Boolean).join('\n\n');
+}
 
 export function extractCode(text: string): string | null {
     if (!text) return null;

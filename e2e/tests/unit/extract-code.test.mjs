@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { extractCode } from '../../../worker/src/email/extract_code.ts';
+import { extractCode, joinSubjectAndBody } from '../../../worker/src/email/extract_code.ts';
 import { resolveExtractMode } from '../../../worker/src/email/extract_mode.ts';
 
 // Messages marked "2FHey" are adapted from https://github.com/SoFriendly/2fhey tests (CC0-1.0).
@@ -130,7 +130,14 @@ for (const text of noCodeCases) {
 }
 
 test('subject and body are combined like the Worker does', () => {
-  assert.equal(extractCode('482913 is your Acme verification code\n\nHi, thanks for signing up.'), '482913');
+  assert.equal(extractCode(joinSubjectAndBody('482913 is your Acme verification code', 'Hi, thanks for signing up.')), '482913');
+  assert.equal(extractCode(joinSubjectAndBody(undefined, 'Your verification code: 551203')), '551203');
+  assert.equal(extractCode(joinSubjectAndBody('Welcome', '')), null);
+});
+
+test('a very long subject cannot push the body code out of the analyzed text', () => {
+  const text = joinSubjectAndBody('x'.repeat(30000), 'Your verification code: 123456');
+  assert.equal(extractCode(text), '123456');
 });
 
 // Guards against catastrophic regex backtracking on large or hostile mails.
