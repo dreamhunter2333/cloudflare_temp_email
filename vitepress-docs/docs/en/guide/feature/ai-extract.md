@@ -29,16 +29,17 @@ Extraction results are automatically saved to the `metadata` field in the databa
 | Variable Name              | Type      | Description                                                                                                                      | Example                          |
 | -------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
 | `ENABLE_AI_EMAIL_EXTRACT`  | Text/JSON | Whether to enable email recognition (master switch, required by both modes)                                                        | `true`                           |
-| `AI_EXTRACT_MODE`          | Text      | Recognition mode: `local` uses built-in rules only, `ai` uses Workers AI only. Defaults to `local` when unset; any other value logs an error and skips recognition | `local` |
+| `AI_EXTRACT_MODE`          | Text      | Recognition mode: `local` uses built-in rules only, `ai` prefers Workers AI. Defaults to `local` when unset; any other value logs an error and skips recognition | `local` |
 | `AI_EXTRACT_MODEL`         | Text      | `ai` mode only. AI model name, choose from [models supporting JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models) | `@cf/meta/llama-3.1-8b-instruct-fast` |
 
 > [!WARNING] Upgrading from older versions
 > Older versions automatically used AI recognition whenever a Workers AI binding was configured. Now, when `AI_EXTRACT_MODE` is unset, local rules are used by default. To keep using AI recognition, explicitly set `AI_EXTRACT_MODE = "ai"`.
 
-The two modes **never fall back to each other**:
+The two modes behave as follows:
 
 - `local` mode never calls AI, even if a Workers AI binding is configured
 - `ai` mode logs an error and skips recognition for that mail when the Workers AI binding is missing or the model call fails; it does not switch to local rules
+- In `ai` mode, an address allowlist miss skips only the Workers AI call; local rules still run to try extracting verification codes
 
 ## Local Rule Mode (local)
 
@@ -80,12 +81,12 @@ Or add in Cloudflare Dashboard Worker settings:
 
 ## Address Allowlist (Optional)
 
-To control costs and resource usage, you can configure an address allowlist in the Admin console's **AI Extract Settings** page (applies to both `local` and `ai` modes):
+To control costs and resource usage, you can configure an address allowlist in the Admin console's **AI Extract Settings** page. The allowlist controls only Workers AI calls, not local rule mode; in `ai` mode, addresses outside the allowlist still use local rules to try extracting verification codes.
 
 ### Configuration
 
-- **Allowlist Disabled**: AI extraction will process all email addresses
-- **Allowlist Enabled**: AI extraction will only process addresses in the allowlist
+- **Allowlist Disabled**: Workers AI extraction can process all email addresses
+- **Allowlist Enabled**: Workers AI is called only for addresses in the allowlist; addresses outside it skip Workers AI and fall back to local verification-code extraction
 
 ### Allowlist Format
 
@@ -105,7 +106,7 @@ user@example.com
 admin*@company.com
 ```
 
-This configuration will only perform AI extraction for:
+This configuration will only call Workers AI for:
 - `user@example.com` (exact match)
 - All emails under `@mydomain.com` (e.g., `test@mydomain.com`, `admin@mydomain.com`)
 - All emails starting with `admin` under `@company.com` (e.g., `admin@company.com`, `admin123@company.com`)

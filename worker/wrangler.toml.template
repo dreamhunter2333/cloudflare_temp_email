@@ -153,7 +153,7 @@ ENABLE_AUTO_REPLY = false
 # Email extraction, automatically extract verification codes, auth links, etc.
 # ENABLE_AI_EMAIL_EXTRACT = true
 # Extraction mode: "local" (default, built-in rules, verification codes only, mail never sent to AI)
-# or "ai" (Workers AI only, codes and links, requires the [ai] binding, no local fallback)
+# or "ai" (prefer Workers AI for codes and links; allowlist misses fall back to local code extraction)
 # AI_EXTRACT_MODE = "local"
 # AI model name, choose from https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models
 # Recommended JSON Mode model: "@cf/meta/llama-3.1-8b-instruct-fast"
