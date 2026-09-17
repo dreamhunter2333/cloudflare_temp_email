@@ -10,9 +10,13 @@
 
 ### Features
 
+- feat: |AI Extract| Add `AI_EXTRACT_MODE` to explicitly choose local rules only (`local`) or Workers AI only (`ai`), with no fallback between them; defaults to local rules when unset so mail content is never sent to AI. **Upgrade note**: deployments that relied on the Workers AI binding to enable AI extraction automatically must set `AI_EXTRACT_MODE = "ai"`
+
 ### Bug Fixes
 
 ### Improvements
+
+- feat: |AI Extract| Local verification-code rules now support `G-123456` prefixes, `123-456` / `591 204` grouped codes and more Chinese / Japanese / Korean / English keywords, and only accept keyword-less numbers in stricter positions so order numbers, hotlines and zip codes are no longer mistaken for codes
 
 ## v1.12.0
 

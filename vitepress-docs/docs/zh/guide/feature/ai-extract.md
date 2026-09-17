@@ -7,7 +7,14 @@
 
 ## 功能说明
 
-AI 邮件识别功能使用 Cloudflare Workers AI 自动分析收到的邮件内容，智能提取重要信息，包括：
+邮件识别功能会自动分析收到的邮件内容，提取其中的重要信息，并支持两种互斥的识别模式：
+
+| 模式 | 识别内容 | 隐私 | 依赖 |
+| ---- | -------- | ---- | ---- |
+| `local`（默认） | 仅**验证码** (auth_code) | 在 Worker 内用内置规则识别，邮件内容**不会发送给任何 AI 模型** | 无，零成本 |
+| `ai` | 验证码、认证链接、服务链接、订阅管理链接、其他链接 | 邮件内容会发送给你 Cloudflare 账号下的 Workers AI 模型 | Workers AI 绑定 |
+
+`ai` 模式可识别的类型：
 
 - **验证码** (auth_code) - OTP、安全码、确认码等
 - **认证链接** (auth_link) - 登录、验证、激活、重置密码链接
@@ -15,26 +22,48 @@ AI 邮件识别功能使用 Cloudflare Workers AI 自动分析收到的邮件内
 - **订阅管理链接** (subscription_link) - 退订、管理订阅等链接
 - **其他链接** (other_link) - 其他有价值的链接
 
-提取结果会自动保存到数据库的 `metadata` 字段中，前端可以直接展示提取的验证码或链接。
+提取结果会自动保存到数据库的 `metadata` 字段中，前端可以直接展示提取的验证码或链接，Telegram 推送与 Webhook 占位符也会复用该结果。
 
 ## 配置变量
 
 | 变量名                    | 类型      | 说明                                                                                                                           | 示例                             |
 | ------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
-| `ENABLE_AI_EMAIL_EXTRACT` | 文本/JSON | 是否启用 AI 邮件识别功能                                                                                                       | `true`                           |
-| `AI_EXTRACT_MODEL`        | 文本      | AI 模型名称，从[支持 JSON 模式的模型](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models)中选择 | `@cf/meta/llama-3.1-8b-instruct-fast` |
+| `ENABLE_AI_EMAIL_EXTRACT` | 文本/JSON | 是否启用邮件识别功能（总开关，两种模式都需要）                                                                                   | `true`                           |
+| `AI_EXTRACT_MODE`         | 文本      | 识别模式：`local` 仅用内置规则，`ai` 仅用 Workers AI。不填默认为 `local`，填写其他值会记录错误日志并跳过识别                        | `local`                          |
+| `AI_EXTRACT_MODEL`        | 文本      | 仅 `ai` 模式生效。AI 模型名称，从[支持 JSON 模式的模型](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models)中选择 | `@cf/meta/llama-3.1-8b-instruct-fast` |
+
+> [!WARNING] 从旧版本升级
+> 旧版本在配置了 Workers AI 绑定时会自动使用 AI 识别。现在不填 `AI_EXTRACT_MODE` 时默认使用本地规则，如需继续使用 AI 识别，请显式设置 `AI_EXTRACT_MODE = "ai"`。
+
+两种模式之间**不会互相回退**：
+
+- `local` 模式即使配置了 Workers AI 绑定，也不会调用 AI
+- `ai` 模式未配置 Workers AI 绑定或调用模型失败时，会记录错误日志并跳过本封邮件的识别，不会改用本地规则
+
+## 本地规则模式（local）
+
+- 仅提取**验证码**（`auth_code`），不提取链接
+- 零依赖、零成本，在 Worker 内本地完成，邮件内容不会离开 Worker
+- 支持中文、英文、日文、韩文常见验证码格式，例如 `验证码：123456`、`123456 是您的验证码`、`認証コードは 123456 です`、`인증번호 [123456]`、`G-123456 is your Google verification code`
+- 支持带分隔符的验证码（如 `123-456`、`591 204`），结果会去掉分隔符和 `G-` 这类字母前缀
+- 自动排除年份（如 `2026`）与 `YYYYMMDD` 日期，并忽略 promo code、邮编等非验证码
+- 没有明确关键词时，只有在验证类邮件中、且数字**单独成行**或紧跟「输入 / use / enter」时才会识别，避免把订单号、客服电话、邮编误判为验证码
+
+## AI 模式（ai）
 
 推荐使用 `@cf/meta/llama-3.1-8b-instruct-fast` 作为默认模型，它支持当前实现依赖的 JSON Mode，且 Cloudflare 说明 `-fast` 变体会保持可用。价格更低的 `@cf/meta/llama-3.1-8b-instruct-fp8-fast` 目前不在 JSON Mode 支持列表中，不建议用于本功能。Cloudflare 推荐的新模型 `@cf/zai-org/glm-4.7-flash` 适合多语言场景，但用于本功能前请先确认它在你的账号/区域支持结构化 JSON 输出。旧默认模型 `@cf/meta/llama-3.1-8b-instruct` 将于 2026-05-30 被 Cloudflare 弃用，不建议继续使用。
 
-## 内容长度限制
+### 内容长度限制
 
 为避免 AI 模型 token 限制，邮件内容最大处理长度为 **4000 字符**。超过此长度的邮件内容将被截断后再进行 AI 分析。
 
-## Workers AI 绑定
+### Workers AI 绑定
 
 需要在 `wrangler.toml` 中配置 Workers AI 绑定：
 
 ```toml
+AI_EXTRACT_MODE = "ai"
+
 [ai]
 binding = "AI"
 ```
@@ -43,21 +72,9 @@ binding = "AI"
 - **Variable name**: `AI`
 - **Type**: Workers AI
 
-## 无 Workers AI 绑定时的正则兜底
-
-如果启用了 `ENABLE_AI_EMAIL_EXTRACT` 但**没有配置 Workers AI 绑定**（例如自部署时未开通 Workers AI），系统会自动回退到内置的**正则验证码提取**：
-
-- 仅提取**验证码**（`auth_code`），不提取链接（链接提取依赖 AI）
-- 零依赖、零成本，在 Worker 内本地完成
-- 支持中文、英文、日文、韩文常见验证码格式
-- 自动排除年份（如 `2026`）与 `YYYYMMDD` 日期，降低误判
-- 提取结果同样写入 `metadata`，并复用 Telegram 推送与 Webhook 占位符（此时 `aiExtractType` 为 `auth_code`）
-
-当配置了 Workers AI 绑定时，仍优先使用 AI 提取（可识别验证码与各类链接），不受此回退影响。
-
 ## 地址白名单（可选）
 
-为了控制成本和资源使用，可以在 Admin 控制台的 **AI 提取设置** 页面配置地址白名单：
+为了控制成本和资源使用，可以在 Admin 控制台的 **AI 提取设置** 页面配置地址白名单（对 `local` 与 `ai` 两种模式都生效）：
 
 ### 配置说明
 
