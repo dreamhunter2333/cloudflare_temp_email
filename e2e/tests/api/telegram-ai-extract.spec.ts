@@ -52,4 +52,54 @@ test.describe('Telegram AI extraction rendering', () => {
       await deleteAddress(request, jwt);
     }
   });
+
+  test('local extract mode uses built-in rules on subject and body, never calling AI', async ({ request }) => {
+    const { jwt, address } = await createTestAddress(request, 'tg-local');
+
+    try {
+      const raw = [
+        'From: sender@test.example.com',
+        `To: ${address}`,
+        'Subject: G-482913 is your Google verification code',
+        `Message-ID: <local-extract-${Date.now()}@test>`,
+        'MIME-Version: 1.0',
+        'Content-Type: text/plain; charset=utf-8',
+        '',
+        'Thanks for signing up. This message has no code in its body.',
+      ].join('\r\n');
+
+      const receiveRes = await request.post(`${WORKER_URL}/__test/receive_mail`, {
+        data: {
+          from: 'sender@test.example.com',
+          to: address,
+          raw,
+          extract_mode: 'local',
+          // The AI binding is still present; local mode must ignore this result.
+          ai_extract_result: {
+            type: 'auth_link',
+            result: 'https://example.com/should-not-be-used',
+            result_text: '',
+          },
+        },
+      });
+      expect(receiveRes.ok()).toBe(true);
+      expect((await receiveRes.json()).success).toBe(true);
+
+      const mailsRes = await request.get(`${WORKER_URL}/api/mails?limit=10&offset=0`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      expect(mailsRes.ok()).toBe(true);
+      const { results } = await mailsRes.json();
+      expect(results).toHaveLength(1);
+
+      const metadata = JSON.parse(results[0].metadata);
+      expect(metadata.ai_extract).toEqual({
+        type: 'auth_code',
+        result: '482913',
+        result_text: '',
+      });
+    } finally {
+      await deleteAddress(request, jwt);
+    }
+  });
 });
