@@ -53,7 +53,7 @@ The two modes **never fall back to each other**:
 - Alphanumeric codes must contain a digit; letters-only codes (e.g. `QGFDAE`) are not recognized, so words like `EXPIRED` are never taken as codes
 - Automatically rejects years and `YYYYMMDD` dates, numbers longer than 8 digits (e.g. phone numbers), decimals and amounts, times, digits inside URLs and email addresses, and promo / tracking / order / reference / voucher codes
 - Without an explicit keyword, a number is only recognized in a verification-looking mail when it is **on its own line** or right after "use / enter / 输入", so order numbers, hotlines and zip codes are not mistaken for codes
-- Only the first 20000 characters of subject and body are analyzed, keeping CPU time predictable for large mails
+- The subject and body are combined, and only the first 20000 characters of the combined text are analyzed, keeping CPU time predictable for large mails
 
 ## AI Mode (ai)
 

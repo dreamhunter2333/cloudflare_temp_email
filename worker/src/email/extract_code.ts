@@ -124,8 +124,14 @@ const VERIFY_CONTEXT = new RegExp([
 ].join('|'), 'iu');
 
 const FALLBACK_PATTERNS: RegExp[] = [
-    // A code on its own line, e.g. "Please verify your email.\n\n706215"
-    new RegExp(`(?:^|\\n)([^\\n]*)\\n(?:[ \\t]{0,8}\\n){0,3}[ \\t]{0,8}${OPEN}${DIGIT_CODE}${CLOSE}[ \\t]{0,8}(?:\\n|$)`, 'giu'),
+    // A code on its own line, including the first line: "Please verify your email.\n\n706215" /
+    // "706215\n\nPlease verify your email". The lookbehind skips numbers under a label line such as
+    // "Account ID:", which are not codes.
+    new RegExp(
+        `(?:^|\\n)(?:[ \\t]{0,8}\\n){0,3}[ \\t]{0,8}(?<![:：][ \\t]{0,8}\\n(?:[ \\t]{0,8}\\n){0,3}[ \\t]{0,8})`
+        + `${OPEN}${DIGIT_CODE}${CLOSE}[ \\t]{0,8}(?:\\n|$)`,
+        'giu'
+    ),
     // "Use 4821 to verify" / "Please use SGD-123456 within 3 minutes" / "请输入 123456"
     new RegExp(`(?:\\b(?:use|enter|input|type)|输入|填写|輸入|입력)\\s{0,3}${OPEN}${DIGIT_CODE}`, 'giu'),
 ];
@@ -168,12 +174,7 @@ function normalizeText(text: string): string {
 
 function findCode(text: string, pattern: RegExp): string | null {
     for (const match of text.matchAll(pattern)) {
-        // Fallback "own line" pattern captures the previous line first.
-        const groups = match.slice(1);
-        const previousLine = pattern === FALLBACK_PATTERNS[0] ? groups.shift() : undefined;
-        // A label such as "Account ID:" on the previous line means the number is not a code.
-        if (previousLine !== undefined && /[:：]\s*$/.test(previousLine)) continue;
-        const raw = groups.find(group => group !== undefined);
+        const raw = match.slice(1).find(group => group !== undefined);
         const code = raw?.replace(/[ -]/g, '');
         if (code && isPlausibleCode(code)) return code;
     }
