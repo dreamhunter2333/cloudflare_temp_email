@@ -29,16 +29,17 @@
 | 变量名                    | 类型      | 说明                                                                                                                           | 示例                             |
 | ------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
 | `ENABLE_AI_EMAIL_EXTRACT` | 文本/JSON | 是否启用邮件识别功能（总开关，两种模式都需要）                                                                                   | `true`                           |
-| `AI_EXTRACT_MODE`         | 文本      | 识别模式：`local` 仅用内置规则，`ai` 仅用 Workers AI。不填默认为 `local`，填写其他值会记录错误日志并跳过识别                        | `local`                          |
+| `AI_EXTRACT_MODE`         | 文本      | 识别模式：`local` 仅用内置规则，`ai` 优先使用 Workers AI。不填默认为 `local`，填写其他值会记录错误日志并跳过识别                        | `local`                          |
 | `AI_EXTRACT_MODEL`        | 文本      | 仅 `ai` 模式生效。AI 模型名称，从[支持 JSON 模式的模型](https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models)中选择 | `@cf/meta/llama-3.1-8b-instruct-fast` |
 
 > [!WARNING] 从旧版本升级
 > 旧版本在配置了 Workers AI 绑定时会自动使用 AI 识别。现在不填 `AI_EXTRACT_MODE` 时默认使用本地规则，如需继续使用 AI 识别，请显式设置 `AI_EXTRACT_MODE = "ai"`。
 
-两种模式之间**不会互相回退**：
+两种模式的主要行为：
 
 - `local` 模式即使配置了 Workers AI 绑定，也不会调用 AI
 - `ai` 模式未配置 Workers AI 绑定或调用模型失败时，会记录错误日志并跳过本封邮件的识别，不会改用本地规则
+- `ai` 模式下如果地址未命中 AI 提取白名单，只会跳过 Workers AI 调用，仍会改用本地规则尝试提取验证码
 
 ## 本地规则模式（local）
 
@@ -80,12 +81,12 @@ binding = "AI"
 
 ## 地址白名单（可选）
 
-为了控制成本和资源使用，可以在 Admin 控制台的 **AI 提取设置** 页面配置地址白名单（对 `local` 与 `ai` 两种模式都生效）：
+为了控制成本和资源使用，可以在 Admin 控制台的 **AI 提取设置** 页面配置地址白名单。白名单只控制 Workers AI 调用，不限制本地规则模式；`ai` 模式下未命中白名单的地址仍会使用本地规则尝试提取验证码。
 
 ### 配置说明
 
-- **未启用白名单**：所有邮箱地址都可使用 AI 提取功能
-- **启用白名单**：仅白名单中的邮箱地址会进行 AI 提取
+- **未启用白名单**：所有邮箱地址都可使用 Workers AI 提取
+- **启用白名单**：仅白名单中的邮箱地址会调用 Workers AI；未命中的地址会跳过 Workers AI，并回退到本地验证码提取
 
 ### 白名单格式
 
@@ -105,7 +106,7 @@ user@example.com
 admin*@company.com
 ```
 
-此配置将只对以下邮箱进行 AI 提取：
+此配置将只对以下邮箱调用 Workers AI：
 - `user@example.com`（精确匹配）
 - 所有 `@mydomain.com` 的邮箱（如 `test@mydomain.com`、`admin@mydomain.com`）
 - 所有 `admin` 开头的 `@company.com` 邮箱（如 `admin@company.com`、`admin123@company.com`）

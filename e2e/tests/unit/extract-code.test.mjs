@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { extractCode, joinSubjectAndBody } from '../../../worker/src/email/extract_code.ts';
-import { resolveExtractMode } from '../../../worker/src/email/extract_mode.ts';
+import { ExtractMode, resolveExtractMode } from '../../../worker/src/email/extract_mode.ts';
 
 // Messages marked "2FHey" are adapted from https://github.com/SoFriendly/2fhey tests (CC0-1.0).
 const codeCases = [
@@ -161,15 +161,15 @@ for (const [name, text] of Object.entries(hostileInputs)) {
 }
 
 test('extract mode defaults to local when unset', () => {
-  assert.equal(resolveExtractMode(undefined), 'local');
-  assert.equal(resolveExtractMode(''), 'local');
-  assert.equal(resolveExtractMode('  '), 'local');
+  assert.equal(resolveExtractMode(undefined), ExtractMode.Local);
+  assert.equal(resolveExtractMode(''), ExtractMode.Local);
+  assert.equal(resolveExtractMode('  '), ExtractMode.Local);
 });
 
 test('extract mode accepts explicit ai and local', () => {
-  assert.equal(resolveExtractMode('ai'), 'ai');
-  assert.equal(resolveExtractMode(' AI '), 'ai');
-  assert.equal(resolveExtractMode('local'), 'local');
+  assert.equal(resolveExtractMode('ai'), ExtractMode.Ai);
+  assert.equal(resolveExtractMode(' AI '), ExtractMode.Ai);
+  assert.equal(resolveExtractMode('local'), ExtractMode.Local);
 });
 
 test('extract mode rejects unknown values', () => {

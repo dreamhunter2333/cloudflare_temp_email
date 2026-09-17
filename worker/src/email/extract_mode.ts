@@ -3,10 +3,15 @@
  *
  * - `local`: built-in rule-based extraction only; mail content is never sent
  *   to any AI model. This is the default when the variable is unset.
- * - `ai`: Workers AI only; no local fallback when the binding is missing or
- *   the model call fails.
+ * - `ai`: prefer Workers AI; when the AI allowlist misses, local code extraction
+ *   still runs because it never sends mail content to AI.
  */
-export type ExtractMode = 'local' | 'ai';
+export const ExtractMode = {
+    Local: 'local',
+    Ai: 'ai',
+} as const;
+
+export type ExtractMode = typeof ExtractMode[keyof typeof ExtractMode];
 
 /**
  * Resolve the configured extraction mode.
@@ -14,10 +19,11 @@ export type ExtractMode = 'local' | 'ai';
  * @returns the mode, or null when the value is not a supported mode
  */
 export function resolveExtractMode(value: unknown): ExtractMode | null {
-    if (value === undefined || value === null) return 'local';
+    if (value === undefined || value === null) return ExtractMode.Local;
     if (typeof value !== 'string') return null;
     const normalized = value.trim().toLowerCase();
-    if (normalized === '') return 'local';
-    if (normalized === 'local' || normalized === 'ai') return normalized;
+    if (normalized === '') return ExtractMode.Local;
+    if (normalized === ExtractMode.Local) return ExtractMode.Local;
+    if (normalized === ExtractMode.Ai) return ExtractMode.Ai;
     return null;
 }

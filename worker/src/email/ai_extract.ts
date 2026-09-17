@@ -8,7 +8,7 @@
 
 import { commonParseMail } from "../common";
 import { extractCode, joinSubjectAndBody } from "./extract_code";
-import { resolveExtractMode } from "./extract_mode";
+import { ExtractMode, resolveExtractMode } from "./extract_mode";
 import { getBooleanValue, getJsonSetting } from "../utils";
 import { CONSTANTS } from "../constants";
 import { Context } from "hono";
@@ -227,12 +227,27 @@ function getEmailContentForExtract(parsedEmail: Awaited<ReturnType<typeof common
     return htmlToTextForAi(parsedEmail.html) || parsedEmail.html;
 }
 
+function isAddressInAiAllowlist(settings: AiExtractSettings | null | undefined, address: string): boolean {
+    if (!settings?.enableAllowList) return true;
+    if (!Array.isArray(settings.allowList) || settings.allowList.length === 0) return false;
+
+    return settings.allowList.some(pattern => {
+        if (typeof pattern !== 'string') return false;
+        if (!pattern.includes('*')) return address === pattern;
+        const escapedPattern = pattern
+            .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+            .replace(/\*/g, '.*');
+        return new RegExp('^' + escapedPattern + '$').test(address);
+    });
+}
+
 /**
  * Main extraction function
  * Checks if extraction is enabled, processes the email content, and saves to database.
- * `AI_EXTRACT_MODE` selects exactly one extractor, with no fallback between them:
+ * `AI_EXTRACT_MODE` selects the preferred extractor:
  * - `local` (default): built-in rules, verification codes only, content never sent to AI
- * - `ai`: Cloudflare Workers AI, verification codes and links
+ * - `ai`: Cloudflare Workers AI, verification codes and links; if the address is not
+ *   in the AI allowlist, only the AI call is skipped and local code extraction still runs
  *
  * @param parsedEmailContext - The parsed email context
  * @param env - Cloudflare Workers environment bindings
@@ -257,55 +272,41 @@ export async function extractEmailInfo(
             console.error(`Email extraction skipped: unsupported AI_EXTRACT_MODE "${env.AI_EXTRACT_MODE}", expected "local" or "ai"`);
             return null;
         }
-        if (mode === 'ai' && !env.AI) {
-            console.error('Email extraction skipped: AI_EXTRACT_MODE is "ai" but the Workers AI binding "AI" is not configured');
-            return null;
-        }
-
-        // Check allowlist if enabled (applies to both modes)
         const aiSettings = await getJsonSetting<AiExtractSettings>(
             { env: env } as Context<HonoCustomType>,
             CONSTANTS.AI_EXTRACT_SETTINGS_KEY
         );
-
-        if (aiSettings?.enableAllowList && aiSettings.allowList?.length > 0) {
-            const isAllowed = aiSettings.allowList.some(pattern => {
-                // Support wildcard matching
-                if (pattern.includes('*')) {
-                    // Escape special regex characters except *
-                    const escapedPattern = pattern
-                        .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-                        .replace(/\*/g, '.*');
-                    const regex = new RegExp('^' + escapedPattern + '$');
-                    return regex.test(address);
-                }
-                // Exact match
-                return address === pattern;
-            });
-
-            if (!isAllowed) {
-                console.log(`Email extraction skipped for ${address}: not in allowlist`);
-                return null;
-            }
-        }
+        const isAiAllowed = isAddressInAiAllowlist(aiSettings, address);
 
         // Parse email to get content (shared by both modes)
         const parsedEmail = await commonParseMail(parsedEmailContext);
         const emailContent = getEmailContentForExtract(parsedEmail);
 
-        // Local mode: built-in rules only, mail content is never sent to any AI model.
-        // The subject is included because many services put the code there.
-        // Telegram / webhook reuse the same ExtractResult.
-        if (mode === 'local') {
+        const runLocalExtract = async () => {
             const localContent = joinSubjectAndBody(parsedEmail?.subject, emailContent);
             const code = localContent ? extractCode(localContent) : null;
-            if (!code) {
-                return null;
-            }
+            if (!code) return null;
             const result: ExtractResult = { type: 'auth_code', result: code, result_text: '' };
             await saveExtractMetadata(env, message_id, result);
             console.log(`Local code extraction completed for ${message_id}`);
             return result;
+        };
+
+        // Local mode: built-in rules only, mail content is never sent to any AI model.
+        // The subject is included because many services put the code there.
+        // Telegram / webhook reuse the same ExtractResult.
+        if (mode === ExtractMode.Local) {
+            return await runLocalExtract();
+        }
+
+        if (!isAiAllowed) {
+            console.log(`Workers AI extraction skipped for ${address}: not in AI allowlist; trying local code extraction`);
+            return await runLocalExtract();
+        }
+
+        if (!env.AI) {
+            console.error('Email extraction skipped: AI_EXTRACT_MODE is "ai" but the Workers AI binding "AI" is not configured');
+            return null;
         }
 
         if (!emailContent) {
