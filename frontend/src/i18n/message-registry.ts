@@ -1049,6 +1049,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Actions",
       "zh": "操作"
     },
+    "addressQueryTip": {
+      "en": "Leave blank to query all email addresses",
+      "zh": "留空查询所有邮箱地址"
+    },
     "address": {
       "en": "Mailboxes",
       "zh": "邮箱列表"
@@ -1056,6 +1060,10 @@ export const MESSAGE_REGISTRY = {
     "openMailbox": {
       "en": "Open Mailbox",
       "zh": "进入邮箱"
+    },
+    "query": {
+      "en": "Query",
+      "zh": "查询"
     },
     "create_or_bind": {
       "en": "Add Mailbox",
@@ -1068,6 +1076,10 @@ export const MESSAGE_REGISTRY = {
     "itemCount": {
       "en": "Total",
       "zh": "总数"
+    },
+    "invalidQuery": {
+      "en": "Search term must be at most 100 characters and cannot contain % or _",
+      "zh": "搜索词最长 100 个字符，且不能包含 % 或 _"
     },
     "emailAddress": {
       "en": "Email Address",

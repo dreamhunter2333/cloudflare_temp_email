@@ -667,6 +667,9 @@ export const ptBRMessages = {
   "components.MailContentRenderer.loadRemoteImages": "Carregar imagens",
   "components.MailContentRenderer.remoteImagesBlocked": "{count} recursos externos foram bloqueados para proteger sua privacidade",
   "views.user.AddressManagement.itemCount": "Total",
+  "views.user.AddressManagement.addressQueryTip": "Deixe em branco para consultar todos os endereços de e-mail",
+  "views.user.AddressManagement.query": "Consultar",
+  "views.user.AddressManagement.invalidQuery": "A busca deve ter no máximo 100 caracteres e não pode conter % ou _",
   "views.index.SimpleIndex.readStatusUpdated": "Status de leitura atualizado",
   "views.common.Appearance.autoLoadRemoteImages": "Carregar automaticamente imagens externas no corpo do e-mail"
 }

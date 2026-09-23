@@ -96,6 +96,56 @@ test.describe('User address pagination', () => {
       expect(secondPage.count).toBe(0);
       expect(secondPage.results).toHaveLength(1);
 
+      const filteredRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address?limit=2&offset=0&query=userpage`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(filteredRes.ok()).toBe(true);
+      const filtered = await filteredRes.json();
+      expect(filtered.count).toBe(3);
+      expect(filtered.results).toHaveLength(2);
+
+      const filteredSecondRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address?limit=2&offset=2&query=userpage`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(filteredSecondRes.ok()).toBe(true);
+      const filteredSecond = await filteredSecondRes.json();
+      expect(filteredSecond.count).toBe(0);
+      expect(filteredSecond.results).toHaveLength(1);
+
+      const specificSearchRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address?query=USERPAGEA`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(specificSearchRes.ok()).toBe(true);
+      const specificSearch = await specificSearchRes.json();
+      expect(specificSearch.count).toBe(1);
+      expect(specificSearch.results[0].name).toBe(addresses[0].address);
+
+      const maxLengthSearchRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address?query=${'a'.repeat(100)}`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(maxLengthSearchRes.ok()).toBe(true);
+
+      for (const query of ['%', '_', 'a'.repeat(101)]) {
+        const invalidSearchRes = await request.get(
+          `${WORKER_URL}/user_api/bind_address?query=${encodeURIComponent(query)}`,
+          { headers: { 'x-user-token': userJwt } },
+        );
+        expect(invalidSearchRes.status()).toBe(400);
+      }
+
+      const outsiderSearchRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address?query=${encodeURIComponent(outsider.address)}`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(outsiderSearchRes.ok()).toBe(true);
+      const outsiderSearch = await outsiderSearchRes.json();
+      expect(outsiderSearch.count).toBe(0);
+      expect(outsiderSearch.results).toHaveLength(0);
+
       const invalidLimitRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?limit=101&offset=0`,
         { headers: { 'x-user-token': userJwt } },

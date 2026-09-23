@@ -22,6 +22,8 @@ const data = ref([])
 const count = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
+const addressQuery = ref('')
+const activeQuery = ref('')
 const showTranferAddress = ref(false)
 const currentAddress = ref("")
 const currentAddressId = ref(0)
@@ -114,6 +116,7 @@ const fetchData = async () => {
             limit: String(pageSize.value),
             offset: String((page.value - 1) * pageSize.value),
         });
+        if (activeQuery.value) params.set('query', activeQuery.value);
         const { results, count: addressCount } = await api.fetch(
             `/user_api/bind_address?${params.toString()}`
         );
@@ -124,6 +127,21 @@ const fetchData = async () => {
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
+    }
+}
+
+const searchData = () => {
+    const query = addressQuery.value.trim();
+    if (query.length > 100 || /[%_]/.test(query)) {
+        message.error(t('invalidQuery'));
+        return;
+    }
+    addressQuery.value = query;
+    activeQuery.value = addressQuery.value;
+    if (page.value === 1) {
+        fetchData();
+    } else {
+        page.value = 1;
     }
 }
 
@@ -243,6 +261,13 @@ watch([page, pageSize], async () => {
         </n-modal>
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
+                <n-input-group style="margin-top: 10px;">
+                    <n-input v-model:value="addressQuery" data-testid="user-address-search" clearable :placeholder="t('addressQueryTip')"
+                        @keydown.enter="searchData" />
+                    <n-button @click="searchData" type="primary" tertiary>
+                        {{ t('query') }}
+                    </n-button>
+                </n-input-group>
                 <div class="address-table-scroll">
                     <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"
                         :page-sizes="[20, 50, 100]" show-size-picker>
