@@ -97,7 +97,7 @@ test.describe('User address pagination', () => {
       expect(secondPage.results).toHaveLength(1);
 
       const filteredRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?limit=2&offset=0&query=user-page-`,
+        `${WORKER_URL}/user_api/bind_address?limit=2&offset=0&query=userpage`,
         { headers: { 'x-user-token': userJwt } },
       );
       expect(filteredRes.ok()).toBe(true);
@@ -106,7 +106,7 @@ test.describe('User address pagination', () => {
       expect(filtered.results).toHaveLength(2);
 
       const filteredSecondRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?limit=2&offset=2&query=user-page-`,
+        `${WORKER_URL}/user_api/bind_address?limit=2&offset=2&query=userpage`,
         { headers: { 'x-user-token': userJwt } },
       );
       expect(filteredSecondRes.ok()).toBe(true);
@@ -115,7 +115,7 @@ test.describe('User address pagination', () => {
       expect(filteredSecond.results).toHaveLength(1);
 
       const specificSearchRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?query=USER-PAGE-A`,
+        `${WORKER_URL}/user_api/bind_address?query=USERPAGEA`,
         { headers: { 'x-user-token': userJwt } },
       );
       expect(specificSearchRes.ok()).toBe(true);
