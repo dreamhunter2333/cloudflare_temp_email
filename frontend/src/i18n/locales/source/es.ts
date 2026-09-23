@@ -669,7 +669,7 @@ export const esMessages = {
   "views.user.AddressManagement.itemCount": "Total",
   "views.user.AddressManagement.addressQueryTip": "Déjalo vacío para consultar todas las direcciones de correo",
   "views.user.AddressManagement.query": "Consultar",
-  "views.user.AddressManagement.invalidQuery": "La búsqueda no puede superar 48 bytes ni contener %, _ o caracteres de control",
+  "views.user.AddressManagement.invalidQuery": "La búsqueda no puede superar 100 bytes ni contener %, _ o caracteres de control",
   "views.index.SimpleIndex.readStatusUpdated": "Estado de lectura actualizado",
   "views.common.Appearance.autoLoadRemoteImages": "Cargar automáticamente las imágenes externas del correo"
 }

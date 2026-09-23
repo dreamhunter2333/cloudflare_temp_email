@@ -669,7 +669,7 @@ export const deMessages = {
   "views.user.AddressManagement.itemCount": "Gesamt",
   "views.user.AddressManagement.addressQueryTip": "Leer lassen, um alle E-Mail-Adressen abzufragen",
   "views.user.AddressManagement.query": "Abfragen",
-  "views.user.AddressManagement.invalidQuery": "Suchbegriff darf höchstens 48 Byte lang sein und weder %, _ noch Steuerzeichen enthalten",
+  "views.user.AddressManagement.invalidQuery": "Suchbegriff darf höchstens 100 Byte lang sein und weder %, _ noch Steuerzeichen enthalten",
   "views.index.SimpleIndex.readStatusUpdated": "Lesestatus aktualisiert",
   "views.common.Appearance.autoLoadRemoteImages": "Externe Bilder im E-Mail-Inhalt automatisch laden"
 }

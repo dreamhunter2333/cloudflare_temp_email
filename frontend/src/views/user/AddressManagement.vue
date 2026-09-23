@@ -132,7 +132,7 @@ const fetchData = async () => {
 
 const searchData = () => {
     const query = addressQuery.value.trim();
-    if (new TextEncoder().encode(query).length > 48 || /[%_]/.test(query)
+    if (new TextEncoder().encode(query).length > 100 || /[%_]/.test(query)
         || [...query].some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) {
         message.error(t('invalidQuery'));
         return;

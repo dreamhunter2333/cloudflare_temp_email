@@ -1078,8 +1078,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "总数"
     },
     "invalidQuery": {
-      "en": "Search term must be at most 48 bytes and cannot contain %, _, or control characters",
-      "zh": "搜索词最长 48 字节，且不能包含 %、_ 或控制字符"
+      "en": "Search term must be at most 100 bytes and cannot contain %, _, or control characters",
+      "zh": "搜索词最长 100 字节，且不能包含 %、_ 或控制字符"
     },
     "emailAddress": {
       "en": "Email Address",

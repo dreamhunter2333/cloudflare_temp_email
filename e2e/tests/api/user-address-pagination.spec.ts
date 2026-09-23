@@ -123,7 +123,13 @@ test.describe('User address pagination', () => {
       expect(specificSearch.count).toBe(1);
       expect(specificSearch.results[0].name).toBe(addresses[0].address);
 
-      for (const query of ['%', '_', 'a'.repeat(49)]) {
+      const maxLengthSearchRes = await request.get(
+        `${WORKER_URL}/user_api/bind_address?query=${'a'.repeat(100)}`,
+        { headers: { 'x-user-token': userJwt } },
+      );
+      expect(maxLengthSearchRes.ok()).toBe(true);
+
+      for (const query of ['%', '_', 'a'.repeat(101)]) {
         const invalidSearchRes = await request.get(
           `${WORKER_URL}/user_api/bind_address?query=${encodeURIComponent(query)}`,
           { headers: { 'x-user-token': userJwt } },
