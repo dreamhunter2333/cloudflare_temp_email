@@ -123,6 +123,14 @@ test.describe('User address pagination', () => {
       expect(specificSearch.count).toBe(1);
       expect(specificSearch.results[0].name).toBe(addresses[0].address);
 
+      for (const query of ['%', '_', 'a'.repeat(49)]) {
+        const invalidSearchRes = await request.get(
+          `${WORKER_URL}/user_api/bind_address?query=${encodeURIComponent(query)}`,
+          { headers: { 'x-user-token': userJwt } },
+        );
+        expect(invalidSearchRes.status()).toBe(400);
+      }
+
       const outsiderSearchRes = await request.get(
         `${WORKER_URL}/user_api/bind_address?query=${encodeURIComponent(outsider.address)}`,
         { headers: { 'x-user-token': userJwt } },

@@ -131,7 +131,13 @@ const fetchData = async () => {
 }
 
 const searchData = () => {
-    addressQuery.value = addressQuery.value.trim();
+    const query = addressQuery.value.trim();
+    if (new TextEncoder().encode(query).length > 48 || /[%_]/.test(query)
+        || [...query].some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) {
+        message.error(t('invalidQuery'));
+        return;
+    }
+    addressQuery.value = query;
     activeQuery.value = addressQuery.value;
     if (page.value === 1) {
         fetchData();
@@ -257,7 +263,7 @@ watch([page, pageSize], async () => {
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
                 <n-input-group style="margin-top: 10px;">
-                    <n-input v-model:value="addressQuery" clearable :placeholder="t('addressQueryTip')"
+                    <n-input v-model:value="addressQuery" data-testid="user-address-search" clearable :placeholder="t('addressQueryTip')"
                         @keydown.enter="searchData" />
                     <n-button @click="searchData" type="primary" tertiary>
                         {{ t('query') }}

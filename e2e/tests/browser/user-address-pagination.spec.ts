@@ -95,7 +95,7 @@ test.describe('User address pagination browser flow', () => {
 
       const selectedAddress = createdAddresses[20];
 
-      const addressSearch = page.getByPlaceholder('Leave blank to query all email addresses');
+      const addressSearch = page.getByTestId('user-address-search');
       await addressSearch.fill(selectedAddress.address);
       await addressSearch.press('Enter');
       await expect(pagination).toContainText(/Total:\s*1/);

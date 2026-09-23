@@ -669,6 +669,7 @@ export const jaMessages = {
   "views.user.AddressManagement.itemCount": "合計",
   "views.user.AddressManagement.addressQueryTip": "空欄で全メールアドレスを検索します",
   "views.user.AddressManagement.query": "検索",
+  "views.user.AddressManagement.invalidQuery": "検索語は48バイト以内で、%、_、制御文字は使用できません",
   "views.index.SimpleIndex.readStatusUpdated": "既読状態を更新しました",
   "views.common.Appearance.autoLoadRemoteImages": "メール本文の外部画像を自動的に読み込む"
 }
