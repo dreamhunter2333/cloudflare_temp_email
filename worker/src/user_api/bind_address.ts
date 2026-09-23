@@ -116,14 +116,13 @@ const UserBindAddressModule = {
         const { limit, offset, query } = c.req.query();
         const params = [String(user_id)];
         const addressQuery = query?.trim();
-        const useInstr = addressQuery && new TextEncoder().encode(addressQuery).length + 2 > 50;
         if (addressQuery) {
-            params.push(useInstr ? addressQuery : `%${addressQuery}%`);
+            params.push(addressQuery);
         }
         const fromQuery = ` FROM address a`
             + ` JOIN users_address ua ON ua.address_id = a.id`
             + ` WHERE ua.user_id = ?`
-            + (addressQuery ? (useInstr ? ` AND instr(a.name, ?) > 0` : ` AND a.name LIKE ?`) : ``);
+            + (addressQuery ? ` AND instr(lower(a.name), lower(?)) > 0` : ``);
         return await handleListQuery(
             c,
             `SELECT a.*,`

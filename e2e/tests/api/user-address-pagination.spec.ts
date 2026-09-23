@@ -115,7 +115,7 @@ test.describe('User address pagination', () => {
       expect(filteredSecond.results).toHaveLength(1);
 
       const specificSearchRes = await request.get(
-        `${WORKER_URL}/user_api/bind_address?query=user-page-a`,
+        `${WORKER_URL}/user_api/bind_address?query=USER-PAGE-A`,
         { headers: { 'x-user-token': userJwt } },
       );
       expect(specificSearchRes.ok()).toBe(true);
