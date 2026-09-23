@@ -669,7 +669,7 @@ export const ptBRMessages = {
   "views.user.AddressManagement.itemCount": "Total",
   "views.user.AddressManagement.addressQueryTip": "Deixe em branco para consultar todos os endereços de e-mail",
   "views.user.AddressManagement.query": "Consultar",
-  "views.user.AddressManagement.invalidQuery": "A busca deve ter no máximo 100 bytes e não pode conter %, _ ou caracteres de controle",
+  "views.user.AddressManagement.invalidQuery": "A busca deve ter no máximo 100 caracteres e não pode conter % ou _",
   "views.index.SimpleIndex.readStatusUpdated": "Status de leitura atualizado",
   "views.common.Appearance.autoLoadRemoteImages": "Carregar automaticamente imagens externas no corpo do e-mail"
 }

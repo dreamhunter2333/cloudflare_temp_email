@@ -116,9 +116,7 @@ const UserBindAddressModule = {
         const { limit, offset, query } = c.req.query();
         const params = [String(user_id)];
         const addressQuery = query?.trim();
-        if (addressQuery && (new TextEncoder().encode(addressQuery).length > 100
-            || /[%_]/.test(addressQuery)
-            || [...addressQuery].some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127))) {
+        if (addressQuery && (addressQuery.length > 100 || /[%_]/.test(addressQuery))) {
             return c.text(i18n.getMessagesbyContext(c).InvalidInputMsg, 400);
         }
         if (addressQuery) {
