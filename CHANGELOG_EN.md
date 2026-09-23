@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |User| Search bound mailboxes by email address in address management with accurate pagination (issue #1156)
 - feat: |AI Extract| Add `AI_EXTRACT_MODE` to explicitly choose local rules only (`local`) or prefer Workers AI (`ai`); defaults to local rules when unset so mail content is never sent to AI. **Upgrade note**: deployments that relied on the Workers AI binding to enable AI extraction automatically must set `AI_EXTRACT_MODE = "ai"`
 
 ### Bug Fixes

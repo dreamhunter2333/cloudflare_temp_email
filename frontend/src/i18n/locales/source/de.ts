@@ -667,6 +667,8 @@ export const deMessages = {
   "components.MailContentRenderer.loadRemoteImages": "Bilder laden",
   "components.MailContentRenderer.remoteImagesBlocked": "{count} externe Ressourcen wurden zum Schutz deiner Privatsphäre blockiert",
   "views.user.AddressManagement.itemCount": "Gesamt",
+  "views.user.AddressManagement.addressQueryTip": "Leer lassen, um alle E-Mail-Adressen abzufragen",
+  "views.user.AddressManagement.query": "Abfragen",
   "views.index.SimpleIndex.readStatusUpdated": "Lesestatus aktualisiert",
   "views.common.Appearance.autoLoadRemoteImages": "Externe Bilder im E-Mail-Inhalt automatisch laden"
 }

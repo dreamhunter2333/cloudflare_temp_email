@@ -176,8 +176,9 @@ Requests without pagination parameters return the default first page. Fetching a
 | --- | --- | --- |
 | `limit` | `20` | Page size, from 1 to 100 |
 | `offset` | `0` | Pagination offset |
+| `query` | Empty | Optional email address keyword filter for the current user's bound addresses |
 
-The `results` array contains only the current page. The total is queried only when `offset=0`; later pages return `count: 0`, so clients should retain the total from the first page.
+The `results` array contains only the current page. The filtered total is queried only when `offset=0`; later pages return `count: 0`, so clients should retain the total from the first page.
 
 ```python
 import requests

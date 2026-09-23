@@ -667,6 +667,8 @@ export const esMessages = {
   "components.MailContentRenderer.loadRemoteImages": "Cargar imágenes",
   "components.MailContentRenderer.remoteImagesBlocked": "Se bloquearon {count} recursos remotos para proteger tu privacidad",
   "views.user.AddressManagement.itemCount": "Total",
+  "views.user.AddressManagement.addressQueryTip": "Déjalo vacío para consultar todas las direcciones de correo",
+  "views.user.AddressManagement.query": "Consultar",
   "views.index.SimpleIndex.readStatusUpdated": "Estado de lectura actualizado",
   "views.common.Appearance.autoLoadRemoteImages": "Cargar automáticamente las imágenes externas del correo"
 }

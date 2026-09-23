@@ -95,6 +95,18 @@ test.describe('User address pagination browser flow', () => {
 
       const selectedAddress = createdAddresses[20];
 
+      const addressSearch = page.getByPlaceholder('Leave blank to query all email addresses');
+      await addressSearch.fill(selectedAddress.address);
+      await addressSearch.press('Enter');
+      await expect(pagination).toContainText(/Total:\s*1/);
+      await expect(addressRows).toHaveCount(1);
+      await expect(addressRows.first()).toContainText(selectedAddress.address);
+
+      await addressSearch.fill('');
+      await addressSearch.press('Enter');
+      await expect(pagination).toContainText(/Total:\s*21/);
+      await expect(addressRows).toHaveCount(20);
+
       const initialMailboxAddressesResponse = page.waitForResponse((response) => {
         const url = new URL(response.url());
         return url.pathname === '/user_api/bind_address'
