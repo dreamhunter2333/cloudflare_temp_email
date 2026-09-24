@@ -175,6 +175,7 @@ type ParsedEmailContext = {
     rawEmail: string,
     parsedEmail?: {
         sender: string,
+        senderAddress?: string,
         subject: string,
         text: string,
         html: string,

@@ -15,6 +15,7 @@
 
 ### Bug Fixes
 
+- fix: |Mail| Check both the SMTP envelope sender and the parsed From email address against sender blacklists; reject when either matches to prevent missed blocks when the addresses differ
 - fix: |AI Extract| In `ai` mode, an address allowlist miss now skips only the Workers AI call and still falls back to local verification-code extraction
 
 ### Improvements
