@@ -10,13 +10,15 @@ const allowed = 'sender@allowed.e2e.invalid';
 test.describe('Sender blacklist matching', () => {
   for (const source of ['environment', 'KV']) {
     for (const [name, from, headerFrom, expected] of [
-      ['envelope only', blocked, allowed, true],
-      ['header only', allowed, blocked, true],
-      ['both', blocked, blocked, true],
-      ['neither', allowed, allowed, false],
-      ['missing header', blocked, undefined, true],
-      ['missing header, allowed envelope', allowed, undefined, false],
-      ['empty envelope', '', blocked, true],
+      ['envelope only', blocked, [allowed], true],
+      ['header only', allowed, [blocked], true],
+      ['both', blocked, [blocked], true],
+      ['neither', allowed, [allowed], false],
+      ['missing header', blocked, [], true],
+      ['missing header, allowed envelope', allowed, [], false],
+      ['empty envelope', '', [blocked], true],
+      ['second From address matches', allowed, [allowed, blocked], true],
+      ['multiple allowed From addresses', allowed, [allowed, 'other@allowed.e2e.invalid'], false],
     ] as const) {
       test(`${source}: ${name}`, async () => {
         let reads = 0;
@@ -39,19 +41,19 @@ test.describe('Sender blacklist matching', () => {
 
   test('environment blacklist works without KV', async () => {
     const env = { BLACK_LIST: blockedDomain } as Bindings;
-    expect(await isBlocked(allowed, env, blocked)).toBe(true);
+    expect(await isBlocked(allowed, env, [blocked])).toBe(true);
     expect(await isBlocked(allowed, env)).toBe(false);
-    expect(await isBlocked(allowed, {} as Bindings, blocked)).toBe(false);
+    expect(await isBlocked(allowed, {} as Bindings, [blocked])).toBe(false);
   });
 
   test('missing KV value does not reject mail', async () => {
     const env = { KV: { get: async () => null } } as unknown as Bindings;
-    expect(await isBlocked(allowed, env, blocked)).toBe(false);
+    expect(await isBlocked(allowed, env, [blocked])).toBe(false);
   });
 });
 
 test.describe('Sender blacklist receive pipeline', () => {
-  for (const [name, from, header, rejected] of [
+  for (const [name, from, header, rejected, nestedMime] of [
     ['envelope match', blocked, `From: Trusted <${allowed}>`, true],
     ['parsed From match', allowed, `From: Trusted <${blocked}>`, true],
     ['both match', blocked, `From: ${blocked}`, true],
@@ -62,6 +64,10 @@ test.describe('Sender blacklist receive pipeline', () => {
     ['missing From still checks envelope', blocked, '', true],
     ['missing From permits allowed envelope', allowed, '', false],
     ['retains case-sensitive matching', allowed, `From: ${blocked.toUpperCase()}`, false],
+    ['second From address matches', allowed, `From: ${allowed}, ${blocked}\r\nSender: ${allowed}`, true],
+    ['multiple allowed From addresses', allowed, `From: ${allowed}, other@allowed.e2e.invalid\r\nSender: ${allowed}`, false],
+    ['repeated From headers', allowed, `From: ${allowed}\r\nFrom: ${blocked}`, true],
+    ['blocked From with excessive MIME nesting', allowed, `From: ${blocked}`, true, true],
   ] as const) {
     test(name, async ({ request }) => {
       const { jwt, address } = await createTestAddress(request, 'senderfilter');
@@ -72,9 +78,17 @@ test.describe('Sender blacklist receive pipeline', () => {
           `Subject: Sender blacklist ${name}`,
           `Message-ID: <sender-blacklist-${Date.now()}@test>`,
           'MIME-Version: 1.0',
-          'Content-Type: text/plain; charset=utf-8',
-          '',
+          ...(nestedMime ? [
+            'Content-Type: multipart/mixed; boundary=b0',
+            '',
+            ...Array.from({ length: 260 }, (_, i) => [
+              `--b${i}`,
+              `Content-Type: multipart/mixed; boundary=b${i + 1}`,
+              '',
+            ]).flat(),
+          ] : ['Content-Type: text/plain; charset=utf-8', '']),
           'Sender blacklist test',
+          ...(nestedMime ? Array.from({ length: 261 }, (_, i) => `--b${260 - i}--`) : []),
         ].join('\r\n');
         const res = await request.post(`${WORKER_URL}/__test/receive_mail`, {
           data: { from, to: address, raw },

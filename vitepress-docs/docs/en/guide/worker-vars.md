@@ -101,7 +101,7 @@ When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. 
 
 | Variable Name                   | Type      | Description                                                                                                            | Example                    |
 | ------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `BLACK_LIST`                    | Text      | Comma-separated sender blacklist; case-sensitive substring matching against both the SMTP envelope sender and the parsed From email address. Either match rejects the mail. The admin sender blacklist follows the same rule; display names are not matched. | `gov.cn,edu.cn`            |
+| `BLACK_LIST`                    | Text      | Comma-separated sender blacklist; case-sensitive substring matching against the SMTP envelope sender and every email address parsed from From, independently of body parsing. Any match rejects the mail. The admin sender blacklist follows the same rule; display names are not matched. | `gov.cn,edu.cn`            |
 | `ENABLE_CHECK_JUNK_MAIL`        | Text/JSON | Whether to enable junk mail checking, used with the following two lists                                                | `false`                    |
 | `JUNK_MAIL_CHECK_LIST`          | JSON      | Existence check; registered failure/error results are junk, while `none` and SPF/DKIM `neutral` are treated as absent  | `["spf", "dkim", "dmarc"]` |
 | `JUNK_MAIL_FORCE_PASS_LIST`     | JSON      | Strict pass check; every item must explicitly return `pass`, otherwise it is treated as junk                           | `["spf", "dkim", "dmarc"]` |

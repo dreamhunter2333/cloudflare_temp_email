@@ -1,7 +1,7 @@
 import { CONSTANTS } from "../constants";
 
-export const isBlocked = async (from: string, env: Bindings, senderAddress?: string): Promise<boolean> => {
-    const senders = senderAddress ? [from, senderAddress] : [from];
+export const isBlocked = async (from: string, env: Bindings, senderAddresses: readonly string[] = []): Promise<boolean> => {
+    const senders = [from, ...senderAddresses];
     if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => senders.some(sender => sender.includes(word)))) {
         return true;
     }

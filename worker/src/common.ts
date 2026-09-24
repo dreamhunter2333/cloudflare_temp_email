@@ -738,7 +738,6 @@ export const handleMailListQuery = async (
 
 export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): Promise<{
     sender: string,
-    senderAddress?: string,
     subject: string,
     text: string,
     html: string,
@@ -783,7 +782,6 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
         const parsedEmail = await PostalMime.parse(raw_mail);
         parsedEmailContext.parsedEmail = {
             sender: parsedEmail.from ? `${parsedEmail.from.name} <${parsedEmail.from.address}>` : "",
-            senderAddress: parsedEmail.from?.address || "",
             subject: parsedEmail.subject || "",
             text: parsedEmail.text || "",
             html: parsedEmail.html || "",
