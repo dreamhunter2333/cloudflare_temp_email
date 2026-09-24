@@ -1,4 +1,5 @@
 import { Context } from "hono";
+import { addressParser } from "postal-mime";
 
 import { getJsonSetting, normalizeAddressDomain } from "../utils";
 import { sendMailToTelegram } from "../telegram_api";
@@ -16,7 +17,10 @@ import { storeRawMail } from "./storage";
 
 async function email(message: ForwardableEmailMessage, env: Bindings, ctx: ExecutionContext) {
     const toAddress = normalizeAddressDomain(message.to);
-    if (await isBlocked(message.from, env)) {
+    const senderAddresses = addressParser(message.headers.get("From") || "", { flatten: true })
+        .map(sender => sender.address || "")
+        .filter(Boolean);
+    if (await isBlocked(message.from, env, senderAddresses)) {
         message.setReject("Reject from address");
         console.log(`Reject message from ${message.from} to ${toAddress}`);
         return;
