@@ -8,7 +8,6 @@ const parseSenderAddresses = (headers: Headers): string[] => {
         const senderAddresses = addressParser(fromHeader, { flatten: true })
             .map(sender => sender.address || "")
             .filter(Boolean);
-        console.log("Email From header parsed", { fromHeader, senderAddresses });
         return senderAddresses;
     } catch (error) {
         console.error("Failed to parse sender addresses", error);
@@ -17,7 +16,6 @@ const parseSenderAddresses = (headers: Headers): string[] => {
 };
 
 export const isBlocked = async (message: Pick<ForwardableEmailMessage, "from" | "headers">, env: Bindings): Promise<boolean> => {
-    console.log("Email envelope sender", { from: message.from });
     const senders = [message.from, ...parseSenderAddresses(message.headers)];
     if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => senders.some(sender => sender.includes(word)))) {
         return true;
