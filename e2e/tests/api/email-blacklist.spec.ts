@@ -58,6 +58,53 @@ test.describe('Sender blacklist matching', () => {
     const env = { KV: { get: async () => null } } as unknown as Bindings;
     expect(await isBlocked(senderMessage(allowed, blocked), env)).toBe(false);
   });
+
+  for (const source of ['environment', 'KV']) {
+    for (const failure of ['header read', 'address parsing']) {
+      for (const from of [blocked, allowed]) {
+        test(`${source}: ${failure} failure preserves envelope check for ${from}`, async () => {
+          const message = senderMessage(from);
+          message.headers.get = () => {
+            if (failure === 'header read') throw new Error('Injected header read failure');
+            return { toString: () => { throw new Error('Injected address parsing failure'); } } as unknown as string;
+          };
+          let reads = 0;
+          const env = {
+            BLACK_LIST: source === 'environment' ? blockedDomain : '',
+            KV: { get: async () => {
+              reads++;
+              return source === 'KV' ? [blockedDomain] : [];
+            } },
+          } as unknown as Bindings;
+          expect(await isBlocked(message, env)).toBe(from === blocked);
+          expect(reads).toBe(source === 'environment' && from === blocked ? 0 : 1);
+        });
+      }
+    }
+
+    for (const [name, rule, expected] of [
+      ['exact address', blocked, true],
+      ['substring', 'blocked-sender', true],
+      ['case sensitive', blocked.toUpperCase(), false],
+      ['does not trim rules', ` ${blockedDomain}`, false],
+      ['empty rule matches', '', true],
+    ] as const) {
+      test(`${source}: preserves legacy ${name}`, async () => {
+        const env = {
+          BLACK_LIST: source === 'environment' ? `other.invalid,${rule}` : '',
+          KV: { get: async () => source === 'KV' ? ['other.invalid', rule] : [] },
+        } as unknown as Bindings;
+        expect(await isBlocked(senderMessage(blocked), env)).toBe(expected);
+      });
+    }
+  }
+
+  test('does not swallow existing KV errors', async () => {
+    const env = {
+      KV: { get: async () => { throw new Error('KV unavailable'); } },
+    } as unknown as Bindings;
+    await expect(isBlocked(senderMessage(allowed), env)).rejects.toThrow('KV unavailable');
+  });
 });
 
 test.describe('Sender blacklist receive pipeline', () => {
