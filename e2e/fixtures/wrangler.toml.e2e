@@ -16,7 +16,7 @@ USER_ROLES = [
 ]
 JWT_SECRET = "e2e-test-secret-key"
 TELEGRAM_BOT_TOKEN = "e2e-telegram-test-token"
-BLACK_LIST = ""
+BLACK_LIST = "blocked-sender.e2e.invalid"
 ENABLE_USER_CREATE_EMAIL = true
 ENABLE_USER_DELETE_EMAIL = true
 ENABLE_MAIL_READ_STATUS = true
