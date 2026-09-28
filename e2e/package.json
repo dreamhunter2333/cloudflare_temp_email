@@ -11,6 +11,7 @@
     "@playwright/test": "1.63.0",
     "@types/ws": "^8.18.1",
     "hono": "^4.13.7",
+    "postal-mime": "^2.7.6",
     "ws": "^8.21.3"
   },
   "dependencies": {

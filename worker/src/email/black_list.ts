@@ -1,7 +1,12 @@
+import { addressParser } from "postal-mime";
+
 import { CONSTANTS } from "../constants";
 
-export const isBlocked = async (from: string, env: Bindings, senderAddresses: readonly string[] = []): Promise<boolean> => {
-    const senders = [from, ...senderAddresses];
+export const isBlocked = async (message: Pick<ForwardableEmailMessage, "from" | "headers">, env: Bindings): Promise<boolean> => {
+    const senderAddresses = addressParser(message.headers.get("From") || "", { flatten: true })
+        .map(sender => sender.address || "")
+        .filter(Boolean);
+    const senders = [message.from, ...senderAddresses];
     if (env.BLACK_LIST && env.BLACK_LIST.split(",").some(word => senders.some(sender => sender.includes(word)))) {
         return true;
     }

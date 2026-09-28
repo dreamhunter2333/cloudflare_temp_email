@@ -7,18 +7,26 @@ const blockedDomain = 'blocked-sender.e2e.invalid';
 const blocked = `sender@${blockedDomain}`;
 const allowed = 'sender@allowed.e2e.invalid';
 
+const senderMessage = (from: string, headerFrom?: string) => ({
+  from,
+  headers: new Headers(headerFrom ? { From: headerFrom } : {}),
+});
+
 test.describe('Sender blacklist matching', () => {
   for (const source of ['environment', 'KV']) {
     for (const [name, from, headerFrom, expected] of [
-      ['envelope only', blocked, [allowed], true],
-      ['header only', allowed, [blocked], true],
-      ['both', blocked, [blocked], true],
-      ['neither', allowed, [allowed], false],
-      ['missing header', blocked, [], true],
-      ['missing header, allowed envelope', allowed, [], false],
-      ['empty envelope', '', [blocked], true],
-      ['second From address matches', allowed, [allowed, blocked], true],
-      ['multiple allowed From addresses', allowed, [allowed, 'other@allowed.e2e.invalid'], false],
+      ['envelope only', blocked, allowed, true],
+      ['header only', allowed, blocked, true],
+      ['both', blocked, blocked, true],
+      ['neither', allowed, allowed, false],
+      ['missing header', blocked, undefined, true],
+      ['missing header, allowed envelope', allowed, undefined, false],
+      ['empty envelope', '', blocked, true],
+      ['second From address matches', allowed, `${allowed}, ${blocked}`, true],
+      ['multiple allowed From addresses', allowed, `${allowed}, other@allowed.e2e.invalid`, false],
+      ['quoted display name with comma', allowed, `"Example, Inc." <${blocked}>`, true],
+      ['display name is not matched', allowed, `"${blocked}" <${allowed}>`, false],
+      ['encoded display name', allowed, `=?UTF-8?B?5rWL6K+V?= <${blocked}>`, true],
     ] as const) {
       test(`${source}: ${name}`, async () => {
         let reads = 0;
@@ -33,7 +41,7 @@ test.describe('Sender blacklist matching', () => {
             },
           },
         } as unknown as Bindings;
-        expect(await isBlocked(from, env, headerFrom)).toBe(expected);
+        expect(await isBlocked(senderMessage(from, headerFrom), env)).toBe(expected);
         expect(reads).toBe(source === 'environment' && expected ? 0 : 1);
       });
     }
@@ -41,14 +49,14 @@ test.describe('Sender blacklist matching', () => {
 
   test('environment blacklist works without KV', async () => {
     const env = { BLACK_LIST: blockedDomain } as Bindings;
-    expect(await isBlocked(allowed, env, [blocked])).toBe(true);
-    expect(await isBlocked(allowed, env)).toBe(false);
-    expect(await isBlocked(allowed, {} as Bindings, [blocked])).toBe(false);
+    expect(await isBlocked(senderMessage(allowed, blocked), env)).toBe(true);
+    expect(await isBlocked(senderMessage(allowed), env)).toBe(false);
+    expect(await isBlocked(senderMessage(allowed, blocked), {} as Bindings)).toBe(false);
   });
 
   test('missing KV value does not reject mail', async () => {
     const env = { KV: { get: async () => null } } as unknown as Bindings;
-    expect(await isBlocked(allowed, env, [blocked])).toBe(false);
+    expect(await isBlocked(senderMessage(allowed, blocked), env)).toBe(false);
   });
 });
 
