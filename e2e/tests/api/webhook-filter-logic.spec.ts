@@ -2,19 +2,24 @@ import { test, expect } from '@playwright/test';
 import { compileWebhookFilter } from '../../../worker/src/utils/webhook_filter';
 
 test.describe('Webhook filter field mapping', () => {
-  const mail = { sender: 'ignored display name', subject: 'DOWN', text: '', html: '<p>HTML only</p>', headers: [
+  const mail = { sender: 'Blocked, Display <first@example.com>', subject: 'DOWN', text: '', html: '<p>HTML only</p>', headers: [
     { key: 'From', value: '"Blocked, Display" <first@example.com>, second@example.com' },
     { key: 'from', value: 'third@example.com' },
     { key: 'X-Tag', value: 'a' }, { key: 'x-tag', value: 'b' },
     { key: 'Reply-To', value: 'reply@example.com' },
   ] };
-  const match = (field: string, value: string) => compileWebhookFilter({ field, operator: 'equals', value })(mail, 'bounce@example.net', 'real@example.org');
-  test('all From mailboxes and envelope, not display names or Reply-To', () => {
-    for (const value of ['first@example.com', 'second@example.com', 'third@example.com', 'bounce@example.net']) expect(match('from', value)).toBe(true);
-    expect(match('from', 'Blocked, Display')).toBe(false);
+  const match = (field: string, value: string) => compileWebhookFilter({ field, operator: 'equals', value })(mail, 'real@example.org');
+  test('from uses only the parsed sender, including the display name', () => {
+    expect(match('from', mail.sender)).toBe(true);
+    for (const value of ['second@example.com', 'third@example.com', 'bounce@example.net']) expect(match('from', value)).toBe(false);
+    for (const value of ['Blocked, Display', 'first@example.com']) {
+      expect(compileWebhookFilter({ field: 'from', operator: 'contains', value })(mail, '')).toBe(true);
+    }
     expect(match('from', 'reply@example.com')).toBe(false);
-    expect(match('headerFrom', 'bounce@example.net')).toBe(false);
-    expect(match('envelopeFrom', 'bounce@example.net')).toBe(true);
+    for (const field of ['headerFrom', 'envelopeFrom']) {
+      expect(() => compileWebhookFilter({ field, operator: 'equals', value: '' })).toThrow();
+    }
+    expect(compileWebhookFilter({ field: 'from', operator: 'equals', value: '' })({ ...mail, sender: '' }, '')).toBe(true);
     expect(match('to', 'real@example.org')).toBe(true);
   });
   test('repeated case-insensitive header names; missing and HTML-only text', () => {
@@ -24,13 +29,13 @@ test.describe('Webhook filter field mapping', () => {
     expect(match('html', '<p>HTML only</p>')).toBe(true);
   });
   test('missing parsed data throws even under NOT, while legacy settings still pass', () => {
-    expect(() => compileWebhookFilter({ operator: 'not', children: [{ field: 'subject', operator: 'equals', value: '' }] })(undefined, '', '')).toThrow();
-    expect(compileWebhookFilter(undefined)(undefined, '', '')).toBe(true);
+    expect(() => compileWebhookFilter({ operator: 'not', children: [{ field: 'subject', operator: 'equals', value: '' }] })(undefined, '')).toThrow();
+    expect(compileWebhookFilter(undefined)(undefined, '')).toBe(true);
   });
   test('compiled matcher can be reused without leaking previous mail headers', () => {
     const match = compileWebhookFilter({ field: 'header.X-Tag', operator: 'equals', value: 'b' });
-    expect(match(mail, '', '')).toBe(true);
-    expect(match({ ...mail, headers: [] }, '', '')).toBe(false);
-    expect(match(mail, '', '')).toBe(true);
+    expect(match(mail, '')).toBe(true);
+    expect(match({ ...mail, headers: [] }, '')).toBe(false);
+    expect(match(mail, '')).toBe(true);
   });
 });

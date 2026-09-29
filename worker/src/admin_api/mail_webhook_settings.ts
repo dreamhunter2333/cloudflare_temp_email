@@ -60,7 +60,7 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
     const parsedEmail = await commonParseMail(parsedEmailContext);
     try {
-        const matched = match(parsedEmail, mailRow?.source || '', mailRow?.address || '');
+        const matched = match(parsedEmail, mailRow?.address || '');
         if (!matched || settings.check_only) {
             return c.json({ success: true, matched, skipped: true });
         }

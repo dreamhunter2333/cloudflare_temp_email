@@ -62,9 +62,7 @@ In the page's JSON editor, enter only the expression inside `filter`, without th
 
 | Field | Meaning |
 | --- | --- |
-| `from` | Envelope sender and every From header mailbox, excluding display names |
-| `envelopeFrom` | SMTP envelope sender |
-| `headerFrom` | Every mailbox in From headers |
+| `from` | Parsed sender, identical to `${from}` in Body, e.g. `GitHub <notifications@github.com>`; use contains to match a name or email address |
 | `to` | Actual delivery address, not the To header |
 | `subject` | Parsed subject |
 | `text` / `html` | Parsed plain text / HTML; absent content is an empty string. Does not search raw MIME or attachment contents |
@@ -72,7 +70,7 @@ In the page's JSON editor, enter only the expression inside `filter`, without th
 
 - `and` / `or` require a nonempty `children` list; `not` requires exactly one child. Children may nest further; a single field condition is also a valid root.
 - `regex` uses RE2 syntax through [RE2JS](https://github.com/le0pard/re2js), case-sensitive by default. Optional `options.flags`: `i` (ignore case), `m` (multiline anchors), `s` (dot matches newline). JavaScript backreferences and lookahead are unsupported and rejected on save. User scripts are never executed.
-- For multiple addresses or repeated headers, any matching value satisfies the condition; wrapping it in `not` requires all values not to match. Missing headers are empty lists and match no values. From filtering is not sender authentication and does not replace SPF/DKIM/DMARC.
+- For repeated headers, any matching value satisfies the condition; wrapping it in `not` requires all values not to match. Missing headers are empty lists and match no values. From filtering is not sender authentication and does not replace SPF/DKIM/DMARC.
 - Limits: 8 levels, 100 nodes, 100 characters per field name, 500 characters per value. Unknown fields, operators or options, invalid regex and empty groups are rejected without replacing saved settings.
 - Parsing/evaluation failures skip that webhook and log an error; `not` cannot turn failures into matches. Configurations without filters keep the old path. Existing Body variables and rendering are unchanged.
 

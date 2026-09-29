@@ -171,7 +171,7 @@ const testMode = ref('random')
 const testMailId = ref<number | null>(null)
 const testing = ref(false)
 const filterValid = ref(true)
-const filterFields = computed(() => ['from', 'envelopeFrom', 'headerFrom', 'to', 'subject', 'text', 'html']
+const filterFields = computed(() => ['from', 'to', 'subject', 'text', 'html']
     .map(value => ({ value, label: t(`filter_${value}`) })))
 const filterOperators = computed<FilterOperator[]>(() => [
     ...['equals', 'contains', 'startsWith', 'endsWith'].flatMap(value => [

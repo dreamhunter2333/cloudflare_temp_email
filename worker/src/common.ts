@@ -858,8 +858,7 @@ export async function triggerWebhook(
     address: string,
     parsedEmailContext: ParsedEmailContext,
     storedMailId: number | undefined,
-    aiExtract?: ExtractResult | null,
-    envelopeFrom: string = ''
+    aiExtract?: ExtractResult | null
 ): Promise<void> {
     if (!c.env.KV || !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
         return
@@ -890,7 +889,7 @@ export async function triggerWebhook(
     const parsedEmail = await commonParseMail(parsedEmailContext);
     const matchingWebhooks = webhookList.filter(settings => {
         try {
-            return compileWebhookFilter(settings.filter)(parsedEmail, envelopeFrom, address);
+            return compileWebhookFilter(settings.filter)(parsedEmail, address);
         } catch (error) {
             console.error('Invalid webhook filter', error);
             return false;

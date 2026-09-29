@@ -18,9 +18,7 @@ export const MESSAGE_REGISTRY = {
   "components.WebhookComponent": {
     "filter": { "zh": "过滤条件", "en": "Filter" },
     "filterHelp": { "zh": "可输入 header.List-ID 等字段。文本默认忽略大小写；正则使用 RE2 语法，flags 可选 i、m、s。", "en": "Custom headers: e.g. header.List-ID. Text ignores case by default; regex uses RE2 syntax with optional i, m, s flags." },
-    "filter_from": { "zh": "发件邮箱（信封或 From）", "en": "Sender (envelope or From)" },
-    "filter_envelopeFrom": { "zh": "信封发件邮箱", "en": "Envelope sender" },
-    "filter_headerFrom": { "zh": "邮件头 From 邮箱", "en": "From header addresses" },
+    "filter_from": { "zh": "发件人", "en": "Sender" },
     "filter_to": { "zh": "实际收件邮箱", "en": "Delivery address" },
     "filter_subject": { "zh": "主题", "en": "Subject" },
     "filter_text": { "zh": "纯文本正文", "en": "Plain text" },

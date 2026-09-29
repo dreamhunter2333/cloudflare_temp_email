@@ -25,7 +25,7 @@ test('Webhook filter: incoming mail, selected-mail tests, isolation and compatib
   };
   const filter = {
     operator: 'and', children: [
-      { field: 'from', operator: 'equals', value: 'second@example.com' },
+      { field: 'from', operator: 'equals', value: 'Sender, Display <first@example.com>' },
       { operator: 'or', children: [
         { field: 'subject', operator: 'regex', value: '^down\\b', options: { flags: 'i' } },
         { field: 'subject', operator: 'contains', value: '告警' },
@@ -57,6 +57,7 @@ test('Webhook filter: incoming mail, selected-mail tests, isolation and compatib
     expect((await (await request.get(`${WORKER_URL}/api/webhook/settings`, { headers })).json()).filter).toEqual(filter);
     await deliver('DOWN service', 'Service is unavailable');
     expect(received).toHaveLength(1);
+    expect(received[0].body.from).toBe('Sender, Display <first@example.com>');
     await deliver('UP service', 'Recovered');
     await deliver('DOWN service', 'Scheduled MAINTENANCE');
     expect(received).toHaveLength(1);
@@ -80,12 +81,13 @@ test('Webhook filter: incoming mail, selected-mail tests, isolation and compatib
       expect((await request.post(`${WORKER_URL}${endpoint}`, { headers, data: { ...settings, filter, mail_id } })).ok()).toBe(true);
       expect(received).toHaveLength(before + 1);
       expect(received.at(-1)!.body.to).toBe(mailbox.address);
-      // Test from the stored envelope, not the display name or header From.
+      expect(received.at(-1)!.body.from).toBe('Sender, Display <first@example.com>');
+      // The stored envelope sender must not match the parsed From field.
       const envelope = await request.post(`${WORKER_URL}${endpoint}`, { headers, data: {
         ...settings, mail_id, check_only: true,
-        filter: { field: 'envelopeFrom', operator: 'equals', value: 'bounce@transport.example.com' },
+        filter: { field: 'from', operator: 'contains', value: 'bounce@transport.example.com' },
       } });
-      expect(await envelope.json()).toMatchObject({ matched: true, skipped: true });
+      expect(await envelope.json()).toMatchObject({ matched: false, skipped: true });
     }
     const before = received.length;
     expect((await request.post(`${WORKER_URL}/api/webhook/test`, {
@@ -126,6 +128,8 @@ test('Webhook filter rejects invalid configuration without replacing saved setti
   const invalid = [
     {}, false, [], { operator: 'and', children: [] },
     { field: 'unknown', operator: 'equals', value: '' },
+    { field: 'envelopeFrom', operator: 'equals', value: '' },
+    { field: 'headerFrom', operator: 'equals', value: '' },
     { field: 'subject', operator: 'unknown', value: '' },
     { field: 'subject', operator: 'regex', value: '[' },
     { field: 'subject', operator: 'regex', value: 'x', options: { flags: 'g' } },
