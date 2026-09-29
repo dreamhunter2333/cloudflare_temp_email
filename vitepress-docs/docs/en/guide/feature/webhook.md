@@ -28,7 +28,7 @@ This project uses [songquanpeng/message-pusher](https://github.com/songquanpeng/
 
 ## Mail filters
 
-![Webhook filter editor](/feature/webhook-filter.png)
+![Webhook filter editor](/feature/webhook-filter.webp)
 
 Add conditions in the admin mail webhook or mailbox webhook settings. Each webhook evaluates its own filter independently. A mismatch skips only that webhook; mail storage, blacklists, forwarding and Telegram notifications are unaffected. No new environment variables or database migration are required.
 

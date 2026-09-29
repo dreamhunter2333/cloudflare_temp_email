@@ -28,7 +28,7 @@
 
 ## 邮件过滤
 
-![Webhook 过滤规则编辑器](/feature/webhook-filter.png)
+![Webhook 过滤规则编辑器](/feature/webhook-filter.webp)
 
 在管理员邮件 Webhook 或邮箱 Webhook 页面添加过滤条件。两个 Webhook 各自判断，不互相限制；不匹配只跳过该 Webhook，邮件仍照常保存，不影响黑名单、转发和 Telegram 通知。无需新增环境变量或执行数据库迁移。
 
