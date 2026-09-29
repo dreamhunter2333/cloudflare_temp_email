@@ -7,6 +7,40 @@ const expression = { operator: 'and', children: [
   { operator: 'not', children: [{ field: 'text', operator: 'contains', value: 'maintenance' }] },
 ] };
 
+for (const [operator, label] of [['equals', '等于'], ['contains', '包含'], ['startsWith', '开头匹配'], ['endsWith', '结尾匹配']]) {
+  test(`Case-sensitive operator selection preserves existing JSON: ${operator}`, async ({ page }) => {
+    const original = { field: 'subject', operator, value: 'DOWN', options: { caseSensitive: true } };
+    const saved: any[] = [];
+    await page.route('**/admin/mail_webhook/settings', route => {
+      if (route.request().method() === 'POST') saved.push(route.request().postDataJSON());
+      return route.fulfill({ json: route.request().method() === 'POST' ? { success: true } : { ...settings, filter: original } });
+    });
+    await page.goto(`${FRONTEND_URL}/zh/admin`);
+    await page.getByText('邮件', { exact: true }).click();
+    await page.getByText('邮件 Webhook', { exact: true }).click();
+    const editor = page.getByTestId('filter-editor').first();
+    const selector = editor.locator('[aria-label="操作符"]');
+    const sensitiveLabel = `${label} (区分大小写)`;
+    await expect(selector).toContainText(sensitiveLabel);
+    await expect(editor.getByRole('checkbox', { name: '区分大小写' })).toHaveCount(0);
+    const save = page.getByRole('button', { name: '保存', exact: true });
+    await save.click();
+    await expect.poll(() => saved.at(-1)?.filter).toEqual(original);
+    await selector.click();
+    await page.locator('.n-base-select-option').getByText(label, { exact: true }).click();
+    await save.click();
+    await expect.poll(() => saved.at(-1)?.filter).toEqual({ field: 'subject', operator, value: 'DOWN' });
+    await selector.click();
+    await page.locator('.n-base-select-option').getByText(sensitiveLabel, { exact: true }).click();
+    await save.click();
+    await expect.poll(() => saved.at(-1)?.filter).toEqual(original);
+    await editor.getByText('JSON', { exact: true }).click();
+    expect(JSON.parse(await editor.getByRole('textbox', { name: 'JSON', exact: true }).inputValue())).toEqual(original);
+    await editor.getByText('可视化', { exact: true }).click();
+    await expect(selector).toContainText(sensitiveLabel);
+  });
+}
+
 test('Reusable filter editor nests conditions, round-trips JSON and reports skipped tests', async ({ page }) => {
   const saved: any[] = [];
   const tested: any[] = [];

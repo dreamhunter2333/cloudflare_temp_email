@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { isFilterExpression } from '../filter';
+import { getFilterOperator, isFilterExpression } from '../filter';
+
+describe('filter operator variants', () => {
+    it.each(['equals', 'contains', 'startsWith', 'endsWith'])('restores both %s variants from existing rules', operator => {
+        const operators = [
+            { value: operator, label: operator },
+            { value: `${operator}CaseSensitive`, label: operator, operator, presetOptions: { caseSensitive: true } },
+        ];
+        const node = { field: 'subject', operator, value: 'DOWN' };
+        expect(getFilterOperator(node, operators)?.value).toBe(operator);
+        expect(getFilterOperator({ ...node, options: { caseSensitive: false } }, operators)?.value).toBe(operator);
+        expect(getFilterOperator({ ...node, options: { caseSensitive: true } }, operators)?.value).toBe(`${operator}CaseSensitive`);
+    });
+    it('preserves regular operators and handles unset or unknown rules', () => {
+        const operators = [{ value: 'regex', label: 'Regex' }];
+        expect(getFilterOperator({ field: 'subject', operator: 'regex', value: '^DOWN', options: { flags: 'i' } }, operators)?.value).toBe('regex');
+        expect(getFilterOperator(null, operators)).toBeUndefined();
+        expect(getFilterOperator({ field: 'subject', operator: 'future', value: '' }, operators)).toBeUndefined();
+    });
+});
 
 describe('filter editor JSON structure', () => {
     const leaf = { field: 'subject', operator: 'contains', value: 'test' };

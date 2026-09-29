@@ -8,8 +8,16 @@ export type FilterExpression = {
 
 export type FilterField = { label: string; value: string };
 export type FilterOperator = FilterField & {
+    operator?: string;
+    presetOptions?: Record<string, unknown>;
     options?: { key: string; label: string; type: 'text' | 'boolean'; placeholder?: string }[];
 };
+
+export function getFilterOperator(node: FilterExpression | null | undefined, operators: FilterOperator[]) {
+    return operators.find(item => item.operator === node?.operator && item.presetOptions
+        && Object.entries(item.presetOptions).every(([key, value]) => node?.options?.[key] === value))
+        || operators.find(item => item.value === node?.operator);
+}
 
 export function isFilterExpression(input: unknown, depth = 1, budget = { nodes: 0 }): input is FilterExpression {
     if (++budget.nodes > 100 || depth > 8 || !input || typeof input !== 'object' || Array.isArray(input)) return false;

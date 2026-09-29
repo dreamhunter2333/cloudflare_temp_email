@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
-import { isFilterExpression, type FilterExpression, type FilterField, type FilterOperator } from './filter'
+import { getFilterOperator, isFilterExpression, type FilterExpression, type FilterField, type FilterOperator } from './filter'
 
 const props = withDefaults(defineProps<{
     modelValue?: FilterExpression | null
@@ -21,11 +21,16 @@ const jsonError = ref(false)
 const valid = computed(() => props.modelValue == null || isFilterExpression(props.modelValue))
 const group = computed(() => !!props.modelValue && ['and', 'or', 'not'].includes(props.modelValue.operator))
 const groupOptions = computed(() => ['and', 'or', 'not'].map(value => ({ label: t(value), value, key: value })))
-const operatorOptions = computed(() => props.operators.find(item => item.value === props.modelValue?.operator)?.options || [])
+const selectedOperator = computed(() => getFilterOperator(props.modelValue, props.operators))
+const operatorOptions = computed(() => selectedOperator.value?.options || [])
 const condition = (): FilterExpression => ({ field: props.fields[0]?.value || '', operator: props.operators[0]?.value || '', value: '' })
 const update = (value: FilterExpression | null) => emit('update:modelValue', value)
 const patch = (value: Partial<FilterExpression>) => update({ ...props.modelValue!, ...value })
-const setOperator = (operator: string) => update({ field: props.modelValue?.field, operator, value: props.modelValue?.value || '' })
+const setOperator = (value: string) => {
+    const selected = props.operators.find(item => item.value === value)
+    update({ field: props.modelValue?.field, operator: selected?.operator || value, value: props.modelValue?.value || '',
+        ...(selected?.presetOptions ? { options: { ...selected.presetOptions } } : {}) })
+}
 const setOption = (key: string, value: unknown) => patch({ options: { ...props.modelValue?.options, [key]: value } })
 const changeGroup = (operator: string) => {
     const children = props.modelValue?.children || []
@@ -96,7 +101,7 @@ watch(valid, value => emit('validity-change', value && !jsonError.value), { imme
                 <div class="condition-inputs">
                     <n-select :value="modelValue.field" :options="fields" filterable :tag="allowCustomFields"
                         :aria-label="t('field')" :placeholder="t('field')" @update:value="patch({ field: $event })" />
-                    <n-select :value="modelValue.operator" :options="operators" :aria-label="t('operator')"
+                    <n-select :value="selectedOperator?.value || modelValue.operator" :options="operators" :aria-label="t('operator')"
                         @update:value="setOperator" />
                     <n-input :value="modelValue.value" :placeholder="t('value')" :input-props="{ 'aria-label': t('value') }"
                         :maxlength="500" @update:value="patch({ value: $event })" />

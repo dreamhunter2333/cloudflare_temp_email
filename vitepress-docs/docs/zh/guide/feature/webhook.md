@@ -71,7 +71,7 @@
 | `header.List-ID` 等 | 指定邮件头的全部值；头名称不区分大小写，可在字段选择框直接输入 |
 
 - `and` / `or` 的 `children` 为非空条件列表；`not` 的 `children` 必须恰好有一个条件。子条件可以继续嵌套，根节点也可以直接是一条字段匹配条件。
-- 文本操作符为 `equals`、`contains`、`startsWith`、`endsWith`，默认不区分大小写；通过 `options: { "caseSensitive": true }` 区分大小写。空 `value` 是合法值，例如 `equals` 空字符串匹配空正文。
+- 文本操作符为 `equals`、`contains`、`startsWith`、`endsWith`，默认不区分大小写；可视化下拉框为每种匹配提供普通和“区分大小写”两个选项，后者保存为 `options: { "caseSensitive": true }`，兼容已有 JSON 规则。空 `value` 是合法值，例如 `equals` 空字符串匹配空正文。
 - `regex` 使用 [RE2JS](https://github.com/le0pard/re2js) 的 RE2 正则语法，默认区分大小写。`options.flags` 支持 `i`（忽略大小写）、`m`（多行锚点）、`s`（点匹配换行）。不支持 JavaScript 正则的反向引用、前瞻等语法，保存时会校验；不执行用户脚本。
 - 对多个邮箱或同名邮件头，任意一个值匹配即成立；外层 `not` 则要求全部不匹配。缺失邮件头为空列表，不匹配任何值。From 条件不是发件人真实性认证，不能代替 SPF/DKIM/DMARC。
 - 最多 8 层、100 个节点，字段名最多 100 字符、匹配值最多 500 字符。未知字段、操作符、选项、非法正则和空条件组会被拒绝，不会覆盖原有配置。

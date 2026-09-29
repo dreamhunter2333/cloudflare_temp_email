@@ -71,7 +71,7 @@ In the page's JSON editor, enter only the expression inside `filter`, without th
 | `header.List-ID`, etc. | All values of a named header; header names are case-insensitive. Type custom fields into the field selector |
 
 - `and` / `or` require a nonempty `children` list; `not` requires exactly one child. Children may nest further; a single field condition is also a valid root.
-- Text operators: `equals`, `contains`, `startsWith`, `endsWith`. They ignore case by default; use `options: { "caseSensitive": true }` for case-sensitive matching. Empty values are allowed, e.g. `equals` with an empty string matches an empty body.
+- Text operators: `equals`, `contains`, `startsWith`, `endsWith`. They ignore case by default. The visual selector offers a separate case-sensitive option for each operator, stored as `options: { "caseSensitive": true }` to preserve existing JSON rules. Empty values are allowed, e.g. `equals` with an empty string matches an empty body.
 - `regex` uses RE2 syntax through [RE2JS](https://github.com/le0pard/re2js), case-sensitive by default. Optional `options.flags`: `i` (ignore case), `m` (multiline anchors), `s` (dot matches newline). JavaScript backreferences and lookahead are unsupported and rejected on save. User scripts are never executed.
 - For multiple addresses or repeated headers, any matching value satisfies the condition; wrapping it in `not` requires all values not to match. Missing headers are empty lists and match no values. From filtering is not sender authentication and does not replace SPF/DKIM/DMARC.
 - Limits: 8 levels, 100 nodes, 100 characters per field name, 500 characters per value. Unknown fields, operators or options, invalid regex and empty groups are rejected without replacing saved settings.

@@ -174,10 +174,11 @@ const filterValid = ref(true)
 const filterFields = computed(() => ['from', 'envelopeFrom', 'headerFrom', 'to', 'subject', 'text', 'html']
     .map(value => ({ value, label: t(`filter_${value}`) })))
 const filterOperators = computed<FilterOperator[]>(() => [
-    ...['equals', 'contains', 'startsWith', 'endsWith'].map(value => ({
-        value, label: t(`filter_${value}`),
-        options: [{ key: 'caseSensitive', label: t('filter_caseSensitive'), type: 'boolean' as const }],
-    })),
+    ...['equals', 'contains', 'startsWith', 'endsWith'].flatMap(value => [
+        { value, label: t(`filter_${value}`) },
+        { value: `${value}CaseSensitive`, label: `${t(`filter_${value}`)} (${t('filter_caseSensitive')})`,
+            operator: value, presetOptions: { caseSensitive: true } },
+    ]),
     { value: 'regex', label: t('filter_regex'), options: [{ key: 'flags', label: t('filter_flags'), type: 'text', placeholder: 'i / m / s' }] },
 ])
 
