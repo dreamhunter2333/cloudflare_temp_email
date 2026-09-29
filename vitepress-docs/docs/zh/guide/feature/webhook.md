@@ -26,6 +26,65 @@
 
 ![telegram](/feature/address-webhook.png)
 
+## 邮件过滤
+
+![Webhook 过滤规则编辑器](/feature/webhook-filter.png)
+
+在管理员邮件 Webhook 或邮箱 Webhook 页面添加过滤条件。两个 Webhook 各自判断，不互相限制；不匹配只跳过该 Webhook，邮件仍照常保存，不影响黑名单、转发和 Telegram 通知。无需新增环境变量或执行数据库迁移。
+
+规则保存在现有配置的 `filter` 字段，与 `url`、`headers`、`body` 平级，不放进 Body 模板。旧配置没有 `filter`，或值为 `null` 时，保持全部推送。可视化编辑与 JSON 编辑使用同一结构：
+
+```json
+{
+  "filter": {
+    "operator": "and",
+    "children": [
+      { "field": "from", "operator": "endsWith", "value": "@example.com" },
+      {
+        "operator": "or",
+        "children": [
+          { "field": "subject", "operator": "contains", "value": "告警" },
+          { "field": "subject", "operator": "regex", "value": "^DOWN\\b", "options": { "flags": "i" } }
+        ]
+      },
+      {
+        "operator": "not",
+        "children": [{ "field": "text", "operator": "contains", "value": "维护通知" }]
+      }
+    ]
+  }
+}
+```
+
+页面的 JSON 编辑框只填写 `filter` 内部的表达式，不需要再包一层 `filter`。
+
+### 字段和操作符
+
+| 字段 | 含义 |
+| --- | --- |
+| `from` | SMTP 信封发件邮箱和邮件头 From 中的全部邮箱地址，不包含显示名称 |
+| `envelopeFrom` | SMTP 信封发件邮箱 |
+| `headerFrom` | 邮件头 From 中的全部邮箱地址 |
+| `to` | 实际投递地址，不是邮件头 To |
+| `subject` | 解析后的主题 |
+| `text` / `html` | 解析后的纯文本 / HTML 正文；缺失时为空字符串，不扫描 MIME 原文或附件内容 |
+| `header.List-ID` 等 | 指定邮件头的全部值；头名称不区分大小写，可在字段选择框直接输入 |
+
+- `and` / `or` 的 `children` 为非空条件列表；`not` 的 `children` 必须恰好有一个条件。子条件可以继续嵌套，根节点也可以直接是一条字段匹配条件。
+- 文本操作符为 `equals`、`contains`、`startsWith`、`endsWith`，默认不区分大小写；通过 `options: { "caseSensitive": true }` 区分大小写。空 `value` 是合法值，例如 `equals` 空字符串匹配空正文。
+- `regex` 使用 [RE2JS](https://github.com/le0pard/re2js) 的 RE2 正则语法，默认区分大小写。`options.flags` 支持 `i`（忽略大小写）、`m`（多行锚点）、`s`（点匹配换行）。不支持 JavaScript 正则的反向引用、前瞻等语法，保存时会校验；不执行用户脚本。
+- 对多个邮箱或同名邮件头，任意一个值匹配即成立；外层 `not` 则要求全部不匹配。缺失邮件头为空列表，不匹配任何值。From 条件不是发件人真实性认证，不能代替 SPF/DKIM/DMARC。
+- 最多 8 层、100 个节点，字段名最多 100 字符、匹配值最多 500 字符。未知字段、操作符、选项、非法正则和空条件组会被拒绝，不会覆盖原有配置。
+- 解析或求值失败会跳过该 Webhook 并记录错误，不会因 `not` 而放行。旧配置无规则时仍使用原处理流程。原有 Body 变量及渲染方式不变。
+
+### 测试和复用
+
+测试弹框保留“随机邮件 / 指定 ID”。“仅检查规则”不发送请求；“测试”在匹配后真实发送，不匹配时提示已跳过。使用过滤规则时必须有真实邮件；指定 ID 仍检查邮箱归属。
+
+现有 `/api/webhook/test` 和 `/admin/mail_webhook/test` 接收配置及可选 `mail_id`，新增可选布尔字段 `check_only`。仅检查或未匹配时返回 `{ "success": true, "matched": true/false, "skipped": true }`；真实发送的成功/失败响应保持原行为。`check_only` 仅用于测试，不属于持久配置。
+
+后端通用模块 `worker/src/utils/filter.ts` 通过 `compileFilter(expression, isFieldAllowed, operators)` 编译并校验规则，返回接收字符串/字符串列表字段映射的匹配函数；扩展操作符只需注册参数编译函数。`webhook_filter.ts` 单独负责邮件字段映射。前端 `FilterEditor.vue` 接收 `v-model`、`fields` 和 `operators`（包括选项编辑配置），不依赖 Webhook API；其他功能可提供自己的字段和操作符复用编辑器。
+
 ## Webhook 模板示例
 
 ### Telegram Bot 推送

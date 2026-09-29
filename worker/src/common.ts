@@ -8,6 +8,7 @@ import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 import { formatWebhookBody, getWebhookAttachments } from './utils/webhook';
+import { matchWebhookFilter } from './utils/webhook_filter';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
@@ -857,7 +858,8 @@ export async function triggerWebhook(
     address: string,
     parsedEmailContext: ParsedEmailContext,
     storedMailId: number | undefined,
-    aiExtract?: ExtractResult | null
+    aiExtract?: ExtractResult | null,
+    envelopeFrom: string = ''
 ): Promise<void> {
     if (!c.env.KV || !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
         return
@@ -885,13 +887,22 @@ export async function triggerWebhook(
     if (webhookList.length === 0) {
         return
     }
+    const parsedEmail = await commonParseMail(parsedEmailContext);
+    const matchingWebhooks = webhookList.filter(settings => {
+        try {
+            return matchWebhookFilter(settings.filter, parsedEmail, envelopeFrom, address);
+        } catch (error) {
+            console.error('Invalid webhook filter', error);
+            return false;
+        }
+    });
+    if (matchingWebhooks.length === 0) return;
     const mailRow = storedMailId ? await c.env.DB.prepare(
         `SELECT id, address, created_at FROM raw_mails WHERE id = ? AND address = ?`
     ).bind(storedMailId, address).first<{ id: number, address: string, created_at: string }>() : null;
     const mailId = String(mailRow?.id || '');
 
-    const parsedEmail = await commonParseMail(parsedEmailContext);
-    const needsAttachments = webhookList.some(settings => settings.body.includes('${attachment'));
+    const needsAttachments = matchingWebhooks.some(settings => settings.body.includes('${attachment'));
     const attachments = needsAttachments
         ? await getWebhookAttachments(c.env, mailRow, parsedEmail?.attachments) : [];
     const usableAiExtract = aiExtract?.type !== "none" && aiExtract?.result
@@ -912,7 +923,7 @@ export async function triggerWebhook(
         aiExtractResult: usableAiExtract?.result || "",
         aiExtractResultText: usableAiExtract?.result_text || "",
     }
-    for (const settings of webhookList) {
+    for (const settings of matchingWebhooks) {
         const res = await sendWebhook(settings, webhookMail);
         if (!res.success) {
             console.error(res.message);

@@ -2,6 +2,8 @@ import { LocaleMessages } from "./type";
 
 const messages: LocaleMessages = {
     InvalidRequestBodyMsg: "Invalid request body",
+    InvalidWebhookFilterMsg: "Invalid filter",
+    WebhookFilterEvaluationFailedMsg: "Unable to evaluate filter; check whether the email can be parsed",
     InvalidMailIdMsg: "Invalid mail ID",
     MailNotFoundMsg: "Mail not found",
     CustomAuthPasswordMsg: "You have enabled the private site password, please provide the password",

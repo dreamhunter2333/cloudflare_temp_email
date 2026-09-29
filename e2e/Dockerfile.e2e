@@ -13,6 +13,7 @@ COPY e2e/ .
 COPY worker/src/email/extract_code.ts worker/src/email/extract_mode.ts /app/worker/src/email/
 COPY worker/src/email/black_list.ts /app/worker/src/email/
 COPY worker/src/constants.ts /app/worker/src/
+COPY worker/src/utils/filter.ts worker/src/utils/webhook_filter.ts /app/worker/src/utils/
 RUN ln -s /app/e2e/node_modules /app/worker/node_modules
 
 ENTRYPOINT ["/app/e2e/scripts/docker-entrypoint.sh"]

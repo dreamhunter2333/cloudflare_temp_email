@@ -16,7 +16,7 @@ const saveSettings = async (webhookSettings: any) => {
 }
 
 const testSettings = async (webhookSettings: any) => {
-    await api.fetch(`/api/webhook/test`, {
+    return await api.fetch(`/api/webhook/test`, {
         method: 'POST',
         body: JSON.stringify(webhookSettings),
     })

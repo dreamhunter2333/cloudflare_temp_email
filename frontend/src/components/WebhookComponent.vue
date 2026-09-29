@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, h } from 'vue'
+import { computed, onMounted, ref, h } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import type { DropdownOption } from 'naive-ui'
+import FilterEditor from './FilterEditor.vue'
+import type { FilterExpression, FilterOperator } from './filter'
 
 const props = defineProps({
     fetchData: {
@@ -27,6 +29,7 @@ const message = useMessage()
 const { t } = useScopedI18n('components.WebhookComponent')
 
 class WebhookSettings {
+    filter?: FilterExpression | null
     enabled: boolean = false
     url: string = ''
     method: string = 'POST'
@@ -167,6 +170,16 @@ const showTestModal = ref(false)
 const testMode = ref('random')
 const testMailId = ref<number | null>(null)
 const testing = ref(false)
+const filterValid = ref(true)
+const filterFields = computed(() => ['from', 'envelopeFrom', 'headerFrom', 'to', 'subject', 'text', 'html']
+    .map(value => ({ value, label: t(`filter_${value}`) })))
+const filterOperators = computed<FilterOperator[]>(() => [
+    ...['equals', 'contains', 'startsWith', 'endsWith'].map(value => ({
+        value, label: t(`filter_${value}`),
+        options: [{ key: 'caseSensitive', label: t('filter_caseSensitive'), type: 'boolean' as const }],
+    })),
+    { value: 'regex', label: t('filter_regex'), options: [{ key: 'flags', label: t('filter_flags'), type: 'text', placeholder: 'i / m / s' }] },
+])
 
 const fetchData = async () => {
     try {
@@ -179,6 +192,7 @@ const fetchData = async () => {
 }
 
 const saveSettings = async () => {
+    if (!filterValid.value) return
     if (!webhookSettings.value.url) {
         message.error(t('urlMissing'))
         return
@@ -191,8 +205,8 @@ const saveSettings = async () => {
     }
 }
 
-const testSettings = async () => {
-    if (testing.value) return
+const testSettings = async (checkOnly = false) => {
+    if (testing.value || !filterValid.value) return
     if (!webhookSettings.value.url) {
         message.error(t('urlMissing'))
         return
@@ -203,11 +217,13 @@ const testSettings = async () => {
     }
     testing.value = true
     try {
-        await props.testSettings({
+        const result = await props.testSettings({
             ...webhookSettings.value,
+            ...(checkOnly ? { check_only: true } : {}),
             ...(testMode.value === 'specified' ? { mail_id: testMailId.value } : {}),
         })
-        message.success(t('successTip'))
+        if (result?.matched === false) message.info(t('filterSkipped'))
+        else message.success(t(checkOnly ? 'filterMatched' : 'successTip'))
         showTestModal.value = false
     } catch (error) {
         message.error((error as Error).message || "error");
@@ -226,14 +242,14 @@ onMounted(async () => {
         <n-card :bordered="false" embedded v-if="enableWebhook" style="max-width: 800px; overflow: auto;">
             <n-flex justify="end">
                 <n-dropdown :options="presetDropdownOptions" @select="handlePresetSelect">
-                    <n-button secondary>
+                    <n-button secondary :disabled="!filterValid">
                         {{ t('presets') }}
                     </n-button>
                 </n-dropdown>
-                <n-button v-if="webhookSettings.enabled" @click="showTestModal = true" secondary>
+                <n-button v-if="webhookSettings.enabled" @click="showTestModal = true" secondary :disabled="!filterValid">
                     {{ t('test') }}
                 </n-button>
-                <n-button @click="saveSettings" type="primary">
+                <n-button @click="saveSettings" type="primary" :disabled="!filterValid">
                     {{ t('save') }}
                 </n-button>
             </n-flex>
@@ -241,6 +257,13 @@ onMounted(async () => {
                 <n-switch v-model:value="webhookSettings.enabled" :round="false" />
             </n-form-item-row>
             <div v-if="webhookSettings.enabled">
+                <n-form-item-row :label="t('filter')">
+                    <div style="width: 100%; min-width: 0">
+                        <FilterEditor v-model="webhookSettings.filter" :fields="filterFields" :operators="filterOperators"
+                            allow-custom-fields @validity-change="filterValid = $event" />
+                        <n-text depth="3">{{ t('filterHelp') }}</n-text>
+                    </div>
+                </n-form-item-row>
                 <n-form-item-row label="URL">
                     <n-input v-model:value="webhookSettings.url" />
                 </n-form-item-row>
@@ -275,7 +298,8 @@ onMounted(async () => {
             <template #footer>
                 <n-flex justify="end">
                     <n-button :disabled="testing" @click="showTestModal = false">{{ t('cancel') }}</n-button>
-                    <n-button type="primary" :loading="testing" @click="testSettings">{{ t('test') }}</n-button>
+                    <n-button :disabled="testing || !filterValid" @click="testSettings(true)">{{ t('checkFilter') }}</n-button>
+                    <n-button type="primary" :loading="testing" :disabled="!filterValid" @click="testSettings(false)">{{ t('test') }}</n-button>
                 </n-flex>
             </template>
         </n-modal>

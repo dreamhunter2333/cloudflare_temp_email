@@ -98,7 +98,7 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     try {
         await triggerWebhook(
             { env: env } as Context<HonoCustomType>,
-            toAddress, parsedEmailContext, storedMailId, aiExtractResult
+            toAddress, parsedEmailContext, storedMailId, aiExtractResult, message.from
         );
     } catch (error) {
         console.error("send webhook error", error);

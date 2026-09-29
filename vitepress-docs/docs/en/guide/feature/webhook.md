@@ -26,6 +26,65 @@ This project uses [songquanpeng/message-pusher](https://github.com/songquanpeng/
 
 ![telegram](/feature/address-webhook.png)
 
+## Mail filters
+
+![Webhook filter editor](/feature/webhook-filter.png)
+
+Add conditions in the admin mail webhook or mailbox webhook settings. Each webhook evaluates its own filter independently. A mismatch skips only that webhook; mail storage, blacklists, forwarding and Telegram notifications are unaffected. No new environment variables or database migration are required.
+
+The expression is stored in an optional `filter` property alongside `url`, `headers` and `body`, not inside the Body template. Missing or `null` filters preserve existing behavior: send every message. The visual and JSON editors use the same structure:
+
+```json
+{
+  "filter": {
+    "operator": "and",
+    "children": [
+      { "field": "from", "operator": "endsWith", "value": "@example.com" },
+      {
+        "operator": "or",
+        "children": [
+          { "field": "subject", "operator": "contains", "value": "ALERT" },
+          { "field": "subject", "operator": "regex", "value": "^DOWN\\b", "options": { "flags": "i" } }
+        ]
+      },
+      {
+        "operator": "not",
+        "children": [{ "field": "text", "operator": "contains", "value": "maintenance" }]
+      }
+    ]
+  }
+}
+```
+
+In the page's JSON editor, enter only the expression inside `filter`, without the outer `filter` wrapper.
+
+### Fields and operators
+
+| Field | Meaning |
+| --- | --- |
+| `from` | Envelope sender and every From header mailbox, excluding display names |
+| `envelopeFrom` | SMTP envelope sender |
+| `headerFrom` | Every mailbox in From headers |
+| `to` | Actual delivery address, not the To header |
+| `subject` | Parsed subject |
+| `text` / `html` | Parsed plain text / HTML; absent content is an empty string. Does not search raw MIME or attachment contents |
+| `header.List-ID`, etc. | All values of a named header; header names are case-insensitive. Type custom fields into the field selector |
+
+- `and` / `or` require a nonempty `children` list; `not` requires exactly one child. Children may nest further; a single field condition is also a valid root.
+- Text operators: `equals`, `contains`, `startsWith`, `endsWith`. They ignore case by default; use `options: { "caseSensitive": true }` for case-sensitive matching. Empty values are allowed, e.g. `equals` with an empty string matches an empty body.
+- `regex` uses RE2 syntax through [RE2JS](https://github.com/le0pard/re2js), case-sensitive by default. Optional `options.flags`: `i` (ignore case), `m` (multiline anchors), `s` (dot matches newline). JavaScript backreferences and lookahead are unsupported and rejected on save. User scripts are never executed.
+- For multiple addresses or repeated headers, any matching value satisfies the condition; wrapping it in `not` requires all values not to match. Missing headers are empty lists and match no values. From filtering is not sender authentication and does not replace SPF/DKIM/DMARC.
+- Limits: 8 levels, 100 nodes, 100 characters per field name, 500 characters per value. Unknown fields, operators or options, invalid regex and empty groups are rejected without replacing saved settings.
+- Parsing/evaluation failures skip that webhook and log an error; `not` cannot turn failures into matches. Configurations without filters keep the old path. Existing Body variables and rendering are unchanged.
+
+### Testing and reuse
+
+The dialog retains random email / specified ID selection. **Check only** evaluates without sending; **Test** sends only when matched, otherwise reports that delivery was skipped. Filters require a real email for testing, and mailbox ownership checks still apply to selected IDs.
+
+Existing `/api/webhook/test` and `/admin/mail_webhook/test` accept settings plus optional `mail_id` and a new optional boolean `check_only`. Check-only and mismatched results return `{ "success": true, "matched": true/false, "skipped": true }`. Actual delivery success/failure responses remain unchanged. `check_only` is a test parameter, not a persisted setting.
+
+The generic backend module `worker/src/utils/filter.ts` exposes `compileFilter(expression, isFieldAllowed, operators)`, validating/compiling an expression into a function accepting string/string-array fields. Register a parameter compiler to extend operators. `webhook_filter.ts` handles mail-specific mapping separately. The frontend `FilterEditor.vue` accepts `v-model`, `fields` and `operators` (including option editor definitions), without depending on webhook APIs; other features can supply their own fields/operators.
+
 ## Webhook Template Examples
 
 ### Telegram Bot Push
