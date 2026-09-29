@@ -104,7 +104,7 @@ test('Invalid JSON draft does not prevent disabling the webhook', async ({ page 
   await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill('{');
   const save = page.getByRole('button', { name: '保存', exact: true });
   await expect(save).toBeDisabled();
-  await page.getByRole('switch').click();
+  await page.locator('.n-card').filter({ has: editor }).getByRole('switch').click();
   await expect(save).toBeEnabled();
   await save.click();
   await expect.poll(() => saved.at(-1)).toMatchObject({ enabled: false, filter: expression });
