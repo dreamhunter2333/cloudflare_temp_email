@@ -11,20 +11,21 @@ export type FilterExpression = {
 export type FilterValues = Record<string, string | string[]>;
 export type FilterOperator = (value: string, options: Record<string, unknown>) => (input: string) => boolean;
 
-const textOperator = (match: (input: string, value: string) => boolean): FilterOperator => (value, options) => {
-    if (Object.keys(options).some(key => key !== 'caseSensitive')
-        || (options.caseSensitive !== undefined && typeof options.caseSensitive !== 'boolean')) {
-        throw new Error('Invalid text options');
-    }
-    const expected = options.caseSensitive ? value : value.toLowerCase();
-    return input => match(options.caseSensitive ? input : input.toLowerCase(), expected);
+const textOperator = (match: (input: string, value: string) => boolean, caseSensitive = false): FilterOperator => (value, options) => {
+    if (Object.keys(options).length) throw new Error('Text operators do not accept options');
+    const expected = caseSensitive ? value : value.toLowerCase();
+    return input => match(caseSensitive ? input : input.toLowerCase(), expected);
 };
 
 export const filterOperators: Record<string, FilterOperator> = {
     equals: textOperator((input, value) => input === value),
+    equalsCaseSensitive: textOperator((input, value) => input === value, true),
     contains: textOperator((input, value) => input.includes(value)),
+    containsCaseSensitive: textOperator((input, value) => input.includes(value), true),
     startsWith: textOperator((input, value) => input.startsWith(value)),
+    startsWithCaseSensitive: textOperator((input, value) => input.startsWith(value), true),
     endsWith: textOperator((input, value) => input.endsWith(value)),
+    endsWithCaseSensitive: textOperator((input, value) => input.endsWith(value), true),
     regex: (value, options) => {
         const flags = options.flags ?? '';
         if (Object.keys(options).some(key => key !== 'flags') || typeof flags !== 'string'

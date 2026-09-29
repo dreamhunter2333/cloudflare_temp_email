@@ -24,10 +24,20 @@ for (const [operator, value, input, matched] of [
 }
 
 test('text options and regex flags', () => {
-  assert.equal(compile(rule('contains', 'DOWN', { caseSensitive: true }))({ subject: 'down' }), false);
+  assert.equal(compile(rule('containsCaseSensitive', 'DOWN'))({ subject: 'down' }), false);
   assert.equal(compile(rule('regex', '^down.$', { flags: 'ims' }))({ subject: 'first\nDOWN\n' }), true);
   assert.equal(compile(rule('regex', '告警|故障'))({ subject: '发生故障' }), true);
 });
+
+for (const operator of ['equals', 'contains', 'startsWith', 'endsWith']) {
+  test(`${operator}: separate case-sensitive operator`, () => {
+    assert.equal(compile(rule(operator, 'down'))({ subject: 'DOWN' }), true);
+    assert.equal(compile(rule(`${operator}CaseSensitive`, 'down'))({ subject: 'DOWN' }), false);
+    assert.equal(compile(rule(`${operator}CaseSensitive`, 'DOWN'))({ subject: 'DOWN' }), true);
+    assert.throws(() => compile(rule(operator, 'down', { caseSensitive: true })));
+    assert.throws(() => compile(rule(`${operator}CaseSensitive`, 'down', { flags: 'i' })));
+  });
+}
 
 test('nested AND OR NOT and list values', () => {
   const match = compile({ operator: 'and', children: [

@@ -82,20 +82,20 @@
 
 | 忽略大小写（默认） | 区分大小写 | 含义 |
 | --- | --- | --- |
-| 等于 | 等于 (区分大小写) | 整个字段相等 |
-| 包含 | 包含 (区分大小写) | 字段中包含指定文本 |
-| 开头匹配 | 开头匹配 (区分大小写) | 字段以指定文本开头 |
-| 结尾匹配 | 结尾匹配 (区分大小写) | 字段以指定文本结尾 |
+| 等于 `equals` | 等于 (区分大小写) `equalsCaseSensitive` | 整个字段相等 |
+| 包含 `contains` | 包含 (区分大小写) `containsCaseSensitive` | 字段中包含指定文本 |
+| 开头匹配 `startsWith` | 开头匹配 (区分大小写) `startsWithCaseSensitive` | 字段以指定文本开头 |
+| 结尾匹配 `endsWith` | 结尾匹配 (区分大小写) `endsWithCaseSensitive` | 字段以指定文本结尾 |
 
 例如，邮件主题为 `DOWN service`，匹配值为 `down`：“包含”会匹配，“包含 (区分大小写)”不会匹配；将匹配值改为 `DOWN` 后，两种操作符都会匹配。可点击“测试 → 指定 ID → 仅检查规则”验证，不会发送请求。
 
-JSON 中仍使用 `equals`、`contains`、`startsWith`、`endsWith`，区分大小写的选项保存为 `options.caseSensitive: true`，已有规则无需修改。下面是“包含 (区分大小写)”的条件，可直接填入 JSON 编辑框：
+JSON 与下拉框使用同一操作符，不需要额外的大小写选项。下面是“包含 (区分大小写)”的条件，可直接填入 JSON 编辑框：
 
 ```json
-{ "field": "subject", "operator": "contains", "value": "DOWN", "options": { "caseSensitive": true } }
+{ "field": "subject", "operator": "containsCaseSensitive", "value": "DOWN" }
 ```
 
-省略 `options` 或设置 `caseSensitive: false` 表示忽略大小写。空匹配值合法，例如“等于”空字符串可匹配空正文。正则匹配独立使用 `options.flags`，忽略大小写时填写 `i`。
+文本操作符不接受 `options`。空匹配值合法，例如“等于”空字符串可匹配空正文。正则匹配使用 `options.flags`，忽略大小写时填写 `i`。
 
 ### 测试和复用
 

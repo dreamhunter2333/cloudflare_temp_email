@@ -4,7 +4,7 @@ import { AdminWebhookSettings, WebhookSettings, RawMailRow } from "../models";
 import { commonParseMail, sendWebhook } from "../common";
 import { resolveRawEmail } from "../gzip";
 import { getWebhookAttachments } from '../utils/webhook';
-import { compileWebhookFilter, matchWebhookFilter } from '../utils/webhook_filter';
+import { compileWebhookFilter } from '../utils/webhook_filter';
 import i18n from "../i18n";
 
 
@@ -31,12 +31,12 @@ async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     }
     const settings = await c.req.json<WebhookSettings>().catch(() => null);
     if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
-        return c.text(i18n.getMessagesbyContext(c).InvalidRequestBodyMsg, 400);
+        return c.text(msgs.InvalidRequestBodyMsg, 400);
     }
     try {
         compileWebhookFilter(settings.filter);
     } catch (error) {
-        return c.text(`${i18n.getMessagesbyContext(c).InvalidWebhookFilterMsg}: ${(error as Error).message}`, 400);
+        return c.text(`${msgs.InvalidWebhookFilterMsg}: ${(error as Error).message}`, 400);
     }
     await c.env.KV.put(
         `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`,
@@ -47,15 +47,14 @@ async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response
 async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const msgs = i18n.getMessagesbyContext(c);
     const settings = await c.req.json<WebhookSettings & { mail_id?: number; check_only?: boolean }>().catch(() => null);
-    if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+    if (!settings || typeof settings !== "object" || Array.isArray(settings)
+        || (settings.check_only !== undefined && typeof settings.check_only !== 'boolean')) {
         return c.text(msgs.InvalidRequestBodyMsg, 400);
     }
     const requestedMailId = settings.mail_id;
-    if (settings.check_only !== undefined && typeof settings.check_only !== 'boolean') {
-        return c.text(msgs.InvalidRequestBodyMsg, 400);
-    }
+    let match: ReturnType<typeof compileWebhookFilter>;
     try {
-        compileWebhookFilter(settings.filter);
+        match = compileWebhookFilter(settings.filter);
     } catch (error) {
         return c.text(`${msgs.InvalidWebhookFilterMsg}: ${(error as Error).message}`, 400);
     }
@@ -76,7 +75,7 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
     const parsedEmail = await commonParseMail(parsedEmailContext);
     try {
-        const matched = matchWebhookFilter(settings.filter, parsedEmail, mailRow?.source || '', address);
+        const matched = match(parsedEmail, mailRow?.source || '', address);
         if (!matched || settings.check_only) {
             return c.json({ success: true, matched, skipped: true });
         }

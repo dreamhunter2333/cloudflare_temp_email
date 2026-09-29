@@ -8,8 +8,8 @@ const expression = { operator: 'and', children: [
 ] };
 
 for (const [operator, label] of [['equals', '等于'], ['contains', '包含'], ['startsWith', '开头匹配'], ['endsWith', '结尾匹配']]) {
-  test(`Case-sensitive operator selection preserves existing JSON: ${operator}`, async ({ page }) => {
-    const original = { field: 'subject', operator, value: 'DOWN', options: { caseSensitive: true } };
+  test(`Case-sensitive operator selection round-trips JSON: ${operator}`, async ({ page }) => {
+    const original = { field: 'subject', operator: `${operator}CaseSensitive`, value: 'DOWN' };
     const saved: any[] = [];
     await page.route('**/admin/mail_webhook/settings', route => {
       if (route.request().method() === 'POST') saved.push(route.request().postDataJSON());
@@ -88,6 +88,49 @@ test('Reusable filter editor nests conditions, round-trips JSON and reports skip
   await editor.getByRole('button', { name: '移除', exact: true }).first().click();
   await save.click();
   expect(saved.at(-1).filter).toBeNull();
+});
+
+test('Invalid JSON draft does not prevent disabling the webhook', async ({ page }) => {
+  const saved: any[] = [];
+  await page.route('**/admin/mail_webhook/settings', route => {
+    if (route.request().method() === 'POST') saved.push(route.request().postDataJSON());
+    return route.fulfill({ json: route.request().method() === 'POST' ? { success: true } : { ...settings, filter: expression } });
+  });
+  await page.goto(`${FRONTEND_URL}/zh/admin`);
+  await page.getByText('邮件', { exact: true }).click();
+  await page.getByText('邮件 Webhook', { exact: true }).click();
+  const editor = page.getByTestId('filter-editor').first();
+  await editor.getByText('JSON', { exact: true }).click();
+  await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill('{');
+  const save = page.getByRole('button', { name: '保存', exact: true });
+  await expect(save).toBeDisabled();
+  await page.getByRole('switch').click();
+  await expect(save).toBeEnabled();
+  await save.click();
+  await expect.poll(() => saved.at(-1)).toMatchObject({ enabled: false, filter: expression });
+});
+
+test('Visual edits cannot exceed depth or node limits and remain editable', async ({ page }) => {
+  await page.route('**/admin/mail_webhook/settings', route => route.fulfill({ json: settings }));
+  await page.goto(`${FRONTEND_URL}/zh/admin`);
+  await page.getByText('邮件', { exact: true }).click();
+  await page.getByText('邮件 Webhook', { exact: true }).click();
+  const editor = page.getByTestId('filter-editor').first();
+  const leaf = { field: 'subject', operator: 'contains', value: 'DOWN' };
+  let deep: any = leaf;
+  for (let i = 0; i < 7; i++) deep = { operator: 'not', children: [deep] };
+  for (const value of [deep, { operator: 'and', children: Array.from({ length: 99 }, () => leaf) }]) {
+    await editor.getByText('JSON', { exact: true }).click();
+    await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(JSON.stringify(value));
+    await editor.getByText('可视化', { exact: true }).click();
+    await editor.getByRole('button', { name: '包入条件组', exact: true }).first().click();
+    await page.locator('.n-dropdown-option').getByText('与：全部满足', { exact: true }).click();
+    await expect(page.getByRole('button', { name: '保存', exact: true })).toBeEnabled();
+    await expect(editor.getByRole('button', { name: '移除', exact: true }).first()).toBeVisible();
+    await editor.getByText('JSON', { exact: true }).click();
+    expect(JSON.parse(await editor.getByRole('textbox', { name: 'JSON', exact: true }).inputValue())).toEqual(value);
+    await editor.getByText('可视化', { exact: true }).click();
+  }
 });
 
 for (const [locale, mails, webhook, label] of [

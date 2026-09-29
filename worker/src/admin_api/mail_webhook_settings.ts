@@ -5,7 +5,7 @@ import { commonParseMail, sendWebhook } from "../common";
 import { resolveRawEmail } from "../gzip";
 import i18n from "../i18n";
 import { getWebhookAttachments } from '../utils/webhook';
-import { compileWebhookFilter, matchWebhookFilter } from '../utils/webhook_filter';
+import { compileWebhookFilter } from '../utils/webhook_filter';
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.env.KV.get<WebhookSettings>(
@@ -33,15 +33,14 @@ async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response
 async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const msgs = i18n.getMessagesbyContext(c);
     const settings = await c.req.json<WebhookSettings & { mail_id?: number; check_only?: boolean }>().catch(() => null);
-    if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+    if (!settings || typeof settings !== "object" || Array.isArray(settings)
+        || (settings.check_only !== undefined && typeof settings.check_only !== 'boolean')) {
         return c.text(msgs.InvalidRequestBodyMsg, 400);
     }
     const requestedMailId = settings.mail_id;
-    if (settings.check_only !== undefined && typeof settings.check_only !== 'boolean') {
-        return c.text(msgs.InvalidRequestBodyMsg, 400);
-    }
+    let match: ReturnType<typeof compileWebhookFilter>;
     try {
-        compileWebhookFilter(settings.filter);
+        match = compileWebhookFilter(settings.filter);
     } catch (error) {
         return c.text(`${msgs.InvalidWebhookFilterMsg}: ${(error as Error).message}`, 400);
     }
@@ -61,7 +60,7 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
     const parsedEmail = await commonParseMail(parsedEmailContext);
     try {
-        const matched = matchWebhookFilter(settings.filter, parsedEmail, mailRow?.source || '', mailRow?.address || '');
+        const matched = match(parsedEmail, mailRow?.source || '', mailRow?.address || '');
         if (!matched || settings.check_only) {
             return c.json({ success: true, matched, skipped: true });
         }
@@ -73,7 +72,7 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
         id: mailId || "0",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
         from: parsedEmail?.sender || "test@test.com",
-        to: "admin@test.com",
+        to: mailRow?.address || "admin@test.com",
         subject: parsedEmail?.subject || "test subject",
         raw: raw || "test raw email",
         parsedText: parsedEmail?.text || "test parsed text",

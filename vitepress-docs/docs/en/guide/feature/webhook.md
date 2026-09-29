@@ -82,20 +82,20 @@ Choose the matching behavior directly from the filter's operator selector; there
 
 | Case-insensitive (default) | Case-sensitive | Meaning |
 | --- | --- | --- |
-| Equals | Equals (Case sensitive) | Match the entire field |
-| Contains | Contains (Case sensitive) | Find the text anywhere in the field |
-| Starts with | Starts with (Case sensitive) | Match the beginning of the field |
-| Ends with | Ends with (Case sensitive) | Match the end of the field |
+| Equals `equals` | Equals (Case sensitive) `equalsCaseSensitive` | Match the entire field |
+| Contains `contains` | Contains (Case sensitive) `containsCaseSensitive` | Find the text anywhere in the field |
+| Starts with `startsWith` | Starts with (Case sensitive) `startsWithCaseSensitive` | Match the beginning of the field |
+| Ends with `endsWith` | Ends with (Case sensitive) `endsWithCaseSensitive` | Match the end of the field |
 
 For example, a subject of `DOWN service` matches the value `down` with **Contains**, but not with **Contains (Case sensitive)**. Changing the value to `DOWN` matches both. Use **Test → Specify ID → Check only** to verify without sending a request.
 
-JSON still uses `equals`, `contains`, `startsWith` and `endsWith`. Case-sensitive choices are stored as `options.caseSensitive: true`, so existing rules require no changes. Paste this **Contains (Case sensitive)** condition directly into the JSON editor:
+JSON and the selector use the same operators, with no extra case-sensitivity option. Paste this **Contains (Case sensitive)** condition directly into the JSON editor:
 
 ```json
-{ "field": "subject", "operator": "contains", "value": "DOWN", "options": { "caseSensitive": true } }
+{ "field": "subject", "operator": "containsCaseSensitive", "value": "DOWN" }
 ```
 
-Omitting `options` or setting `caseSensitive: false` ignores case. Empty values are allowed; for example, **Equals** with an empty string matches an empty body. Regular expressions use their separate `options.flags` setting; enter `i` to ignore case.
+Text operators do not accept `options`. Empty values are allowed; for example, **Equals** with an empty string matches an empty body. Regular expressions use `options.flags`; enter `i` to ignore case.
 
 ### Testing and reuse
 

@@ -1,22 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { getFilterOperator, isFilterExpression } from '../filter';
+import { isFilterExpression } from '../filter';
 
 describe('filter operator variants', () => {
-    it.each(['equals', 'contains', 'startsWith', 'endsWith'])('restores both %s variants from existing rules', operator => {
-        const operators = [
-            { value: operator, label: operator },
-            { value: `${operator}CaseSensitive`, label: operator, operator, presetOptions: { caseSensitive: true } },
-        ];
-        const node = { field: 'subject', operator, value: 'DOWN' };
-        expect(getFilterOperator(node, operators)?.value).toBe(operator);
-        expect(getFilterOperator({ ...node, options: { caseSensitive: false } }, operators)?.value).toBe(operator);
-        expect(getFilterOperator({ ...node, options: { caseSensitive: true } }, operators)?.value).toBe(`${operator}CaseSensitive`);
+    it.each(['equals', 'contains', 'startsWith', 'endsWith'])('accepts both %s operators without translation', operator => {
+        for (const value of [operator, `${operator}CaseSensitive`]) {
+            const node = { field: 'subject', operator: value, value: 'DOWN' };
+            expect(isFilterExpression(node)).toBe(true);
+            expect(JSON.parse(JSON.stringify(node))).toEqual(node);
+        }
     });
-    it('preserves regular operators and handles unset or unknown rules', () => {
-        const operators = [{ value: 'regex', label: 'Regex' }];
-        expect(getFilterOperator({ field: 'subject', operator: 'regex', value: '^DOWN', options: { flags: 'i' } }, operators)?.value).toBe('regex');
-        expect(getFilterOperator(null, operators)).toBeUndefined();
-        expect(getFilterOperator({ field: 'subject', operator: 'future', value: '' }, operators)).toBeUndefined();
+    it('accepts regex options and extensible operators but not a null expression', () => {
+        expect(isFilterExpression({ field: 'subject', operator: 'regex', value: '^DOWN', options: { flags: 'i' } })).toBe(true);
+        expect(isFilterExpression(null)).toBe(false);
+        expect(isFilterExpression({ field: 'subject', operator: 'future', value: '' })).toBe(true);
     });
 });
 

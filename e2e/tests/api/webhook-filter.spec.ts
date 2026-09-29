@@ -21,7 +21,7 @@ test('Webhook filter: incoming mail, selected-mail tests, isolation and compatib
   const url = `http://${process.env.CI ? 'e2e-runner' : 'localhost'}:${(server.address() as AddressInfo).port}`;
   const settings = {
     enabled: true, url: `${url}/user`, method: 'POST', headers: '{"Content-Type":"application/json"}',
-    body: '{"text":"${subject}\\n${parsedText}","from":"${from}"}',
+    body: '{"text":"${subject}\\n${parsedText}","from":"${from}","to":"${to}"}',
   };
   const filter = {
     operator: 'and', children: [
@@ -79,6 +79,7 @@ test('Webhook filter: incoming mail, selected-mail tests, isolation and compatib
       expect(received).toHaveLength(before);
       expect((await request.post(`${WORKER_URL}${endpoint}`, { headers, data: { ...settings, filter, mail_id } })).ok()).toBe(true);
       expect(received).toHaveLength(before + 1);
+      expect(received.at(-1)!.body.to).toBe(mailbox.address);
       // Test from the stored envelope, not the display name or header From.
       const envelope = await request.post(`${WORKER_URL}${endpoint}`, { headers, data: {
         ...settings, mail_id, check_only: true,
