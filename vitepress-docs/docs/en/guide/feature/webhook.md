@@ -71,11 +71,31 @@ In the page's JSON editor, enter only the expression inside `filter`, without th
 | `header.List-ID`, etc. | All values of a named header; header names are case-insensitive. Type custom fields into the field selector |
 
 - `and` / `or` require a nonempty `children` list; `not` requires exactly one child. Children may nest further; a single field condition is also a valid root.
-- Text operators: `equals`, `contains`, `startsWith`, `endsWith`. They ignore case by default. The visual selector offers a separate case-sensitive option for each operator, stored as `options: { "caseSensitive": true }` to preserve existing JSON rules. Empty values are allowed, e.g. `equals` with an empty string matches an empty body.
 - `regex` uses RE2 syntax through [RE2JS](https://github.com/le0pard/re2js), case-sensitive by default. Optional `options.flags`: `i` (ignore case), `m` (multiline anchors), `s` (dot matches newline). JavaScript backreferences and lookahead are unsupported and rejected on save. User scripts are never executed.
 - For multiple addresses or repeated headers, any matching value satisfies the condition; wrapping it in `not` requires all values not to match. Missing headers are empty lists and match no values. From filtering is not sender authentication and does not replace SPF/DKIM/DMARC.
 - Limits: 8 levels, 100 nodes, 100 characters per field name, 500 characters per value. Unknown fields, operators or options, invalid regex and empty groups are rejected without replacing saved settings.
 - Parsing/evaluation failures skip that webhook and log an error; `not` cannot turn failures into matches. Configurations without filters keep the old path. Existing Body variables and rendering are unchanged.
+
+### Text operators and case sensitivity
+
+Choose the matching behavior directly from the filter's operator selector; there is no separate case-sensitivity checkbox:
+
+| Case-insensitive (default) | Case-sensitive | Meaning |
+| --- | --- | --- |
+| Equals | Equals (Case sensitive) | Match the entire field |
+| Contains | Contains (Case sensitive) | Find the text anywhere in the field |
+| Starts with | Starts with (Case sensitive) | Match the beginning of the field |
+| Ends with | Ends with (Case sensitive) | Match the end of the field |
+
+For example, a subject of `DOWN service` matches the value `down` with **Contains**, but not with **Contains (Case sensitive)**. Changing the value to `DOWN` matches both. Use **Test → Specify ID → Check only** to verify without sending a request.
+
+JSON still uses `equals`, `contains`, `startsWith` and `endsWith`. Case-sensitive choices are stored as `options.caseSensitive: true`, so existing rules require no changes. Paste this **Contains (Case sensitive)** condition directly into the JSON editor:
+
+```json
+{ "field": "subject", "operator": "contains", "value": "DOWN", "options": { "caseSensitive": true } }
+```
+
+Omitting `options` or setting `caseSensitive: false` ignores case. Empty values are allowed; for example, **Equals** with an empty string matches an empty body. Regular expressions use their separate `options.flags` setting; enter `i` to ignore case.
 
 ### Testing and reuse
 
