@@ -1,7 +1,7 @@
 export const ptBRMessages = {
   "components.FilterEditor.hint": "Sem condições: tudo corresponde",
   "components.FilterEditor.visual": "Visual",
-  "components.FilterEditor.invalid": "Estrutura inválida; máximo de 8 níveis e 100 nós. Corrija o JSON.",
+  "components.FilterEditor.invalid": "Regra inválida: verifique estrutura, operadores, opções e regex. Máximo de 8 níveis e 100 nós.",
   "components.FilterEditor.and": "E: todas correspondem",
   "components.FilterEditor.or": "OU: qualquer uma corresponde",
   "components.FilterEditor.not": "NÃO: inverter",

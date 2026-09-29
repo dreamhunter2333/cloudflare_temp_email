@@ -16,9 +16,14 @@ export function compileWebhookFilter(filter: unknown): (
         if (filter === undefined || filter === null) return true;
         if (!parsedEmail) throw new Error('Email parsing unavailable for filter');
         const headers = new Map<string, string[]>();
-        for (const header of parsedEmail.headers || []) {
+        for (const header of headerFields.length ? parsedEmail.headers || [] : []) {
             const key = header.key.toLowerCase();
-            headers.set(key, [...(headers.get(key) || []), header.value]);
+            const values = headers.get(key);
+            if (values) {
+                values.push(header.value);
+            } else {
+                headers.set(key, [header.value]);
+            }
         }
         const values: FilterValues = {
             from: parsedEmail.sender,

@@ -1,5 +1,44 @@
 import { describe, expect, it } from 'vitest';
-import { isFilterExpression } from '../filter';
+import { isFilterExpression, isValidFilterExpression, validateRegex } from '../filter';
+
+describe('filter editor semantic validation', () => {
+    const operators = [
+        ...['equals', 'contains', 'startsWith', 'endsWith'].flatMap(value => [
+            { value, label: value }, { value: `${value}CaseSensitive`, label: value },
+        ]),
+        { value: 'regex', label: 'regex', options: [{ key: 'flags', label: 'flags' }], validate: validateRegex },
+    ];
+    const leaf = { field: 'subject', operator: 'regex', value: '^DOWN', options: { flags: 'ims' } };
+    it('accepts supported operators, flags, nested rules and absent filters', () => {
+        for (const operator of operators) {
+            expect(isValidFilterExpression({ field: 'subject', operator: operator.value, value: 'DOWN' }, operators)).toBe(true);
+        }
+        expect(isValidFilterExpression({ operator: 'not', children: [leaf] }, operators)).toBe(true);
+        expect(isValidFilterExpression(null, operators)).toBe(true);
+        expect(isValidFilterExpression(undefined, operators)).toBe(true);
+    });
+    it.each([
+        { ...leaf, operator: 'unknown' },
+        { ...leaf, operator: 'contains' },
+        { ...leaf, value: '[' },
+        { ...leaf, value: '(a)\\1' },
+        { ...leaf, value: '(?=a)' },
+        { ...leaf, options: { flags: 'g' } },
+        { ...leaf, options: { flags: 'ii' } },
+        { ...leaf, options: { flags: false } },
+        { ...leaf, options: { unsupported: true } },
+    ])('rejects invalid operators, options and RE2 expressions: %j', invalid => {
+        expect(isValidFilterExpression(invalid, operators)).toBe(false);
+        expect(isValidFilterExpression({ operator: 'or', children: [leaf, invalid] }, operators)).toBe(false);
+    });
+    it('allows consumers to supply validators for new operators', () => {
+        const custom = { value: 'future', label: 'future', validate: (value: string) => {
+            if (value !== 'valid') throw new Error('Invalid value');
+        } };
+        expect(isValidFilterExpression({ field: 'subject', operator: 'future', value: 'valid' }, [custom])).toBe(true);
+        expect(isValidFilterExpression({ field: 'subject', operator: 'future', value: 'invalid' }, [custom])).toBe(false);
+    });
+});
 
 describe('filter operator variants', () => {
     it.each(['equals', 'contains', 'startsWith', 'endsWith'])('accepts both %s operators without translation', operator => {

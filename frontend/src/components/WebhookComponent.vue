@@ -3,7 +3,7 @@ import { computed, onMounted, ref, h } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import type { DropdownOption } from 'naive-ui'
 import FilterEditor from './FilterEditor.vue'
-import type { FilterExpression, FilterOperator } from './filter'
+import { validateRegex, type FilterExpression, type FilterOperator } from './filter'
 
 const props = defineProps({
     fetchData: {
@@ -178,7 +178,7 @@ const filterOperators = computed<FilterOperator[]>(() => [
         { value, label: t(`filter_${value}`) },
         { value: `${value}CaseSensitive`, label: `${t(`filter_${value}`)} (${t('filter_caseSensitive')})` },
     ]),
-    { value: 'regex', label: t('filter_regex'), options: [{ key: 'flags', label: t('filter_flags'), placeholder: 'i / m / s' }] },
+    { value: 'regex', label: t('filter_regex'), validate: validateRegex, options: [{ key: 'flags', label: t('filter_flags'), placeholder: 'i / m / s' }] },
 ])
 
 const fetchData = async () => {

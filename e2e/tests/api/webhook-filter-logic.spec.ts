@@ -38,4 +38,18 @@ test.describe('Webhook filter field mapping', () => {
     expect(match({ ...mail, headers: [] }, '')).toBe(false);
     expect(match(mail, '')).toBe(true);
   });
+  test('many repeated headers retain all values without mutating parsed mail', () => {
+    const headers = Array.from({ length: 20000 }, (_, index) => Object.freeze({ key: index % 2 ? 'X-Tag' : 'x-tag', value: String(index) }));
+    const repeated = { ...mail, headers };
+    for (const value of ['0', '10000', '19999']) {
+      expect(compileWebhookFilter({ field: 'header.X-Tag', operator: 'equals', value })(repeated, '')).toBe(true);
+    }
+    expect(headers).toHaveLength(20000);
+    expect(headers[0].value).toBe('0');
+    expect(headers.at(-1)!.value).toBe('19999');
+  });
+  test('filters without header conditions do not read headers', () => {
+    const noHeaders = { ...mail, get headers(): never { throw new Error('Headers should not be read'); } };
+    expect(compileWebhookFilter({ field: 'subject', operator: 'equals', value: 'DOWN' })(noHeaders, '')).toBe(true);
+  });
 });

@@ -110,6 +110,54 @@ test('Invalid JSON draft does not prevent disabling the webhook', async ({ page 
   await expect.poll(() => saved.at(-1)).toMatchObject({ enabled: false, filter: expression });
 });
 
+test('Invalid operators, options and RE2 expressions block saving and testing, and remain editable', async ({ page }) => {
+  const saved: any[] = [];
+  const tested: any[] = [];
+  await page.route('**/admin/mail_webhook/settings', route => {
+    if (route.request().method() === 'POST') saved.push(route.request().postDataJSON());
+    return route.fulfill({ json: route.request().method() === 'POST' ? { success: true } : { ...settings, filter: expression } });
+  });
+  await page.route('**/admin/mail_webhook/test', route => {
+    tested.push(route.request().postDataJSON());
+    return route.fulfill({ json: { success: true, matched: true, skipped: true } });
+  });
+  await page.goto(`${FRONTEND_URL}/zh/admin`);
+  await page.getByText('邮件', { exact: true }).click();
+  await page.getByText('邮件 Webhook', { exact: true }).click();
+  const editor = page.getByTestId('filter-editor').first();
+  const save = page.getByRole('button', { name: '保存', exact: true });
+  const openTest = page.locator('#app').getByRole('button', { name: '测试', exact: true });
+  await editor.getByText('JSON', { exact: true }).click();
+  const json = editor.getByRole('textbox', { name: 'JSON', exact: true });
+  const leaf = { field: 'subject', operator: 'regex', value: '^DOWN', options: { flags: 'i' } };
+  for (const invalid of [
+    { ...leaf, operator: 'unknown' }, { ...leaf, operator: 'contains' },
+    { ...leaf, value: '[' }, { ...leaf, value: '(?=DOWN)' }, { ...leaf, value: '(a)\\1' },
+    { ...leaf, options: { flags: 'g' } }, { ...leaf, options: { flags: 'ii' } },
+    { ...leaf, options: { flags: false } }, { ...leaf, options: { unsupported: true } },
+  ]) {
+    await json.fill(JSON.stringify({ operator: 'or', children: [leaf, invalid] }));
+    await expect(save).toBeDisabled();
+    await expect(openTest).toBeDisabled();
+  }
+  expect(saved).toHaveLength(0);
+  expect(tested).toHaveLength(0);
+  await json.fill(JSON.stringify(leaf));
+  await editor.getByText('可视化', { exact: true }).click();
+  const value = editor.getByRole('textbox', { name: '匹配值', exact: true });
+  await value.fill('[');
+  await expect(save).toBeDisabled();
+  await expect(value).toBeVisible();
+  await value.fill('^DOWN');
+  await expect(save).toBeEnabled();
+  await expect(openTest).toBeEnabled();
+  await save.click();
+  await expect.poll(() => saved.at(-1)?.filter).toEqual(leaf);
+  await openTest.click();
+  await page.getByRole('dialog').getByRole('button', { name: '仅检查规则', exact: true }).click();
+  await expect.poll(() => tested.at(-1)?.filter).toEqual(leaf);
+});
+
 test('Visual edits cannot exceed depth or node limits and remain editable', async ({ page }) => {
   await page.route('**/admin/mail_webhook/settings', route => route.fulfill({ json: settings }));
   await page.goto(`${FRONTEND_URL}/zh/admin`);

@@ -1,7 +1,7 @@
 export const jaMessages = {
   "components.FilterEditor.hint": "条件なし：すべて一致",
   "components.FilterEditor.visual": "ビジュアル",
-  "components.FilterEditor.invalid": "構造が無効です。最大8階層・100ノードです。JSONで修正してください。",
+  "components.FilterEditor.invalid": "無効なルールです。構造・演算子・オプション・正規表現を確認してください。最大8階層・100ノードです。",
   "components.FilterEditor.and": "AND：すべて一致",
   "components.FilterEditor.or": "OR：いずれか一致",
   "components.FilterEditor.not": "NOT：否定",

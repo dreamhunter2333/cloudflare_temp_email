@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
-import { isFilterExpression, type FilterExpression, type FilterField, type FilterOperator } from './filter'
+import { isFilterExpression, isValidFilterExpression, type FilterExpression, type FilterField, type FilterOperator } from './filter'
 
 const props = withDefaults(defineProps<{
     modelValue?: FilterExpression | null
@@ -20,6 +20,7 @@ const mode = ref('visual')
 const json = ref('')
 const jsonError = ref(false)
 const valid = computed(() => props.depth > 1 || props.modelValue == null || isFilterExpression(props.modelValue))
+const rulesValid = computed(() => props.depth > 1 || isValidFilterExpression(props.modelValue, props.operators))
 const group = computed(() => !!props.modelValue && ['and', 'or', 'not'].includes(props.modelValue.operator))
 const groupOptions = computed(() => ['and', 'or', 'not'].map(value => ({ label: t(value), value, key: value })))
 const operatorOptions = computed(() => props.operators.find(item => item.value === props.modelValue?.operator)?.options || [])
@@ -54,14 +55,14 @@ const editJson = (value: string) => {
     json.value = value
     try {
         const parsed = JSON.parse(value)
-        if (parsed !== null && !isFilterExpression(parsed)) throw new Error('Invalid expression')
+        if (!isValidFilterExpression(parsed, props.operators)) throw new Error('Invalid expression')
         jsonError.value = false
         emit('update:modelValue', parsed)
     } catch {
         jsonError.value = true
     }
 }
-watch([valid, jsonError], ([valid, error]) => emit('validity-change', valid && !error), { immediate: true })
+watch([rulesValid, jsonError], ([valid, error]) => emit('validity-change', valid && !error), { immediate: true })
 </script>
 
 <template>
@@ -81,6 +82,7 @@ watch([valid, jsonError], ([valid, error]) => emit('validity-change', valid && !
         <n-alert v-else-if="!valid || depth > 8" type="error">{{ t('invalid') }}</n-alert>
         <n-button v-else-if="!modelValue" dashed @click="update(condition())">{{ t('addCondition') }}</n-button>
         <template v-else>
+            <n-text v-if="!rulesValid" type="error">{{ t('invalid') }}</n-text>
             <n-flex align="center" :wrap="true" class="node-toolbar">
                 <n-select v-if="group" class="group-select" :value="modelValue.operator" :options="groupOptions"
                     :aria-label="t('logic')" @update:value="changeGroup" />

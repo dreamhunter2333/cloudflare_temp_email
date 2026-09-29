@@ -34,6 +34,7 @@
     "mail-parser-wasm": "^0.2.2",
     "naive-ui": "^2.45.3",
     "postal-mime": "^2.7.6",
+    "re2js": "^2.8.6",
     "vooks": "^0.2.12",
     "vue": "^3.5.42",
     "vue-clipboard3": "^2.0.0",

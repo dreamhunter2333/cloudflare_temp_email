@@ -2,7 +2,7 @@ export const MESSAGE_REGISTRY = {
   "components.FilterEditor": {
     "hint": { "zh": "未设置条件时全部通过", "en": "No conditions: match everything" },
     "visual": { "zh": "可视化", "en": "Visual" },
-    "invalid": { "zh": "规则结构无效，最多 8 层、100 个节点；请在 JSON 中修正", "en": "Invalid structure; maximum 8 levels and 100 nodes. Correct it in JSON." },
+    "invalid": { "zh": "规则无效，请检查结构、操作符、选项和正则；最多 8 层、100 个节点", "en": "Invalid rule: check structure, operators, options and regex. Maximum 8 levels and 100 nodes." },
     "and": { "zh": "与：全部满足", "en": "AND: all match" },
     "or": { "zh": "或：任一满足", "en": "OR: any match" },
     "not": { "zh": "非：取反", "en": "NOT: negate" },

@@ -1,7 +1,7 @@
 export const esMessages = {
   "components.FilterEditor.hint": "Sin condiciones: todo coincide",
   "components.FilterEditor.visual": "Visual",
-  "components.FilterEditor.invalid": "Estructura inválida; máximo 8 niveles y 100 nodos. Corrige el JSON.",
+  "components.FilterEditor.invalid": "Regla inválida: revisa la estructura, los operadores, las opciones y la expresión regular. Máximo 8 niveles y 100 nodos.",
   "components.FilterEditor.and": "Y: todas coinciden",
   "components.FilterEditor.or": "O: alguna coincide",
   "components.FilterEditor.not": "NO: negar",

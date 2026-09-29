@@ -71,7 +71,7 @@ In the page's JSON editor, enter only the expression inside `filter`, without th
 - `and` / `or` require a nonempty `children` list; `not` requires exactly one child. Children may nest further; a single field condition is also a valid root.
 - `regex` uses RE2 syntax through [RE2JS](https://github.com/le0pard/re2js), case-sensitive by default. Optional `options.flags`: `i` (ignore case), `m` (multiline anchors), `s` (dot matches newline). JavaScript backreferences and lookahead are unsupported and rejected on save. User scripts are never executed.
 - For repeated headers, any matching value satisfies the condition; wrapping it in `not` requires all values not to match. Missing headers are empty lists and match no values. From filtering is not sender authentication and does not replace SPF/DKIM/DMARC.
-- Limits: 8 levels, 100 nodes, 100 characters per field name, 500 characters per value. Unknown fields, operators or options, invalid regex and empty groups are rejected without replacing saved settings.
+- Limits: 8 levels, 100 nodes, 100 characters per field name, 500 characters per value. The frontend blocks saving/testing unknown operators, invalid options, invalid RE2 patterns and malformed structures. The backend still performs full validation, including unknown fields, without replacing saved settings.
 - Parsing/evaluation failures skip that webhook and log an error; `not` cannot turn failures into matches. Configurations without filters keep the old path. Existing Body variables and rendering are unchanged.
 
 ### Text operators and case sensitivity

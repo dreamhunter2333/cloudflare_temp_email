@@ -1,7 +1,7 @@
 export const deMessages = {
   "components.FilterEditor.hint": "Ohne Bedingungen: alles passt",
   "components.FilterEditor.visual": "Visuell",
-  "components.FilterEditor.invalid": "Ungültige Struktur; maximal 8 Ebenen und 100 Knoten. Bitte im JSON korrigieren.",
+  "components.FilterEditor.invalid": "Ungültige Regel: Struktur, Operatoren, Optionen und Regex prüfen. Maximal 8 Ebenen und 100 Knoten.",
   "components.FilterEditor.and": "UND: alle passen",
   "components.FilterEditor.or": "ODER: eine passt",
   "components.FilterEditor.not": "NICHT: umkehren",
