@@ -171,6 +171,7 @@ const testMode = ref('random')
 const testMailId = ref<number | null>(null)
 const testing = ref(false)
 const filterValid = ref(true)
+const savedFilter = ref<FilterExpression | null>(null)
 const filterFields = computed(() => ['from', 'to', 'subject', 'text', 'html']
     .map(value => ({ value, label: t(`filter_${value}`) })))
 const filterOperators = computed<FilterOperator[]>(() => [
@@ -185,6 +186,7 @@ const fetchData = async () => {
     try {
         const res = await props.fetchData()
         Object.assign(webhookSettings.value, res)
+        savedFilter.value = JSON.parse(JSON.stringify(res.filter ?? null))
         enableWebhook.value = true
     } catch (error) {
         message.error((error as Error).message || "error");
@@ -197,8 +199,14 @@ const saveSettings = async () => {
         message.error(t('urlMissing'))
         return
     }
+    const settings = {
+        ...webhookSettings.value,
+        filter: !webhookSettings.value.enabled && !filterValid.value
+            ? savedFilter.value : webhookSettings.value.filter,
+    }
     try {
-        await props.saveSettings(webhookSettings.value)
+        await props.saveSettings(settings)
+        savedFilter.value = JSON.parse(JSON.stringify(settings.filter ?? null))
         message.success(t('successTip'))
     } catch (error) {
         message.error((error as Error).message || "error");

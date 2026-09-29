@@ -58,6 +58,8 @@ The expression is stored in an optional `filter` property alongside `url`, `head
 
 In the page's JSON editor, enter only the expression inside `filter`, without the outer `filter` wrapper.
 
+You can still disable the webhook with an invalid draft. Saving the disabled state preserves the last successfully saved filter, or no filter if none existed. After re-enabling, correct the draft before saving.
+
 ### Fields and operators
 
 | Field | Meaning |

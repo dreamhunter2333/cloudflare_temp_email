@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { FRONTEND_URL } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL } from '../../fixtures/test-helpers';
 
 const settings = { enabled: true, url: 'https://example.invalid/webhook', method: 'POST', headers: '{}', body: '{}' };
 const expression = { operator: 'and', children: [
@@ -109,6 +109,46 @@ test('Invalid JSON draft does not prevent disabling the webhook', async ({ page 
   await save.click();
   await expect.poll(() => saved.at(-1)).toMatchObject({ enabled: false, filter: expression });
 });
+
+for (const original of [expression, null]) {
+  test(`Invalid visual draft can disable webhook with real API: ${original ? 'existing rule' : 'no rule'}`, async ({ page, request }) => {
+    const endpoint = `${WORKER_URL}/admin/mail_webhook/settings`;
+    const previous = await (await request.get(endpoint)).json();
+    try {
+      expect((await request.post(endpoint, { data: { ...settings, filter: original } })).ok()).toBe(true);
+      await page.goto(`${FRONTEND_URL}/zh/admin`);
+      await page.getByText('邮件', { exact: true }).click();
+      await page.getByText('邮件 Webhook', { exact: true }).click();
+      const editor = page.getByTestId('filter-editor').first();
+      const save = page.getByRole('button', { name: '保存', exact: true });
+      const toggle = page.locator('.n-card').filter({ has: save }).getByRole('switch');
+      const valid = { field: 'subject', operator: 'regex', value: '^UPDATED', options: { flags: 'i' } };
+      const saveAndRead = async () => {
+        const response = page.waitForResponse(res => res.url().endsWith('/admin/mail_webhook/settings') && res.request().method() === 'POST');
+        await save.click();
+        expect((await response).status()).toBe(200);
+        return (await request.get(endpoint)).json();
+      };
+      for (const expectedFilter of [original, valid]) {
+        await editor.getByText('JSON', { exact: true }).click();
+        await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(JSON.stringify(valid));
+        await editor.getByText('可视化', { exact: true }).click();
+        await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('[');
+        await expect(save).toBeDisabled();
+        await toggle.click();
+        await expect(save).toBeEnabled();
+        expect(await saveAndRead()).toMatchObject({ enabled: false, filter: expectedFilter });
+        await toggle.click();
+        await expect(save).toBeDisabled();
+        await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('^UPDATED');
+        await expect(save).toBeEnabled();
+        expect(await saveAndRead()).toMatchObject({ enabled: true, filter: valid });
+      }
+    } finally {
+      expect((await request.post(endpoint, { data: previous })).ok()).toBe(true);
+    }
+  });
+}
 
 test('Invalid operators, options and RE2 expressions block saving and testing, and remain editable', async ({ page }) => {
   const saved: any[] = [];
