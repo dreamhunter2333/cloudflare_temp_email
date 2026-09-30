@@ -25,11 +25,14 @@ export function validateRegex(value: string, options: Record<string, unknown>) {
         | (flags.includes('s') ? RE2JS.DOTALL : 0));
 }
 
-export function isValidFilterExpression(input: unknown, operators: FilterOperator[]): boolean {
+export function isValidFilterExpression(
+    input: unknown, operators: FilterOperator[], isFieldAllowed: (field: string) => boolean = () => true,
+): boolean {
     if (input == null) return true;
     if (!isFilterExpression(input)) return false;
     const validate = (node: FilterExpression): boolean => {
         if (node.children) return node.children.every(validate);
+        if (!isFieldAllowed(node.field!)) return false;
         const operator = operators.find(item => item.value === node.operator);
         if (!operator) return false;
         const options = node.options || {};

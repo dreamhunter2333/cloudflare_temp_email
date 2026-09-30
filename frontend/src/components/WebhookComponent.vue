@@ -174,6 +174,8 @@ const filterValid = ref(true)
 const savedFilter = ref<FilterExpression | null>(null)
 const filterFields = computed(() => ['from', 'to', 'subject', 'text', 'html']
     .map(value => ({ value, label: t(`filter_${value}`) })))
+const isFilterFieldAllowed = (field: string) => filterFields.value.some(item => item.value === field)
+    || /^header\.[a-zA-Z0-9!#$%&'*+.^_`|~-]+$/.test(field)
 const filterOperators = computed<FilterOperator[]>(() => [
     ...['equals', 'contains', 'startsWith', 'endsWith'].flatMap(value => [
         { value, label: t(`filter_${value}`) },
@@ -201,8 +203,7 @@ const saveSettings = async () => {
     }
     const settings = {
         ...webhookSettings.value,
-        filter: !webhookSettings.value.enabled && !filterValid.value
-            ? savedFilter.value : webhookSettings.value.filter,
+        filter: webhookSettings.value.enabled ? webhookSettings.value.filter : savedFilter.value,
     }
     try {
         await props.saveSettings(settings)
@@ -264,14 +265,14 @@ onMounted(async () => {
             <n-form-item-row :label="t('enable')">
                 <n-switch v-model:value="webhookSettings.enabled" :round="false" />
             </n-form-item-row>
+            <n-form-item-row v-show="webhookSettings.enabled" :label="t('filter')">
+                <div style="width: 100%; min-width: 0">
+                    <FilterEditor v-model="webhookSettings.filter" :fields="filterFields" :operators="filterOperators"
+                        allow-custom-fields :is-field-allowed="isFilterFieldAllowed" @validity-change="filterValid = $event" />
+                    <n-text depth="3">{{ t('filterHelp') }}</n-text>
+                </div>
+            </n-form-item-row>
             <div v-if="webhookSettings.enabled">
-                <n-form-item-row :label="t('filter')">
-                    <div style="width: 100%; min-width: 0">
-                        <FilterEditor v-model="webhookSettings.filter" :fields="filterFields" :operators="filterOperators"
-                            allow-custom-fields @validity-change="filterValid = $event" />
-                        <n-text depth="3">{{ t('filterHelp') }}</n-text>
-                    </div>
-                </n-form-item-row>
                 <n-form-item-row label="URL">
                     <n-input v-model:value="webhookSettings.url" />
                 </n-form-item-row>

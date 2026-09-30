@@ -17,7 +17,7 @@
 ### Bug Fixes
 
 - fix: |Webhook| Validate operators, options and RE2 patterns before saving or testing; append repeated headers in linear time and skip aggregation when filters do not reference headers
-- fix: |Webhook| Allow disabling delivery with invalid JSON or visual drafts while preserving the last saved rule; reject visual edits exceeding rule limits and use the actual recipient in admin tests
+- fix: |Webhook| Keep JSON and visual drafts inside the editor and emit only valid rules, including field validation; disabling preserves saved rules and unfinished drafts, oversized edits are rejected, and admin tests use the actual recipient
 - fix: |Mail| Check the SMTP envelope sender and every From email address against sender blacklists; parse addresses independently so body parsing failures or multiple From addresses cannot skip matching; preserve envelope checks on address parsing errors
 - fix: |AI Extract| In `ai` mode, an address allowlist miss now skips only the Workers AI call and still falls back to local verification-code extraction
 

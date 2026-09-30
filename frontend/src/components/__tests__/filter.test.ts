@@ -38,6 +38,13 @@ describe('filter editor semantic validation', () => {
         expect(isValidFilterExpression({ field: 'subject', operator: 'future', value: 'valid' }, [custom])).toBe(true);
         expect(isValidFilterExpression({ field: 'subject', operator: 'future', value: 'invalid' }, [custom])).toBe(false);
     });
+    it('uses the consumer field validator for every nested condition', () => {
+        const allowed = (field: string) => field === 'subject' || /^header\.[a-zA-Z0-9!#$%&'*+.^_`|~-]+$/.test(field);
+        for (const [field, valid] of [['subject', true], ['header.List-ID', true], ['headerFrom', false],
+            ['envelopeFrom', false], ['header.', false], ['header.Bad Header', false], ['', false]] as const) {
+            expect(isValidFilterExpression({ operator: 'or', children: [leaf, { ...leaf, field }] }, operators, allowed)).toBe(valid);
+        }
+    });
 });
 
 describe('filter operator variants', () => {

@@ -111,7 +111,8 @@ test('Invalid JSON draft does not prevent disabling the webhook', async ({ page 
 });
 
 for (const original of [expression, null]) {
-  test(`Invalid visual draft can disable webhook with real API: ${original ? 'existing rule' : 'no rule'}`, async ({ page, request }) => {
+  for (const mode of ['visual', 'unknown field', 'json']) {
+  test(`Invalid ${mode} draft can disable webhook with real API: ${original ? 'existing rule' : 'no rule'}`, async ({ page, request }) => {
     const endpoint = `${WORKER_URL}/admin/mail_webhook/settings`;
     const previous = await (await request.get(endpoint)).json();
     try {
@@ -132,15 +133,26 @@ for (const original of [expression, null]) {
       for (const expectedFilter of [original, valid]) {
         await editor.getByText('JSON', { exact: true }).click();
         await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(JSON.stringify(valid));
-        await editor.getByText('可视化', { exact: true }).click();
-        await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('[');
+        if (mode === 'visual') {
+          await editor.getByText('可视化', { exact: true }).click();
+          await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('[');
+        } else {
+          await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(mode === 'json' ? '{' : JSON.stringify({ ...valid, field: 'headerFrom' }));
+        }
         await expect(save).toBeDisabled();
         await toggle.click();
         await expect(save).toBeEnabled();
         expect(await saveAndRead()).toMatchObject({ enabled: false, filter: expectedFilter });
         await toggle.click();
         await expect(save).toBeDisabled();
-        await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('^UPDATED');
+        if (mode === 'visual') {
+          await expect(editor.getByRole('textbox', { name: '匹配值', exact: true })).toHaveValue('[');
+          await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('^UPDATED');
+        } else {
+          await expect(editor.getByRole('textbox', { name: 'JSON', exact: true })).toHaveValue(mode === 'json' ? '{' : JSON.stringify({ ...valid, field: 'headerFrom' }));
+          await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(JSON.stringify(valid));
+          await editor.getByText('可视化', { exact: true }).click();
+        }
         await expect(save).toBeEnabled();
         expect(await saveAndRead()).toMatchObject({ enabled: true, filter: valid });
       }
@@ -148,6 +160,7 @@ for (const original of [expression, null]) {
       expect((await request.post(endpoint, { data: previous })).ok()).toBe(true);
     }
   });
+  }
 }
 
 test('Invalid operators, options and RE2 expressions block saving and testing, and remain editable', async ({ page }) => {
@@ -171,6 +184,8 @@ test('Invalid operators, options and RE2 expressions block saving and testing, a
   const json = editor.getByRole('textbox', { name: 'JSON', exact: true });
   const leaf = { field: 'subject', operator: 'regex', value: '^DOWN', options: { flags: 'i' } };
   for (const invalid of [
+    { ...leaf, field: 'headerFrom' }, { ...leaf, field: 'envelopeFrom' },
+    { ...leaf, field: 'header.' }, { ...leaf, field: 'header.Bad Header' },
     { ...leaf, operator: 'unknown' }, { ...leaf, operator: 'contains' },
     { ...leaf, value: '[' }, { ...leaf, value: '(?=DOWN)' }, { ...leaf, value: '(a)\\1' },
     { ...leaf, options: { flags: 'g' } }, { ...leaf, options: { flags: 'ii' } },
