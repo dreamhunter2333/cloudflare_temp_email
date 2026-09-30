@@ -101,7 +101,9 @@ JSON 与下拉框使用同一操作符，不需要额外的大小写选项。下
 
 测试弹框保留“随机邮件 / 指定 ID”。“仅检查规则”不发送请求；“测试”在匹配后真实发送，不匹配时提示已跳过。使用过滤规则时必须有真实邮件；指定 ID 仍检查邮箱归属。
 
-现有 `/api/webhook/test` 和 `/admin/mail_webhook/test` 接收配置及可选 `mail_id`，新增可选布尔字段 `check_only`。仅检查或未匹配时返回 `{ "success": true, "matched": true/false, "skipped": true }`；真实发送的成功/失败响应保持原行为。`check_only` 仅用于测试，不属于持久配置。
+独立的 POST `/api/webhook/check_filter` 和 `/admin/mail_webhook/check_filter` 只接收 `{ "filter": 规则, "mail_id": 可选邮件ID }`，返回 `{ "success": true, "matched": true/false }`。不需要 URL、Headers 或 Body，不发送请求，也不生成附件链接；不传 `filter` 表示全部匹配。必须存在真实邮件，邮箱接口只能读取当前邮箱的邮件。
+
+现有 `/api/webhook/test` 和 `/admin/mail_webhook/test` 仍接收配置及可选 `mail_id`，匹配时实际发送，未匹配时返回 `{ "success": true, "matched": false, "skipped": true }`；发送成功/失败响应保持原行为，不提供 `check_only` 参数。
 
 后端通用模块 `worker/src/utils/filter.ts` 通过 `compileFilter(expression, isFieldAllowed, operators)` 编译并校验规则，返回接收字符串/字符串列表字段映射的匹配函数；扩展操作符只需注册参数编译函数。`webhook_filter.ts` 单独负责邮件字段映射。前端 `FilterEditor.vue` 接收 `v-model`、`fields` 和 `operators`（包括选项编辑配置），不依赖 Webhook API；其他功能可提供自己的字段和操作符复用编辑器。
 

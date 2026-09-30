@@ -69,9 +69,12 @@ test('Webhook filter: incoming mail, selected-mail tests, isolation and compatib
     const mail_id = Number(list.results[0].id);
     for (const endpoint of ['/api/webhook/test', '/admin/mail_webhook/test']) {
       const before = received.length;
-      const check = await request.post(`${WORKER_URL}${endpoint}`, { headers, data: { ...settings, filter, mail_id, check_only: true } });
+      const checkEndpoint = endpoint.replace('/test', '/check_filter');
+      const check = await request.post(`${WORKER_URL}${checkEndpoint}`, { headers, data: { filter, mail_id } });
       expect(check.ok(), await check.text()).toBe(true);
-      expect(await check.json()).toMatchObject({ matched: true, skipped: true });
+      expect(await check.json()).toEqual({ success: true, matched: true });
+      expect((await request.post(`${WORKER_URL}${checkEndpoint}`, { headers, data: { filter } })).ok()).toBe(true);
+      expect(await (await request.post(`${WORKER_URL}${checkEndpoint}`, { headers, data: { mail_id } })).json()).toEqual({ success: true, matched: true });
       expect(received).toHaveLength(before);
       const mismatch = await request.post(`${WORKER_URL}${endpoint}`, { headers, data: {
         ...settings, mail_id, filter: { field: 'subject', operator: 'equals', value: 'never' },
@@ -83,16 +86,22 @@ test('Webhook filter: incoming mail, selected-mail tests, isolation and compatib
       expect(received.at(-1)!.body.to).toBe(mailbox.address);
       expect(received.at(-1)!.body.from).toBe('Sender, Display <first@example.com>');
       // The stored envelope sender must not match the parsed From field.
-      const envelope = await request.post(`${WORKER_URL}${endpoint}`, { headers, data: {
-        ...settings, mail_id, check_only: true,
+      const envelope = await request.post(`${WORKER_URL}${checkEndpoint}`, { headers, data: {
+        mail_id,
         filter: { field: 'from', operator: 'contains', value: 'bounce@transport.example.com' },
       } });
-      expect(await envelope.json()).toMatchObject({ matched: false, skipped: true });
+      expect(await envelope.json()).toEqual({ success: true, matched: false });
+      expect(received).toHaveLength(before + 1);
     }
     const before = received.length;
-    expect((await request.post(`${WORKER_URL}/api/webhook/test`, {
-      headers: { Authorization: `Bearer ${other.jwt}` }, data: { ...settings, filter, mail_id, check_only: true },
-    })).status()).toBe(404);
+    for (const data of [{ filter, mail_id }, { filter }, {}]) {
+      expect((await request.post(`${WORKER_URL}/api/webhook/check_filter`, {
+        headers: { Authorization: `Bearer ${other.jwt}` }, data,
+      })).status()).toBe(404);
+    }
+    for (const endpoint of ['/api/webhook/check_filter', '/admin/mail_webhook/check_filter']) {
+      expect((await request.post(`${WORKER_URL}${endpoint}`, { headers, data: { filter, mail_id: 2147483647 } })).status()).toBe(404);
+    }
     expect((await request.post(`${WORKER_URL}/api/webhook/test`, {
       headers: { Authorization: `Bearer ${other.jwt}` }, data: { ...settings, filter },
     })).status()).toBe(404);
@@ -137,21 +146,26 @@ test('Webhook filter rejects invalid configuration without replacing saved setti
     { operator: 'or', children: [{ field: 'subject', operator: 'contains', value: '' }, { operator: 'broken' }] },
   ];
   try {
+    expect((await request.post(`${WORKER_URL}/api/webhook/check_filter`, { data: {} })).status()).toBe(401);
     for (const base of ['/api/webhook', '/admin/mail_webhook']) {
       expect((await request.post(`${WORKER_URL}${base}/settings`, { headers, data: original })).ok()).toBe(true);
       for (const filter of invalid) {
-        for (const action of ['settings', 'test']) {
+        for (const action of ['settings', 'test', 'check_filter']) {
           const response = await request.post(`${WORKER_URL}${base}/${action}`, { headers, data: { ...original, filter } });
           expect(response.status()).toBe(400);
           expect(await response.text()).toContain('Invalid filter');
         }
       }
       expect(await (await request.get(`${WORKER_URL}${base}/settings`, { headers })).json()).toEqual(original);
-      const zh = await request.post(`${WORKER_URL}${base}/test`, {
-        headers: { ...headers, 'x-lang': 'zh' }, data: { ...original, filter: {} },
-      });
-      expect(await zh.text()).toContain('无效的过滤规则');
-      expect((await request.post(`${WORKER_URL}${base}/test`, { headers, data: { ...original, check_only: 'true' } })).status()).toBe(400);
+      for (const action of ['test', 'check_filter']) {
+        const zh = await request.post(`${WORKER_URL}${base}/${action}`, {
+          headers: { ...headers, 'x-lang': 'zh' }, data: { ...original, filter: {} },
+        });
+        expect(await zh.text()).toContain('无效的过滤规则');
+      }
+      for (const data of [null, [], 'invalid', { mail_id: 0 }, { mail_id: 1.5 }, { mail_id: '1' }]) {
+        expect((await request.post(`${WORKER_URL}${base}/check_filter`, { headers, data })).status()).toBe(400);
+      }
     }
   } finally {
     await request.post(`${WORKER_URL}/admin/mail_webhook/settings`, { data: adminSettings });

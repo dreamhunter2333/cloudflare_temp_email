@@ -101,7 +101,9 @@ Text operators do not accept `options`. Empty values are allowed; for example, *
 
 The dialog retains random email / specified ID selection. **Check only** evaluates without sending; **Test** sends only when matched, otherwise reports that delivery was skipped. Filters require a real email for testing, and mailbox ownership checks still apply to selected IDs.
 
-Existing `/api/webhook/test` and `/admin/mail_webhook/test` accept settings plus optional `mail_id` and a new optional boolean `check_only`. Check-only and mismatched results return `{ "success": true, "matched": true/false, "skipped": true }`. Actual delivery success/failure responses remain unchanged. `check_only` is a test parameter, not a persisted setting.
+Dedicated POST `/api/webhook/check_filter` and `/admin/mail_webhook/check_filter` accept only `{ "filter": expression, "mail_id": optionalMailId }` and return `{ "success": true, "matched": true/false }`. No URL, Headers or Body is required; no request is sent and no attachment links are generated. Omitting `filter` matches all mail. A real email is required, and mailbox checks can only read that mailbox's emails.
+
+Existing `/api/webhook/test` and `/admin/mail_webhook/test` still accept settings plus optional `mail_id`, send when matched, and return `{ "success": true, "matched": false, "skipped": true }` otherwise. Delivery success/failure responses remain unchanged; there is no `check_only` parameter.
 
 The generic backend module `worker/src/utils/filter.ts` exposes `compileFilter(expression, isFieldAllowed, operators)`, validating/compiling an expression into a function accepting string/string-array fields. Register a parameter compiler to extend operators. `webhook_filter.ts` handles mail-specific mapping separately. The frontend `FilterEditor.vue` accepts `v-model`, `fields` and `operators` (including option editor definitions), without depending on webhook APIs; other features can supply their own fields/operators.
 

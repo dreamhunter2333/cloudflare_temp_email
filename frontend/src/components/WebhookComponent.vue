@@ -21,6 +21,10 @@ const props = defineProps({
         default: (webhookSettings: WebhookSettings) => { },
         required: true
     },
+    checkFilter: {
+        type: Function,
+        required: true
+    },
 })
 
 // @ts-ignore
@@ -214,9 +218,9 @@ const saveSettings = async () => {
     }
 }
 
-const testSettings = async (checkOnly = false) => {
+const submitTest = async (checkFilter = false) => {
     if (testing.value || !filterValid.value) return
-    if (!webhookSettings.value.url) {
+    if (!checkFilter && !webhookSettings.value.url) {
         message.error(t('urlMissing'))
         return
     }
@@ -226,13 +230,13 @@ const testSettings = async (checkOnly = false) => {
     }
     testing.value = true
     try {
-        const result = await props.testSettings({
-            ...webhookSettings.value,
-            ...(checkOnly ? { check_only: true } : {}),
+        const submit = checkFilter ? props.checkFilter : props.testSettings
+        const result = await submit({
+            ...(checkFilter ? { filter: webhookSettings.value.filter } : webhookSettings.value),
             ...(testMode.value === 'specified' ? { mail_id: testMailId.value } : {}),
         })
         if (result?.matched === false) message.info(t('filterSkipped'))
-        else message.success(t(checkOnly ? 'filterMatched' : 'successTip'))
+        else message.success(t(checkFilter ? 'filterMatched' : 'successTip'))
         showTestModal.value = false
     } catch (error) {
         message.error((error as Error).message || "error");
@@ -307,8 +311,8 @@ onMounted(async () => {
             <template #footer>
                 <n-flex justify="end">
                     <n-button :disabled="testing" @click="showTestModal = false">{{ t('cancel') }}</n-button>
-                    <n-button :disabled="testing || !filterValid" @click="testSettings(true)">{{ t('checkFilter') }}</n-button>
-                    <n-button type="primary" :loading="testing" :disabled="!filterValid" @click="testSettings(false)">{{ t('test') }}</n-button>
+                    <n-button :disabled="testing || !filterValid" @click="submitTest(true)">{{ t('checkFilter') }}</n-button>
+                    <n-button type="primary" :loading="testing" :disabled="!filterValid" @click="submitTest()">{{ t('test') }}</n-button>
                 </n-flex>
             </template>
         </n-modal>

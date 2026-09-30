@@ -44,6 +44,7 @@ for (const [operator, label] of [['equals', '等于'], ['contains', '包含'], [
 test('Reusable filter editor nests conditions, round-trips JSON and reports skipped tests', async ({ page }) => {
   const saved: any[] = [];
   const tested: any[] = [];
+  const checked: any[] = [];
   await page.route('**/admin/mail_webhook/settings', route => {
     if (route.request().method() === 'POST') saved.push(route.request().postDataJSON());
     return route.fulfill({ json: route.request().method() === 'POST' ? { success: true } : settings });
@@ -51,6 +52,10 @@ test('Reusable filter editor nests conditions, round-trips JSON and reports skip
   await page.route('**/admin/mail_webhook/test', route => {
     tested.push(route.request().postDataJSON());
     return route.fulfill({ json: { success: true, matched: false, skipped: true } });
+  });
+  await page.route('**/admin/mail_webhook/check_filter', route => {
+    checked.push(route.request().postDataJSON());
+    return route.fulfill({ json: { success: true, matched: false } });
   });
   await page.goto(`${FRONTEND_URL}/zh/admin`);
   await page.getByText('邮件', { exact: true }).click();
@@ -81,10 +86,21 @@ test('Reusable filter editor nests conditions, round-trips JSON and reports skip
   await openTest.click();
   await page.getByRole('dialog').getByRole('button', { name: '仅检查规则', exact: true }).click();
   await expect(page.getByText('条件不匹配，未发送 Webhook', { exact: true })).toBeVisible();
-  expect(tested.at(-1)).toMatchObject({ filter: expression, check_only: true });
+  expect(checked.at(-1)).toEqual({ filter: expression });
+  expect(tested).toHaveLength(0);
+  const urlInput = page.locator('.n-form-item').filter({ has: page.getByText('URL', { exact: true }) }).getByRole('textbox');
+  await urlInput.fill('');
+  await openTest.click();
+  await page.getByRole('dialog').getByText('指定 ID', { exact: true }).click();
+  await page.getByRole('dialog').getByPlaceholder('邮件 ID', { exact: true }).fill('123');
+  await page.getByRole('dialog').getByRole('button', { name: '仅检查规则', exact: true }).click();
+  await expect.poll(() => checked.at(-1)).toEqual({ filter: expression, mail_id: 123 });
+  expect(tested).toHaveLength(0);
+  await urlInput.fill(settings.url);
   await openTest.click();
   await page.getByRole('dialog').getByRole('button', { name: '测试', exact: true }).click();
-  expect(tested.at(-1)).not.toHaveProperty('check_only');
+  expect(tested.at(-1)).toMatchObject({ filter: expression });
+  expect(checked).toHaveLength(2);
   await editor.getByRole('button', { name: '移除', exact: true }).first().click();
   await save.click();
   expect(saved.at(-1).filter).toBeNull();
@@ -170,7 +186,7 @@ test('Invalid operators, options and RE2 expressions block saving and testing, a
     if (route.request().method() === 'POST') saved.push(route.request().postDataJSON());
     return route.fulfill({ json: route.request().method() === 'POST' ? { success: true } : { ...settings, filter: expression } });
   });
-  await page.route('**/admin/mail_webhook/test', route => {
+  await page.route('**/admin/mail_webhook/check_filter', route => {
     tested.push(route.request().postDataJSON());
     return route.fulfill({ json: { success: true, matched: true, skipped: true } });
   });
