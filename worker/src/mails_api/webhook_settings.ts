@@ -1,10 +1,11 @@
 import { Context } from "hono";
 import { CONSTANTS } from "../constants";
-import { AdminWebhookSettings, WebhookSettings } from "../models";
-import { sendWebhook } from "../common";
+import { AdminWebhookSettings, WebhookSettings, RawMailRow } from "../models";
+import { commonParseMail, sendWebhook } from "../common";
+import { resolveRawEmail } from "../gzip";
 import { getWebhookAttachments } from '../utils/webhook';
 import { compileWebhookFilter } from '../utils/webhook_filter';
-import { prepareWebhookTest, checkWebhookFilter } from '../utils/webhook_test';
+import { checkWebhookFilter } from '../utils/webhook_filter_check';
 import i18n from "../i18n";
 
 
@@ -45,12 +46,40 @@ async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response
 }
 
 async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
+    const msgs = i18n.getMessagesbyContext(c);
+    const settings = await c.req.json<WebhookSettings & { mail_id?: number }>().catch(() => null);
+    if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+        return c.text(msgs.InvalidRequestBodyMsg, 400);
+    }
+    let match: ReturnType<typeof compileWebhookFilter>;
+    try {
+        match = compileWebhookFilter(settings.filter);
+    } catch (error) {
+        return c.text(`${msgs.InvalidWebhookFilterMsg}: ${(error as Error).message}`, 400);
+    }
+    const requestedMailId = settings.mail_id;
+    if (requestedMailId !== undefined && (!Number.isSafeInteger(requestedMailId) || requestedMailId <= 0)) {
+        return c.text(msgs.InvalidMailIdMsg, 400);
+    }
     const { address } = c.get("jwtPayload");
-    const result = await prepareWebhookTest(c, address);
-    if (result instanceof Response) return result;
-    const { settings, mailRow, raw, parsedEmail, matched } = result;
-    if (!matched) return c.json({ success: true, matched, skipped: true });
+    const mailRow = requestedMailId !== undefined ? await c.env.DB.prepare(
+        `SELECT * FROM raw_mails WHERE id = ? AND address = ?`
+    ).bind(requestedMailId, address).first<RawMailRow>() : await c.env.DB.prepare(
+        `SELECT * FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
+    ).bind(address).first<RawMailRow>();
     const mailId = mailRow?.id;
+    if (!mailRow && (requestedMailId !== undefined || settings.filter != null)) {
+        return c.text(msgs.MailNotFoundMsg, 404);
+    }
+    const raw = mailRow ? await resolveRawEmail(mailRow) : "";
+    const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
+    const parsedEmail = await commonParseMail(parsedEmailContext);
+    try {
+        const matched = match(parsedEmail, address);
+        if (!matched) return c.json({ success: true, matched, skipped: true });
+    } catch {
+        return c.text(msgs.WebhookFilterEvaluationFailedMsg, 400);
+    }
     const res = await sendWebhook(settings, {
         attachments: await getWebhookAttachments(c.env, mailRow, parsedEmail?.attachments),
         id: mailId || "0",

@@ -5,9 +5,9 @@ import i18n from '../i18n';
 import { RawMailRow, WebhookSettings } from '../models';
 import { compileWebhookFilter } from './webhook_filter';
 
-export async function prepareWebhookTest(c: Context<HonoCustomType>, address?: string) {
+export async function checkWebhookFilter(c: Context<HonoCustomType>, address?: string): Promise<Response> {
     const msgs = i18n.getMessagesbyContext(c);
-    const settings = await c.req.json<WebhookSettings & { mail_id?: number }>().catch(() => null);
+    const settings = await c.req.json<Pick<WebhookSettings, 'filter'> & { mail_id?: number }>().catch(() => null);
     if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
         return c.text(msgs.InvalidRequestBodyMsg, 400);
     }
@@ -36,21 +36,14 @@ export async function prepareWebhookTest(c: Context<HonoCustomType>, address?: s
     const mailRow = await c.env.DB.prepare(
         `SELECT * FROM raw_mails${where}${order}`
     ).bind(...bindings).first<RawMailRow>();
-    if (!mailRow && (requestedMailId !== undefined || settings.filter != null)) {
+    if (!mailRow) {
         return c.text(msgs.MailNotFoundMsg, 404);
     }
-    const raw = mailRow ? await resolveRawEmail(mailRow) : '';
+    const raw = await resolveRawEmail(mailRow);
     const parsedEmail = await commonParseMail({ rawEmail: raw });
     try {
-        return { settings, mailRow, raw, parsedEmail, matched: match(parsedEmail, address ?? mailRow?.address ?? '') };
+        return c.json({ success: true, matched: match(parsedEmail, address ?? mailRow.address ?? '') });
     } catch {
         return c.text(msgs.WebhookFilterEvaluationFailedMsg, 400);
     }
-}
-
-export async function checkWebhookFilter(c: Context<HonoCustomType>, address?: string): Promise<Response> {
-    const result = await prepareWebhookTest(c, address);
-    if (result instanceof Response) return result;
-    if (!result.mailRow) return c.text(i18n.getMessagesbyContext(c).MailNotFoundMsg, 404);
-    return c.json({ success: true, matched: result.matched });
 }

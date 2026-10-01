@@ -1,7 +1,19 @@
 import { compileFilter, type FilterValues } from './filter';
+import type { WebhookSettings } from '../models';
 
 const fields = ['from', 'to', 'subject', 'text', 'html'];
 const isFieldAllowed = (field: string) => fields.includes(field) || /^header\.[a-zA-Z0-9!#$%&'*+.^_`|~-]+$/.test(field);
+
+export function filterWebhooks(settings: WebhookSettings[], parsedEmail: ParsedEmailContext['parsedEmail'], to: string): WebhookSettings[] {
+    return settings.filter(webhook => {
+        try {
+            return compileWebhookFilter(webhook.filter)(parsedEmail, to);
+        } catch (error) {
+            console.error('Invalid webhook filter', error);
+            return false;
+        }
+    });
+}
 
 export function compileWebhookFilter(filter: unknown): (
     parsedEmail: ParsedEmailContext['parsedEmail'],

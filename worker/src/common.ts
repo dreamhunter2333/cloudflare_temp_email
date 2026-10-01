@@ -8,7 +8,7 @@ import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 import { formatWebhookBody, getWebhookAttachments } from './utils/webhook';
-import { compileWebhookFilter } from './utils/webhook_filter';
+import { filterWebhooks } from './utils/webhook_filter';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
@@ -887,14 +887,7 @@ export async function triggerWebhook(
         return
     }
     const parsedEmail = await commonParseMail(parsedEmailContext);
-    const matchingWebhooks = webhookList.filter(settings => {
-        try {
-            return compileWebhookFilter(settings.filter)(parsedEmail, address);
-        } catch (error) {
-            console.error('Invalid webhook filter', error);
-            return false;
-        }
-    });
+    const matchingWebhooks = filterWebhooks(webhookList, parsedEmail, address);
     if (matchingWebhooks.length === 0) return;
     const mailRow = storedMailId ? await c.env.DB.prepare(
         `SELECT id, address, created_at FROM raw_mails WHERE id = ? AND address = ?`

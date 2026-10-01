@@ -1,15 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { isValidFilterExpression, validateRegex } from '../../../frontend/src/components/filter';
+import { isValidFilterExpression } from '../../../frontend/src/components/filter';
+import { getWebhookFilterOperators, isWebhookFilterFieldAllowed } from '../../../frontend/src/components/webhook-filter';
 import { compileWebhookFilter } from '../../../worker/src/utils/webhook_filter';
 
-const operators = [
-  ...['equals', 'contains', 'startsWith', 'endsWith'].flatMap(value => [
-    { value, label: value }, { value: `${value}CaseSensitive`, label: value },
-  ]),
-  { value: 'regex', label: 'regex', options: [{ key: 'flags', label: 'flags' }], validate: validateRegex },
-];
-const allowed = (field: string) => ['from', 'to', 'subject', 'text', 'html'].includes(field)
-  || /^header\.[a-zA-Z0-9!#$%&'*+.^_`|~-]+$/.test(field);
+const operators = getWebhookFilterOperators(key => key);
 const leaf = { field: 'subject', operator: 'contains', value: 'DOWN' };
 
 test('frontend and backend accept the same filter contract', () => {
@@ -32,6 +26,6 @@ test('frontend and backend accept the same filter contract', () => {
   for (const rule of cases) {
     let backendValid = true;
     try { compileWebhookFilter(rule); } catch { backendValid = false; }
-    expect(isValidFilterExpression(rule, operators, allowed), JSON.stringify(rule)).toBe(backendValid);
+    expect(isValidFilterExpression(rule, operators, isWebhookFilterFieldAllowed), JSON.stringify(rule)).toBe(backendValid);
   }
 });

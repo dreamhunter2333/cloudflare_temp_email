@@ -105,7 +105,7 @@ JSON 与下拉框使用同一操作符，不需要额外的大小写选项。下
 
 现有 `/api/webhook/test` 和 `/admin/mail_webhook/test` 仍接收配置及可选 `mail_id`，匹配时实际发送，未匹配时返回 `{ "success": true, "matched": false, "skipped": true }`；发送成功/失败响应保持原行为，不提供 `check_only` 参数。
 
-后端通用模块 `worker/src/utils/filter.ts` 通过 `compileFilter(expression, isFieldAllowed, operators)` 编译并校验规则，返回接收字符串/字符串列表字段映射的匹配函数；扩展操作符只需注册参数编译函数。`webhook_filter.ts` 单独负责邮件字段映射。前端 `FilterEditor.vue` 接收 `v-model`、`fields` 和 `operators`（包括选项编辑配置），不依赖 Webhook API；其他功能可提供自己的字段和操作符复用编辑器。
+后端通用模块 `worker/src/utils/filter.ts` 通过 `compileFilter(expression, isFieldAllowed, operators)` 编译并校验规则，返回接收字符串/字符串列表字段映射的匹配函数；扩展操作符只需注册参数编译函数。`webhook_filter.ts` 负责邮件字段映射和投递列表过滤；`webhook_filter_check.ts` 提供独立检查接口，原测试接口保留自己的查询与发送流程。前端通用 `FilterEditor.vue` 接收 `v-model`、`fields` 和 `operators`（包括选项编辑配置），不依赖 Webhook API；`WebhookFilter.vue` 与 `webhook-filter.ts` 只负责 Webhook 字段和操作符配置，其他功能可提供自己的配置复用编辑器。
 
 ## Webhook 模板示例
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, h } from 'vue'
+import { onMounted, ref, h } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import type { DropdownOption } from 'naive-ui'
-import FilterEditor from './FilterEditor.vue'
-import { validateRegex, type FilterExpression, type FilterOperator } from './filter'
+import WebhookFilter from './WebhookFilter.vue'
+import type { FilterExpression } from './filter'
 
 const props = defineProps({
     fetchData: {
@@ -176,17 +176,6 @@ const testMailId = ref<number | null>(null)
 const testing = ref(false)
 const filterValid = ref(true)
 const savedFilter = ref<FilterExpression | null>(null)
-const filterFields = computed(() => ['from', 'to', 'subject', 'text', 'html']
-    .map(value => ({ value, label: t(`filter_${value}`) })))
-const isFilterFieldAllowed = (field: string) => filterFields.value.some(item => item.value === field)
-    || /^header\.[a-zA-Z0-9!#$%&'*+.^_`|~-]+$/.test(field)
-const filterOperators = computed<FilterOperator[]>(() => [
-    ...['equals', 'contains', 'startsWith', 'endsWith'].flatMap(value => [
-        { value, label: t(`filter_${value}`) },
-        { value: `${value}CaseSensitive`, label: `${t(`filter_${value}`)} (${t('filter_caseSensitive')})` },
-    ]),
-    { value: 'regex', label: t('filter_regex'), validate: validateRegex, options: [{ key: 'flags', label: t('filter_flags'), placeholder: 'i / m / s' }] },
-])
 
 const fetchData = async () => {
     try {
@@ -255,7 +244,7 @@ onMounted(async () => {
         <n-card :bordered="false" embedded v-if="enableWebhook" style="max-width: 800px; overflow: auto;">
             <n-flex justify="end">
                 <n-dropdown :options="presetDropdownOptions" @select="handlePresetSelect">
-                    <n-button secondary :disabled="!filterValid">
+                    <n-button secondary>
                         {{ t('presets') }}
                     </n-button>
                 </n-dropdown>
@@ -270,11 +259,7 @@ onMounted(async () => {
                 <n-switch v-model:value="webhookSettings.enabled" :round="false" />
             </n-form-item-row>
             <n-form-item-row v-show="webhookSettings.enabled" :label="t('filter')">
-                <div style="width: 100%; min-width: 0">
-                    <FilterEditor v-model="webhookSettings.filter" :fields="filterFields" :operators="filterOperators"
-                        allow-custom-fields :is-field-allowed="isFilterFieldAllowed" @validity-change="filterValid = $event" />
-                    <n-text depth="3">{{ t('filterHelp') }}</n-text>
-                </div>
+                <WebhookFilter v-model="webhookSettings.filter" @validity-change="filterValid = $event" />
             </n-form-item-row>
             <div v-if="webhookSettings.enabled">
                 <n-form-item-row label="URL">

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { compileWebhookFilter } from '../../../worker/src/utils/webhook_filter';
+import { compileWebhookFilter, filterWebhooks } from '../../../worker/src/utils/webhook_filter';
 
 test.describe('Webhook filter field mapping', () => {
   const mail = { sender: 'Blocked, Display <first@example.com>', subject: 'DOWN', text: '', html: '<p>HTML only</p>', headers: [
@@ -9,6 +9,25 @@ test.describe('Webhook filter field mapping', () => {
     { key: 'Reply-To', value: 'reply@example.com' },
   ] };
   const match = (field: string, value: string) => compileWebhookFilter({ field, operator: 'equals', value })(mail, 'real@example.org');
+  test('filtering isolates invalid rules and preserves unfiltered webhooks on parse failure', () => {
+    const legacy: any = { enabled: true };
+    const matching: any = { filter: { field: 'subject', operator: 'equals', value: 'DOWN' } };
+    const invalid: any = { filter: { field: 'unknown', operator: 'equals', value: 'DOWN' } };
+    const unmatched: any = { filter: { field: 'subject', operator: 'equals', value: 'UP' } };
+    const settings = [legacy, matching, invalid, unmatched];
+    const log = console.error;
+    const errors: unknown[][] = [];
+    console.error = (...args) => { errors.push(args); };
+    try {
+      expect(filterWebhooks(settings, mail, 'real@example.org')).toEqual([legacy, matching]);
+      expect(errors).toHaveLength(1);
+      expect(filterWebhooks(settings, undefined, 'real@example.org')).toEqual([legacy]);
+      expect(errors).toHaveLength(4);
+      expect(settings).toEqual([legacy, matching, invalid, unmatched]);
+    } finally {
+      console.error = log;
+    }
+  });
   test('from uses only the parsed sender, including the display name', () => {
     expect(match('from', mail.sender)).toBe(true);
     for (const value of ['second@example.com', 'third@example.com', 'bounce@example.net']) expect(match('from', value)).toBe(false);

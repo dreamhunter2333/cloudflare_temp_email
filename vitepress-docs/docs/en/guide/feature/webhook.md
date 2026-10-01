@@ -105,7 +105,7 @@ Dedicated POST `/api/webhook/check_filter` and `/admin/mail_webhook/check_filter
 
 Existing `/api/webhook/test` and `/admin/mail_webhook/test` still accept settings plus optional `mail_id`, send when matched, and return `{ "success": true, "matched": false, "skipped": true }` otherwise. Delivery success/failure responses remain unchanged; there is no `check_only` parameter.
 
-The generic backend module `worker/src/utils/filter.ts` exposes `compileFilter(expression, isFieldAllowed, operators)`, validating/compiling an expression into a function accepting string/string-array fields. Register a parameter compiler to extend operators. `webhook_filter.ts` handles mail-specific mapping separately. The frontend `FilterEditor.vue` accepts `v-model`, `fields` and `operators` (including option editor definitions), without depending on webhook APIs; other features can supply their own fields/operators.
+The generic backend module `worker/src/utils/filter.ts` exposes `compileFilter(expression, isFieldAllowed, operators)`, validating/compiling an expression into a function accepting string/string-array fields. Register a parameter compiler to extend operators. `webhook_filter.ts` handles mail-specific mapping and delivery-list filtering; `webhook_filter_check.ts` provides the independent check endpoint, while existing test endpoints retain their queries and delivery flow. The generic frontend `FilterEditor.vue` accepts `v-model`, `fields` and `operators` (including option editor definitions), without depending on webhook APIs. `WebhookFilter.vue` and `webhook-filter.ts` supply only webhook-specific fields/operators; other features can supply their own configuration.
 
 ## Webhook Template Examples
 
