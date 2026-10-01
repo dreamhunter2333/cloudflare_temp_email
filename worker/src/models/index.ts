@@ -3,6 +3,7 @@ import type {
     CredentialDeviceType,
     Base64URLString,
 } from '@simplewebauthn/server';
+import type { FilterExpression } from '../utils/filter';
 
 export type Passkey = {
     id: Base64URLString;
@@ -146,6 +147,7 @@ export class UserInfo {
 }
 
 export class WebhookSettings {
+    filter?: FilterExpression | null;
     enabled: boolean = false
     url: string = ''
     method: string = 'POST'

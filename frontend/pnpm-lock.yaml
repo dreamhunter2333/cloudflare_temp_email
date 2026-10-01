@@ -44,6 +44,9 @@ importers:
       postal-mime:
         specifier: ^2.7.6
         version: 2.7.6
+      re2js:
+        specifier: ^2.8.6
+        version: 2.8.6
       vooks:
         specifier: ^0.2.12
         version: 0.2.12(vue@3.5.42(typescript@5.4.5))
@@ -2616,6 +2619,10 @@ packages:
 
   quansync@0.2.11:
     resolution: {integrity: sha512-AifT7QEbW9Nri4tAwR5M/uzpBuqfZf+zwaEM/QkzEjj7NBuFD2rBuy0K3dE+8wltbezDV7JMA0WfnCPYRSYbXA==}
+
+  re2js@2.8.6:
+    resolution: {integrity: sha512-xLgQil4kIUCrAzVk9fRSkxkFNwmygLFjVxXrLc65aE1F0+Zsb8rxumFBy4XKyvgMCTL6kilDq3EZ0piE2dP/Dg==}
+    engines: {node: '>=18.0.0'}
 
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
@@ -5883,6 +5890,8 @@ snapshots:
   punycode@2.3.1: {}
 
   quansync@0.2.11: {}
+
+  re2js@2.8.6: {}
 
   readable-stream@2.3.8:
     dependencies:

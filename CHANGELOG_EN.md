@@ -10,16 +10,20 @@
 
 ### Features
 
+- feat: |Webhook| Add nested AND/OR/NOT filters with string and safe regex matching, a reusable rule engine and visual/JSON editor with separate case-sensitive text operator choices, dedicated rule-check endpoints and match-and-send testing; `from` uses the parsed sender consistently with Body; existing configurations continue to send all mail (issue #1155)
 - feat: |User| Search bound mailboxes by email address in address management with accurate pagination (issue #1156)
 - feat: |AI Extract| Add `AI_EXTRACT_MODE` to explicitly choose local rules only (`local`) or prefer Workers AI (`ai`); defaults to local rules when unset so mail content is never sent to AI. **Upgrade note**: deployments that relied on the Workers AI binding to enable AI extraction automatically must set `AI_EXTRACT_MODE = "ai"`
 
 ### Bug Fixes
 
+- fix: |Webhook| Validate operators, options and RE2 patterns before saving or testing; append repeated headers in linear time and skip aggregation when filters do not reference headers
+- fix: |Webhook| Keep JSON and visual drafts inside the editor and emit only valid rules, including field validation; disabling preserves saved rules and unfinished drafts, oversized edits are rejected, and admin tests use the actual recipient; isolate filter configuration and retain existing test queries
 - fix: |Mail| Check the SMTP envelope sender and every From email address against sender blacklists; parse addresses independently so body parsing failures or multiple From addresses cannot skip matching; preserve envelope checks on address parsing errors
 - fix: |AI Extract| In `ai` mode, an address allowlist miss now skips only the Workers AI call and still falls back to local verification-code extraction
 
 ### Improvements
 
+- docs: |Webhook| Add a dedicated text operator and case-sensitivity guide with option comparisons, matching examples and JSON configuration; match the complete parsed From in the sender-domain example; compress its screenshot as lossless WebP
 - feat: |AI Extract| Improve local verification-code rules: also read the mail subject; support codes before keywords (e.g. `116352（动态验证码）`, `ABC123 is your code`), `G-123456` prefixes, grouped / spaced / zero-width-split / full-width codes, and Russian, Spanish, Portuguese, French, German, Italian, Turkish and Hebrew keywords; reject numbers longer than 8 digits, decimals and amounts, times, digits in URLs and email addresses, tracking / order / voucher codes and letters-only words; only accept keyword-less numbers in stricter positions; bound input length and remove regex backtracking risks
 
 ## v1.12.0

@@ -26,6 +26,87 @@ This project uses [songquanpeng/message-pusher](https://github.com/songquanpeng/
 
 ![telegram](/feature/address-webhook.png)
 
+## Mail filters
+
+![Webhook filter editor](/feature/webhook-filter.webp)
+
+Add conditions in the admin mail webhook or mailbox webhook settings. Each webhook evaluates its own filter independently. A mismatch skips only that webhook; mail storage, blacklists, forwarding and Telegram notifications are unaffected. No new environment variables or database migration are required.
+
+The expression is stored in an optional `filter` property alongside `url`, `headers` and `body`, not inside the Body template. Missing or `null` filters preserve existing behavior: send every message. The visual and JSON editors use the same structure:
+
+```json
+{
+  "filter": {
+    "operator": "and",
+    "children": [
+      { "field": "from", "operator": "regex", "value": "@example\\.com>$", "options": { "flags": "i" } },
+      {
+        "operator": "or",
+        "children": [
+          { "field": "subject", "operator": "contains", "value": "ALERT" },
+          { "field": "subject", "operator": "regex", "value": "^DOWN\\b", "options": { "flags": "i" } }
+        ]
+      },
+      {
+        "operator": "not",
+        "children": [{ "field": "text", "operator": "contains", "value": "maintenance" }]
+      }
+    ]
+  }
+}
+```
+
+In the page's JSON editor, enter only the expression inside `filter`, without the outer `filter` wrapper.
+
+Disabling the webhook preserves the last saved filter, or no filter if none existed. Toggling does not discard JSON or visual drafts on the current page; re-enable to correct and save the draft.
+
+### Fields and operators
+
+| Field | Meaning |
+| --- | --- |
+| `from` | Parsed sender, identical to `${from}` in Body, e.g. `GitHub <notifications@github.com>`; use contains to match a name or email address |
+| `to` | Actual delivery address, not the To header |
+| `subject` | Parsed subject |
+| `text` / `html` | Parsed plain text / HTML; absent content is an empty string. Does not search raw MIME or attachment contents |
+| `header.List-ID`, etc. | All values of a named header; header names are case-insensitive. Type custom fields into the field selector |
+
+- `and` / `or` require a nonempty `children` list; `not` requires exactly one child. Children may nest further; a single field condition is also a valid root.
+- `regex` uses RE2 syntax through [RE2JS](https://github.com/le0pard/re2js), case-sensitive by default. Optional `options.flags`: `i` (ignore case), `m` (multiline anchors), `s` (dot matches newline). JavaScript backreferences and lookahead are unsupported and rejected on save. User scripts are never executed.
+- For repeated headers, any matching value satisfies the condition; wrapping it in `not` requires all values not to match. Missing headers are empty lists and match no values. From filtering is not sender authentication and does not replace SPF/DKIM/DMARC.
+- Limits: 8 levels, 100 nodes, 100 characters per field name, 500 characters per value. Both frontend and backend validate fields, operators, options, RE2 patterns and structure. Invalid drafts remain editable but cannot be saved as enabled or tested, and do not replace saved settings.
+- Parsing/evaluation failures skip that webhook and log an error; `not` cannot turn failures into matches. Configurations without filters keep the old path. Existing Body variables and rendering are unchanged.
+
+### Text operators and case sensitivity
+
+Choose the matching behavior directly from the filter's operator selector; there is no separate case-sensitivity checkbox:
+
+| Case-insensitive (default) | Case-sensitive | Meaning |
+| --- | --- | --- |
+| Equals `equals` | Equals (Case sensitive) `equalsCaseSensitive` | Match the entire field |
+| Contains `contains` | Contains (Case sensitive) `containsCaseSensitive` | Find the text anywhere in the field |
+| Starts with `startsWith` | Starts with (Case sensitive) `startsWithCaseSensitive` | Match the beginning of the field |
+| Ends with `endsWith` | Ends with (Case sensitive) `endsWithCaseSensitive` | Match the end of the field |
+
+For example, a subject of `DOWN service` matches the value `down` with **Contains**, but not with **Contains (Case sensitive)**. Changing the value to `DOWN` matches both. Use **Test → Specify ID → Check only** to verify without sending a request.
+
+JSON and the selector use the same operators, with no extra case-sensitivity option. Paste this **Contains (Case sensitive)** condition directly into the JSON editor:
+
+```json
+{ "field": "subject", "operator": "containsCaseSensitive", "value": "DOWN" }
+```
+
+Text operators do not accept `options`. Empty values are allowed; for example, **Equals** with an empty string matches an empty body. Regular expressions use `options.flags`; enter `i` to ignore case.
+
+### Testing and reuse
+
+The dialog retains random email / specified ID selection. **Check only** evaluates without sending; **Test** sends only when matched, otherwise reports that delivery was skipped. Filters require a real email for testing, and mailbox ownership checks still apply to selected IDs.
+
+Dedicated POST `/api/webhook/check_filter` and `/admin/mail_webhook/check_filter` accept only `{ "filter": expression, "mail_id": optionalMailId }` and return `{ "success": true, "matched": true/false }`. No URL, Headers or Body is required; no request is sent and no attachment links are generated. Omitting `filter` matches all mail. A real email is required, and mailbox checks can only read that mailbox's emails.
+
+Existing `/api/webhook/test` and `/admin/mail_webhook/test` still accept settings plus optional `mail_id`, send when matched, and return `{ "success": true, "matched": false, "skipped": true }` otherwise. Delivery success/failure responses remain unchanged; there is no `check_only` parameter.
+
+The generic backend module `worker/src/utils/filter.ts` exposes `compileFilter(expression, isFieldAllowed, operators)`, validating/compiling an expression into a function accepting string/string-array fields. Register a parameter compiler to extend operators. `webhook_filter.ts` handles mail-specific mapping and delivery-list filtering; `webhook_filter_check.ts` provides the independent check endpoint, while existing test endpoints retain their queries and delivery flow. The generic frontend `FilterEditor.vue` accepts `v-model`, `fields` and `operators` (including option editor definitions), without depending on webhook APIs. `WebhookFilter.vue` and `webhook-filter.ts` supply only webhook-specific fields/operators; other features can supply their own configuration.
+
 ## Webhook Template Examples
 
 ### Telegram Bot Push

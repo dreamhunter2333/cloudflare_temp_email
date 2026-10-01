@@ -2,6 +2,8 @@
 import { onMounted, ref, h } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import type { DropdownOption } from 'naive-ui'
+import WebhookFilter from './WebhookFilter.vue'
+import type { FilterExpression } from './filter'
 
 const props = defineProps({
     fetchData: {
@@ -19,6 +21,10 @@ const props = defineProps({
         default: (webhookSettings: WebhookSettings) => { },
         required: true
     },
+    checkFilter: {
+        type: Function,
+        required: true
+    },
 })
 
 // @ts-ignore
@@ -27,6 +33,7 @@ const message = useMessage()
 const { t } = useScopedI18n('components.WebhookComponent')
 
 class WebhookSettings {
+    filter?: FilterExpression | null
     enabled: boolean = false
     url: string = ''
     method: string = 'POST'
@@ -167,11 +174,14 @@ const showTestModal = ref(false)
 const testMode = ref('random')
 const testMailId = ref<number | null>(null)
 const testing = ref(false)
+const filterValid = ref(true)
+const savedFilter = ref<FilterExpression | null>(null)
 
 const fetchData = async () => {
     try {
         const res = await props.fetchData()
         Object.assign(webhookSettings.value, res)
+        savedFilter.value = JSON.parse(JSON.stringify(res.filter ?? null))
         enableWebhook.value = true
     } catch (error) {
         message.error((error as Error).message || "error");
@@ -179,21 +189,27 @@ const fetchData = async () => {
 }
 
 const saveSettings = async () => {
+    if (webhookSettings.value.enabled && !filterValid.value) return
     if (!webhookSettings.value.url) {
         message.error(t('urlMissing'))
         return
     }
+    const settings = {
+        ...webhookSettings.value,
+        filter: webhookSettings.value.enabled ? webhookSettings.value.filter : savedFilter.value,
+    }
     try {
-        await props.saveSettings(webhookSettings.value)
+        await props.saveSettings(settings)
+        savedFilter.value = JSON.parse(JSON.stringify(settings.filter ?? null))
         message.success(t('successTip'))
     } catch (error) {
         message.error((error as Error).message || "error");
     }
 }
 
-const testSettings = async () => {
-    if (testing.value) return
-    if (!webhookSettings.value.url) {
+const submitTest = async (checkFilter = false) => {
+    if (testing.value || !filterValid.value) return
+    if (!checkFilter && !webhookSettings.value.url) {
         message.error(t('urlMissing'))
         return
     }
@@ -203,11 +219,13 @@ const testSettings = async () => {
     }
     testing.value = true
     try {
-        await props.testSettings({
-            ...webhookSettings.value,
+        const submit = checkFilter ? props.checkFilter : props.testSettings
+        const result = await submit({
+            ...(checkFilter ? { filter: webhookSettings.value.filter } : webhookSettings.value),
             ...(testMode.value === 'specified' ? { mail_id: testMailId.value } : {}),
         })
-        message.success(t('successTip'))
+        if (result?.matched === false) message.info(t('filterSkipped'))
+        else message.success(t(checkFilter ? 'filterMatched' : 'successTip'))
         showTestModal.value = false
     } catch (error) {
         message.error((error as Error).message || "error");
@@ -230,15 +248,18 @@ onMounted(async () => {
                         {{ t('presets') }}
                     </n-button>
                 </n-dropdown>
-                <n-button v-if="webhookSettings.enabled" @click="showTestModal = true" secondary>
+                <n-button v-if="webhookSettings.enabled" @click="showTestModal = true" secondary :disabled="!filterValid">
                     {{ t('test') }}
                 </n-button>
-                <n-button @click="saveSettings" type="primary">
+                <n-button @click="saveSettings" type="primary" :disabled="webhookSettings.enabled && !filterValid">
                     {{ t('save') }}
                 </n-button>
             </n-flex>
             <n-form-item-row :label="t('enable')">
                 <n-switch v-model:value="webhookSettings.enabled" :round="false" />
+            </n-form-item-row>
+            <n-form-item-row v-show="webhookSettings.enabled" :label="t('filter')">
+                <WebhookFilter v-model="webhookSettings.filter" @validity-change="filterValid = $event" />
             </n-form-item-row>
             <div v-if="webhookSettings.enabled">
                 <n-form-item-row label="URL">
@@ -275,7 +296,8 @@ onMounted(async () => {
             <template #footer>
                 <n-flex justify="end">
                     <n-button :disabled="testing" @click="showTestModal = false">{{ t('cancel') }}</n-button>
-                    <n-button type="primary" :loading="testing" @click="testSettings">{{ t('test') }}</n-button>
+                    <n-button :disabled="testing || !filterValid" @click="submitTest(true)">{{ t('checkFilter') }}</n-button>
+                    <n-button type="primary" :loading="testing" :disabled="!filterValid" @click="submitTest()">{{ t('test') }}</n-button>
                 </n-flex>
             </template>
         </n-modal>

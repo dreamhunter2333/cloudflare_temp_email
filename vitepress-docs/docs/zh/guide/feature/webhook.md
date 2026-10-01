@@ -26,6 +26,87 @@
 
 ![telegram](/feature/address-webhook.png)
 
+## 邮件过滤
+
+![Webhook 过滤规则编辑器](/feature/webhook-filter.webp)
+
+在管理员邮件 Webhook 或邮箱 Webhook 页面添加过滤条件。两个 Webhook 各自判断，不互相限制；不匹配只跳过该 Webhook，邮件仍照常保存，不影响黑名单、转发和 Telegram 通知。无需新增环境变量或执行数据库迁移。
+
+规则保存在现有配置的 `filter` 字段，与 `url`、`headers`、`body` 平级，不放进 Body 模板。旧配置没有 `filter`，或值为 `null` 时，保持全部推送。可视化编辑与 JSON 编辑使用同一结构：
+
+```json
+{
+  "filter": {
+    "operator": "and",
+    "children": [
+      { "field": "from", "operator": "regex", "value": "@example\\.com>$", "options": { "flags": "i" } },
+      {
+        "operator": "or",
+        "children": [
+          { "field": "subject", "operator": "contains", "value": "告警" },
+          { "field": "subject", "operator": "regex", "value": "^DOWN\\b", "options": { "flags": "i" } }
+        ]
+      },
+      {
+        "operator": "not",
+        "children": [{ "field": "text", "operator": "contains", "value": "维护通知" }]
+      }
+    ]
+  }
+}
+```
+
+页面的 JSON 编辑框只填写 `filter` 内部的表达式，不需要再包一层 `filter`。
+
+关闭 Webhook 只保存关闭状态并保留已保存的规则，原本无规则则保持无规则。切换开关不会丢失当前页面的 JSON 或可视化草稿；重新启用后，可修正草稿再保存。
+
+### 字段和操作符
+
+| 字段 | 含义 |
+| --- | --- |
+| `from` | 解析后的发件人，与 Body 的 `${from}` 一致，例如 `GitHub <notifications@github.com>`；可用包含匹配名称或邮箱 |
+| `to` | 实际投递地址，不是邮件头 To |
+| `subject` | 解析后的主题 |
+| `text` / `html` | 解析后的纯文本 / HTML 正文；缺失时为空字符串，不扫描 MIME 原文或附件内容 |
+| `header.List-ID` 等 | 指定邮件头的全部值；头名称不区分大小写，可在字段选择框直接输入 |
+
+- `and` / `or` 的 `children` 为非空条件列表；`not` 的 `children` 必须恰好有一个条件。子条件可以继续嵌套，根节点也可以直接是一条字段匹配条件。
+- `regex` 使用 [RE2JS](https://github.com/le0pard/re2js) 的 RE2 正则语法，默认区分大小写。`options.flags` 支持 `i`（忽略大小写）、`m`（多行锚点）、`s`（点匹配换行）。不支持 JavaScript 正则的反向引用、前瞻等语法，保存时会校验；不执行用户脚本。
+- 对同名邮件头，任意一个值匹配即成立；外层 `not` 则要求全部不匹配。缺失邮件头为空列表，不匹配任何值。From 条件不是发件人真实性认证，不能代替 SPF/DKIM/DMARC。
+- 最多 8 层、100 个节点，字段名最多 100 字符、匹配值最多 500 字符。前后端均校验字段名、操作符、选项、RE2 正则和规则结构。编辑器保留无效草稿，但不允许启用保存或测试，不会覆盖原有配置。
+- 解析或求值失败会跳过该 Webhook 并记录错误，不会因 `not` 而放行。旧配置无规则时仍使用原处理流程。原有 Body 变量及渲染方式不变。
+
+### 文本操作符与大小写
+
+在“过滤条件”的操作符下拉框直接选择匹配方式，不需要再勾选大小写开关：
+
+| 忽略大小写（默认） | 区分大小写 | 含义 |
+| --- | --- | --- |
+| 等于 `equals` | 等于 (区分大小写) `equalsCaseSensitive` | 整个字段相等 |
+| 包含 `contains` | 包含 (区分大小写) `containsCaseSensitive` | 字段中包含指定文本 |
+| 开头匹配 `startsWith` | 开头匹配 (区分大小写) `startsWithCaseSensitive` | 字段以指定文本开头 |
+| 结尾匹配 `endsWith` | 结尾匹配 (区分大小写) `endsWithCaseSensitive` | 字段以指定文本结尾 |
+
+例如，邮件主题为 `DOWN service`，匹配值为 `down`：“包含”会匹配，“包含 (区分大小写)”不会匹配；将匹配值改为 `DOWN` 后，两种操作符都会匹配。可点击“测试 → 指定 ID → 仅检查规则”验证，不会发送请求。
+
+JSON 与下拉框使用同一操作符，不需要额外的大小写选项。下面是“包含 (区分大小写)”的条件，可直接填入 JSON 编辑框：
+
+```json
+{ "field": "subject", "operator": "containsCaseSensitive", "value": "DOWN" }
+```
+
+文本操作符不接受 `options`。空匹配值合法，例如“等于”空字符串可匹配空正文。正则匹配使用 `options.flags`，忽略大小写时填写 `i`。
+
+### 测试和复用
+
+测试弹框保留“随机邮件 / 指定 ID”。“仅检查规则”不发送请求；“测试”在匹配后真实发送，不匹配时提示已跳过。使用过滤规则时必须有真实邮件；指定 ID 仍检查邮箱归属。
+
+独立的 POST `/api/webhook/check_filter` 和 `/admin/mail_webhook/check_filter` 只接收 `{ "filter": 规则, "mail_id": 可选邮件ID }`，返回 `{ "success": true, "matched": true/false }`。不需要 URL、Headers 或 Body，不发送请求，也不生成附件链接；不传 `filter` 表示全部匹配。必须存在真实邮件，邮箱接口只能读取当前邮箱的邮件。
+
+现有 `/api/webhook/test` 和 `/admin/mail_webhook/test` 仍接收配置及可选 `mail_id`，匹配时实际发送，未匹配时返回 `{ "success": true, "matched": false, "skipped": true }`；发送成功/失败响应保持原行为，不提供 `check_only` 参数。
+
+后端通用模块 `worker/src/utils/filter.ts` 通过 `compileFilter(expression, isFieldAllowed, operators)` 编译并校验规则，返回接收字符串/字符串列表字段映射的匹配函数；扩展操作符只需注册参数编译函数。`webhook_filter.ts` 负责邮件字段映射和投递列表过滤；`webhook_filter_check.ts` 提供独立检查接口，原测试接口保留自己的查询与发送流程。前端通用 `FilterEditor.vue` 接收 `v-model`、`fields` 和 `operators`（包括选项编辑配置），不依赖 Webhook API；`WebhookFilter.vue` 与 `webhook-filter.ts` 只负责 Webhook 字段和操作符配置，其他功能可提供自己的配置复用编辑器。
+
 ## Webhook 模板示例
 
 ### Telegram Bot 推送
