@@ -39,7 +39,7 @@
   "filter": {
     "operator": "and",
     "children": [
-      { "field": "from", "operator": "endsWith", "value": "@example.com" },
+      { "field": "from", "operator": "regex", "value": "@example\\.com>$", "options": { "flags": "i" } },
       {
         "operator": "or",
         "children": [

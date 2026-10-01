@@ -41,6 +41,16 @@ test.describe('Webhook filter field mapping', () => {
     expect(compileWebhookFilter({ field: 'from', operator: 'equals', value: '' })({ ...mail, sender: '' }, '')).toBe(true);
     expect(match('to', 'real@example.org')).toBe(true);
   });
+  test('documented From domain rule matches parsed sender rather than the display name', () => {
+    const match = compileWebhookFilter({ field: 'from', operator: 'regex', value: '@example\\.com>$', options: { flags: 'i' } });
+    for (const sender of [mail.sender, 'Sender <USER@EXAMPLE.COM>']) {
+      expect(match({ ...mail, sender }, '')).toBe(true);
+    }
+    for (const sender of ['Sender <user@example.com.evil>', 'Sender <user@notexample.com>',
+      'Sender <user@exampleXcom>', 'user@example.com <user@other.com>', '']) {
+      expect(match({ ...mail, sender }, '')).toBe(false);
+    }
+  });
   test('repeated case-insensitive header names; missing and HTML-only text', () => {
     expect(match('header.X-TAG', 'b')).toBe(true);
     expect(match('header.missing', '')).toBe(false);
