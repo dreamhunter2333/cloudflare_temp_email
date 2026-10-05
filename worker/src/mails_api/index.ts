@@ -18,6 +18,7 @@ api.post('/api/auto_reply', auto_reply.saveAutoReply)
 api.get('/api/webhook/settings', webhook_settings.getWebhookSettings)
 api.post('/api/webhook/settings', webhook_settings.saveWebhookSettings)
 api.post('/api/webhook/test', webhook_settings.testWebhookSettings)
+api.post('/api/webhook/check_filter', webhook_settings.checkWebhookFilter)
 
 // attachment (S3)
 api.get('/api/attachment/list', s3_attachment.list)

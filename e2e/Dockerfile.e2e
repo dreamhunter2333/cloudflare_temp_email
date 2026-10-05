@@ -9,10 +9,9 @@ COPY e2e/package.json e2e/package-lock.json ./
 RUN npm ci
 
 COPY e2e/ .
-# Dependency-free worker modules covered by unit tests in tests/unit/
-COPY worker/src/email/extract_code.ts worker/src/email/extract_mode.ts /app/worker/src/email/
-COPY worker/src/email/black_list.ts /app/worker/src/email/
-COPY worker/src/constants.ts /app/worker/src/
+COPY worker/src/ /app/worker/src/
 RUN ln -s /app/e2e/node_modules /app/worker/node_modules
+COPY frontend/src/utils/filter.ts /app/frontend/src/utils/
+RUN ln -s /app/e2e/node_modules /app/frontend/node_modules
 
 ENTRYPOINT ["/app/e2e/scripts/docker-entrypoint.sh"]

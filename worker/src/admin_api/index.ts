@@ -84,6 +84,7 @@ api.post('/admin/webhook/settings', webhook_settings.saveWebhookSettings)
 api.get('/admin/mail_webhook/settings', mail_webhook_settings.getWebhookSettings)
 api.post('/admin/mail_webhook/settings', mail_webhook_settings.saveWebhookSettings)
 api.post('/admin/mail_webhook/test', mail_webhook_settings.testWebhookSettings)
+api.post('/admin/mail_webhook/check_filter', mail_webhook_settings.checkWebhookFilter)
 
 // worker config
 api.get('/admin/worker/configs', worker_config.getConfig)

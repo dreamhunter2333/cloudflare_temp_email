@@ -78,6 +78,7 @@ Global state via VueUse `useStorage` for persistence. The `api` module wraps axi
 - `worker/` uses TypeScript + ESLint; `frontend/` uses Vue SFCs.
 - Keep existing naming patterns: `*_api/` folders, `utils/`, `models/`.
 - ESM imports only (`type: module`).
+- Prefer `const` for request data. Parse request JSON directly with `const settings = await c.req.json<T>()`; let the existing global error handler handle parsing failures. Do not add local `try/catch` or `.catch(() => null)` just to suppress or repackage those errors. Keep business validation and necessary recovery logic; JSON editor parsing may catch errors to show invalid drafts.
 
 ## Commits & PRs
 
