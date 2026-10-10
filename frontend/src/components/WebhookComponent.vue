@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, h } from 'vue'
+import { computed, onMounted, ref, h } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import type { DropdownOption } from 'naive-ui'
+import FilterEditor from './FilterEditor.vue'
+import type { FilterExpression, FilterOperator } from '@/utils/filter'
 
 const props = defineProps({
     fetchData: {
@@ -19,6 +21,10 @@ const props = defineProps({
         default: (webhookSettings: WebhookSettings) => { },
         required: true
     },
+    checkFilter: {
+        type: Function,
+        required: true
+    },
 })
 
 // @ts-ignore
@@ -27,6 +33,7 @@ const message = useMessage()
 const { t } = useScopedI18n('components.WebhookComponent')
 
 class WebhookSettings {
+    filter?: FilterExpression | null
     enabled: boolean = false
     url: string = ''
     method: string = 'POST'
@@ -167,11 +174,30 @@ const showTestModal = ref(false)
 const testMode = ref('random')
 const testMailId = ref<number | null>(null)
 const testing = ref(false)
+const filterValid = ref(true)
+const savedFilter = ref<FilterExpression | null>(null)
+const showFilterCheckModal = ref(false)
+const filterCheckMode = ref('random')
+const filterCheckMailId = ref<number | null>(null)
+const checkingFilter = ref(false)
+const filterFields = ['from', 'to', 'subject', 'text', 'html']
+const fields = computed(() => filterFields.map(value => ({ value, label: t(`filter_${value}`) })))
+const isFieldAllowed = (field: string) => filterFields.includes(field)
+    || /^header\.[a-zA-Z0-9!#$%&'*+.^_`|~-]+$/.test(field)
+const operators = computed<FilterOperator[]>(() => [
+    ...['equals', 'contains', 'startsWith', 'endsWith'].flatMap(value => [
+        { value, label: t(`filter_${value}`) },
+        { value: `${value}CaseSensitive`, label: `${t(`filter_${value}`)} (${t('filter_caseSensitive')})` },
+    ]),
+    { value: 'regex', label: t('filter_regex'),
+        options: [{ key: 'flags', label: t('filter_flags'), placeholder: 'i / m / s' }] },
+])
 
 const fetchData = async () => {
     try {
         const res = await props.fetchData()
         Object.assign(webhookSettings.value, res)
+        savedFilter.value = res.filter ?? null
         enableWebhook.value = true
     } catch (error) {
         message.error((error as Error).message || "error");
@@ -179,15 +205,43 @@ const fetchData = async () => {
 }
 
 const saveSettings = async () => {
+    if (webhookSettings.value.enabled && !filterValid.value) return
     if (!webhookSettings.value.url) {
         message.error(t('urlMissing'))
         return
     }
+    const settings = {
+        ...webhookSettings.value,
+        filter: webhookSettings.value.enabled ? webhookSettings.value.filter : savedFilter.value,
+    }
     try {
-        await props.saveSettings(webhookSettings.value)
+        await props.saveSettings(settings)
+        savedFilter.value = settings.filter ?? null
         message.success(t('successTip'))
     } catch (error) {
         message.error((error as Error).message || "error");
+    }
+}
+
+const checkFilter = async () => {
+    if (checkingFilter.value || !filterValid.value) return
+    if (filterCheckMode.value === 'specified' && (!Number.isSafeInteger(filterCheckMailId.value) || (filterCheckMailId.value ?? 0) <= 0)) {
+        message.error(t('invalidMailId'))
+        return
+    }
+    checkingFilter.value = true
+    try {
+        const result = await props.checkFilter({
+            filter: webhookSettings.value.filter,
+            ...(filterCheckMode.value === 'specified' ? { mail_id: filterCheckMailId.value } : {}),
+        })
+        if (result.matched) message.success(t('filterMatched'))
+        else message.info(t('filterSkipped'))
+        showFilterCheckModal.value = false
+    } catch (error) {
+        message.error((error as Error).message || 'error')
+    } finally {
+        checkingFilter.value = false
     }
 }
 
@@ -233,12 +287,22 @@ onMounted(async () => {
                 <n-button v-if="webhookSettings.enabled" @click="showTestModal = true" secondary>
                     {{ t('test') }}
                 </n-button>
-                <n-button @click="saveSettings" type="primary">
+                <n-button @click="saveSettings" type="primary" :disabled="webhookSettings.enabled && !filterValid">
                     {{ t('save') }}
                 </n-button>
             </n-flex>
             <n-form-item-row :label="t('enable')">
                 <n-switch v-model:value="webhookSettings.enabled" :round="false" />
+            </n-form-item-row>
+            <n-form-item-row v-show="webhookSettings.enabled" :label="t('filter')">
+                <div class="webhook-filter">
+                    <FilterEditor v-model="webhookSettings.filter" :fields="fields" :operators="operators" allow-custom-fields
+                        :is-field-allowed="isFieldAllowed" @validity-change="filterValid = $event" />
+                    <n-text depth="3">{{ t('filterHelp') }}</n-text>
+                    <n-flex justify="end">
+                        <n-button :disabled="!filterValid" secondary @click="showFilterCheckModal = true">{{ t('checkFilter') }}</n-button>
+                    </n-flex>
+                </div>
             </n-form-item-row>
             <div v-if="webhookSettings.enabled">
                 <n-form-item-row label="URL">
@@ -258,6 +322,28 @@ onMounted(async () => {
             </div>
         </n-card>
         <n-result v-else status="404" :title="t('notEnabled')" />
+        <n-modal v-model:show="showFilterCheckModal" preset="card" :title="t('checkFilter')"
+            class="filter-check-modal" style="width: min(420px, calc(100vw - 32px))" :mask-closable="!checkingFilter"
+            :close-on-esc="!checkingFilter" :closable="!checkingFilter">
+            <n-text depth="3" style="display: block; margin-bottom: 16px">{{ t('filterCheckTip') }}</n-text>
+            <n-radio-group v-model:value="filterCheckMode" :disabled="checkingFilter">
+                <n-space>
+                    <n-radio value="random">{{ t('randomMail') }}</n-radio>
+                    <n-radio value="specified">{{ t('specifiedMail') }}</n-radio>
+                </n-space>
+            </n-radio-group>
+            <n-form-item v-if="filterCheckMode === 'specified'" :label="t('mailId')" style="margin-top: 16px">
+                <n-input-number v-model:value="filterCheckMailId" :min="1" :max="Number.MAX_SAFE_INTEGER"
+                    :precision="0" :show-button="false" :disabled="checkingFilter" :placeholder="t('mailId')"
+                    style="width: 100%" />
+            </n-form-item>
+            <template #footer>
+                <n-flex justify="end">
+                    <n-button :disabled="checkingFilter" @click="showFilterCheckModal = false">{{ t('cancel') }}</n-button>
+                    <n-button type="primary" :loading="checkingFilter" :disabled="!filterValid" @click="checkFilter">{{ t('checkFilter') }}</n-button>
+                </n-flex>
+            </template>
+        </n-modal>
         <n-modal v-model:show="showTestModal" preset="card" :title="t('test')"
             style="width: min(420px, calc(100vw - 32px))" :mask-closable="!testing"
             :close-on-esc="!testing" :closable="!testing">
@@ -292,5 +378,15 @@ onMounted(async () => {
 
 .n-button {
     margin-top: 10px;
+}
+
+.webhook-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+.webhook-filter .n-button,
+.filter-check-modal .n-button {
+    margin-top: 0;
 }
 </style>
