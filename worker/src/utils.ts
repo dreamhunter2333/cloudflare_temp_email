@@ -436,6 +436,13 @@ export const isAddressCountLimitReached = async (
     return count >= maxAddressCount;
 };
 
+/**
+ * Convert HTML string to plain text for notification previews.
+ * Strips markup, converts linebreaks, decodes HTML entities and numeric character references.
+ *
+ * @param html - The HTML string to convert
+ * @returns Plain text representation of the HTML content
+ */
 export function htmlToText(html: string): string {
     if (!html) return "";
     return html
@@ -451,6 +458,14 @@ export function htmlToText(html: string): string {
         .replace(/&gt;/gi, '>')
         .replace(/&quot;/gi, '"')
         .replace(/&#39;|&apos;/gi, "'")
+        .replace(/&#(\d+);/g, (_, code) => {
+            const num = parseInt(code, 10);
+            return num >= 0 && num <= 0x10ffff ? String.fromCodePoint(num) : '';
+        })
+        .replace(/&#x([0-9a-f]+);/gi, (_, code) => {
+            const num = parseInt(code, 16);
+            return num >= 0 && num <= 0x10ffff ? String.fromCodePoint(num) : '';
+        })
         .replace(/[ \t\r\f\v]+/g, ' ')
         .replace(/\n\s+/g, '\n')
         .replace(/\n{3,}/g, '\n\n')

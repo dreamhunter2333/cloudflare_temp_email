@@ -443,7 +443,7 @@ const parseMail = async (
     try {
         const parsedEmail = await commonParseMail(parsedEmailContext);
         let parsedText = parsedEmail?.text || "";
-        if (!parsedText && parsedEmail?.html) {
+        if (!parsedText.trim() && parsedEmail?.html) {
             parsedText = htmlToText(parsedEmail.html);
         }
         if (parsedText.length && parsedText.length > 1000) {
