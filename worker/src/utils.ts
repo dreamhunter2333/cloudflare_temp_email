@@ -436,6 +436,42 @@ export const isAddressCountLimitReached = async (
     return count >= maxAddressCount;
 };
 
+/**
+ * Convert HTML string to plain text for notification previews.
+ * Strips markup, converts linebreaks, decodes HTML entities and numeric character references.
+ *
+ * @param html - The HTML string to convert
+ * @returns Plain text representation of the HTML content
+ */
+export function htmlToText(html: string): string {
+    if (!html) return "";
+    return html
+        .replace(/<\s*(script|style|head|svg)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, ' ')
+        .replace(/<!--[\s\S]*?-->/g, ' ')
+        .replace(/<a\b[^>]*\bhref=(["'])(.*?)\1[^>]*>([\s\S]*?)<\/a>/gi, ' $3 ')
+        .replace(/<\s*br\s*\/?>/gi, '\n')
+        .replace(/<\/\s*(p|div|tr|td|th|li|table|section|article|header|footer|h[1-6])\s*>/gi, '\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;|&apos;/gi, "'")
+        .replace(/&#(\d+);/g, (_, code) => {
+            const num = parseInt(code, 10);
+            return num >= 0 && num <= 0x10ffff ? String.fromCodePoint(num) : '';
+        })
+        .replace(/&#x([0-9a-f]+);/gi, (_, code) => {
+            const num = parseInt(code, 16);
+            return num >= 0 && num <= 0x10ffff ? String.fromCodePoint(num) : '';
+        })
+        .replace(/[ \t\r\f\v]+/g, ' ')
+        .replace(/\n\s+/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
 export default {
     getJsonObjectValue,
     getSetting,
@@ -466,5 +502,6 @@ export default {
     checkUserPassword,
     getJsonSetting,
     getJsonValue: getJsonObjectValue,
-    getStringList: getStringArray
+    getStringList: getStringArray,
+    htmlToText
 }

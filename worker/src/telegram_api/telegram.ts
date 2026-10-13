@@ -4,7 +4,7 @@ import { Telegraf, Context as TgContext, Markup } from "telegraf";
 import { callbackQuery } from "telegraf/filters";
 
 import { CONSTANTS } from "../constants";
-import { getBooleanValue, getDomains, getJsonObjectValue, trimLower } from '../utils';
+import { getBooleanValue, getDomains, getJsonObjectValue, trimLower, htmlToText } from '../utils';
 import { TelegramSettings } from "./settings";
 import { sendTelegramAttachments } from "./tg_file_upload";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
@@ -443,8 +443,11 @@ const parseMail = async (
     try {
         const parsedEmail = await commonParseMail(parsedEmailContext);
         let parsedText = parsedEmail?.text || "";
+        if (!parsedText.trim() && parsedEmail?.html) {
+            parsedText = htmlToText(parsedEmail.html);
+        }
         if (parsedText.length && parsedText.length > 1000) {
-            parsedText = parsedEmail?.text.substring(0, 1000) + `\n\n...\n${msgs.TgMsgTooLongMsg}`;
+            parsedText = parsedText.substring(0, 1000) + `\n\n...\n${msgs.TgMsgTooLongMsg}`;
         }
         return {
             isHtml: false,
