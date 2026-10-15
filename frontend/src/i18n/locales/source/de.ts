@@ -1,4 +1,9 @@
 export const deMessages = {
+  "components.MailContentRenderer.from": "Von",
+  "components.MailContentRenderer.to": "An",
+  "components.MailContentRenderer.mailDetails": "E-Mail-Details",
+  "components.MailContentRenderer.moreActions": "Weitere Aktionen",
+  "components.MailContentRenderer.more": "Mehr",
   "components.FilterEditor.hint": "Ohne Bedingungen: alles passt",
   "components.FilterEditor.visual": "Visuell",
   "components.FilterEditor.invalid": "Ungültige Regel: Struktur, Operatoren, Optionen und Regex prüfen. Maximal 8 Ebenen und 100 Knoten.",
@@ -637,7 +642,7 @@ export const deMessages = {
   "views.user.UserLogin.verifyCodeSent": "Bestätigungscode gesendet, läuft ab in {timeout} Sekunden",
   "views.admin.AccountSettings.verified_address_list": "Liste verifizierter Adressen (kann E-Mails über die interne cf-API senden)",
   "views.admin.UserSettings.verifyMailSender": "Mail-Absender verifizieren",
-  "components.MailContentRenderer.attachments": "Anhänge anzeigen",
+  "components.MailContentRenderer.attachments": "Anhänge",
   "views.admin.Account.viewMails": "E-Mails anzeigen",
   "views.admin.Account.viewSendBox": "Postausgang anzeigen",
   "views.user.UserLogin.waitforVerifyCode": "Warten {timeout} Sekunden",

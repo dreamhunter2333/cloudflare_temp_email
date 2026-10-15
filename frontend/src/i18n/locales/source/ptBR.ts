@@ -1,4 +1,9 @@
 export const ptBRMessages = {
+  "components.MailContentRenderer.from": "De",
+  "components.MailContentRenderer.to": "Para",
+  "components.MailContentRenderer.mailDetails": "Detalhes do e-mail",
+  "components.MailContentRenderer.moreActions": "Mais ações",
+  "components.MailContentRenderer.more": "Mais",
   "components.FilterEditor.hint": "Sem condições: tudo corresponde",
   "components.FilterEditor.visual": "Visual",
   "components.FilterEditor.invalid": "Regra inválida: verifique estrutura, operadores, opções e regex. Máximo de 8 níveis e 100 nós.",
@@ -637,7 +642,7 @@ export const ptBRMessages = {
   "views.user.UserLogin.verifyCodeSent": "Código de verificação enviado, expira em {timeout} segundos",
   "views.admin.AccountSettings.verified_address_list": "Lista de endereços verificados (pode enviar e-mail pela API interna do cf)",
   "views.admin.UserSettings.verifyMailSender": "Verificar remetente do e-mail",
-  "components.MailContentRenderer.attachments": "Ver anexos",
+  "components.MailContentRenderer.attachments": "Anexos",
   "views.admin.Account.viewMails": "Ver e-mails",
   "views.admin.Account.viewSendBox": "Ver caixa de saída",
   "views.user.UserLogin.waitforVerifyCode": "Aguarde {timeout} segundos",
