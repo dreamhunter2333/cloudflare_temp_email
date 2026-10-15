@@ -66,7 +66,7 @@ const receivedAt = computed(() => new Date(`${props.mail.created_at} UTC`));
   gap: 6px;
   min-width: 0;
   flex: 1;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .mail-summary :deep(.n-ellipsis) {
@@ -83,6 +83,7 @@ const receivedAt = computed(() => new Date(`${props.mail.created_at} UTC`));
 
 .mail-summary-subject {
   font-size: 15px;
+  margin-top: 4px;
 }
 
 .mail-summary-muted {
@@ -92,7 +93,12 @@ const receivedAt = computed(() => new Date(`${props.mail.created_at} UTC`));
 .mail-summary-preview {
   font-size: 13px;
   line-height: 18px;
-  margin: 2px 0;
+  margin-top: 8px;
+}
+
+.mail-summary-preview :deep(.n-ellipsis) {
+  display: -webkit-box;
+  overflow-wrap: anywhere;
 }
 
 .mail-summary-recipient,

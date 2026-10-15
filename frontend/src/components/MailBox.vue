@@ -606,7 +606,7 @@ onBeforeUnmount(() => {
 
 .mail-list-compact :deep(.n-list-item) {
   height: auto;
-  padding: 8px 10px;
+  padding: 12px 14px;
 }
 
 .mail-list-compact :deep(.n-list-item:not(.overlay):hover) {
