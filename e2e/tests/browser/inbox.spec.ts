@@ -160,7 +160,7 @@ for (const layout of [
       await expect(item.locator('.mail-summary-sender')).toContainText(from);
       await expect(item.locator('.mail-summary-sender')).not.toContainText('From:');
       await expect(item.locator('.mail-summary-recipient')).toHaveCount(0);
-      await expect(item.locator('.mail-summary-sender .n-text').last()).toHaveCSS('font-size', '14px');
+      await expect(item.locator('.mail-summary-sender .n-text').last()).toHaveCSS('font-size', '13px');
       await expect(item.locator('.mail-summary-subject .n-text')).toHaveCSS('font-size', '15px');
       expect(await item.locator('.mail-summary-subject .n-text').evaluate(element => Number(getComputedStyle(element).fontWeight)))
         .toBeGreaterThan(await item.locator('.mail-summary-sender .n-text').last().evaluate(element => Number(getComputedStyle(element).fontWeight)));
@@ -279,6 +279,75 @@ for (const layout of [
       expect(await details.locator('.n-descriptions-table-content__label').allTextContents()).toEqual(
         expect.arrayContaining(['Subject:', 'From:', 'Received at:', 'Message-ID:', 'ID:'])
       );
+    } finally {
+      try {
+        if (jwt) await deleteAddress(api, jwt);
+      } finally {
+        await api.dispose();
+      }
+    }
+  });
+}
+
+for (const layout of [
+  { name: 'narrow mobile', width: 320 },
+  { name: 'narrow desktop split', width: 1360 },
+]) {
+  test(`mail previews constrain long links and preserve preferences on ${layout.name}`, async ({ page }) => {
+    const api = await apiRequest.newContext();
+    let jwt: string | undefined;
+    try {
+      const mailbox = await createTestAddress(api, 'preview-overflow');
+      jwt = mailbox.jwt;
+      const subject = `Preview overflow ${Date.now()}`;
+      const link = `https://example.test/message?token=${'a'.repeat(600)}`;
+      await seedTestMail(api, mailbox.address, { subject, text: `邮件正文预览 A short introduction.\n\n${link}` });
+      await page.setViewportSize({ width: layout.width, height: 900 });
+      await page.addInitScript(() => {
+        localStorage.setItem('mailListView', 'false');
+        localStorage.setItem('mailboxSplitSize', '0.2');
+      });
+      await page.goto(`${FRONTEND_URL}/en/?jwt=${jwt}`);
+      const item = page.getByRole('listitem').filter({ hasText: subject });
+      const preview = item.locator('.mail-summary-preview');
+      const ellipsis = preview.locator('.n-ellipsis');
+      await expect(ellipsis).toHaveCSS('-webkit-line-clamp', '1');
+      await expect(item).toHaveCSS('padding', '12px 14px');
+      await expect(item.locator('.mail-summary-subject')).toHaveCSS('margin-top', '4px');
+      await expect(preview).toHaveCSS('margin-top', '8px');
+      if (layout.width > 768) {
+        await expect(page.locator('.n-split')).toBeVisible();
+        await expect(page.locator('.mail-content-renderer')).toBeVisible();
+        expect(await page.locator('.mail-list-scroll').evaluate(element => element.getBoundingClientRect().width))
+          .toBeLessThan(320);
+      }
+
+      for (const lines of [1, 2, 5, 0]) {
+        if (lines !== 1) {
+          await page.evaluate(value => localStorage.setItem('mailListPreviewLineClamp', String(value)), lines);
+          await page.reload();
+        }
+        await expect(item.locator('.mail-summary-subject')).toHaveText(subject);
+        expect(await page.evaluate(() => localStorage.getItem('mailListPreviewLineClamp'))).toBe(String(lines));
+        if (lines === 0) {
+          await expect(preview).toHaveCount(0);
+          continue;
+        }
+        await expect(ellipsis).toBeVisible();
+        await expect(ellipsis).toHaveCSS('-webkit-line-clamp', String(lines));
+        await expect(preview).toContainText(link);
+        const bounds = await ellipsis.evaluate(element => ({
+          width: element.getBoundingClientRect().width,
+          availableWidth: element.parentElement!.clientWidth,
+          scrollWidth: element.scrollWidth,
+          height: element.getBoundingClientRect().height,
+          lineHeight: parseFloat(getComputedStyle(element).lineHeight),
+        }));
+        expect(bounds.width).toBeLessThanOrEqual(bounds.availableWidth + 1);
+        expect(bounds.scrollWidth).toBeLessThanOrEqual(bounds.availableWidth + 1);
+        expect(bounds.height).toBeCloseTo(bounds.lineHeight * lines, 0);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      }
     } finally {
       try {
         if (jwt) await deleteAddress(api, jwt);
