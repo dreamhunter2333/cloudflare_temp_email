@@ -469,6 +469,14 @@ for (const width of [1360, 320]) {
         const item = page.getByRole('listitem').filter({ hasText: subject });
         await expect(item.locator('.mail-summary-sender')).toHaveText(`${labels.from}: ${from}`);
         await expect(item.locator('.mail-summary-recipient')).toHaveText(`${labels.to}: ${mailbox.address}`);
+        await expect(item.locator('.mail-summary-recipient')).toHaveCSS('margin-top', '4px');
+        expect(await item.evaluate(element => {
+          const sender = element.querySelector('.mail-summary-sender')!;
+          const recipient = element.querySelector('.mail-summary-recipient')!;
+          const subject = element.querySelector('.mail-summary-subject')!;
+          return Boolean(sender.compareDocumentPosition(recipient) & Node.DOCUMENT_POSITION_FOLLOWING)
+            && Boolean(recipient.compareDocumentPosition(subject) & Node.DOCUMENT_POSITION_FOLLOWING);
+        })).toBe(true);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       }
     } finally {

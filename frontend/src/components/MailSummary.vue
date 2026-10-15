@@ -38,16 +38,16 @@ const receivedAt = computed(() => new Date(`${props.mail.created_at} UTC`));
         <template v-else>{{ utcToLocalDate(mail.created_at, useUTCDate) }}</template>
       </n-text>
     </n-flex>
+    <div v-if="showEMailTo" class="mail-summary-recipient">
+      <n-ellipsis>
+        <n-text depth="3" class="mail-summary-muted">{{ t('to') }}: </n-text><n-text depth="2">{{ mail.address }}</n-text>
+      </n-ellipsis>
+    </div>
     <div class="mail-summary-subject" :title="`ID: ${mail.id}\n${mail.subject || ''}`">
       <n-ellipsis><n-text strong depth="1">{{ mail.subject || '—' }}</n-text></n-ellipsis>
     </div>
     <div v-if="mail.text && previewLineClamp > 0" class="mail-summary-preview">
       <n-ellipsis :line-clamp="previewLineClamp" :tooltip="false"><n-text depth="3" class="mail-summary-muted">{{ mail.text }}</n-text></n-ellipsis>
-    </div>
-    <div v-if="showEMailTo" class="mail-summary-recipient">
-      <n-ellipsis>
-        <n-text depth="3" class="mail-summary-muted">{{ t('to') }}: </n-text><n-text depth="2">{{ mail.address }}</n-text>
-      </n-ellipsis>
     </div>
     <AiExtractInfo :metadata="mail.metadata" compact />
   </div>
@@ -75,6 +75,10 @@ const receivedAt = computed(() => new Date(`${props.mail.created_at} UTC`));
 
 .mail-summary-sender :deep(.n-ellipsis) {
   flex: 1;
+}
+
+.mail-summary-recipient {
+  margin-top: 4px;
 }
 
 .mail-summary-recipient :deep(.n-ellipsis) {
