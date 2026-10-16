@@ -10,12 +10,15 @@
 
 ### Features
 
+- feat: |Mailbox Login| Add a password-only switch that rejects legacy credentials, 30-day mailbox login JWTs renewed with less than 7 days remaining, and password reset for bound mailboxes
 - feat: |Webhook| Add email filters with condition/AND/OR/NOT nodes, nesting, string and native regex matching, visual/JSON editing and rule checking; preserve all original From headers while still removing attachments when From is missing or invalid (issue #1155)
 - feat: |User| Search bound mailboxes by email address in address management with accurate pagination (issue #1156)
 - feat: |AI Extract| Add `AI_EXTRACT_MODE` to explicitly choose local rules only (`local`) or prefer Workers AI (`ai`); defaults to local rules when unset so mail content is never sent to AI. **Upgrade note**: deployments that relied on the Workers AI binding to enable AI extraction automatically must set `AI_EXTRACT_MODE = "ai"`
 
 ### Bug Fixes
 
+- fix: |Tests| Cover the password-only login switch and its prerequisite, bound-mailbox password reset form, and local mailbox cache compatibility and renewal
+- fix: |Mailbox Login| Cache both login methods using backend settings without decoding JWTs in the frontend; use non-expiring Telegram binding tokens independently of web mailbox login JWTs; clarify that only legacy credentials and their login links are disabled
 - fix: |Mail| Check the SMTP envelope sender and every From email address against sender blacklists; parse addresses independently so body parsing failures or multiple From addresses cannot skip matching; preserve envelope checks on address parsing errors
 - fix: |AI Extract| In `ai` mode, an address allowlist miss now skips only the Workers AI call and still falls back to local verification-code extraction
 - fix: |Telegram| Fall back to HTML-to-text conversion when plain text body is empty, preventing "parse failed" messages in Telegram notifications

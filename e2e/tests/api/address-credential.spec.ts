@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { createHmac } from 'node:crypto';
 
-import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress, seedTestMail } from '../../fixtures/test-helpers';
+import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress, seedTestMail, hashPassword } from '../../fixtures/test-helpers';
 
 function signToken(payload: Record<string, unknown>) {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
@@ -10,6 +10,116 @@ function signToken(payload: Record<string, unknown>) {
     .update(`${header}.${body}`).digest('base64url');
   return `${header}.${body}.${signature}`;
 }
+
+for (const mode of ['default', 'password-only', 'password-disabled']) {
+  test(`mailbox authentication policy: ${mode}`, async ({ request }) => {
+    const mailbox = await createTestAddress(request, 'password-policy');
+    const headers = mode === 'default' ? {} : { 'x-test-address-password-mode': mode };
+    const passwordOnly = mode === 'password-only';
+    const password = hashPassword('mailbox-policy-password');
+    try {
+      const reset = await request.post(`${WORKER_URL}/api/address_change_password`, {
+        headers: { Authorization: `Bearer ${mailbox.jwt}` }, data: { new_password: password },
+      });
+      expect(reset.ok()).toBe(true);
+      const openSettings = await request.get(`${WORKER_URL}/open_api/settings`, { headers });
+      expect(await openSettings.json()).toMatchObject({
+        addressPasswordLoginOnly: passwordOnly, enableAddressPassword: mode !== 'password-disabled',
+      });
+      const credentialLogin = await request.post(`${WORKER_URL}/open_api/credential_login`, {
+        headers, data: { credential: mailbox.jwt },
+      });
+      expect(credentialLogin.status()).toBe(passwordOnly ? 403 : 200);
+      for (const path of ['/api/settings', '/api/mails?limit=10&offset=0']) {
+        const response = await request.get(`${WORKER_URL}${path}`, {
+          headers: { ...headers, Authorization: `Bearer ${mailbox.jwt}` },
+        });
+        expect(response.status()).toBe(passwordOnly ? 401 : 200);
+      }
+      const login = await request.post(`${WORKER_URL}/api/address_login`, {
+        headers, data: { email: mailbox.address, password },
+      });
+      if (mode === 'password-disabled') {
+        expect(login.status()).toBe(403);
+        return;
+      }
+      expect(login.ok()).toBe(true);
+      const { jwt } = await login.json();
+      const settings = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { ...headers, Authorization: `Bearer ${jwt}` },
+      });
+      expect(settings.ok()).toBe(true);
+      expect(await settings.json()).toMatchObject({ address: mailbox.address, type: 'address_password_login' });
+      const now = Math.floor(Date.now() / 1000);
+      const token = signToken({ address: mailbox.address, address_id: mailbox.address_id,
+        type: 'address_password_login', iat: now - 24 * 86400, exp: now + 6 * 86400 });
+      const renewal = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { ...headers, Authorization: `Bearer ${token}` },
+      });
+      expect(renewal.ok()).toBe(true);
+      const { new_address_token } = await renewal.json();
+      expect(new_address_token).toEqual(expect.any(String));
+      const renewed = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { ...headers, Authorization: `Bearer ${new_address_token}` },
+      });
+      expect(renewed.ok()).toBe(true);
+    } finally {
+      await deleteAddress(request, mailbox.jwt);
+    }
+  });
+}
+
+test('password login tokens renew below seven days; legacy credentials do not renew', async ({ request }) => {
+  const mailbox = await createTestAddress(request, 'password-renewal');
+  const day = 24 * 60 * 60;
+  const now = Math.floor(Date.now() / 1000);
+  const identity = { address: mailbox.address, address_id: mailbox.address_id };
+  try {
+    for (const remainingDays of [8, 6]) {
+      const token = signToken({
+        ...identity, type: 'address_password_login',
+        iat: now - (30 - remainingDays) * day, exp: now + remainingDays * day,
+      });
+      const response = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(response.ok()).toBe(true);
+      const settings = await response.json();
+      expect(settings.type).toBe('address_password_login');
+      if (remainingDays > 7) {
+        expect(settings.new_address_token).toBeNull();
+        continue;
+      }
+      expect(settings.new_address_token).toEqual(expect.any(String));
+      const renewed = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${settings.new_address_token}` },
+      });
+      expect(renewed.ok()).toBe(true);
+      const renewedSettings = await renewed.json();
+      expect(renewedSettings).toMatchObject({ ...identity, type: 'address_password_login', new_address_token: null });
+      expect(renewedSettings.exp - renewedSettings.iat).toBe(30 * day);
+    }
+    const legacy = await request.get(`${WORKER_URL}/api/settings`, {
+      headers: { Authorization: `Bearer ${mailbox.jwt}` },
+    });
+    expect(legacy.ok()).toBe(true);
+    expect(await legacy.json()).toMatchObject({ ...identity, new_address_token: null });
+    for (const claims of [
+      { type: 'telegram_binding' },
+      { type: 'unknown' },
+      { type: 'address_password_login' },
+      { type: 'address_password_login', iat: now - 30 * day, exp: now - 1 },
+      { type: 'address_password_login', iat: now, exp: now + 31 * day },
+    ]) {
+      const response = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${signToken({ ...identity, ...claims })}` },
+      });
+      expect(response.status(), JSON.stringify(claims)).toBe(401);
+    }
+  } finally {
+    await deleteAddress(request, mailbox.jwt);
+  }
+});
 
 async function expectRejected(request: APIRequestContext, jwt: string) {
   for (const [method, path] of [

@@ -52,6 +52,7 @@ export type LocaleMessages = {
     NewPasswordRequiredMsg: string
     InvalidAddressTokenMsg: string
     FailedUpdatePasswordMsg: string
+    CredentialLoginDisabledMsg: string
     PasswordLoginDisabledMsg: string
     EmailPasswordRequiredMsg: string
     AddressNotFoundMsg: string
