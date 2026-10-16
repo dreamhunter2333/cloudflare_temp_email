@@ -31,36 +31,29 @@ const targetUserEmail = ref('')
 const showAddressCredential = ref(false)
 const currentAddressCredential = ref('')
 const credentialAddress = ref('')
-const passwordResetAddress = ref(null)
-const newPassword = ref('')
-const confirmPassword = ref('')
+const passwordResetForm = ref(null)
 const isResettingPassword = ref(false)
 const { t: accountSettingsT } = useScopedI18n('views.index.AccountSettings')
 
-const clearPasswordResetForm = () => {
-    passwordResetAddress.value = null;
-    newPassword.value = '';
-    confirmPassword.value = '';
-}
-
 const resetBoundAddressPassword = async () => {
-    if (!passwordResetAddress.value || isResettingPassword.value) return;
-    if (!newPassword.value) {
+    if (!passwordResetForm.value || isResettingPassword.value) return;
+    const { address, newPassword, confirmPassword } = passwordResetForm.value;
+    if (!newPassword) {
         message.error(t('newPasswordRequired'));
         return;
     }
-    if (newPassword.value !== confirmPassword.value) {
+    if (newPassword !== confirmPassword) {
         message.error(accountSettingsT('passwordMismatch'));
         return;
     }
     isResettingPassword.value = true;
     try {
-        await api.fetch(`/user_api/address/${passwordResetAddress.value.id}/reset_password`, {
+        await api.fetch(`/user_api/address/${address.id}/reset_password`, {
             method: 'POST',
-            body: JSON.stringify({ new_password: await hashPassword(newPassword.value) }),
+            body: JSON.stringify({ new_password: await hashPassword(newPassword) }),
         });
         message.success(accountSettingsT('passwordChanged'));
-        clearPasswordResetForm();
+        passwordResetForm.value = null;
     } catch (error) {
         message.error(error.message || 'error');
     } finally {
@@ -229,9 +222,7 @@ const columns = [
                         tertiary: true,
                         type: 'warning',
                         onClick: () => {
-                            newPassword.value = '';
-                            confirmPassword.value = '';
-                            passwordResetAddress.value = row;
+                            passwordResetForm.value = { address: row, newPassword: '', confirmPassword: '' };
                         },
                     },
                     { default: () => t('resetPassword') }
@@ -294,16 +285,16 @@ watch([page, pageSize], async () => {
 
 <template>
     <div>
-        <n-modal :show="!!passwordResetAddress" @update:show="show => { if (!show && !isResettingPassword) clearPasswordResetForm() }"
+        <n-modal :show="!!passwordResetForm" @update:show="show => { if (!show && !isResettingPassword) passwordResetForm = null }"
             preset="dialog" :title="t('resetPassword')" :mask-closable="!isResettingPassword" :closable="!isResettingPassword">
-            <p>{{ passwordResetAddress?.name }}</p>
+            <p>{{ passwordResetForm?.address.name }}</p>
             <p>{{ t('resetPasswordTip') }}</p>
-            <n-form @submit.prevent="resetBoundAddressPassword">
+            <n-form v-if="passwordResetForm" @submit.prevent="resetBoundAddressPassword">
                 <n-form-item :label="accountSettingsT('newPassword')">
-                    <n-input v-model:value="newPassword" type="password" show-password-on="click" :disabled="isResettingPassword" />
+                    <n-input v-model:value="passwordResetForm.newPassword" type="password" show-password-on="click" :disabled="isResettingPassword" />
                 </n-form-item>
                 <n-form-item :label="accountSettingsT('confirmPassword')">
-                    <n-input v-model:value="confirmPassword" type="password" show-password-on="click"
+                    <n-input v-model:value="passwordResetForm.confirmPassword" type="password" show-password-on="click"
                         :disabled="isResettingPassword" @keyup.enter="resetBoundAddressPassword" />
                 </n-form-item>
             </n-form>

@@ -36,7 +36,7 @@
 ### Bug Fixes
 
 - fix: |Worker| Process unknown-mail, unbound-address, and empty-address cleanup in bounded batches to avoid D1 timeouts on large backlogs
-- fix: |Mailbox Login| Cache both login methods using backend settings without decoding JWTs in the frontend; use non-expiring Telegram binding tokens independently of web mailbox login JWTs
+- fix: |Mailbox Login| Cache both login methods using backend settings without decoding JWTs in the frontend; use non-expiring Telegram binding tokens independently of web mailbox login JWTs; clarify that only legacy credentials and their login links are disabled
 - fix: |User| Bind the mailbox transfer confirmation button to the existing request loading state, fixing the undefined loading variable
 - fix: |Mail| Check the SMTP envelope sender and every From email address against sender blacklists; parse addresses independently so body parsing failures or multiple From addresses cannot skip matching; preserve envelope checks on address parsing errors
 - fix: |AI Extract| In `ai` mode, an address allowlist miss now skips only the Workers AI call and still falls back to local verification-code extraction

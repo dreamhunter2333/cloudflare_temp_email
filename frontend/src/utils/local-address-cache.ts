@@ -13,14 +13,11 @@ export const updateLocalAddressCache = (
     { address, type }: { address: string; type?: 'address_password_login' },
 ) => {
     const entries = getCachedAddresses(cache);
-    const loginType = type ?? null;
-    const existing = entries.find(entry => entry.token === token
-        || (entry.address === address && entry.type === loginType));
-    const updated = { token, address, type: loginType };
-    if (!existing) return [...entries, updated];
-    return entries.flatMap(entry => {
-        if (entry === existing) return [updated];
-        if (entry.token === token || (entry.address === address && entry.type === loginType)) return [];
-        return [entry];
-    });
+    const updated = { token, address, type: type ?? null };
+    const matches = (entry: CachedAddress) => entry.token === token
+        || (entry.address === address && entry.type === updated.type);
+    const existingIndex = entries.findIndex(matches);
+    const remaining = entries.filter(entry => !matches(entry));
+    remaining.splice(existingIndex < 0 ? remaining.length : existingIndex, 0, updated);
+    return remaining;
 };

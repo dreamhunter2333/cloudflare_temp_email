@@ -142,15 +142,9 @@ export const unbindTelegramAddress = async (
 ): Promise<boolean> => {
     const msgs = i18n.getMessagesbyContext(c);
     const bindings = await getTelegramBindings(c, userId);
-    for (const { jwt, payload } of bindings) {
+    for (const { payload } of bindings) {
         if (payload?.address !== address) continue;
-        if (payload.type !== undefined && payload.type !== 'telegram_binding') continue;
-        try {
-            await verifyTelegramBindingToken(c, jwt);
-        } catch (e) {
-            console.log(`Failed to validate Telegram binding: ${(e as Error).message}`);
-            continue;
-        }
+        if (!await validateAddressIdentity(c, payload)) continue;
         return await removeTelegramBinding(c, userId, address, bindings);
     }
     throw Error(msgs.TgAddressNotYoursMsg);
