@@ -21,8 +21,8 @@ jobs:
           PR_REVIEWER.REQUIRE_TESTS_REVIEW: "false"
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
-          CONFIG.MODEL: "gpt-6-luna"
-          CONFIG.MODEL_TURBO: "gpt-6-luna"
+          CONFIG.MODEL: "openai/gpt-6-luna"
+          CONFIG.MODEL_TURBO: "openai/gpt-6-luna"
           CONFIG.FALLBACK_MODELS: "[]"
           CONFIG.CUSTOM_MODEL_MAX_TOKENS: "32000"
           OPENAI.API_BASE: ${{ secrets.OPENAI_API_BASE }}
