@@ -24,5 +24,6 @@ jobs:
           CONFIG.MODEL: "gpt-6-luna"
           CONFIG.MODEL_TURBO: "gpt-6-luna"
           CONFIG.FALLBACK_MODELS: "[]"
+          CONFIG.CUSTOM_MODEL_MAX_TOKENS: "32000"
           OPENAI.API_BASE: ${{ secrets.OPENAI_API_BASE }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

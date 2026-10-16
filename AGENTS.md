@@ -88,7 +88,7 @@ Global state via VueUse `useStorage` for persistence. The `api` module wraps axi
 ## Commits & PRs
 
 - Use Conventional Commits: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `perf:`.
-- PRs should explain scope; add screenshots for UI changes.
+- PR descriptions must be written in English, explain scope, and include screenshots for UI changes.
 - Use squash merge for PRs.
 
 ## Post-Task Checklist (IMPORTANT)
