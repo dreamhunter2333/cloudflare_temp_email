@@ -14,74 +14,15 @@ jobs:
       contents: write
     name: Run pr agent on every pull request, respond to user comments
     steps:
-      - name: List API model IDs (temporary diagnostic)
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 1166
-        env:
-          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
-          OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
-        run: |
-          node --input-type=module <<'NODE'
-          const base = process.env.OPENAI_API_BASE?.trim() || 'https://api.openai.com/v1';
-          if (!process.env.OPENAI_KEY) {
-            console.error('API key is not configured.');
-            process.exit(1);
-          }
-          try {
-            const response = await fetch(`${base.replace(/\/+$/, '')}/models`, {
-              headers: { Authorization: `Bearer ${process.env.OPENAI_KEY}` },
-              redirect: 'error',
-              signal: AbortSignal.timeout(30000),
-            });
-            console.log(`GET /models: HTTP ${response.status}`);
-            if (!response.ok) {
-              process.exitCode = 1;
-            } else {
-              const payload = await response.json();
-              if (!Array.isArray(payload.data)) throw new Error('Invalid models list');
-              const ids = payload.data.map(model => model.id);
-              if (!ids.every(id => typeof id === 'string')) throw new Error('Invalid model ID');
-              console.log(JSON.stringify({ count: ids.length, models: ids.sort() }, null, 2));
-              if (ids.includes('gpt-6-luna')) {
-                for (const probe of [
-                  { path: 'responses', body: { model: 'gpt-6-luna', input: 'Reply with exactly OK.', max_output_tokens: 32, reasoning: { effort: 'none' } } },
-                ]) {
-                  const result = await fetch(`${base.replace(/\/+$/, '')}/${probe.path}`, {
-                    method: 'POST',
-                    headers: { Authorization: `Bearer ${process.env.OPENAI_KEY}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify(probe.body),
-                    redirect: 'error',
-                    signal: AbortSignal.timeout(30000),
-                  });
-                  console.log(`POST /${probe.path}: HTTP ${result.status}`);
-                  const data = await result.json();
-                  const text = probe.path === 'responses'
-                    ? data.output?.flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text).join('')
-                    : data.choices?.[0]?.message?.content;
-                  console.log(JSON.stringify({
-                    endpoint: probe.path,
-                    status: result.status,
-                    hasText: typeof text === 'string' && text.trim().length > 0,
-                    expectedReply: typeof text === 'string' && text.trim() === 'OK',
-                    modelUnsupported: typeof data.error?.message === 'string' && data.error.message.includes('Model not supported'),
-                  }));
-                }
-              }
-            }
-          } catch {
-            console.error('Model discovery failed; connection details and response body omitted.');
-            process.exitCode = 1;
-          }
-          NODE
       - name: PR Agent action step
-        if: github.event_name != 'pull_request' || github.event.pull_request.number != 1166
         id: pragent
         uses: qodo-ai/pr-agent@main
         env:
           PR_REVIEWER.REQUIRE_TESTS_REVIEW: "false"
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
-          CONFIG.MODEL: "openai/gpt-6-luna"
-          CONFIG.MODEL_TURBO: "openai/gpt-6-luna"
+          CONFIG.MODEL: "openai/responses/gpt-6-luna"
+          CONFIG.MODEL_TURBO: "openai/responses/gpt-6-luna"
           CONFIG.FALLBACK_MODELS: "[]"
           CONFIG.CUSTOM_MODEL_MAX_TOKENS: "32000"
           CONFIG.TEMPERATURE: "1"
