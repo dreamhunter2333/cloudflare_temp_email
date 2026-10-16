@@ -14,7 +14,41 @@ jobs:
       contents: write
     name: Run pr agent on every pull request, respond to user comments
     steps:
+      - name: List API model IDs (temporary diagnostic)
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 1166
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
+        run: |
+          node --input-type=module <<'NODE'
+          const base = process.env.OPENAI_API_BASE?.trim() || 'https://api.openai.com/v1';
+          if (!process.env.OPENAI_KEY) {
+            console.error('API key is not configured.');
+            process.exit(1);
+          }
+          try {
+            const response = await fetch(`${base.replace(/\/+$/, '')}/models`, {
+              headers: { Authorization: `Bearer ${process.env.OPENAI_KEY}` },
+              redirect: 'error',
+              signal: AbortSignal.timeout(30000),
+            });
+            console.log(`GET /models: HTTP ${response.status}`);
+            if (!response.ok) {
+              process.exitCode = 1;
+            } else {
+              const payload = await response.json();
+              if (!Array.isArray(payload.data)) throw new Error('Invalid models list');
+              const ids = payload.data.map(model => model.id);
+              if (!ids.every(id => typeof id === 'string')) throw new Error('Invalid model ID');
+              console.log(JSON.stringify({ count: ids.length, models: ids.sort() }, null, 2));
+            }
+          } catch {
+            console.error('Model discovery failed; connection details and response body omitted.');
+            process.exitCode = 1;
+          }
+          NODE
       - name: PR Agent action step
+        if: github.event_name != 'pull_request' || github.event.pull_request.number != 1166
         id: pragent
         uses: qodo-ai/pr-agent@main
         env:
