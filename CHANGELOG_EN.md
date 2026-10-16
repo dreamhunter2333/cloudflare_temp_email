@@ -17,6 +17,7 @@
 
 ### Bug Fixes
 
+- fix: |Tests| Cover the password-only login switch and its prerequisite, bound-mailbox password reset form, and local mailbox cache compatibility and renewal
 - fix: |Mailbox Login| Cache both login methods using backend settings without decoding JWTs in the frontend; use non-expiring Telegram binding tokens independently of web mailbox login JWTs; clarify that only legacy credentials and their login links are disabled
 - fix: |Mail| Check the SMTP envelope sender and every From email address against sender blacklists; parse addresses independently so body parsing failures or multiple From addresses cannot skip matching; preserve envelope checks on address parsing errors
 - fix: |AI Extract| In `ai` mode, an address allowlist miss now skips only the Workers AI call and still falls back to local verification-code extraction
