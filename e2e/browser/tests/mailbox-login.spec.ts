@@ -73,7 +73,7 @@ test('historical mailbox cache keeps both login methods through renewal and pass
     expect(await readCache()).toHaveLength(3);
 
     await page.goto(`${FRONTEND_URL}/en/?jwt=`);
-    await expect(page.getByRole('button', { name: 'Login', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Log In to Mailbox', exact: true })).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Credential Login', exact: true })).toHaveCount(0);
   } finally {
