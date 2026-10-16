@@ -33,7 +33,7 @@ const UserBindAddressModule = {
         if (!Number.isSafeInteger(addressId) || addressId <= 0 || !userId) {
             return c.text(msgs.InvalidAddressOrUserTokenMsg, 400);
         }
-        const body = await c.req.json<{ new_password?: unknown }>().catch(() => null);
+        const body = await c.req.json<{ new_password?: unknown }>();
         if (typeof body?.new_password !== 'string' || !/^[a-f0-9]{64}$/.test(body.new_password)) {
             return c.text(msgs.InvalidInputMsg, 400);
         }

@@ -357,8 +357,8 @@ export const MESSAGE_REGISTRY = {
   },
   "components.AddressCredentialModal": {
     "passwordOnlyTip": {
-      "en": "Save your mailbox password. Credential and login-link access are disabled. Bound mailboxes can also be opened from the user center.",
-      "zh": "请保存邮箱密码。凭据及链接登录已禁用；已绑定邮箱仍可从用户中心进入。"
+      "en": "Save your mailbox password. Legacy mailbox credentials and their login links are disabled. Bound mailboxes can also be opened from the user center.",
+      "zh": "请保存邮箱密码。旧邮箱凭据及其登录链接已禁用；已绑定邮箱仍可从用户中心进入。"
     },
     "addressCredential": {
       "en": "Address Credential",
