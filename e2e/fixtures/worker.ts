@@ -14,6 +14,14 @@ testApi.get('/telegram_binding', async c => {
 
 const app = new Hono<HonoCustomType>();
 app.route('/__test', testApi);
-app.all('*', c => worker.fetch(c.req.raw, c.env, c.executionCtx));
+app.all('*', c => {
+  const passwordMode = c.req.header('x-test-address-password-mode');
+  const env = passwordMode ? {
+    ...c.env,
+    ADDRESS_PASSWORD_LOGIN_ONLY: true,
+    ENABLE_ADDRESS_PASSWORD: passwordMode === 'password-only',
+  } : c.env;
+  return worker.fetch(c.req.raw, env, c.executionCtx);
+});
 
 export default { ...worker, fetch: app.fetch };
