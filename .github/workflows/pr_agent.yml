@@ -41,6 +41,31 @@ jobs:
               const ids = payload.data.map(model => model.id);
               if (!ids.every(id => typeof id === 'string')) throw new Error('Invalid model ID');
               console.log(JSON.stringify({ count: ids.length, models: ids.sort() }, null, 2));
+              if (ids.includes('gpt-6-luna')) {
+                for (const probe of [
+                  { path: 'chat/completions', body: { model: 'gpt-6-luna', messages: [{ role: 'user', content: 'Reply with exactly OK.' }], max_completion_tokens: 32, reasoning_effort: 'none' } },
+                  { path: 'responses', body: { model: 'gpt-6-luna', input: 'Reply with exactly OK.', max_output_tokens: 32, reasoning: { effort: 'none' } } },
+                ]) {
+                  const result = await fetch(`${base.replace(/\/+$/, '')}/${probe.path}`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${process.env.OPENAI_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(probe.body),
+                    redirect: 'error',
+                    signal: AbortSignal.timeout(30000),
+                  });
+                  const data = await result.json();
+                  const text = probe.path === 'responses'
+                    ? data.output?.flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text).join('')
+                    : data.choices?.[0]?.message?.content;
+                  console.log(JSON.stringify({
+                    endpoint: probe.path,
+                    status: result.status,
+                    hasText: typeof text === 'string' && text.trim().length > 0,
+                    expectedReply: typeof text === 'string' && text.trim() === 'OK',
+                    modelUnsupported: typeof data.error?.message === 'string' && data.error.message.includes('Model not supported'),
+                  }));
+                }
+              }
             }
           } catch {
             console.error('Model discovery failed; connection details and response body omitted.');
