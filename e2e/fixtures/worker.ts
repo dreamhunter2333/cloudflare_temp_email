@@ -23,9 +23,15 @@ testApi.post('/telegram_binding', async c => {
 const app = new Hono<HonoCustomType>();
 app.route('/__test', testApi);
 app.all('*', c => {
+  const passwordMode = c.req.header('x-test-address-password-mode');
+  const env = passwordMode ? {
+    ...c.env,
+    ADDRESS_PASSWORD_LOGIN_ONLY: true,
+    ENABLE_ADDRESS_PASSWORD: passwordMode === 'password-only',
+  } : c.env;
   const batchFailure = c.req.header('x-test-fail-db-batch');
   const kvFailure = c.req.header('x-test-fail-kv');
-  if (!batchFailure && !kvFailure) return worker.fetch(c.req.raw, c.env, c.executionCtx);
+  if (!batchFailure && !kvFailure) return worker.fetch(c.req.raw, env, c.executionCtx);
   const DB = batchFailure ? {
     prepare: c.env.DB.prepare.bind(c.env.DB),
     batch: async () => {
@@ -45,7 +51,7 @@ app.all('*', c => {
       };
     },
   }) : c.env.KV;
-  return worker.fetch(c.req.raw, { ...c.env, DB, KV }, c.executionCtx);
+  return worker.fetch(c.req.raw, { ...env, DB, KV }, c.executionCtx);
 });
 
 export default { ...worker, fetch: app.fetch };
