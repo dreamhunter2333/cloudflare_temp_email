@@ -43,7 +43,6 @@ jobs:
               console.log(JSON.stringify({ count: ids.length, models: ids.sort() }, null, 2));
               if (ids.includes('gpt-6-luna')) {
                 for (const probe of [
-                  { path: 'chat/completions', body: { model: 'gpt-6-luna', messages: [{ role: 'user', content: 'Reply with exactly OK.' }], max_completion_tokens: 32, reasoning_effort: 'none' } },
                   { path: 'responses', body: { model: 'gpt-6-luna', input: 'Reply with exactly OK.', max_output_tokens: 32, reasoning: { effort: 'none' } } },
                 ]) {
                   const result = await fetch(`${base.replace(/\/+$/, '')}/${probe.path}`, {
@@ -53,6 +52,7 @@ jobs:
                     redirect: 'error',
                     signal: AbortSignal.timeout(30000),
                   });
+                  console.log(`POST /${probe.path}: HTTP ${result.status}`);
                   const data = await result.json();
                   const text = probe.path === 'responses'
                     ? data.output?.flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text).join('')
