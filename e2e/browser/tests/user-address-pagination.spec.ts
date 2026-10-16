@@ -81,7 +81,7 @@ test('bound mailbox password form validates, preserves failed input and clears o
     const resetPath = `**/user_api/address/${mailbox.address_id}/reset_password`;
     await page.route(resetPath, route => route.fulfill({ status: 503, body: 'Reset temporarily unavailable' }));
     await submit.click();
-    await expect(page.getByText('[503]: Reset temporarily unavailable', { exact: true })).toBeVisible();
+    await expect(page.getByText('Code 503: Reset temporarily unavailable', { exact: true })).toBeVisible();
     await expect(inputs.nth(0)).toHaveValue(password);
     await expect(inputs.nth(1)).toHaveValue(password);
     await page.unroute(resetPath);
