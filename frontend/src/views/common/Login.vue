@@ -66,8 +66,7 @@ const initLoginMethod = () => {
 }
 
 const login = async () => {
-    if (openSettings.value.addressPasswordLoginOnly) loginMethod.value = 'password';
-    if (loginMethod.value === 'password') {
+    if (openSettings.value.addressPasswordLoginOnly || loginMethod.value === 'password') {
         // Password login
         if (!loginAddress.value || !loginPassword.value) {
             message.error(t('emailPasswordRequired'));
