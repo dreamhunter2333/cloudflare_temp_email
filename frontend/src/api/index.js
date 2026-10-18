@@ -165,19 +165,9 @@ const getSettings = async () => {
         const res = await apiFetch('/api/settings', { addressJwt: addressToken });
         if (jwt.value !== addressToken) return;
         localAddressCache.value = updateLocalAddressCache(localAddressCache.value, addressToken, res);
+        addressToken = res.new_address_token || addressToken;
+        jwt.value = addressToken;
         settings.value = res;
-        const renewedAddressToken = res.new_address_token;
-        if (!renewedAddressToken) return;
-        try {
-            const renewedSettings = await apiFetch('/api/settings', { addressJwt: renewedAddressToken });
-            if (jwt.value !== addressToken) return;
-            localAddressCache.value = updateLocalAddressCache(localAddressCache.value, renewedAddressToken, renewedSettings);
-            addressToken = renewedAddressToken;
-            jwt.value = renewedAddressToken;
-            settings.value = renewedSettings;
-        } catch (error) {
-            console.error('Failed to renew mailbox JWT', error);
-        }
     } finally {
         if (jwt.value === addressToken) settings.value.fetched = true;
     }
