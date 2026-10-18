@@ -167,7 +167,11 @@ const getSettings = async () => {
         localAddressCache.value = updateLocalAddressCache(localAddressCache.value, addressToken, res);
         addressToken = res.new_address_token || addressToken;
         jwt.value = addressToken;
-        settings.value = res;
+        settings.value = {
+            address: res["address"],
+            auto_reply: res["auto_reply"],
+            send_balance: res["send_balance"],
+        };
     } finally {
         if (jwt.value === addressToken) settings.value.fetched = true;
     }
