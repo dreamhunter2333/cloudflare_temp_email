@@ -144,7 +144,12 @@ export const unbindTelegramAddress = async (
     const bindings = await getTelegramBindings(c, userId);
     for (const { payload } of bindings) {
         if (payload?.address !== address) continue;
-        if (!await validateAddressIdentity(c, payload)) continue;
+        try {
+            if (!await validateAddressIdentity(c, payload)) continue;
+        } catch (e) {
+            console.log(`Failed to validate Telegram binding: ${(e as Error).message}`);
+            continue;
+        }
         return await removeTelegramBinding(c, userId, address, bindings);
     }
     throw Error(msgs.TgAddressNotYoursMsg);
