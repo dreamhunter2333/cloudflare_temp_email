@@ -6,7 +6,7 @@
 
 - 密码登录返回 `type: "address_password_login"`、`address`、`address_id`、`iat`、`exp` 的 JWT，有效期 30 天。邮箱 API 仍使用 `Authorization: Bearer <jwt>`，由中间件统一鉴权。
 - `GET /api/settings` 返回上述登录信息、`send_balance` 和 `new_address_token`；有效 JWT 剩余不足 7 天时返回新签发的 30 天 token，否则为 `null`。已过期 JWT 必须重新登录，旧凭据不能换取新 token。
-- 网页加载设置时使用新 token 再次请求 `settings`，验证成功后替换当前 token，普通请求不额外刷新。外部客户端也应保存 `new_address_token`；SMTP/IMAP、Agent 使用旧凭据直接调用 API 同样受开关限制。
+- 网页加载设置成功后直接保存后端签发的 `new_address_token`，同时更新本地邮箱缓存，无需再次请求 `settings` 或解码 JWT；普通请求不额外刷新。外部客户端也应保存 `new_address_token`；SMTP/IMAP、Agent 使用旧凭据直接调用 API 同样受开关限制。
 - 本地缓存使用后端返回的邮箱信息，不解码 JWT；两种登录方式独立保留。历史 token 缓存先显示“已保存邮箱”，选中并验证后补全名称。仅密码登录时隐藏已识别的旧凭据入口，保留缓存。
 - 创建邮箱及从用户中心、管理员、Telegram 打开有权访问的邮箱时，按开关签发邮箱 JWT。Telegram KV 单独保存永久的 `telegram_binding` token，邮箱 API 拒绝该类型；仅对已验证 Telegram 身份后读取的历史绑定忽略过期时间，新绑定提交的 token 仍须通过邮箱鉴权。
 
