@@ -25,6 +25,12 @@ test('historical mailbox cache keeps both login methods through renewal and pass
       { token: 'superseded-password-token', address: mailbox.address, type: 'address_password_login' },
     ]);
 
+    const settingsTokens: string[] = [];
+    page.on('request', request => {
+      if (new URL(request.url()).pathname === '/api/settings') {
+        settingsTokens.push(request.headers().authorization);
+      }
+    });
     await page.locator('.address-select').click();
     await page.locator('.n-base-select-menu:visible').getByText('Saved mailbox 2', { exact: true }).click();
     await expect.poll(() => page.evaluate(() => localStorage.getItem('jwt'))).not.toBe(passwordToken);
@@ -49,6 +55,7 @@ test('historical mailbox cache keeps both login methods through renewal and pass
     await expect(rows.nth(0)).toContainText(`${mailbox.address} (Credential Login)`);
     await expect(rows.nth(1)).toContainText(`${mailbox.address} (Password Login)`);
     await expect(rows.nth(2)).toContainText('Saved mailbox 3');
+    expect(settingsTokens).toEqual([`Bearer ${passwordToken}`]);
     await page.keyboard.press('Escape');
     await page.locator('.address-select').click();
     const options = page.locator('.n-base-select-menu:visible');
@@ -79,5 +86,30 @@ test('historical mailbox cache keeps both login methods through renewal and pass
   } finally {
     await deleteAddress(request, mailbox.jwt);
     await deleteAddress(request, other.jwt);
+  }
+});
+
+test('failed mailbox settings preserve the current token and historical cache', async ({ page, request }) => {
+  const mailbox = await createTestAddress(request, 'cached-failure');
+  const cache = JSON.stringify([
+    mailbox.jwt,
+    { token: 'saved-password-token', address: mailbox.address, type: 'address_password_login' },
+  ]);
+  try {
+    await page.addInitScript(({ token, cache }) => {
+      localStorage.setItem('jwt', token);
+      localStorage.setItem('LocalAddressCache', cache);
+    }, { token: mailbox.jwt, cache });
+    await page.route('**/api/settings', route => route.fulfill({ status: 503, body: 'Settings temporarily unavailable' }));
+    const failedSettings = page.waitForResponse(response => new URL(response.url()).pathname === '/api/settings');
+    await page.goto(`${FRONTEND_URL}/en/`);
+    expect((await failedSettings).status()).toBe(503);
+    await expect(page.getByText('Mail address credential is invalid or account not exist, it may be network connection issue, please try again later.', { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => ({
+      token: localStorage.getItem('jwt'),
+      cache: localStorage.getItem('LocalAddressCache'),
+    }))).toEqual({ token: mailbox.jwt, cache });
+  } finally {
+    await deleteAddress(request, mailbox.jwt);
   }
 });
