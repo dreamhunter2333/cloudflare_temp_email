@@ -11,7 +11,7 @@ import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 import Login from '../common/Login.vue';
 
-const { jwt } = useGlobalState()
+const { jwt, loading } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
 
