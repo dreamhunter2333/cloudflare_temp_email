@@ -1098,18 +1098,6 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.user.AddressManagement": {
-    "resetPassword": {
-      "en": "Reset Password",
-      "zh": "重置密码"
-    },
-    "resetPasswordTip": {
-      "en": "Set a new password for this bound mailbox without its old password.",
-      "zh": "为已绑定邮箱设置新密码，无需提供原邮箱密码。"
-    },
-    "newPasswordRequired": {
-      "en": "Enter a new password.",
-      "zh": "请输入新密码。"
-    },
     "unbindPasswordTip": {
       "en": "Save the mailbox password before unlinking so you can log in again.",
       "zh": "解绑前请保存邮箱密码，以便之后重新登录。"

@@ -2,27 +2,18 @@
 
 ## 邮箱密码登录
 
-`ADDRESS_PASSWORD_LOGIN_ONLY` 默认 `false`，仅在 `ENABLE_ADDRESS_PASSWORD=true` 时生效。启用后，后端拒绝旧凭据登录及 API 访问，前端隐藏凭据和自动登录链接；旧凭据登录链接也无法通过 API 鉴权。历史无密码邮箱需由绑定用户或管理员设置密码，无需数据库迁移。
+`ADDRESS_PASSWORD_LOGIN_ONLY` 默认 `false`，仅在 `ENABLE_ADDRESS_PASSWORD=true` 时生效。关闭时，密码登录和新建邮箱等入口保持原有旧凭据签发行为，不新增 30 天有效期。启用后，后端拒绝旧凭据登录及 API 访问，前端隐藏凭据和自动登录链接；旧凭据登录链接也无法通过 API 鉴权。无需数据库迁移。
 
-- 密码登录返回 `type: "address_password_login"`、`address`、`address_id`、`iat`、`exp` 的 JWT，有效期 30 天。邮箱 API 仍使用 `Authorization: Bearer <jwt>`，由中间件统一鉴权。
+- 开关生效时，密码登录返回 `type: "address_password_login"`、`address`、`address_id`、`iat`、`exp` 的 JWT，有效期 30 天。邮箱 API 仍使用 `Authorization: Bearer <jwt>`，由中间件统一鉴权。关闭开关后，新登录恢复旧凭据；此前签发的有效短效 JWT 仍可使用和续期。
 - `GET /api/settings` 返回上述登录信息、`send_balance` 和 `new_address_token`；有效 JWT 剩余不足 7 天时返回新签发的 30 天 token，否则为 `null`。已过期 JWT 必须重新登录，旧凭据不能换取新 token。
 - 网页加载设置成功后直接保存后端签发的 `new_address_token`，同时更新本地邮箱缓存，无需再次请求 `settings` 或解码 JWT；普通请求不额外刷新。外部客户端也应保存 `new_address_token`；SMTP/IMAP、Agent 使用旧凭据直接调用 API 同样受开关限制。
 - 本地缓存使用后端返回的邮箱信息，不解码 JWT；两种登录方式独立保留。历史 token 缓存先显示“已保存邮箱”，选中并验证后补全名称。仅密码登录时隐藏已识别的旧凭据入口，保留缓存。
 - 创建邮箱及从用户中心、管理员、Telegram 打开有权访问的邮箱时，按开关签发邮箱 JWT。Telegram KV 单独保存永久的 `telegram_binding` token，邮箱 API 拒绝该类型；仅对已验证 Telegram 身份后读取的历史绑定忽略过期时间，新绑定提交的 token 仍须通过邮箱鉴权。
 
-### 重置绑定邮箱密码
 
-启用 `ENABLE_ADDRESS_PASSWORD` 后，用户中心提供“重置密码”，不需要原密码：
+### 修改邮箱密码
 
-```http
-POST /user_api/address/:address_id/reset_password
-x-user-token: <用户JWT>
-Content-Type: application/json
-
-{"new_password":"<新密码的64位小写SHA-256十六进制值>"}
-```
-
-后端在同一条 SQL 中检查用户存在及绑定关系，仅更新现有密码和更新时间。成功返回 `{"success":true}`；未登录返回 401，未绑定或功能关闭返回 403，输入错误返回 400。密码重置不撤销已有 JWT，有效 JWT 仍可续期；不新增会话表或撤销状态。
+启用 `ENABLE_ADDRESS_PASSWORD` 后，在已登录邮箱的设置中使用现有“修改密码”功能即可，无需旧密码；继续使用 `POST /api/address_change_password`，不新增用户 tab 的重置入口或用户重置接口。历史无密码邮箱可在启用仅密码登录前进入邮箱设置密码，也可由管理员设置。修改密码不撤销已有 JWT，有效短效 JWT 仍可续期。
 
 ## 通过 邮件 API 查看邮件
 

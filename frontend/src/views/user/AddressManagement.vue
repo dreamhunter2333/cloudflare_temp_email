@@ -6,7 +6,7 @@ import { NBadge, NPopconfirm, NButton } from 'naive-ui'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { getRouterPathWithLang, hashPassword } from '../../utils'
+import { getRouterPathWithLang } from '../../utils'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 import Login from '../common/Login.vue';
@@ -31,36 +31,6 @@ const targetUserEmail = ref('')
 const showAddressCredential = ref(false)
 const currentAddressCredential = ref('')
 const credentialAddress = ref('')
-const passwordResetForm = ref(null)
-const isResettingPassword = ref(false)
-const { t: accountSettingsT } = useScopedI18n('views.index.AccountSettings')
-
-const resetBoundAddressPassword = async () => {
-    if (!passwordResetForm.value || isResettingPassword.value) return;
-    const { address, newPassword, confirmPassword } = passwordResetForm.value;
-    if (!newPassword) {
-        message.error(t('newPasswordRequired'));
-        return;
-    }
-    if (newPassword !== confirmPassword) {
-        message.error(accountSettingsT('passwordMismatch'));
-        return;
-    }
-    isResettingPassword.value = true;
-    try {
-        await api.fetch(`/user_api/address/${address.id}/reset_password`, {
-            method: 'POST',
-            body: JSON.stringify({ new_password: await hashPassword(newPassword) }),
-        });
-        message.success(accountSettingsT('passwordChanged'));
-        passwordResetForm.value = null;
-    } catch (error) {
-        message.error(error.message || 'error');
-    } finally {
-        isResettingPassword.value = false;
-    }
-}
-
 
 const showCredential = async (row) => {
     try {
@@ -217,16 +187,6 @@ const columns = [
                     },
                     { default: () => credentialT('addressCredential') }
                 ) : null,
-                openSettings.value.enableAddressPassword ? h(NButton,
-                    {
-                        tertiary: true,
-                        type: 'warning',
-                        onClick: () => {
-                            passwordResetForm.value = { address: row, newPassword: '', confirmPassword: '' };
-                        },
-                    },
-                    { default: () => t('resetPassword') }
-                ) : null,
                 h(NPopconfirm,
                     {
                         onPositiveClick: () => changeMailAddress(row.id)
@@ -285,23 +245,6 @@ watch([page, pageSize], async () => {
 
 <template>
     <div>
-        <n-modal :show="!!passwordResetForm" @update:show="show => { if (!show && !isResettingPassword) passwordResetForm = null }"
-            preset="dialog" :title="t('resetPassword')" :mask-closable="!isResettingPassword" :closable="!isResettingPassword">
-            <p>{{ passwordResetForm?.address.name }}</p>
-            <p>{{ t('resetPasswordTip') }}</p>
-            <n-form v-if="passwordResetForm" @submit.prevent="resetBoundAddressPassword">
-                <n-form-item :label="accountSettingsT('newPassword')">
-                    <n-input v-model:value="passwordResetForm.newPassword" type="password" show-password-on="click" :disabled="isResettingPassword" />
-                </n-form-item>
-                <n-form-item :label="accountSettingsT('confirmPassword')">
-                    <n-input v-model:value="passwordResetForm.confirmPassword" type="password" show-password-on="click"
-                        :disabled="isResettingPassword" @keyup.enter="resetBoundAddressPassword" />
-                </n-form-item>
-            </n-form>
-            <template #action>
-                <n-button type="warning" :loading="isResettingPassword" @click="resetBoundAddressPassword">{{ t('resetPassword') }}</n-button>
-            </template>
-        </n-modal>
         <AddressCredentialModal v-model:show="showAddressCredential" :address="credentialAddress"
             :jwt="currentAddressCredential" />
         <n-modal v-model:show="showTranferAddress" preset="dialog" :title="t('transferAddress')">
