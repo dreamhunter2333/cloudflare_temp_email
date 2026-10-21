@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import i18n from '../i18n';
 import utils, { getBooleanValue, checkCfTurnstile } from '../utils';
-import { createAddressPasswordLoginToken } from '../address_auth';
+import { createAddressToken } from '../address_auth';
 
 export default {
     // 修改地址密码
@@ -73,7 +73,7 @@ export default {
         }
 
         // 创建JWT
-        const jwt = await createAddressPasswordLoginToken(c, address.name, address.id);
+        const jwt = await createAddressToken(c, address.name, address.id);
 
         return c.json({
             jwt: jwt,

@@ -49,7 +49,26 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
         headers: { ...headers, Authorization: `Bearer ${jwt}` },
       });
       expect(settings.ok()).toBe(true);
-      expect(await settings.json()).toMatchObject({ address: mailbox.address, type: 'address_password_login' });
+      const loginSettings = await settings.json();
+      expect(loginSettings.address).toBe(mailbox.address);
+      expect(loginSettings.new_address_token).toBeNull();
+      if (passwordOnly) {
+        expect(loginSettings.type).toBe('address_password_login');
+        expect(loginSettings.exp - loginSettings.iat).toBe(30 * 86400);
+        const newPassword = hashPassword('updated-mailbox-policy-password');
+        const changePassword = await request.post(`${WORKER_URL}/api/address_change_password`, {
+          headers: { ...headers, Authorization: `Bearer ${jwt}` }, data: { new_password: newPassword },
+        });
+        expect(changePassword.ok()).toBe(true);
+        const loginWithNewPassword = await request.post(`${WORKER_URL}/api/address_login`, {
+          headers, data: { email: mailbox.address, password: newPassword },
+        });
+        expect(loginWithNewPassword.ok()).toBe(true);
+      } else {
+        expect(loginSettings).not.toHaveProperty('type');
+        expect(loginSettings).not.toHaveProperty('iat');
+        expect(loginSettings).not.toHaveProperty('exp');
+      }
       const now = Math.floor(Date.now() / 1000);
       const token = signToken({ address: mailbox.address, address_id: mailbox.address_id,
         type: 'address_password_login', iat: now - 24 * 86400, exp: now + 6 * 86400 });
