@@ -533,7 +533,11 @@ export const cleanup = async (
         case "unboundAddress":
             await batchDeleteAddressWithData(
                 c,
-                `id NOT IN (SELECT address_id FROM users_address) AND created_at < datetime('now', '-${cleanDays} day')`
+                `id IN (`
+                + `SELECT a.id FROM address AS a `
+                + `WHERE a.created_at < datetime('now', '-${cleanDays} day') `
+                + `AND NOT EXISTS (SELECT 1 FROM users_address AS ua WHERE ua.address_id = a.id) `
+                + `ORDER BY a.created_at, a.id LIMIT ${cleanupBatchSize})`
             )
             break;
         case "mails":
@@ -548,9 +552,16 @@ export const cleanup = async (
             break;
         case "mails_unknow":
             await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE address NOT IN
-                (select name from address) AND created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM raw_mails WHERE id IN (
+                    SELECT rm.id FROM raw_mails AS rm
+                    WHERE rm.created_at < datetime('now', ?)
+                    AND NOT EXISTS (
+                        SELECT 1 FROM address AS a WHERE a.name = rm.address
+                    )
+                    ORDER BY rm.created_at, rm.id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "sendbox":
             await c.env.DB.prepare(`
@@ -566,7 +577,11 @@ export const cleanup = async (
             // Delete addresses that have no emails and were created more than N days ago
             await batchDeleteAddressWithData(
                 c,
-                `name NOT IN (SELECT DISTINCT address FROM raw_mails WHERE address IS NOT NULL) AND created_at < datetime('now', '-${cleanDays} day')`
+                `id IN (`
+                + `SELECT a.id FROM address AS a `
+                + `WHERE a.created_at < datetime('now', '-${cleanDays} day') `
+                + `AND NOT EXISTS (SELECT 1 FROM raw_mails AS rm WHERE rm.address = a.name) `
+                + `ORDER BY a.created_at, a.id LIMIT ${cleanupBatchSize})`
             )
             break;
         default:

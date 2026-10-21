@@ -9,6 +9,14 @@ const listMails = async (request: APIRequestContext, address: string) => {
   return response.json();
 };
 
+const countAddresses = async (request: APIRequestContext, query: string) => {
+  const response = await request.get(`${WORKER_URL}/admin/address`, {
+    params: { query, limit: '100', offset: '0' },
+  });
+  expect(response.ok()).toBe(true);
+  return (await response.json()).count as number;
+};
+
 test.describe('Bounded cleanup', () => {
   test('cleans at most one batch and continues on the next run', async ({ request }) => {
     const address = `cleanup-batch-${Date.now()}@test.example.com`;
@@ -58,6 +66,92 @@ test.describe('Bounded cleanup', () => {
     expect(recentMails.count).toBe(1);
     expect(recentMails.results[0].raw).toBe('recent cleanup mail');
     await request.delete(`${WORKER_URL}/admin/mails/${recentMails.results[0].id}`);
+  });
+
+  test('cleans unknown-address mails in bounded batches', async ({ request }) => {
+    const address = `cleanup-unknown-${Date.now()}@test.example.com`;
+    const seedResponses = await Promise.all(Array.from({ length: 11 }, (_, index) =>
+      request.post(`${WORKER_URL}/__test/seed_mail`, {
+        data: {
+          address,
+          raw: 'old unknown-address mail',
+          message_id: `<cleanup-unknown-${Date.now()}-${index}@test>`,
+          created_at: '2000-01-01 00:00:00',
+        },
+      })
+    ));
+    expect(seedResponses.every((response) => response.ok())).toBe(true);
+
+    const firstCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
+      data: { cleanType: 'mails_unknow', cleanDays: 1 },
+    });
+    expect(firstCleanup.ok()).toBe(true);
+    expect((await listMails(request, address)).count).toBe(1);
+
+    const secondCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
+      data: { cleanType: 'mails_unknow', cleanDays: 1 },
+    });
+    expect(secondCleanup.ok()).toBe(true);
+    expect((await listMails(request, address)).count).toBe(0);
+  });
+
+  test('cleans unbound addresses in bounded batches', async ({ request }) => {
+    const prefix = `cu${Date.now().toString(36)}`;
+    for (let index = 0; index < 11; index++) {
+      const address = await createTestAddress(request, `${prefix}-${index}-`);
+      const seedResponse = await request.post(`${WORKER_URL}/__test/seed_mail`, {
+        data: {
+          address: address.address,
+          raw: 'unbound address mail',
+          message_id: `<cleanup-unbound-${Date.now()}-${index}@test>`,
+          address_created_at: '2000-01-01 00:00:00',
+        },
+      });
+      expect(seedResponse.ok()).toBe(true);
+    }
+
+    const firstCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
+      data: { cleanType: 'unboundAddress', cleanDays: 1 },
+    });
+    expect(firstCleanup.ok()).toBe(true);
+    expect(await countAddresses(request, prefix)).toBe(1);
+
+    const secondCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
+      data: { cleanType: 'unboundAddress', cleanDays: 1 },
+    });
+    expect(secondCleanup.ok()).toBe(true);
+    expect(await countAddresses(request, prefix)).toBe(0);
+  });
+
+  test('cleans empty addresses in bounded batches', async ({ request }) => {
+    const prefix = `ce${Date.now().toString(36)}`;
+    for (let index = 0; index < 11; index++) {
+      const address = await createTestAddress(request, `${prefix}-${index}-`);
+      const seedResponse = await request.post(`${WORKER_URL}/__test/seed_mail`, {
+        data: {
+          address: address.address,
+          raw: 'temporary address mail',
+          message_id: `<cleanup-empty-${Date.now()}-${index}@test>`,
+          address_created_at: '2000-01-01 00:00:00',
+        },
+      });
+      expect(seedResponse.ok()).toBe(true);
+      const mails = await listMails(request, address.address);
+      const deleteResponse = await request.delete(`${WORKER_URL}/admin/mails/${mails.results[0].id}`);
+      expect(deleteResponse.ok()).toBe(true);
+    }
+
+    const firstCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
+      data: { cleanType: 'emptyAddress', cleanDays: 1 },
+    });
+    expect(firstCleanup.ok()).toBe(true);
+    expect(await countAddresses(request, prefix)).toBe(1);
+
+    const secondCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
+      data: { cleanType: 'emptyAddress', cleanDays: 1 },
+    });
+    expect(secondCleanup.ok()).toBe(true);
+    expect(await countAddresses(request, prefix)).toBe(0);
   });
 
   test('deletes one address batch and its related data', async ({ request }) => {
