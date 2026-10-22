@@ -4,11 +4,7 @@ import { Jwt } from 'hono/utils/jwt';
 
 import i18n from './i18n';
 
-export const createAddressToken = (
-    c: Context<HonoCustomType>, address: string, addressId: number,
-) => Jwt.sign({ address, address_id: addressId }, c.env.JWT_SECRET, 'HS256');
-
-export const validateAddressIdentity = async (
+export const validateAddressPayload = async (
     c: Context<HonoCustomType>,
     payload: Record<string, unknown>,
 ): Promise<JwtPayload | null> => {
@@ -25,19 +21,12 @@ export const validateAddressIdentity = async (
     return exists ? { address, address_id: addressId } : null;
 };
 
-export const validateAddressPayload = async (
-    c: Context<HonoCustomType>, payload: Record<string, unknown>,
-): Promise<JwtPayload | null> => {
-    if (payload.type !== undefined) return null;
-    return validateAddressIdentity(c, payload);
-};
-
 export const verifyAddressToken = async (
     c: Context<HonoCustomType>,
     token: string,
 ): Promise<JwtPayload> => {
     const payload = await Jwt.verify(token, c.env.JWT_SECRET, 'HS256');
-    const addressPayload = await validateAddressPayload(c, payload);
+    const addressPayload = payload.type === undefined ? await validateAddressPayload(c, payload) : null;
     if (!addressPayload) {
         throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
     }
@@ -46,7 +35,8 @@ export const verifyAddressToken = async (
 
 export const addressJwtAuth = async (c: Context<HonoCustomType>, next: Next) => (
     jwt({ secret: c.env.JWT_SECRET, alg: 'HS256' })(c, async () => {
-        const payload = await validateAddressPayload(c, c.get('jwtPayload'));
+        const jwtPayload: Record<string, unknown> = c.get('jwtPayload');
+        const payload = jwtPayload.type === undefined ? await validateAddressPayload(c, jwtPayload) : null;
         if (!payload) {
             c.res = c.text(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg, 401);
             return;

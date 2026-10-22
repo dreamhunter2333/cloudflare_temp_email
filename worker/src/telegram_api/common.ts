@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { Jwt } from "hono/utils/jwt";
-import { validateAddressIdentity, verifyAddressToken } from '../address_auth';
+import { validateAddressPayload, verifyAddressToken } from '../address_auth';
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getIntValue, getJsonSetting } from "../utils";
 import { deleteAddressWithData, newAddress, generateRandomName } from "../common";
@@ -16,7 +16,7 @@ export const verifyTelegramBindingToken = async (c: Context<HonoCustomType>, tok
     if (payload.type !== undefined && payload.type !== 'telegram_binding') {
         throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
     }
-    const identity = await validateAddressIdentity(c, payload);
+    const identity = await validateAddressPayload(c, payload);
     if (!identity) throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
     return identity;
 };
@@ -144,7 +144,7 @@ export const unbindTelegramAddress = async (
     for (const { payload } of bindings) {
         if (payload?.address !== address) continue;
         try {
-            if (!await validateAddressIdentity(c, payload)) continue;
+            if (!await validateAddressPayload(c, payload)) continue;
         } catch (e) {
             console.log(`Failed to validate Telegram binding: ${(e as Error).message}`);
             continue;
