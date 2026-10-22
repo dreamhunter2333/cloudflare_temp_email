@@ -22,6 +22,7 @@ export const remove_attachment_if_need = async (
     const msg = createMimeMessage();
     if (parsedEmail?.headers) {
         for (const header of parsedEmail.headers) {
+            if (['content-type', 'content-transfer-encoding'].includes(header.key.toLowerCase())) continue;
             try {
                 msg.setHeader(header["key"], header["value"]);
             } catch (error) {
