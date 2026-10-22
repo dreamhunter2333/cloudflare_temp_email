@@ -1,5 +1,20 @@
 # Mail API
 
+## Mailbox password login
+
+`ADDRESS_PASSWORD_LOGIN_ONLY` defaults to `false` and only takes effect with `ENABLE_ADDRESS_PASSWORD=true`. When off, password login and mailbox creation retain legacy token issuance without a new 30-day lifetime. When enabled, it rejects legacy credentials for login and API access and hides credential displays and automatic login links. Legacy credential links also fail API authentication. No database migration is needed.
+
+- When the policy is enabled, password login issues a 30-day JWT with `type: "address_password_login"`, `address`, `address_id`, `iat`, and `exp`. Mailbox APIs retain `Authorization: Bearer <jwt>` and use middleware for authentication. After the switch is disabled, new logins return legacy tokens; previously issued valid expiring JWTs remain usable and renewable.
+- `GET /api/settings` returns this login information, `send_balance`, and `new_address_token`. A valid JWT with less than 7 days remaining receives a new 30-day token; otherwise the field is `null`. Expired JWTs require login again, and legacy credentials cannot obtain new tokens.
+- After successfully loading settings, the frontend saves the server-issued `new_address_token` and updates the local mailbox cache without another settings request or decoding the JWT. Ordinary requests do not refresh tokens. External clients should also save `new_address_token`; the switch rejects legacy credentials used directly by SMTP/IMAP and Agent clients.
+- The local cache uses server-returned mailbox information without decoding JWTs and retains both login methods independently. Historical token-only entries display “Saved mailbox” until selected and validated. Password-only login hides identified legacy entries without deleting them.
+- Mailbox creation and authorized access through user accounts, administrators, and Telegram issue mailbox JWTs according to the switch. Telegram KV stores separate permanent `telegram_binding` tokens, which mailbox APIs reject. Expiration is ignored only for historical stored bindings accessed after Telegram identity verification; tokens submitted for new bindings must pass mailbox authentication.
+
+
+### Change the mailbox password
+
+With `ENABLE_ADDRESS_PASSWORD` enabled, use the existing password-change action in the authenticated mailbox settings without supplying the old password. It continues to use `POST /api/address_change_password`; no User-tab reset action or user reset endpoint is added. For historical mailboxes without passwords, set one inside the mailbox before enabling password-only login, or ask an administrator to set it. Changing a password does not revoke existing JWTs; valid expiring JWTs can still renew.
+
 ## Viewing Emails via Mail API
 
 This is a `python` example using the `requests` library to view emails.

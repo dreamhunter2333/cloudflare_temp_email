@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Mailbox Login| Add an opt-in password-only switch that rejects legacy credentials and issues 30-day JWTs renewed with less than 7 days remaining; retain legacy token issuance when off and reuse the existing mailbox password-change flow
 - feat: |Webhook| Add email filters with condition/AND/OR/NOT nodes, nesting, string and native regex matching, visual/JSON editing and rule checking; preserve all original From headers while still removing attachments when From is missing or invalid (issue #1155)
 - feat: |User| Search bound mailboxes by email address in address management with accurate pagination (issue #1156)
 - feat: |AI Extract| Add `AI_EXTRACT_MODE` to explicitly choose local rules only (`local`) or prefer Workers AI (`ai`); defaults to local rules when unset so mail content is never sent to AI. **Upgrade note**: deployments that relied on the Workers AI binding to enable AI extraction automatically must set `AI_EXTRACT_MODE = "ai"`
@@ -18,6 +19,8 @@
 
 - fix: |Telegram| Store separate permanent internal binding tokens, preserve historical expired bindings, and issue mailbox credentials on access while rejecting internal tokens at mailbox APIs
 - fix: |Worker| Process unknown-mail, unbound-address, and empty-address cleanup in bounded batches to avoid D1 timeouts on large backlogs
+- fix: |Tests| Cover the password-only switch and its prerequisite, legacy token issuance when off, mailbox password changes with expiring JWTs, local cache compatibility and renewal, and expired historical Telegram bindings under password-only mode
+- fix: |Mailbox Login| Renew tokens and update the local cache for both login methods with one settings request, without decoding JWTs in the frontend; clarify that only legacy credentials and their login links are disabled
 - fix: |User| Bind the mailbox transfer confirmation button to the existing request loading state, fixing the undefined loading variable
 - fix: |Mail| Check the SMTP envelope sender and every From email address against sender blacklists; parse addresses independently so body parsing failures or multiple From addresses cannot skip matching; preserve envelope checks on address parsing errors
 - fix: |AI Extract| In `ai` mode, an address allowlist miss now skips only the Workers AI call and still falls back to local verification-code extraction

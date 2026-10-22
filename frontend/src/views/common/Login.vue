@@ -66,7 +66,7 @@ const initLoginMethod = () => {
 }
 
 const login = async () => {
-    if (loginMethod.value === 'password') {
+    if (openSettings.value.addressPasswordLoginOnly || loginMethod.value === 'password') {
         // Password login
         if (!loginAddress.value || !loginPassword.value) {
             message.error(t('emailPasswordRequired'));
@@ -246,6 +246,8 @@ const showNewAddressTab = computed(() => {
     return openSettings.value.enableUserCreateEmail;
 });
 
+watch(() => openSettings.value.addressPasswordLoginOnly, initLoginMethod);
+
 onMounted(async () => {
     if (!openSettings.value.domains || openSettings.value.domains.length === 0) {
         await api.getOpenSettings(message, notification);
@@ -283,7 +285,7 @@ onMounted(async () => {
                         v-model:value="loginCfToken" />
 
                     <div class="switch-login-button">
-                        <n-button v-if="openSettings?.enableAddressPassword"
+                        <n-button v-if="openSettings?.enableAddressPassword && !openSettings.addressPasswordLoginOnly"
                             @click="loginMethod === 'password' ? loginMethod = 'credential' : loginMethod = 'password'"
                             type="info" quaternary size="tiny">
                             {{ loginMethod === 'password' ? t('credentialLogin') : t('passwordLogin') }}

@@ -356,6 +356,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "components.AddressCredentialModal": {
+    "passwordOnlyTip": {
+      "en": "Save your mailbox password. Legacy mailbox credentials and their login links are disabled. Bound mailboxes can also be opened from the user center.",
+      "zh": "请保存邮箱密码。旧邮箱凭据及其登录链接已禁用；已绑定邮箱仍可从用户中心进入。"
+    },
     "addressCredential": {
       "en": "Address Credential",
       "zh": "地址凭证"
@@ -1094,6 +1098,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.user.AddressManagement": {
+    "unbindPasswordTip": {
+      "en": "Save the mailbox password before unlinking so you can log in again.",
+      "zh": "解绑前请保存邮箱密码，以便之后重新登录。"
+    },
     "actions": {
       "en": "Actions",
       "zh": "操作"
@@ -1994,6 +2002,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.index.LocalAddress": {
+    "savedMailbox": {
+      "en": "Saved mailbox {index}",
+      "zh": "已保存邮箱 {index}"
+    },
     "actions": {
       "en": "Actions",
       "zh": "操作"
