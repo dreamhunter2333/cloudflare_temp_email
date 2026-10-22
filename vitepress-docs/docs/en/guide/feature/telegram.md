@@ -70,6 +70,12 @@ Telegram Bot supports **per-user push notifications**. After a user binds an add
 > [!TIP]
 > Each user can bind up to `TG_MAX_ADDRESS` (default 5) addresses
 
+### Binding credentials
+
+After binding, the server stores a separate, non-expiring internal binding token in KV. The Mini App issues a mailbox credential after verifying the Telegram identity and mailbox binding. Internal binding tokens cannot access mailbox APIs or create new bindings.
+
+Existing bindings do not need to be recreated: an expired legacy credential already stored for the authenticated Telegram user can still open or unbind the mailbox after signature and mailbox identity validation. Credentials submitted for new bindings must pass normal authentication; expired credentials are rejected. Recreating a deleted mailbox with the same address does not grant access through its old binding.
+
 ### Global Push
 
 Admins can enable **global mail push** in the admin panel under `Settings` -> `Telegram`, pushing all emails to a specified list of Telegram user IDs.

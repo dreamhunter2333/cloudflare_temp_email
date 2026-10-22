@@ -7,6 +7,8 @@ const testApi = new Hono<HonoCustomType>();
 testApi.post('/seed_mail', c => mailApi.seedMail(c.req.raw, c.env));
 testApi.post('/receive_mail', c => mailApi.receiveMail(c.req.raw, c.env, c.executionCtx as ExecutionContext));
 testApi.get('/telegram_binding', async c => {
+  const userId = c.req.query('userId');
+  if (userId) return c.json(await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json'));
   const address = c.req.query('address');
   if (!address) return c.text('address is required', 400);
   return c.json(await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${address}`));
