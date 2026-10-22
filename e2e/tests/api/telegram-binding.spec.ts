@@ -1,7 +1,8 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { createHmac } from 'node:crypto';
+import { sign, verify } from 'hono/jwt';
 
-import { WORKER_URL, createTestAddress } from '../../fixtures/test-helpers';
+import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress } from '../../fixtures/test-helpers';
 
 function initData(userId: number) {
   const fields = {
@@ -44,6 +45,104 @@ async function expectPushOwner(request: APIRequestContext, address: string, user
   expect(response.ok(), await response.text()).toBe(true);
   expect(await response.json()).toBe(userId === null ? null : String(userId));
 }
+
+for (const action of ['bind', 'create']) {
+  test(`Telegram ${action} stores an internal token and returns a mailbox credential`, async ({ request }) => {
+    const owner = Date.now();
+    let mailbox: { address: string; address_id: number; jwt: string };
+    if (action === 'create') {
+      const response = await request.post(`${WORKER_URL}/telegram/new_address`, {
+        data: { initData: initData(owner), address: `tg-created-${owner}@${TEST_DOMAIN}` },
+      });
+      expect(response.ok(), await response.text()).toBe(true);
+      mailbox = await response.json();
+    } else {
+      mailbox = await createTestAddress(request, 'tg-internal');
+    }
+    try {
+      if (action === 'bind') await bind(request, owner, mailbox.jwt);
+      const stored = await request.get(`${WORKER_URL}/__test/telegram_binding`, {
+        params: { userId: String(owner) },
+      });
+      expect(stored.ok()).toBe(true);
+      const tokens = await stored.json();
+      expect(tokens).toHaveLength(1);
+      expect(await verify(tokens[0], 'e2e-test-secret-key', 'HS256')).toEqual({
+        type: 'telegram_binding', address: mailbox.address, address_id: mailbox.address_id,
+      });
+      const direct = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${tokens[0]}` },
+      });
+      expect(direct.status()).toBe(401);
+      const login = await request.post(`${WORKER_URL}/open_api/credential_login`, {
+        data: { credential: tokens[0] },
+      });
+      expect(login.status()).toBe(401);
+      const rebind = await request.post(`${WORKER_URL}/telegram/bind_address`, {
+        data: { initData: initData(owner + 1), jwt: tokens[0] },
+      });
+      expect(rebind.status()).toBe(400);
+      expect(await addressList(request, owner + 1)).toEqual([]);
+      const bindings = await addressList(request, owner);
+      expect(bindings).toEqual([{ address: mailbox.address, jwt: mailbox.jwt }]);
+      const settings = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${bindings[0].jwt}` },
+      });
+      expect(settings.ok()).toBe(true);
+      await unbind(request, owner, mailbox.address);
+      await expectPushOwner(request, mailbox.address, null);
+    } finally {
+      await deleteAddress(request, mailbox.jwt);
+    }
+  });
+}
+
+test('expired historical Telegram bindings still allow opening and unbinding the mailbox', async ({ request }) => {
+  const mailbox = await createTestAddress(request, 'tg-expired');
+  const owner = Date.now();
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const expiredJwt = await sign({
+      address: mailbox.address, address_id: mailbox.address_id,
+      iat: now - 31 * 86400, exp: now - 86400,
+    }, 'e2e-test-secret-key', 'HS256');
+    const seed = await request.post(`${WORKER_URL}/__test/telegram_binding`, {
+      data: { userId: owner, address: mailbox.address, jwt: expiredJwt },
+    });
+    expect(seed.ok()).toBe(true);
+
+    const expiredSettings = await request.get(`${WORKER_URL}/api/settings`, {
+      headers: { Authorization: `Bearer ${expiredJwt}` },
+    });
+    expect(expiredSettings.status()).toBe(401);
+    const rebind = await request.post(`${WORKER_URL}/telegram/bind_address`, {
+      data: { initData: initData(owner + 1), jwt: expiredJwt },
+    });
+    expect(rebind.status()).toBe(400);
+    expect(await addressList(request, owner + 1)).toEqual([]);
+    await expectPushOwner(request, mailbox.address, owner);
+
+    const listing = await request.post(`${WORKER_URL}/telegram/get_bind_address`, {
+      data: { initData: initData(owner) },
+    });
+    expect(listing.ok()).toBe(true);
+    const bindings = await listing.json();
+    expect(bindings).toHaveLength(1);
+    expect(bindings[0].address).toBe(mailbox.address);
+    expect(bindings[0].jwt).not.toBe(expiredJwt);
+    const settings = await request.get(`${WORKER_URL}/api/settings`, {
+      headers: { Authorization: `Bearer ${bindings[0].jwt}` },
+    });
+    expect(settings.ok()).toBe(true);
+    expect((await settings.json()).address).toBe(mailbox.address);
+
+    await unbind(request, owner, mailbox.address);
+    expect(await addressList(request, owner)).toEqual([]);
+    await expectPushOwner(request, mailbox.address, null);
+  } finally {
+    await deleteAddress(request, mailbox.jwt);
+  }
+});
 
 test('Telegram users can remove their own bindings after another user binds the mailbox', async ({ request }) => {
   const mailbox = await createTestAddress(request, 'tg-owner');

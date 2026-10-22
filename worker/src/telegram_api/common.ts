@@ -1,11 +1,25 @@
 import { Context } from "hono";
 import { Jwt } from "hono/utils/jwt";
-import { validateAddressPayload, verifyAddressToken } from '../address_auth';
+import { validateAddressIdentity, verifyAddressToken } from '../address_auth';
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getIntValue, getJsonSetting } from "../utils";
 import { deleteAddressWithData, newAddress, generateRandomName } from "../common";
 import { LocaleMessages } from "../i18n/type";
 import i18n from '../i18n';
+
+const createTelegramBindingToken = (c: Context<HonoCustomType>, address: string, addressId: number) =>
+    Jwt.sign({ type: 'telegram_binding', address, address_id: addressId }, c.env.JWT_SECRET, 'HS256');
+
+// Only for tokens read from the authenticated Telegram user's stored bindings.
+export const verifyTelegramBindingToken = async (c: Context<HonoCustomType>, token: string) => {
+    const payload = await Jwt.verify(token, c.env.JWT_SECRET, { alg: 'HS256', exp: false });
+    if (payload.type !== undefined && payload.type !== 'telegram_binding') {
+        throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
+    }
+    const identity = await validateAddressIdentity(c, payload);
+    if (!identity) throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
+    return identity;
+};
 
 export const tgUserNewAddress = async (
     c: Context<HonoCustomType>, userId: string, address: string,
@@ -48,7 +62,8 @@ export const tgUserNewAddress = async (
         sourceMeta: `tg:${userId}`
     });
     // for mail push to telegram
-    await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, res.jwt]));
+    const bindingToken = await createTelegramBindingToken(c, res.address, res.address_id);
+    await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, bindingToken]));
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${res.address}`, userId.toString());
     return res;
 }
@@ -65,7 +80,7 @@ export const jwtListToAddressData = async (
     const invalidJwtList = [] as string[];
     for (const jwt of jwtList) {
         try {
-            const { address, address_id } = await verifyAddressToken(c, jwt);
+            const { address, address_id } = await verifyTelegramBindingToken(c, jwt);
             addressList.push(address as string);
             addressIdMap[address as string] = address_id as number;
         } catch (e) {
@@ -81,7 +96,7 @@ export const bindTelegramAddress = async (
     c: Context<HonoCustomType>, userId: string, jwt: string,
     msgs: LocaleMessages
 ): Promise<string> => {
-    const { address } = await verifyAddressToken(c, jwt);
+    const { address, address_id } = await verifyAddressToken(c, jwt);
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     const { addressIdMap } = await jwtListToAddressData(c, jwtList, msgs);
     if (address as string in addressIdMap) {
@@ -91,7 +106,8 @@ export const bindTelegramAddress = async (
     if (jwtList.length >= getIntValue(c.env.TG_MAX_ADDRESS, 5)) {
         throw Error(msgs.TgMaxAddressReachedCleanMsg);
     }
-    await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, jwt]));
+    const bindingToken = await createTelegramBindingToken(c, address, address_id);
+    await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, JSON.stringify([...jwtList, bindingToken]));
     // for mail push to telegram
     await c.env.KV.put(`${CONSTANTS.TG_KV_PREFIX}:${address}`, userId.toString());
     return address as string;
@@ -101,7 +117,7 @@ const getTelegramBindings = async (c: Context<HonoCustomType>, userId: string) =
     const jwtList = await c.env.KV.get<string[]>(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json') || [];
     return Promise.all(jwtList.map(async (jwt) => {
         try {
-            return { jwt, payload: await Jwt.verify(jwt, c.env.JWT_SECRET, "HS256") };
+            return { jwt, payload: await Jwt.verify(jwt, c.env.JWT_SECRET, { alg: 'HS256', exp: false }) };
         } catch (e) {
             console.log(`解绑失败: ${(e as Error).message}`);
             return { jwt, payload: null };
@@ -128,7 +144,7 @@ export const unbindTelegramAddress = async (
     for (const { payload } of bindings) {
         if (payload?.address !== address) continue;
         try {
-            if (!await validateAddressPayload(c, payload)) continue;
+            if (!await validateAddressIdentity(c, payload)) continue;
         } catch (e) {
             console.log(`Failed to validate Telegram binding: ${(e as Error).message}`);
             continue;
