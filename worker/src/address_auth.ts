@@ -4,7 +4,11 @@ import { Jwt } from 'hono/utils/jwt';
 
 import i18n from './i18n';
 
-export const validateAddressPayload = async (
+export const createAddressToken = (
+    c: Context<HonoCustomType>, address: string, addressId: number,
+) => Jwt.sign({ address, address_id: addressId }, c.env.JWT_SECRET, 'HS256');
+
+export const validateAddressIdentity = async (
     c: Context<HonoCustomType>,
     payload: Record<string, unknown>,
 ): Promise<JwtPayload | null> => {
@@ -19,6 +23,13 @@ export const validateAddressPayload = async (
         `SELECT id FROM address WHERE id = ? AND name = ?`
     ).bind(addressId, address).first<number>('id');
     return exists ? { address, address_id: addressId } : null;
+};
+
+export const validateAddressPayload = async (
+    c: Context<HonoCustomType>, payload: Record<string, unknown>,
+): Promise<JwtPayload | null> => {
+    if (payload.type !== undefined) return null;
+    return validateAddressIdentity(c, payload);
 };
 
 export const verifyAddressToken = async (
