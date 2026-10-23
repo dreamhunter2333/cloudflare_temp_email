@@ -41,7 +41,7 @@ npm test              # Build, run all tests, exit
 npm run test:down     # Clean up containers
 ```
 
-Test categories: `tests/api/` (API tests), `tests/browser/` (UI tests with Chromium), `tests/smtp-proxy/` (SMTP/IMAP proxy tests).
+Test suites under `e2e/`: `api/`, `browser/`, `webhook/` (Webhook UI), `smtp-proxy/`, `wasm/`, and `unit/`, each with its own `tests/` directory. Shared fixtures stay in `fixtures/`; WASM-specific configuration, fixtures, and scripts stay in `wasm/`.
 
 The Docker frontend serves over **HTTPS** (self-signed cert) with Vite proxy to worker — required for WebAuthn (`navigator.credentials`) and `crypto.subtle` which need a secure context. Browser tests use `ignoreHTTPSErrors: true`.
 

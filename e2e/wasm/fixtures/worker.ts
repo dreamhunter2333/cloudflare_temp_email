@@ -1,5 +1,5 @@
 import { parse_message_wrapper } from 'mail-parser-wasm-worker';
-import worker from './worker';
+import worker from '../../fixtures/worker';
 
 export default {
   ...worker,

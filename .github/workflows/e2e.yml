@@ -6,22 +6,47 @@ on:
   workflow_dispatch:
 
 jobs:
-  e2e:
+  unit:
+    name: Unit tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Run unit tests
+        working-directory: e2e
+        run: |
+          npm ci
+          npm run test:unit
+
+  e2e-groups:
+    name: E2E ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [api, browser, webhook, smtp-proxy]
+    env:
+      COMPOSE_PROFILES: ${{ matrix.project }}
+      PLAYWRIGHT_PROJECT: ${{ matrix.project }}
+      RUN_UNIT_TESTS: 'false'
     steps:
       - uses: actions/checkout@v6
 
       - name: Run E2E tests
         run: |
           cd e2e
+          docker compose config --services
           docker compose up --build --abort-on-container-exit --exit-code-from e2e-runner
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: |
             e2e/test-results/
             e2e/playwright-report/
@@ -32,3 +57,16 @@ jobs:
         run: |
           cd e2e
           docker compose down -v
+
+  e2e:
+    if: always()
+    needs: [unit, e2e-groups]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all test groups passed
+        env:
+          UNIT_RESULT: ${{ needs.unit.result }}
+          GROUPS_RESULT: ${{ needs.e2e-groups.result }}
+        run: |
+          test "$UNIT_RESULT" = success
+          test "$GROUPS_RESULT" = success
