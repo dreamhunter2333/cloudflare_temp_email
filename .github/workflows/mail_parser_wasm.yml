@@ -49,4 +49,4 @@ jobs:
         run: |
           npm install --global npm@11
           package_version="${GITHUB_REF_NAME#mail-parser-wasm-v}"
-          npm publish "packages/$PACKAGE_NAME-$package_version.tgz" --provenance --access public
+          npm publish "./packages/$PACKAGE_NAME-$package_version.tgz" --provenance --access public
