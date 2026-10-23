@@ -5,10 +5,7 @@ on:
     branches: [main]
     paths:
       - 'mail-parser-wasm/**'
-      - 'e2e/scripts/*wasm*.sh'
-      - 'e2e/fixtures/wasm-worker.ts'
-      - 'e2e/playwright.wasm.config.ts'
-      - 'e2e/tests/wasm/**'
+      - 'e2e/wasm/**'
       - '.github/workflows/mail_parser_wasm*.yml'
   workflow_call:
 
@@ -19,7 +16,7 @@ jobs:
   test:
     name: Build and test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -38,7 +35,7 @@ jobs:
         run: cargo install wasm-pack --version 0.14.0 --locked
 
       - name: Build npm packages
-        run: bash e2e/scripts/build-wasm.sh
+        run: bash e2e/wasm/scripts/build.sh
 
       - name: Validate release versions
         if: startsWith(github.ref, 'refs/tags/')
@@ -61,7 +58,7 @@ jobs:
       - name: Run package E2E tests
         env:
           NODE_OPTIONS: --experimental-wasm-modules
-        run: cd e2e && npx playwright test --config playwright.wasm.config.ts
+        run: cd e2e && npx playwright test --config wasm/playwright.config.ts
 
       - name: Upload npm packages
         uses: actions/upload-artifact@v6

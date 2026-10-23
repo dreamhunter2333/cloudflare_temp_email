@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")/../../mail-parser-wasm"
+cd "$(dirname "$0")/../../../mail-parser-wasm"
 cargo test
 wasm-pack build --release
 wasm-pack build --out-dir web --target web --release

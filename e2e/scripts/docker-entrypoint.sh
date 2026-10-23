@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+case "${PLAYWRIGHT_PROJECT:-*}" in
+  api)
+    export FRONTEND_URL= FRONTEND_URL_ENV_OFF= SMTP_PROXY_TLS_HOST=
+    ;;
+  browser)
+    export WORKER_URL_SUBDOMAIN= WORKER_GZIP_URL= \
+      WORKER_URL_SEND_MAIL_DOMAIN= WORKER_URL_SITE_PASSWORD= SMTP_PROXY_TLS_HOST=
+    ;;
+  webhook)
+    export WORKER_URL_SUBDOMAIN= WORKER_URL_ENV_OFF= WORKER_GZIP_URL= \
+      WORKER_URL_SEND_MAIL_DOMAIN= WORKER_URL_SITE_PASSWORD= \
+      FRONTEND_URL_ENV_OFF= SMTP_PROXY_TLS_HOST=
+    ;;
+  smtp-proxy)
+    export WORKER_URL_SUBDOMAIN= WORKER_URL_ENV_OFF= WORKER_GZIP_URL= \
+      WORKER_URL_SEND_MAIL_DOMAIN= WORKER_URL_SITE_PASSWORD= \
+      FRONTEND_URL= FRONTEND_URL_ENV_OFF=
+    ;;
+esac
+
 echo "==> Waiting for worker at $WORKER_URL ..."
 for i in $(seq 1 60); do
   if curl -sf "$WORKER_URL/health_check" > /dev/null 2>&1; then
@@ -74,18 +94,20 @@ if [ -n "${WORKER_URL_SITE_PASSWORD:-}" ]; then
   done
 fi
 
-echo "==> Waiting for frontend at $FRONTEND_URL ..."
-for i in $(seq 1 60); do
-  if curl -skf "$FRONTEND_URL" > /dev/null 2>&1; then
-    echo "    Frontend ready after ${i}s"
-    break
-  fi
-  if [ "$i" -eq 60 ]; then
-    echo "ERROR: Frontend not ready after 60s"
-    exit 1
-  fi
-  sleep 1
-done
+if [ -n "${FRONTEND_URL:-}" ]; then
+  echo "==> Waiting for frontend at $FRONTEND_URL ..."
+  for i in $(seq 1 60); do
+    if curl -skf "$FRONTEND_URL" > /dev/null 2>&1; then
+      echo "    Frontend ready after ${i}s"
+      break
+    fi
+    if [ "$i" -eq 60 ]; then
+      echo "ERROR: Frontend not ready after 60s"
+      exit 1
+    fi
+    sleep 1
+  done
+fi
 
 if [ -n "${FRONTEND_URL_ENV_OFF:-}" ]; then
   echo "==> Waiting for env-off frontend at $FRONTEND_URL_ENV_OFF ..."
@@ -102,17 +124,19 @@ if [ -n "${FRONTEND_URL_ENV_OFF:-}" ]; then
   done
 fi
 
-echo "==> Waiting for smtp-proxy-tls SMTP on $SMTP_PROXY_TLS_HOST:$SMTP_PROXY_TLS_SMTP_PORT ..."
-for i in $(seq 1 30); do
-  if nc -z "$SMTP_PROXY_TLS_HOST" "$SMTP_PROXY_TLS_SMTP_PORT" 2>/dev/null; then
-    echo "    smtp-proxy-tls SMTP ready after ${i}s"
-    break
-  fi
-  if [ "$i" -eq 30 ]; then
-    echo "WARNING: smtp-proxy-tls SMTP not ready after 30s, continuing anyway"
-  fi
-  sleep 1
-done
+if [ -n "${SMTP_PROXY_TLS_HOST:-}" ]; then
+  echo "==> Waiting for smtp-proxy-tls SMTP on $SMTP_PROXY_TLS_HOST:$SMTP_PROXY_TLS_SMTP_PORT ..."
+  for i in $(seq 1 30); do
+    if nc -z "$SMTP_PROXY_TLS_HOST" "$SMTP_PROXY_TLS_SMTP_PORT" 2>/dev/null; then
+      echo "    smtp-proxy-tls SMTP ready after ${i}s"
+      break
+    fi
+    if [ "$i" -eq 30 ]; then
+      echo "WARNING: smtp-proxy-tls SMTP not ready after 30s, continuing anyway"
+    fi
+    sleep 1
+  done
+fi
 
 echo "==> Initializing database"
 curl -sf -X POST "$WORKER_URL/admin/db_initialize" > /dev/null
@@ -148,5 +172,7 @@ if [ -n "${WORKER_URL_SITE_PASSWORD:-}" ]; then
 fi
 
 echo "==> Running Playwright tests"
-npm run test:unit
+if [ "${RUN_UNIT_TESTS:-true}" = true ]; then
+  npm run test:unit
+fi
 exec npx playwright test "$@"

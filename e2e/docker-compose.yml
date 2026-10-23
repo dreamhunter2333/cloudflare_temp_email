@@ -21,6 +21,7 @@ services:
       retries: 20
 
   worker-subdomain:
+    profiles: [api]
     build:
       context: ..
       dockerfile: e2e/Dockerfile.worker
@@ -37,6 +38,7 @@ services:
       retries: 20
 
   worker-env-off:
+    profiles: [api, browser]
     build:
       context: ..
       dockerfile: e2e/Dockerfile.worker
@@ -55,6 +57,7 @@ services:
       retries: 20
 
   worker-gzip:
+    profiles: [api]
     build:
       context: ..
       dockerfile: e2e/Dockerfile.worker
@@ -73,6 +76,7 @@ services:
       retries: 20
 
   worker-send-mail-domain:
+    profiles: [api]
     build:
       context: ..
       dockerfile: e2e/Dockerfile.worker
@@ -91,6 +95,7 @@ services:
       retries: 20
 
   worker-site-password:
+    profiles: [api]
     build:
       context: ..
       dockerfile: e2e/Dockerfile.worker
@@ -109,6 +114,7 @@ services:
       retries: 20
 
   frontend:
+    profiles: [browser, webhook]
     build:
       context: ..
       dockerfile: e2e/Dockerfile.frontend
@@ -119,6 +125,7 @@ services:
         condition: service_healthy
 
   frontend-env-off:
+    profiles: [browser]
     build:
       context: ..
       dockerfile: e2e/Dockerfile.frontend
@@ -132,6 +139,7 @@ services:
         condition: service_healthy
 
   smtp-proxy:
+    profiles: [smtp-proxy]
     build:
       context: ../smtp_proxy_server
       dockerfile: dockerfile
@@ -147,6 +155,7 @@ services:
         condition: service_healthy
 
   smtp-proxy-tls:
+    profiles: [smtp-proxy]
     build:
       context: ../smtp_proxy_server
       dockerfile: dockerfile
@@ -172,7 +181,10 @@ services:
     build:
       context: ..
       dockerfile: e2e/Dockerfile.e2e
+    command: ["--project=${PLAYWRIGHT_PROJECT:-*}"]
     environment:
+      RUN_UNIT_TESTS: ${RUN_UNIT_TESTS:-true}
+      PLAYWRIGHT_PROJECT: ${PLAYWRIGHT_PROJECT:-*}
       WORKER_URL: http://worker:8787
       WORKER_URL_SUBDOMAIN: http://worker-subdomain:8789
       WORKER_URL_ENV_OFF: http://worker-env-off:8790
@@ -194,22 +206,31 @@ services:
         condition: service_healthy
       worker-subdomain:
         condition: service_healthy
+        required: false
       worker-env-off:
         condition: service_healthy
+        required: false
       worker-gzip:
         condition: service_healthy
+        required: false
       worker-send-mail-domain:
         condition: service_healthy
+        required: false
       worker-site-password:
         condition: service_healthy
+        required: false
       frontend:
         condition: service_started
+        required: false
       frontend-env-off:
         condition: service_started
+        required: false
       smtp-proxy:
         condition: service_started
+        required: false
       smtp-proxy-tls:
         condition: service_started
+        required: false
     volumes:
       - ./test-results:/app/e2e/test-results
       - ./playwright-report:/app/e2e/playwright-report

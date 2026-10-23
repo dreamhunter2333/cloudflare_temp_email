@@ -20,6 +20,8 @@
 
 ### Improvements
 
+- perf: |CI| 整理测试目录，独立 Webhook UI 功能组，与 API、其他浏览器测试、SMTP/IMAP 并行执行；仅启动各组所需服务，保留单元测试、WASM 测试与统一检查结果
+
 ## v1.13.0
 
 ### Features

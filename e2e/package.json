@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:unit": "node --experimental-strip-types --test tests/unit/*.test.mjs",
-    "test": "docker compose up --build --abort-on-container-exit --exit-code-from e2e-runner",
-    "test:down": "docker compose down -v"
+    "test:unit": "node --experimental-strip-types --test unit/tests/*.test.mjs",
+    "test": "docker compose --profile \"*\" up --build --abort-on-container-exit --exit-code-from e2e-runner",
+    "test:down": "docker compose --profile \"*\" down -v"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

@@ -20,6 +20,8 @@
 
 ### Improvements
 
+- perf: |CI| Organize test suites and run a dedicated Webhook UI group alongside API, other browser tests and SMTP/IMAP, with only each group's required services, separate unit/WASM tests and one aggregate check
+
 ## v1.13.0
 
 ### Features
