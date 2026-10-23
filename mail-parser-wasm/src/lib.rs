@@ -167,9 +167,10 @@ pub fn parse_message(raw_message: &str) -> MessageResult {
         headers: message
             .headers()
             .iter()
-            .map(|header| MessageHeader {
-                key: header.name().to_owned(),
-                value: header.value().as_text().unwrap_or("").to_owned(),
+            .zip(message.headers_raw())
+            .map(|(header, (key, raw))| MessageHeader {
+                key: key.to_owned(),
+                value: header.value().as_text().unwrap_or(raw.trim()).to_owned(),
             })
             .collect(),
         body_html: message
@@ -181,5 +182,96 @@ pub fn parse_message(raw_message: &str) -> MessageResult {
             .map(|text| text.into_owned())
             .unwrap_or(String::new()),
         attachments: parse_attachment(&message),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn preserves_structured_and_repeated_headers() {
+        let raw = concat!(
+            "From: =?UTF-8?B?5rWL6K+V?=\r\n <first@example.com>\r\n",
+            "From: Last <last@example.com>\r\n",
+            "To: Team: one@example.com, two@example.com;\r\n",
+            "Cc: Copy <copy@example.com>\r\n",
+            "Reply-To: reply@example.com\r\n",
+            "Date: Fri, 23 Oct 2026 12:00:00 +0800\r\n",
+            "Subject: =?UTF-8?B?5rWL6K+V?=\r\n",
+            "Message-ID: <message@example.com>\r\n",
+            "X-Empty:\r\n",
+            "X-Unicode: 测试\r\n",
+            "MIME-Version: 1.0\r\n",
+            "Content-Type: text/plain; charset=utf-8\r\n",
+            "Content-Transfer-Encoding: base64\r\n\r\n",
+            "5q2j5paH"
+        );
+        let parsed = parse_message(raw);
+        let headers: Vec<_> = parsed.headers.iter()
+            .map(|header| (header.key.to_lowercase(), header.value.as_str()))
+            .collect();
+        assert_eq!(headers, vec![
+            ("from".into(), "=?UTF-8?B?5rWL6K+V?=\r\n <first@example.com>"),
+            ("from".into(), "Last <last@example.com>"),
+            ("to".into(), "Team: one@example.com, two@example.com;"),
+            ("cc".into(), "Copy <copy@example.com>"),
+            ("reply-to".into(), "reply@example.com"),
+            ("date".into(), "Fri, 23 Oct 2026 12:00:00 +0800"),
+            ("subject".into(), "测试"),
+            ("message-id".into(), "message@example.com"),
+            ("x-empty".into(), ""),
+            ("x-unicode".into(), "测试"),
+            ("mime-version".into(), "1.0"),
+            ("content-type".into(), "text/plain; charset=utf-8"),
+            ("content-transfer-encoding".into(), "base64"),
+        ]);
+        assert_eq!(parsed.sender, "Last <last@example.com>");
+        assert_eq!(parsed.subject, "测试");
+        assert_eq!(parsed.text, "正文");
+    }
+
+    #[test]
+    fn preserves_decoded_and_empty_text_headers() {
+        let parsed = parse_message(concat!(
+            "From: Sender <sender@example.com>\r\n",
+            "Subject: =?UTF-8?B?5rWL6K+V?=\r\n =?UTF-8?B?5q2j5paH?=\r\n",
+            "Subject: =?UTF-8?B?5rWL6K+V?=\r\n",
+            "Comments: =?UTF-8?B?5rWL6K+V?=\r\n",
+            "Content-Description: =?UTF-8?B?5rWL6K+V?=\r\n",
+            "X-Label: =?UTF-8?B?5rWL6K+V?=\r\n",
+            "X-Empty:\r\n\r\nBody"
+        ));
+        let headers: Vec<_> = parsed.headers.iter()
+            .map(|header| (header.key.to_lowercase(), header.value.as_str()))
+            .collect();
+        assert_eq!(headers, vec![
+            ("from".into(), "Sender <sender@example.com>"),
+            ("subject".into(), "测试正文"),
+            ("subject".into(), "测试"),
+            ("comments".into(), "测试"),
+            ("content-description".into(), "测试"),
+            ("x-label".into(), "=?UTF-8?B?5rWL6K+V?="),
+            ("x-empty".into(), ""),
+        ]);
+    }
+
+    #[test]
+    fn preserves_lf_headers_without_inventing_from() {
+        for from in ["", "From:\n", "From: invalid\n"] {
+            let raw = format!("{from}Subject: Plain\nContent-Type: text/plain\n\nBody");
+            let parsed = parse_message(&raw);
+            assert_eq!(parsed.subject, "Plain");
+            assert_eq!(parsed.text, "Body");
+            let exported: Vec<_> = parsed.headers.iter()
+                .filter(|header| header.key.eq_ignore_ascii_case("from"))
+                .map(|header| header.value.as_str())
+                .collect();
+            assert_eq!(exported, match from {
+                "" => vec![],
+                "From:\n" => vec![""],
+                _ => vec!["invalid"],
+            });
+        }
     }
 }
