@@ -3,7 +3,7 @@ name: Tag Build CI
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 jobs:
   build-frontend:

@@ -5,7 +5,7 @@ on:
     paths:
       - "smtp_proxy_server/**"
     tags:
-      - "*"
+      - "v*"
     branches:
       - main
   workflow_dispatch:

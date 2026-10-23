@@ -1,0 +1,81 @@
+name: WASM CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mail-parser-wasm/**'
+      - 'e2e/scripts/*wasm*.sh'
+      - 'e2e/fixtures/wasm-worker.ts'
+      - 'e2e/playwright.wasm.config.ts'
+      - 'e2e/tests/wasm/**'
+      - '.github/workflows/mail_parser_wasm*.yml'
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --version 0.14.0 --locked
+
+      - name: Build npm packages
+        run: bash e2e/scripts/build-wasm.sh
+
+      - name: Validate release versions
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const version = process.env.GITHUB_REF_NAME.replace(/^mail-parser-wasm-v/, '');
+          assert.match(version, /^\d+\.\d+\.\d+$/);
+          for (const name of ['pkg', 'worker']) {
+            assert.equal(JSON.parse(fs.readFileSync(`mail-parser-wasm/${name}/package.json`)).version, version);
+          }
+          JS
+
+      - name: Install dependencies
+        run: |
+          pnpm --dir worker install --frozen-lockfile
+          npm --prefix e2e ci
+
+      - name: Run package E2E tests
+        env:
+          NODE_OPTIONS: --experimental-wasm-modules
+        run: cd e2e && npx playwright test --config playwright.wasm.config.ts
+
+      - name: Upload npm packages
+        uses: actions/upload-artifact@v6
+        with:
+          name: wasm-packages
+          path: mail-parser-wasm/target/test-packages/*.tgz
+          if-no-files-found: error
+
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report-wasm
+          path: |
+            e2e/test-results/
+            e2e/playwright-report-wasm/
+          retention-days: 30
