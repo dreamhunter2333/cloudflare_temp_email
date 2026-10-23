@@ -271,10 +271,11 @@ for (const variant of [
         { kind: 'plain', from: ['From: first@example.com'] },
         { kind: 'plain', from: ['fRoM: Mixed Case <first@example.com>'] },
         { kind: 'plain', from: ['From: "Folded, Name"', ' <first@example.com>, second@example.com'] },
-        { kind: 'plain', from: ['From: Other <other@example.org>', 'From: Last <first@example.com>'] },
-        { kind: 'plain', from: ['From: invalid', 'From: Last <first@example.com>'] },
-        { kind: 'plain', from: ['From: First <first@example.com>', 'From: invalid'] },
-        { kind: 'plain', from: ['From: First <first@example.com>', 'From:'] },
+        { kind: 'plain', from: ['From: Other <other@example.org>', 'From: Last <first@example.com>'], sender: 'Other <other@example.org>' },
+        { kind: 'plain', from: ['From: invalid', 'From: Last <first@example.com>'], sender: 'invalid <>' },
+        { kind: 'plain', from: ['From: First <first@example.com>', 'From: invalid'], sender: 'First <first@example.com>' },
+        { kind: 'plain', from: ['From: First <first@example.com>', 'From:'], sender: 'First <first@example.com>' },
+        { kind: 'plain', from: ['From:', 'From: Last <first@example.com>'], sender: '' },
         { kind: 'plain', from: [] },
         { kind: 'plain', from: ['From: invalid'] },
         { kind: 'plain', from: ['From: Team: first@example.com;'] },
@@ -304,6 +305,7 @@ for (const variant of [
         const original = await PostalMime.parse(raw);
         const fromHeaders = original.headers.filter(header => header.key === 'from').map(header => header.value);
         const sender = original.from ? `${original.from.name} <${original.from.address}>` : '';
+        if ('sender' in sample) expect(sender).toBe(sample.sender);
         const filter = all(
           { field: 'from', operator: 'equals', value: sender },
           { field: 'to', operator: 'equals', value: mailbox.address },

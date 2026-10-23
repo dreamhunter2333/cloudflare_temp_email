@@ -9,6 +9,7 @@ COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile || (echo "WARN: frozen-lockfile failed, falling back to pnpm install" && pnpm install)
 
 COPY frontend/ .
+RUN pnpm test
 
 # Generate self-signed cert for HTTPS (required for WebAuthn/crypto.subtle)
 RUN openssl req -x509 -newkey rsa:2048 -keyout /tmp/key.pem -out /tmp/cert.pem \

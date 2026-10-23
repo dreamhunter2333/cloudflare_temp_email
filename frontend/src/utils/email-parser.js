@@ -42,8 +42,8 @@ export async function processItem(item) {
     // Fallback to PostalMime
     try {
         const parsedEmail = await PostalMime.parse(item.raw);
-        item.source = parsedEmail.from.address || item.source;
-        if (parsedEmail.from.address && parsedEmail.from.name) {
+        item.source = parsedEmail.from?.address || item.source;
+        if (parsedEmail.from?.address && parsedEmail.from.name) {
             item.source = `${parsedEmail.from.name} <${parsedEmail.from.address}>`;
         }
         item.subject = parsedEmail.subject || 'No Subject';

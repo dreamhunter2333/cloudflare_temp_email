@@ -21,7 +21,9 @@ pnpm add -D wrangler@latest
 cd ..
 
 cd e2e/ || exit 1
-npx --yes npm-check-updates@23.0.0 --upgrade
+npx --yes npm-check-updates@23.0.0 --upgrade --reject postal-mime
+POSTAL_MIME_VERSION="$(node -p "require('../worker/package.json').dependencies['postal-mime']")"
+npm pkg set "devDependencies.postal-mime=${POSTAL_MIME_VERSION}"
 npm install
 
 PLAYWRIGHT_VERSION="$(node -p "require('./package.json').devDependencies['@playwright/test']")"

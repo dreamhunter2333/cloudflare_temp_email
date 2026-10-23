@@ -1,5 +1,5 @@
 # Keep this version in sync with @playwright/test in package.json
-FROM mcr.microsoft.com/playwright:v1.63.0-noble
+FROM mcr.microsoft.com/playwright:v1.64.1-noble
 
 RUN apt-get update && apt-get install -y curl netcat-openbsd && rm -rf /var/lib/apt/lists/*
 
@@ -10,6 +10,7 @@ RUN npm ci
 
 COPY e2e/ .
 COPY worker/src/ /app/worker/src/
+COPY worker/package.json /app/worker/package.json
 RUN ln -s /app/e2e/node_modules /app/worker/node_modules
 COPY frontend/src/utils/filter.ts /app/frontend/src/utils/
 RUN ln -s /app/e2e/node_modules /app/frontend/node_modules

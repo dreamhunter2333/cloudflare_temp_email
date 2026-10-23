@@ -8,14 +8,15 @@
     "test:down": "docker compose down -v"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
-    "@types/ws": "^8.18.1",
-    "hono": "^4.13.7",
-    "postal-mime": "^2.7.6",
-    "ws": "^8.21.3"
+    "@playwright/test": "1.64.1",
+    "@types/ws": "^8.18.2",
+    "hono": "^4.13.13",
+    "mimetext": "^3.0.28",
+    "postal-mime": "^4.1.4",
+    "ws": "^8.22.0"
   },
   "dependencies": {
-    "imapflow": "^2.0.2",
-    "nodemailer": "^10.0.9"
+    "imapflow": "^2.8.0",
+    "nodemailer": "^10.2.0"
   }
 }
