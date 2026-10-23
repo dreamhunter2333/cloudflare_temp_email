@@ -59,7 +59,7 @@ jobs:
 
           if [ -n "$use_mail_wasm_parser" ]; then
             echo "Using mail-parser-wasm-worker"
-            pnpm add mail-parser-wasm-worker
+            pnpm add mail-parser-wasm-worker@0.2.3
             git apply ../.github/config/mail-parser-wasm-worker.patch
             echo "Applied mail-parser-wasm-worker patch"
           fi
