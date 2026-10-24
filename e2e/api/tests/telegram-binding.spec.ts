@@ -68,7 +68,7 @@ test('admin deletion frees a Telegram binding slot and preserves other bindings'
     );
     for (const mailbox of mailboxes.slice(1)) await expectPushOwner(request, mailbox.address, owner);
 
-    const replacement = await createTestAddress(request, 'tg-admin-replacement');
+    const replacement = await createTestAddress(request, 'tg-replacement');
     mailboxes.push(replacement);
     await bind(request, owner, replacement.jwt);
     expect(await addressList(request, owner)).toHaveLength(5);
