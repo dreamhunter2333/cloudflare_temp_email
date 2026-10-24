@@ -4,6 +4,7 @@ import { Jwt } from 'hono/utils/jwt'
 import i18n from '../i18n'
 import { getBooleanValue } from '../utils'
 import { newAddress, handleListQuery } from '../common'
+import { unbindTelegramByAddress } from '../telegram_api/common'
 
 const listAddresses = async (c: Context<HonoCustomType>) => {
     const { limit, offset, query, sort_by, sort_order } = c.req.query();
@@ -70,6 +71,10 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
 const deleteAddress = async (c: Context<HonoCustomType>) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
+    const address = await c.env.DB.prepare(
+        `SELECT name FROM address WHERE id = ?`
+    ).bind(id).first<string>('name');
+    if (address) await unbindTelegramByAddress(c, address);
     // single batch runs as one transaction: rows keyed by address name are
     // deleted first and the address row last, so the name subqueries still
     // resolve and a failed statement rolls back the whole deletion
