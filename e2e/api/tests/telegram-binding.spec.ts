@@ -45,6 +45,77 @@ async function expectPushOwner(request: APIRequestContext, address: string, user
   expect(await response.json()).toBe(userId === null ? null : String(userId));
 }
 
+test('admin deletion frees a Telegram binding slot and preserves other bindings', async ({ request }) => {
+  const owner = Date.now();
+  const mailboxes: Awaited<ReturnType<typeof createTestAddress>>[] = [];
+  try {
+    for (let index = 0; index < 5; index++) {
+      const mailbox = await createTestAddress(request, `tg-admin-${index}-`);
+      mailboxes.push(mailbox);
+      await bind(request, owner, mailbox.jwt);
+    }
+    const deleted = mailboxes[0];
+    const deletion = await request.delete(`${WORKER_URL}/admin/delete_address/${deleted.address_id}`);
+    expect(deletion.ok(), await deletion.text()).toBe(true);
+    await expectPushOwner(request, deleted.address, null);
+    const stored = await request.get(`${WORKER_URL}/__test/telegram_binding`, {
+      params: { userId: String(owner) },
+    });
+    expect(stored.ok()).toBe(true);
+    expect(await stored.json()).toHaveLength(4);
+    expect(await addressList(request, owner)).toEqual(
+      mailboxes.slice(1).map(({ address, jwt }) => ({ address, jwt })),
+    );
+    for (const mailbox of mailboxes.slice(1)) await expectPushOwner(request, mailbox.address, owner);
+
+    const replacement = await createTestAddress(request, 'tg-admin-replacement');
+    mailboxes.push(replacement);
+    await bind(request, owner, replacement.jwt);
+    expect(await addressList(request, owner)).toHaveLength(5);
+
+    const [name, domain] = deleted.address.split('@');
+    const creation = await request.post(`${WORKER_URL}/admin/new_address`, {
+      data: { name, domain, enablePrefix: false },
+    });
+    expect(creation.ok(), await creation.text()).toBe(true);
+    const recreated = await creation.json();
+    mailboxes.push(recreated);
+    expect(recreated.address_id).not.toBe(deleted.address_id);
+    await expectPushOwner(request, recreated.address, null);
+  } finally {
+    for (const mailbox of mailboxes) {
+      await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`);
+    }
+  }
+});
+
+for (const failure of ['result', 'throw']) {
+  test(`failed admin deletion preserves the mailbox and Telegram binding (${failure})`, async ({ request }) => {
+    const mailbox = await createTestAddress(request, 'tg-admin-failure');
+    const owner = Date.now();
+    try {
+      await bind(request, owner, mailbox.jwt);
+      const deletion = await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`, {
+        headers: { 'x-test-fail-db-batch': failure },
+      });
+      expect(deletion.status()).toBe(500);
+      const settings = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${mailbox.jwt}` },
+      });
+      expect(settings.ok()).toBe(true);
+      await expectPushOwner(request, mailbox.address, owner);
+      const stored = await request.get(`${WORKER_URL}/__test/telegram_binding`, {
+        params: { userId: String(owner) },
+      });
+      expect(stored.ok()).toBe(true);
+      expect(await stored.json()).toHaveLength(1);
+      expect(await addressList(request, owner)).toEqual([{ address: mailbox.address, jwt: mailbox.jwt }]);
+    } finally {
+      await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`);
+    }
+  });
+}
+
 test('Telegram users can remove their own bindings after another user binds the mailbox', async ({ request }) => {
   const mailbox = await createTestAddress(request, 'tg-owner');
   const owner = Date.now();
@@ -90,6 +161,10 @@ test('stale Telegram credentials cannot unbind; internal mailbox cleanup still w
   await bind(request, owner, original.jwt);
   const deletion = await request.delete(`${WORKER_URL}/admin/delete_address/${original.address_id}`);
   expect(deletion.ok()).toBe(true);
+  const seed = await request.post(`${WORKER_URL}/__test/telegram_binding`, {
+    data: { userId: owner, address: original.address, jwt: original.jwt },
+  });
+  expect(seed.ok()).toBe(true);
   const [name, domain] = original.address.split('@');
   const creation = await request.post(`${WORKER_URL}/admin/new_address`, {
     data: { name, domain, enablePrefix: false },
@@ -121,9 +196,13 @@ test('Telegram unbind accepts a current credential after a stale credential for 
   const unrelated = await createTestAddress(request, 'tg-retained');
   const owner = Date.now();
   await bind(request, owner, original.jwt);
-  await bind(request, owner, unrelated.jwt);
   const deletion = await request.delete(`${WORKER_URL}/admin/delete_address/${original.address_id}`);
   expect(deletion.ok()).toBe(true);
+  const seed = await request.post(`${WORKER_URL}/__test/telegram_binding`, {
+    data: { userId: owner, address: original.address, jwt: original.jwt },
+  });
+  expect(seed.ok()).toBe(true);
+  await bind(request, owner, unrelated.jwt);
   const [name, domain] = original.address.split('@');
   const creation = await request.post(`${WORKER_URL}/admin/new_address`, {
     data: { name, domain, enablePrefix: false },
