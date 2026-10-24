@@ -74,6 +74,7 @@ const deleteAddress = async (c: Context<HonoCustomType>) => {
     const address = await c.env.DB.prepare(
         `SELECT name FROM address WHERE id = ?`
     ).bind(id).first<string>('name');
+    if (address) await unbindTelegramByAddress(c, address);
     // single batch runs as one transaction: rows keyed by address name are
     // deleted first and the address row last, so the name subqueries still
     // resolve and a failed statement rolls back the whole deletion
@@ -105,7 +106,6 @@ const deleteAddress = async (c: Context<HonoCustomType>) => {
     if (!success) {
         return c.text(msgs.OperationFailedMsg, 500)
     }
-    if (address) await unbindTelegramByAddress(c, address);
     return c.json({ success })
 };
 

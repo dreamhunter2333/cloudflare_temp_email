@@ -90,7 +90,7 @@ test('admin deletion frees a Telegram binding slot and preserves other bindings'
 });
 
 for (const failure of ['result', 'throw']) {
-  test(`failed admin deletion preserves the mailbox and Telegram binding (${failure})`, async ({ request }) => {
+  test(`failed database deletion leaves the mailbox available for retry (${failure})`, async ({ request }) => {
     const mailbox = await createTestAddress(request, 'tg-admin-failure');
     const owner = Date.now();
     try {
@@ -103,15 +103,61 @@ for (const failure of ['result', 'throw']) {
         headers: { Authorization: `Bearer ${mailbox.jwt}` },
       });
       expect(settings.ok()).toBe(true);
-      await expectPushOwner(request, mailbox.address, owner);
+      await expectPushOwner(request, mailbox.address, null);
       const stored = await request.get(`${WORKER_URL}/__test/telegram_binding`, {
         params: { userId: String(owner) },
       });
       expect(stored.ok()).toBe(true);
-      expect(await stored.json()).toHaveLength(1);
-      expect(await addressList(request, owner)).toEqual([{ address: mailbox.address, jwt: mailbox.jwt }]);
+      expect(await stored.json()).toEqual([]);
+      expect(await addressList(request, owner)).toEqual([]);
+      const retry = await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`);
+      expect(retry.ok(), await retry.text()).toBe(true);
+      const deletedSettings = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${mailbox.jwt}` },
+      });
+      expect(deletedSettings.status()).toBe(401);
     } finally {
       await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`);
+    }
+  });
+}
+
+for (const failure of ['get', 'put', 'delete', 'delete-after']) {
+  test(`admin deletion can retry after KV cleanup fails (${failure})`, async ({ request }) => {
+    const mailbox = await createTestAddress(request, 'tg-kv-failure');
+    const unrelated = await createTestAddress(request, 'tg-kv-other');
+    const owner = Date.now();
+    try {
+      await bind(request, owner, mailbox.jwt);
+      await bind(request, owner, unrelated.jwt);
+      const deletion = await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`, {
+        headers: { 'x-test-fail-kv': failure },
+      });
+      expect(deletion.status()).toBe(500);
+      const settings = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${mailbox.jwt}` },
+      });
+      expect(settings.ok()).toBe(true);
+      await expectPushOwner(request, mailbox.address, failure === 'delete-after' ? null : owner);
+      const stored = await request.get(`${WORKER_URL}/__test/telegram_binding`, {
+        params: { userId: String(owner) },
+      });
+      expect(stored.ok()).toBe(true);
+      expect(await stored.json()).toHaveLength(failure === 'get' || failure === 'put' ? 2 : 1);
+
+      const retry = await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`);
+      expect(retry.ok(), await retry.text()).toBe(true);
+      const deletedSettings = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${mailbox.jwt}` },
+      });
+      expect(deletedSettings.status()).toBe(401);
+      await expectPushOwner(request, mailbox.address, null);
+      expect(await addressList(request, owner)).toEqual([{ address: unrelated.address, jwt: unrelated.jwt }]);
+      await expectPushOwner(request, unrelated.address, owner);
+    } finally {
+      for (const address of [mailbox, unrelated]) {
+        await request.delete(`${WORKER_URL}/admin/delete_address/${address.address_id}`);
+      }
     }
   });
 }
