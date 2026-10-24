@@ -74,7 +74,7 @@ Telegram Bot supports **per-user push notifications**. After a user binds an add
 
 After binding, the server stores a separate, non-expiring internal binding token in KV. The Mini App issues a mailbox credential after verifying the Telegram identity and mailbox binding. Internal binding tokens cannot access mailbox APIs or create new bindings.
 
-Existing bindings do not need to be recreated: an expired legacy credential already stored for the authenticated Telegram user can still open or unbind the mailbox after signature and mailbox identity validation. Credentials submitted for new bindings must pass normal authentication; expired credentials are rejected. After a mailbox is deleted and recreated with the same address, its old binding cannot pass the mailbox ID check to obtain an access credential; this protection does not cover mail push notifications. Admin deletion may leave a Telegram push mapping behind, so mail for the recreated mailbox may still be pushed to the previous user.
+Existing bindings do not need to be recreated: an expired legacy credential already stored for the authenticated Telegram user can still open or unbind the mailbox after signature and mailbox identity validation. Credentials submitted for new bindings must pass normal authentication; expired credentials are rejected. After a mailbox is deleted and recreated with the same address, its old binding cannot pass the mailbox ID check to obtain an access credential; this protection does not cover mail push notifications. Admin deletion cleans the current push recipient's binding and push mapping before deleting the mailbox; historical invalid bindings belonging to other users still require `/cleaninvalidaddress` cleanup.
 
 ### Global Push
 
