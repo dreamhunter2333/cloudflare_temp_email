@@ -12,6 +12,8 @@
 
 ### Bug Fixes
 
+- fix: |Mail Reader| Give HTML mail a light canvas and default black text to keep it readable in dark mode while preserving sender-authored colors
+
 - fix: |CI| Fix WASM npm publishing paths so local tarballs are not interpreted as GitHub repositories
 - fix: |Mail Parser| Upgrade WASM parser dependencies and use raw values only for structured headers, preserving decoded text headers while fixing `header.From` webhook filters and sender loss after attachment removal
 - fix: |Mail Parser| Support postal-mime v4's first-header semantics: handle empty/missing From in fallback parsing and regenerate MIME type/encoding headers when removing attachments to preserve stored message bodies
