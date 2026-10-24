@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext } from '@playwright/test';
 import { createHmac } from 'node:crypto';
 import { sign, verify } from 'hono/jwt';
 
-import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress } from '../../fixtures/test-helpers';
+import { WORKER_URL, TEST_DOMAIN, createTestAddress, seedTestMail, deleteAddress } from '../../fixtures/test-helpers';
 
 function initData(userId: number) {
   const fields = {
@@ -218,6 +218,9 @@ test('expired historical Telegram bindings still allow opening and unbinding the
   const mailbox = await createTestAddress(request, 'tg-expired');
   const owner = Date.now();
   try {
+    await seedTestMail(request, mailbox.address, {
+      subject: 'Historical Telegram mail', text: 'Historical binding mail body',
+    });
     const now = Math.floor(Date.now() / 1000);
     const expiredJwt = await sign({
       address: mailbox.address, address_id: mailbox.address_id,
@@ -238,6 +241,20 @@ test('expired historical Telegram bindings still allow opening and unbinding the
     expect(rebind.status()).toBe(400);
     expect(await addressList(request, owner + 1)).toEqual([]);
     await expectPushOwner(request, mailbox.address, owner);
+
+    const mails = await request.get(`${WORKER_URL}/api/mails?limit=10&offset=0`, {
+      headers: { Authorization: `Bearer ${mailbox.jwt}` },
+    });
+    expect(mails.ok(), await mails.text()).toBe(true);
+    const { results } = await mails.json();
+    expect(results).toHaveLength(1);
+    const response = await request.post(`${WORKER_URL}/telegram/get_mail`, {
+      data: { initData: initData(owner), mailId: results[0].id },
+    });
+    expect(response.ok(), await response.text()).toBe(true);
+    const mail = await response.json();
+    expect(mail).toMatchObject({ id: results[0].id, address: mailbox.address });
+    expect(mail.raw).toContain('Historical binding mail body');
 
     const listing = await request.post(`${WORKER_URL}/telegram/get_bind_address`, {
       data: { initData: initData(owner) },
