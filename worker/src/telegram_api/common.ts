@@ -13,10 +13,7 @@ const createTelegramBindingToken = (c: Context<HonoCustomType>, address: string,
 // Only for tokens read from the authenticated Telegram user's stored bindings.
 export const verifyTelegramBindingToken = async (c: Context<HonoCustomType>, token: string) => {
     const payload = await Jwt.verify(token, c.env.JWT_SECRET, { alg: 'HS256', exp: false });
-    if (payload.type !== undefined && payload.type !== 'telegram_binding') {
-        throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
-    }
-    const identity = await validateAddressPayload(c, payload);
+    const identity = await validateAddressPayload(c, payload, 'telegram_binding');
     if (!identity) throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
     return identity;
 };
@@ -144,7 +141,7 @@ export const unbindTelegramAddress = async (
     for (const { payload } of bindings) {
         if (payload?.address !== address) continue;
         try {
-            if (!await validateAddressPayload(c, payload)) continue;
+            if (!await validateAddressPayload(c, payload, 'telegram_binding')) continue;
         } catch (e) {
             console.log(`Failed to validate Telegram binding: ${(e as Error).message}`);
             continue;

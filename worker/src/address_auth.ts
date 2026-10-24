@@ -7,7 +7,9 @@ import i18n from './i18n';
 export const validateAddressPayload = async (
     c: Context<HonoCustomType>,
     payload: Record<string, unknown>,
+    allowedType?: 'telegram_binding',
 ): Promise<JwtPayload | null> => {
+    if (payload.type !== undefined && payload.type !== allowedType) return null;
     const { address, address_id } = payload;
     if (typeof address !== 'string' || !address) return null;
     if (typeof address_id !== 'number'
@@ -26,7 +28,7 @@ export const verifyAddressToken = async (
     token: string,
 ): Promise<JwtPayload> => {
     const payload = await Jwt.verify(token, c.env.JWT_SECRET, 'HS256');
-    const addressPayload = payload.type === undefined ? await validateAddressPayload(c, payload) : null;
+    const addressPayload = await validateAddressPayload(c, payload);
     if (!addressPayload) {
         throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
     }
@@ -35,8 +37,7 @@ export const verifyAddressToken = async (
 
 export const addressJwtAuth = async (c: Context<HonoCustomType>, next: Next) => (
     jwt({ secret: c.env.JWT_SECRET, alg: 'HS256' })(c, async () => {
-        const jwtPayload: Record<string, unknown> = c.get('jwtPayload');
-        const payload = jwtPayload.type === undefined ? await validateAddressPayload(c, jwtPayload) : null;
+        const payload = await validateAddressPayload(c, c.get('jwtPayload'));
         if (!payload) {
             c.res = c.text(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg, 401);
             return;
