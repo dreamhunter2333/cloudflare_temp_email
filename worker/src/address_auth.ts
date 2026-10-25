@@ -26,7 +26,9 @@ export const verifyAddressToken = async (
     token: string,
 ): Promise<JwtPayload> => {
     const payload = await Jwt.verify(token, c.env.JWT_SECRET, 'HS256');
-    const addressPayload = await validateAddressPayload(c, payload);
+    const addressPayload = payload.type === undefined
+        ? await validateAddressPayload(c, payload)
+        : null;
     if (!addressPayload) {
         throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
     }
@@ -35,7 +37,10 @@ export const verifyAddressToken = async (
 
 export const addressJwtAuth = async (c: Context<HonoCustomType>, next: Next) => (
     jwt({ secret: c.env.JWT_SECRET, alg: 'HS256' })(c, async () => {
-        const payload = await validateAddressPayload(c, c.get('jwtPayload'));
+        const jwtPayload = c.get('jwtPayload');
+        const payload = jwtPayload.type === undefined
+            ? await validateAddressPayload(c, jwtPayload)
+            : null;
         if (!payload) {
             c.res = c.text(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg, 401);
             return;
