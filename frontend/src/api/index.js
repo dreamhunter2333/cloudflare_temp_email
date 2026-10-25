@@ -161,7 +161,9 @@ const getOpenSettings = async (message, notification) => {
 const getSettings = async () => {
     let addressToken = jwt.value;
     try {
-        if (!safeHeaderValue(addressToken)) return;
+        if (typeof jwt.value != 'string' || jwt.value.trim() === '' || jwt.value === 'undefined') {
+            return "";
+        }
         const res = await apiFetch('/api/settings', { addressJwt: addressToken });
         if (jwt.value !== addressToken) return;
         localAddressCache.value = updateLocalAddressCache(localAddressCache.value, addressToken, res);

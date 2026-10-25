@@ -27,7 +27,7 @@ export const createAddressToken = (
     return Jwt.sign(payload, c.env.JWT_SECRET, 'HS256');
 };
 
-export const validateAddressIdentity = async (
+export const validateAddressPayload = async (
     c: Context<HonoCustomType>,
     payload: Record<string, unknown>,
 ): Promise<AddressCredentialPayload | null> => {
@@ -44,13 +44,13 @@ export const validateAddressIdentity = async (
     return exists ? { address, address_id: addressId } : null;
 };
 
-export const validateAddressPayload = async (
+const validateAddressLoginPayload = async (
     c: Context<HonoCustomType>,
     payload: Record<string, unknown>,
 ): Promise<JwtPayload | null> => {
     if (payload.type !== undefined && payload.type !== 'address_password_login') return null;
     if (isAddressPasswordLoginOnly(c) && payload.type !== 'address_password_login') return null;
-    const identity = await validateAddressIdentity(c, payload);
+    const identity = await validateAddressPayload(c, payload);
     if (!identity) return null;
     if (payload.type !== 'address_password_login') return identity;
     const { iat, exp } = payload;
@@ -67,7 +67,7 @@ export const verifyAddressToken = async (
     token: string,
 ): Promise<JwtPayload> => {
     const payload = await Jwt.verify(token, c.env.JWT_SECRET, 'HS256');
-    const addressPayload = await validateAddressPayload(c, payload);
+    const addressPayload = await validateAddressLoginPayload(c, payload);
     if (!addressPayload) {
         throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
     }
@@ -76,7 +76,7 @@ export const verifyAddressToken = async (
 
 export const addressJwtAuth = async (c: Context<HonoCustomType>, next: Next) => (
     jwt({ secret: c.env.JWT_SECRET, alg: 'HS256' })(c, async () => {
-        const payload = await validateAddressPayload(c, c.get('jwtPayload'));
+        const payload = await validateAddressLoginPayload(c, c.get('jwtPayload'));
         if (!payload) {
             c.res = c.text(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg, 401);
             return;
