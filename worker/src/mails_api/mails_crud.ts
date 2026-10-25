@@ -72,7 +72,6 @@ const getSettings = async (c: Context<HonoCustomType>) => {
     updateAddressUpdatedAt(c, address);
 
     const { balance } = await getSendBalanceState(c, address);
-    c.header('Cache-Control', 'no-store');
     return c.json({
         ...payload,
         send_balance: balance || 0,
