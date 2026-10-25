@@ -49,6 +49,7 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
         headers: { ...headers, Authorization: `Bearer ${jwt}` },
       });
       expect(settings.ok()).toBe(true);
+      expect(settings.headers()['cache-control']).toBe('no-store');
       const loginSettings = await settings.json();
       expect(loginSettings.address).toBe(mailbox.address);
       expect(loginSettings.new_address_token).toBeNull();
@@ -103,6 +104,7 @@ test('password login tokens renew below seven days; legacy credentials do not re
         headers: { Authorization: `Bearer ${token}` },
       });
       expect(response.ok()).toBe(true);
+      expect(response.headers()['cache-control']).toBe('no-store');
       const settings = await response.json();
       expect(settings.type).toBe('address_password_login');
       if (remainingDays > 7) {
