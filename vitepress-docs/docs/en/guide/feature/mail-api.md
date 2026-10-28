@@ -1,5 +1,17 @@
 # Mail API
 
+## Mailbox Password Sessions
+
+With both `ENABLE_ADDRESS_PASSWORD=true` and `ADDRESS_PASSWORD_LOGIN_ONLY=true`, password login, mailbox creation, and authorized user-center, admin, or Telegram access issue 30-day mailbox JWTs with `type: "address_password_login"`, `address`, `address_id`, `iat`, and `exp`. Mailbox APIs continue using `Authorization: Bearer <jwt>` without a database migration.
+
+- `GET /api/settings` returns mailbox identity, `send_balance`, and `new_address_token`. A valid password-login JWT with less than seven days remaining receives a new 30-day token; otherwise the field is `null`. Expired sessions must log in again; legacy credentials do not renew.
+- The web client saves the renewed token and updates its local mailbox cache from one successful settings response, without decoding mailbox JWTs or making a second validation request. External clients should also save `new_address_token`.
+- The local cache retains credential-login and password-login entries separately and accepts historical token strings. Unverified entries display a saved-mailbox placeholder until selected and validated. Failed requests preserve the previous token and cache.
+- Turning the switch off or disabling mailbox passwords restores legacy issuance for new logins and authorized access. Existing valid password sessions remain usable and renewable. Legacy credentials, `/open_api/credential_login`, credential login links, and direct API access remain accepted; the switch does not yet enforce legacy-credential rejection.
+- Telegram retains its separate permanent internal binding tokens. Expiry is ignored only for stored historical bindings read after Telegram authentication; signature and mailbox identity checks remain required. New bindings must pass normal mailbox authentication.
+
+Mailbox password changes continue using `POST /api/address_change_password`, without a User-tab reset form or an old-password requirement. Password changes do not revoke issued JWTs; valid sessions remain renewable.
+
 ## Viewing Emails via Mail API
 
 This is a `python` example using the `requests` library to view emails.

@@ -13,7 +13,7 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
     });
 
     const created = await request.post(`${WORKER_URL}/api/new_address`, {
-      headers, data: { name: `loginentry${Date.now()}`, domain: TEST_DOMAIN },
+      data: { name: `loginentry${Date.now()}`, domain: TEST_DOMAIN },
     });
     expect(created.ok()).toBe(true);
     const { jwt, address } = await created.json();

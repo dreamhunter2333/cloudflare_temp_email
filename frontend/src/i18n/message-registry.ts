@@ -1994,6 +1994,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.index.LocalAddress": {
+    "savedMailbox": {
+      "en": "Saved mailbox {index}",
+      "zh": "已保存邮箱 {index}"
+    },
     "actions": {
       "en": "Actions",
       "zh": "操作"
