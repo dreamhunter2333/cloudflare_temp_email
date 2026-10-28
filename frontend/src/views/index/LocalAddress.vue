@@ -11,7 +11,7 @@ import { useGlobalState } from '../../store'
 // @ts-ignore
 import Login from '../common/Login.vue';
 
-const { jwt } = useGlobalState()
+const { jwt, openSettings } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
@@ -23,6 +23,7 @@ const localAddressCache = useLocalStorage<(string | CachedAddress)[]>("LocalAddr
 const data = computed(() => {
     return getCachedAddresses(localAddressCache.value).map(({ token, address, type }, index) => {
         const isPasswordLogin = type === 'address_password_login';
+        if (address && openSettings.value.addressPasswordLoginOnly && !isPasswordLogin) return null;
         return {
             address: address
                 ? `${address} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`

@@ -3,7 +3,7 @@ import { sign } from 'hono/jwt';
 
 import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress } from '../../fixtures/test-helpers';
 
-test('historical mailbox cache keeps both login methods through renewal', async ({ page, request }, testInfo) => {
+test('historical mailbox cache keeps both login methods through renewal and password-only mode', async ({ page, request }, testInfo) => {
   const mailbox = await createTestAddress(request, 'cached-login');
   const other = await createTestAddress(request, 'cached-other');
   const now = Math.floor(Date.now() / 1000);
@@ -71,6 +71,24 @@ test('historical mailbox cache keeps both login methods through renewal', async 
       { token: other.jwt, address: other.address, type: null },
     ]);
 
+    await page.setExtraHTTPHeaders({ 'x-test-address-password-mode': 'password-only' });
+    await page.goto(`${FRONTEND_URL}/en/?jwt=${renewedToken}`);
+    await page.locator('.address-select').click();
+    await expect(options).toContainText('Password Login');
+    await expect(options).not.toContainText('Credential Login');
+    await page.keyboard.press('Escape');
+    await page.locator('.address-manage').click();
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toContainText('Password Login');
+    await testInfo.attach('Password-only mailbox cache', {
+      body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
+    });
+    expect(await readCache()).toHaveLength(3);
+
+    await page.goto(`${FRONTEND_URL}/en/?jwt=`);
+    await expect(page.getByRole('button', { name: 'Log In to Mailbox', exact: true })).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Credential Login', exact: true })).toHaveCount(0);
   } finally {
     await deleteAddress(request, mailbox.jwt);
     await deleteAddress(request, other.jwt);

@@ -10,9 +10,9 @@
 
 ### Features
 
-- feat: |Mailbox Sessions| Issue 30-day password-login JWTs while the switch is effective and renew below 7 days; update tokens and historical mailbox caches in one request without frontend JWT decoding, retaining legacy credential access
+- feat: |Mailbox Sessions| Issue 30-day password-login JWTs while the switch is effective and renew below 7 days; update tokens and historical mailbox caches in one request without frontend JWT decoding
 
-- feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
+- feat: |Mailbox Login| Add an opt-in password-only switch requiring mailbox passwords; reject legacy credential login and API access while preserving authorized user-center, admin, and Telegram access
 
 ### Bug Fixes
 

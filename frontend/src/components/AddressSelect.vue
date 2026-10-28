@@ -66,6 +66,7 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
         .map(({ token, address, type }, index) => {
             if (excludeAddresses.has(address)) return null;
             const isPasswordLogin = type === 'address_password_login';
+            if (address && openSettings.value.addressPasswordLoginOnly && !isPasswordLogin) return null;
             const label = address
                 ? `${formatAddressLabel(address)} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`
                 : localAddressT('savedMailbox', { index: index + 1 });
@@ -193,7 +194,7 @@ onMounted(async () => {
     await refreshAddressOptions();
 });
 
-watch([userJwt, isTelegram, localAddressCache, () => settings.value.address], async () => {
+watch([userJwt, isTelegram, localAddressCache, () => settings.value.address, () => openSettings.value.addressPasswordLoginOnly], async () => {
     await refreshAddressOptions();
 });
 </script>

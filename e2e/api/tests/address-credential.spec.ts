@@ -12,7 +12,7 @@ function signToken(payload: Record<string, unknown>) {
 }
 
 for (const mode of ['default', 'password-only', 'password-disabled']) {
-  test(`mailbox session issuance: ${mode}`, async ({ request }) => {
+  test(`mailbox authentication policy: ${mode}`, async ({ request }) => {
     const mailbox = await createTestAddress(request, 'password-policy');
     const headers = mode === 'default' ? {} : { 'x-test-address-password-mode': mode };
     const passwordOnly = mode === 'password-only';
@@ -29,12 +29,12 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
       const credentialLogin = await request.post(`${WORKER_URL}/open_api/credential_login`, {
         headers, data: { credential: mailbox.jwt },
       });
-      expect(credentialLogin.status()).toBe(200);
+      expect(credentialLogin.status()).toBe(passwordOnly ? 403 : 200);
       for (const path of ['/api/settings', '/api/mails?limit=10&offset=0']) {
         const response = await request.get(`${WORKER_URL}${path}`, {
           headers: { ...headers, Authorization: `Bearer ${mailbox.jwt}` },
         });
-        expect(response.status()).toBe(200);
+        expect(response.status()).toBe(passwordOnly ? 401 : 200);
       }
       const login = await request.post(`${WORKER_URL}/api/address_login`, {
         headers, data: { email: mailbox.address, password },
