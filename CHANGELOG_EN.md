@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
+
 ### Bug Fixes
 
 - fix: |Telegram| Clean up the current push recipient's binding and push mapping before admin mailbox deletion, freeing a slot and preventing stale pushes on recreation; KV cleanup failures preserve the mailbox for retry, while database deletion failures may leave it unbound
