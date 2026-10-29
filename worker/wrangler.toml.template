@@ -92,7 +92,7 @@ ENABLE_AUTO_REPLY = false
 # Enable address password feature, if set true, will generate password for new address and support password login and change
 # ENABLE_ADDRESS_PASSWORD = false
 # Show only password login and issue renewable 30-day mailbox sessions (requires ENABLE_ADDRESS_PASSWORD).
-# Legacy credentials, login links, and API access remain supported.
+# Reject legacy credential login and mailbox API access; keep authorized user/admin/Telegram access.
 # ADDRESS_PASSWORD_LOGIN_ONLY = false
 # Show AI Agent mailbox connection info in the address credential modal
 # ENABLE_AGENT_EMAIL_INFO = true
