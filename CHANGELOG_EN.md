@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Mailbox Login| Hide legacy credential displays, connection details, and local legacy choices while password-only mode is effective, retaining historical cache strings
+
 - feat: |Mailbox Sessions| Issue renewable 30-day JWTs at mailbox creation, password login, and authorized user, admin, and Telegram access while the password-only switch is effective
 
 - feat: |Mailbox Sessions| Persist renewed settings tokens using the existing string cache and JWT decoding, preserving login methods, ordering, and failure state

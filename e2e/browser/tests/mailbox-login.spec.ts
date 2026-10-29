@@ -3,7 +3,7 @@ import { sign } from 'hono/jwt';
 
 import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress } from '../../fixtures/test-helpers';
 
-test('historical mailbox cache keeps both login methods through renewal', async ({ page, request }, testInfo) => {
+test('historical mailbox cache keeps both login methods through renewal and password-only mode', async ({ page, request }, testInfo) => {
   const mailbox = await createTestAddress(request, 'cached-login');
   const other = await createTestAddress(request, 'cached-other');
   const now = Math.floor(Date.now() / 1000);
@@ -81,6 +81,28 @@ test('historical mailbox cache keeps both login methods through renewal', async 
     await page.locator('.address-select').click();
     await expect(options.getByText(`${mailbox.address} (Credential Login)`, { exact: true })).toHaveCount(0);
     await expect(options.getByText(`${mailbox.address} (Password Login)`, { exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page.evaluate(cache => localStorage.setItem('LocalAddressCache', JSON.stringify(cache)), [mailbox.jwt, renewedToken, other.jwt]);
+    await page.setExtraHTTPHeaders({ 'x-test-address-password-mode': 'password-only' });
+    await page.goto(`${FRONTEND_URL}/en/?jwt=${renewedToken}`);
+    await expect(page.locator('.address-select')).toContainText('Password Login');
+    await page.locator('.address-select').click();
+    const passwordOptions = page.locator('.n-base-select-menu:visible');
+    await expect(passwordOptions).toContainText('Password Login');
+    await expect(passwordOptions).not.toContainText('Credential Login');
+    await page.keyboard.press('Escape');
+    await page.locator('.address-manage').click();
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toContainText('Password Login');
+    await testInfo.attach('Password-only mailbox cache', {
+      body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
+    });
+    expect(await readCache()).toHaveLength(3);
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => localStorage.setItem('jwt', ''));
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Credential Login', exact: true })).toHaveCount(0);
+    await expect(page.locator('input[type="password"]')).toBeVisible();
 
   } finally {
     await deleteAddress(request, mailbox.jwt);
