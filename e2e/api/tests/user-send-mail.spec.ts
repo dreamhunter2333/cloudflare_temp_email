@@ -72,7 +72,7 @@ test.describe('User send mail API', () => {
       await bindAddress(request, user.jwt, accessRequest.jwt);
 
       for (const mode of ['default', 'password-only', 'password-disabled']) {
-        const headers = { 'x-user-token': user.jwt, ...(mode === 'default' ? {} : { 'x-test-address-password-mode': mode }) };
+        const headers = { 'x-user-token': user.jwt, 'x-admin-auth': 'e2e-admin-pass', ...(mode === 'default' ? {} : { 'x-test-address-password-mode': mode }) };
         for (const path of [`/user_api/bind_address_jwt/${bound.address_id}`, `/admin/show_password/${bound.address_id}`]) {
           const issued = await request.get(`${WORKER_URL}${path}`, { headers });
           expect(issued.ok()).toBe(true);
