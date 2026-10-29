@@ -1,7 +1,62 @@
 import { expect, test } from '@playwright/test';
 import { sign } from 'hono/jwt';
 
-import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../fixtures/test-helpers';
+
+for (const mode of ['default', 'password-only', 'password-disabled']) {
+  test(`mailbox creation and password controls: ${mode}`, async ({ page, request }) => {
+    const headers = mode === 'default' ? {} : { 'x-test-address-password-mode': mode };
+    const passwordOnly = mode === 'password-only';
+    let jwt = '';
+    try {
+      await page.setExtraHTTPHeaders(headers);
+      await page.goto(`${FRONTEND_URL}/en/`);
+      await page.getByRole('button', { name: 'Create Email Address', exact: true }).click();
+      const form = page.locator('.n-tab-pane:visible form');
+      await form.locator('.n-input-group .n-input input').fill(`passwordui${Date.now()}`);
+      const createdResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/new_address');
+      await form.getByRole('button', { name: 'Create Email Address', exact: true }).click();
+      const created = await createdResponse;
+      expect(created.ok()).toBe(true);
+      const mailbox = await created.json();
+      jwt = mailbox.jwt;
+      const modal = page.locator('.n-modal');
+      await expect(modal.getByTestId('address-credential-address')).toHaveText(mailbox.address);
+      if (mode === 'password-disabled') {
+        await expect(modal.getByTestId('address-credential-password')).toHaveCount(0);
+      } else {
+        expect(mailbox.password).toEqual(expect.any(String));
+        expect(mailbox.password).not.toBe('');
+        await expect(modal.getByTestId('address-credential-password')).toHaveText(mailbox.password);
+      }
+      await expect(modal.getByTestId('address-credential-jwt')).toHaveCount(passwordOnly ? 0 : 1);
+      await expect(modal.locator('.credential-collapse')).toHaveCount(passwordOnly ? 0 : 1);
+      await page.keyboard.press('Escape');
+      await page.getByRole('tab', { name: 'Mailbox Settings', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Credentials & Connection Methods', exact: true })).toHaveCount(passwordOnly ? 0 : 1);
+      const changePassword = page.getByRole('button', { name: 'Change Mailbox Password', exact: true });
+      if (mode === 'password-disabled') {
+        await expect(changePassword).toHaveCount(0);
+        return;
+      }
+      await expect(changePassword).toBeVisible();
+      if (!passwordOnly) return;
+      await changePassword.click();
+      const password = 'updated-mailbox-ui-password';
+      await modal.locator('input[type="password"]').nth(0).fill(password);
+      await modal.locator('input[type="password"]').nth(1).fill(password);
+      const changedResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/address_change_password');
+      await modal.getByRole('button', { name: 'Change Mailbox Password', exact: true }).click();
+      expect((await changedResponse).ok()).toBe(true);
+      const login = await request.post(`${WORKER_URL}/api/address_login`, {
+        headers, data: { email: mailbox.address, password: hashPassword(password) },
+      });
+      expect(login.ok()).toBe(true);
+    } finally {
+      if (jwt) await deleteAddress(request, jwt);
+    }
+  });
+}
 
 test('historical mailbox cache keeps both login methods through renewal and password-only mode', async ({ page, request }, testInfo) => {
   const mailbox = await createTestAddress(request, 'cached-login');
