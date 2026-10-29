@@ -3,8 +3,7 @@ import { ref, h, computed } from 'vue';
 import { useLocalStorage } from '@vueuse/core';
 import { useScopedI18n } from '@/i18n/app'
 import { NPopconfirm, NButton } from 'naive-ui'
-import { getCachedAddresses } from '../../utils/local-address-cache'
-import type { CachedAddress } from '../../utils/local-address-cache'
+import { decodeAddressToken } from '../../utils/local-address-cache'
 
 // @ts-ignore
 import { useGlobalState } from '../../store'
@@ -19,17 +18,20 @@ const { t } = useScopedI18n('views.index.LocalAddress')
 const { t: loginT } = useScopedI18n('views.common.Login')
 
 const tabValue = ref('address')
-const localAddressCache = useLocalStorage<(string | CachedAddress)[]>("LocalAddressCache", []);
+const localAddressCache = useLocalStorage<string[]>("LocalAddressCache", []);
 const data = computed(() => {
-    return getCachedAddresses(localAddressCache.value).map(({ token, address, type }, index) => {
-        const isPasswordLogin = type === 'address_password_login';
+    const tokens = localAddressCache.value.includes(jwt.value) || !jwt.value
+        ? localAddressCache.value : [...localAddressCache.value, jwt.value];
+    return tokens.map((token) => {
+        const payload = decodeAddressToken(token);
+        if (!payload) return { valid: false, address: `invalid jwt [${token}]`, jwt: token };
+        const isPasswordLogin = payload.type === 'address_password_login';
         return {
-            address: address
-                ? `${address} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`
-                : t('savedMailbox', { index: index + 1 }),
+            valid: true,
+            address: `${payload.address} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`,
             jwt: token
         }
-    }).filter(Boolean)
+    })
 })
 
 const bindAddress = () => {
@@ -71,8 +73,8 @@ const columns = [
                             if (jwt.value === row.jwt) {
                                 return;
                             }
-                            localAddressCache.value = getCachedAddresses(localAddressCache.value).filter(
-                                entry => entry.token !== row.jwt
+                            localAddressCache.value = localAddressCache.value.filter(
+                                token => token !== row.jwt
                             );
                         }
                     },

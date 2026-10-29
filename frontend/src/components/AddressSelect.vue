@@ -8,7 +8,7 @@ import { Copy } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-import { getCachedAddresses } from '../utils/local-address-cache'
+import { decodeAddressToken } from '../utils/local-address-cache'
 
 const props = defineProps({
     showCopy: {
@@ -30,7 +30,6 @@ const {
 
 const { t } = useScopedI18n('components.AddressSelect')
 const { t: loginT } = useScopedI18n('views.common.Login')
-const { t: localAddressT } = useScopedI18n('views.index.LocalAddress')
 
 const addressOptions = ref([])
 const addressValue = ref(null)
@@ -62,13 +61,15 @@ const getOptionValue = (key, scope, payload, address) => {
 }
 
 const buildLocalOptions = (excludeAddresses = new Set()) => {
-    const children = getCachedAddresses(localAddressCache.value)
-        .map(({ token, address, type }, index) => {
-            if (excludeAddresses.has(address)) return null;
+    const tokens = localAddressCache.value.includes(jwt.value) || !jwt.value
+        ? localAddressCache.value : [...localAddressCache.value, jwt.value];
+    const children = tokens
+        .map((token) => {
+            const payload = decodeAddressToken(token);
+            if (!payload || excludeAddresses.has(payload.address)) return null;
+            const { address, type } = payload;
             const isPasswordLogin = type === 'address_password_login';
-            const label = address
-                ? `${formatAddressLabel(address)} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`
-                : localAddressT('savedMailbox', { index: index + 1 });
+            const label = `${formatAddressLabel(address)} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`;
             const key = `local:${token}`;
             const option = { label, value: getOptionValue(key, 'local', token, address), address };
             if (token === jwt.value) {
@@ -193,7 +194,7 @@ onMounted(async () => {
     await refreshAddressOptions();
 });
 
-watch([userJwt, isTelegram, localAddressCache, () => settings.value.address], async () => {
+watch([userJwt, isTelegram, jwt, () => settings.value.address], async () => {
     await refreshAddressOptions();
 });
 </script>

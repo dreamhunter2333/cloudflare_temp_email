@@ -5,8 +5,8 @@
 同时启用 `ENABLE_ADDRESS_PASSWORD=true` 和 `ADDRESS_PASSWORD_LOGIN_ONLY=true` 后，密码登录、创建邮箱以及用户中心、管理员或 Telegram 的授权访问会签发 `type: "address_password_login"` 的邮箱 JWT，包含 `address`、`address_id`、`iat` 和 `exp`，有效期为 30 天。邮箱 API 继续使用 `Authorization: Bearer <jwt>`，无需数据库迁移。
 
 - `GET /api/settings` 返回邮箱身份信息、`send_balance` 和 `new_address_token`。有效密码登录 JWT 剩余不足 7 天时返回新的 30 天 token，否则为 `null`；已过期 JWT 必须重新登录，旧凭据不会续期。
-- 网页一次成功的 settings 请求即可保存续期 token 并更新本地邮箱缓存，不解码邮箱 JWT，也不发起二次验证请求。外部客户端应同样保存 `new_address_token`。
-- 本地邮箱分别保留凭据登录和密码登录记录，兼容历史 token 字符串缓存。尚未验证的记录先显示“已保存邮箱”，选中并验证后补全邮箱信息；请求失败时保留原 token 和缓存。
+- 网页一次成功的 settings 请求即可保存续期 token 并更新本地邮箱缓存，无需二次验证请求。外部客户端应同样保存 `new_address_token`。
+- 本地邮箱沿用 token 字符串缓存，通过解码 JWT 显示邮箱地址和登录方式；凭据登录和密码登录记录分别保留，续期时原位替换同类记录。解码仅用于显示和缓存去重，权限仍由后端校验；请求失败时保留原 token 和缓存。
 - 关闭开关或禁用邮箱密码后，新登录和授权访问恢复旧凭据签发。已签发且仍有效的密码登录 JWT 继续可用并可续期。旧凭据、`/open_api/credential_login`、凭据登录链接和直接 API 访问仍被接受；此配置目前不全面禁用旧凭据访问。
 - Telegram 继续使用独立的永久内部绑定 token。仅对验证 Telegram 身份后从存储读取的历史绑定忽略过期时间，仍验证签名和邮箱身份；新绑定提交的 token 必须通过正常邮箱鉴权。
 

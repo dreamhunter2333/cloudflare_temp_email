@@ -1,25 +1,28 @@
-export type CachedAddress = {
-    token: string;
-    address?: string;
-    type?: 'address_password_login' | null;
+export const decodeAddressToken = (token: string) => {
+    try {
+        const payload = JSON.parse(decodeURIComponent(atob(
+            token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'),
+        )));
+        return typeof payload?.address === 'string' ? payload : null;
+    } catch {
+        return null;
+    }
 };
 
-export const getCachedAddresses = (cache: (string | CachedAddress)[]): CachedAddress[] => cache
-    .map(entry => typeof entry === 'string' ? { token: entry } : entry)
-    .filter(entry => typeof entry?.token === 'string' && entry.token);
-
 export const updateLocalAddressCache = (
-    cache: (string | CachedAddress)[], token: string,
+    cache: string[], token: string,
     { address, type, new_address_token }: {
         address: string; type?: 'address_password_login'; new_address_token?: string | null;
     },
 ) => {
-    const entries = getCachedAddresses(cache);
-    const updated = { token: new_address_token || token, address, type: type ?? null };
-    const matches = (entry: CachedAddress) => entry.token === token || entry.token === updated.token
-        || (entry.address === address && entry.type === updated.type);
-    const existingIndex = entries.findIndex(matches);
-    const remaining = entries.filter(entry => !matches(entry));
-    remaining.splice(existingIndex < 0 ? remaining.length : existingIndex, 0, updated);
+    const updatedToken = new_address_token || token;
+    const matches = (cachedToken: string) => {
+        const payload = decodeAddressToken(cachedToken);
+        return cachedToken === token || cachedToken === updatedToken
+            || (payload?.address === address && payload.type === type);
+    };
+    const existingIndex = cache.findIndex(matches);
+    const remaining = cache.filter(cachedToken => !matches(cachedToken));
+    remaining.splice(existingIndex < 0 ? remaining.length : existingIndex, 0, updatedToken);
     return remaining;
 };
