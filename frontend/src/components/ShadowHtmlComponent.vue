@@ -1,6 +1,8 @@
 <template>
-    <div v-if="useFallback" v-html="htmlContent"></div>
-    <div v-else ref="shadowHost"></div>
+    <div class="mail-boundary">
+        <div v-if="useFallback" class="mail-document" v-html="htmlContent"></div>
+        <div v-else ref="shadowHost" class="mail-document"></div>
+    </div>
 </template>
 
 <script setup>
@@ -44,13 +46,7 @@ const renderShadowDom = () => {
 
         // Update content if Shadow DOM exists
         if (shadowRoot) {
-            const darkModeStyle = props.isDark
-                ? `<style>
-                    :host { color: #e0e0e0; }
-                    a { color: #A8C7FA; }
-                   </style>`
-                : '';
-            shadowRoot.innerHTML = darkModeStyle + props.htmlContent;
+            shadowRoot.innerHTML = props.htmlContent;
         }
     } catch (error) {
         console.error('Failed to render Shadow DOM, falling back to v-html:', error);
@@ -83,3 +79,14 @@ watch(() => [props.htmlContent, props.isDark], () => {
     renderShadowDom();
 }, { flush: 'post' });
 </script>
+
+<style scoped>
+.mail-boundary {
+    all: initial;
+    display: block;
+    width: 100%;
+    color-scheme: normal;
+    color: CanvasText;
+    background-color: Canvas;
+}
+</style>
