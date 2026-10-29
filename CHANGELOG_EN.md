@@ -14,7 +14,7 @@
 
 - feat: |Mailbox Sessions| Persist renewed settings tokens using the existing string cache and JWT decoding, preserving login methods, ordering, and failure state
 
-- feat: |Mailbox Sessions| Validate 30-day password-login JWTs and renew through settings below 7 days; existing login and authorized-access routes retain legacy issuance
+- feat: |Mailbox Sessions| Validate 30-day password-login JWTs and renew through settings below 7 days
 
 - feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
 

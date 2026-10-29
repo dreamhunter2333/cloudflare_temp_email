@@ -214,8 +214,12 @@ for (const action of ['bind', 'create']) {
   });
 }
 
-for (const passwordOnly of [false, true]) {
-  test(`expired historical Telegram bindings allow opening and unbinding: ${passwordOnly ? 'password-only' : 'legacy'}`, async ({ request }) => {
+for (const [passwordOnly, type] of [
+  [false, undefined],
+  [true, undefined],
+  [true, 'address_password_login'],
+] as const) {
+  test(`expired historical Telegram bindings allow opening and unbinding: ${type ?? 'legacy'}, password-only=${passwordOnly}`, async ({ request }) => {
     const mailbox = await createTestAddress(request, 'tg-expired');
     const owner = Date.now();
     const headers = passwordOnly ? { 'x-test-address-password-mode': 'password-only' } : {};
@@ -226,7 +230,7 @@ for (const passwordOnly of [false, true]) {
       const now = Math.floor(Date.now() / 1000);
       const expiredJwt = await sign({
         address: mailbox.address, address_id: mailbox.address_id,
-        ...(passwordOnly ? { type: 'address_password_login' } : {}),
+        ...(type ? { type } : {}),
         iat: now - 31 * 86400, exp: now - 86400,
       }, 'e2e-test-secret-key', 'HS256');
       const seed = await request.post(`${WORKER_URL}/__test/telegram_binding`, {
@@ -278,7 +282,10 @@ for (const passwordOnly of [false, true]) {
         expect(settingsBody.exp - settingsBody.iat).toBe(30 * 86400);
       }
 
-      await unbind(request, owner, mailbox.address);
+      const unbound = await request.post(`${WORKER_URL}/telegram/unbind_address`, {
+        headers, data: { initData: initData(owner), address: mailbox.address },
+      });
+      expect(unbound.ok(), await unbound.text()).toBe(true);
       expect(await addressList(request, owner)).toEqual([]);
       await expectPushOwner(request, mailbox.address, null);
     } finally {
