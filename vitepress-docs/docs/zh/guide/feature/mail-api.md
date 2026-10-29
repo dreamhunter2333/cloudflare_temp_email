@@ -171,12 +171,41 @@ print(response.json())
 ## user 邮件 API
 
 ::: warning 注意：用户 JWT vs 地址 JWT
-此接口使用**用户 JWT**（通过 `/user_api/login` 或 `/user_api/register` 获得），使用 `x-user-token` header。
+这些接口使用**用户 JWT**（注册后通过 `/user_api/login` 获得），使用 `x-user-token` header。绑定邮箱时还需要同时提供地址 JWT。
 
 **请勿与地址 JWT 混淆**：
 - 地址 JWT 使用 `Authorization: Bearer <jwt>` 访问 `/api/*` 接口
 - 用户 JWT 使用 `x-user-token: <jwt>` 访问 `/user_api/*` 接口
 :::
+
+### 绑定邮箱到用户账号
+
+这里的“绑定”是把已有邮箱关联到当前登录的用户账号，之后可在用户中心管理；Telegram 绑定请参考 [Telegram Bot](./telegram.md#每用户邮件推送)。
+
+`POST /user_api/bind_address` 必须同时携带两个凭据：
+
+| 请求头 | 内容 |
+| --- | --- |
+| `x-user-token` | 当前用户账号的 JWT，通过 `POST /user_api/login` 的响应字段 `jwt` 获取 |
+| `Authorization` | `Bearer <地址JWT>`，使用[创建邮箱](./new-address-api.md)返回的 `jwt` 或邮箱登录后的地址 JWT |
+
+无需请求体；用户和邮箱身份分别从这两个 JWT 读取，不接受通过请求体指定 `user_id`、`address_id` 或邮箱地址。若站点设置了访问密码，还需携带 `x-custom-auth`。
+
+```python
+import requests
+
+response = requests.post(
+    "https://<你的worker地址>/user_api/bind_address",
+    headers={
+        "x-user-token": "<你的用户JWT Token>",
+        "Authorization": "Bearer <你的地址JWT>",
+        # "x-custom-auth": "<你的网站密码>",
+    },
+)
+print(response.json())  # {"success": True}
+```
+
+成功返回 `{"success": true}`；重复绑定到同一用户也返回成功。邮箱已绑定其他用户或已达到该用户可绑定邮箱数量上限时返回 400。
 
 ### 用户绑定地址列表
 
@@ -205,6 +234,42 @@ querystring = {
 }
 response = requests.get(url, headers=headers, params=querystring)
 print(response.json())
+```
+
+### 获取已绑定邮箱的地址 JWT
+
+`GET /user_api/bind_address_jwt/:address_id` 使用用户 JWT，只有当前用户绑定的邮箱才可获取。`address_id` 取自上方绑定地址列表的 `results[].id`。返回的 `jwt` 可用于 `Authorization: Bearer <jwt>` 调用 `/api/*` 邮箱接口。
+
+```python
+import requests
+
+address_id = 1
+response = requests.get(
+    f"https://<你的worker地址>/user_api/bind_address_jwt/{address_id}",
+    headers={
+        "x-user-token": "<你的用户JWT Token>",
+        # "x-custom-auth": "<你的网站密码>",
+    },
+)
+print(response.json())  # {"jwt": "..."}
+```
+
+### 解绑邮箱
+
+`POST /user_api/unbind_address` 使用用户 JWT，请求体为 `{"address_id": 1}`，成功返回 `{"success": true}`。此操作只移除当前用户与邮箱的关联，不删除邮箱或邮件，也不撤销已签发的地址 JWT。解绑前请保存邮箱凭据，以便之后继续访问或重新绑定。
+
+```python
+import requests
+
+response = requests.post(
+    "https://<你的worker地址>/user_api/unbind_address",
+    headers={
+        "x-user-token": "<你的用户JWT Token>",
+        # "x-custom-auth": "<你的网站密码>",
+    },
+    json={"address_id": 1},
+)
+print(response.json())  # {"success": True}
 ```
 
 ### 用户邮件列表

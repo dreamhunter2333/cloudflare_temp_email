@@ -171,12 +171,41 @@ print(response.json())
 ## User Mail API
 
 ::: warning Note: User JWT vs Address JWT
-This endpoint uses **User JWT** (obtained via `/user_api/login` or `/user_api/register`), with `x-user-token` header.
+These endpoints use a **User JWT** (obtained via `/user_api/login` after registration), with the `x-user-token` header. Binding an address also requires an Address JWT in the same request.
 
 **Do not confuse with Address JWT**:
 - Address JWT uses `Authorization: Bearer <jwt>` to access `/api/*` endpoints
 - User JWT uses `x-user-token: <jwt>` to access `/user_api/*` endpoints
 :::
+
+### Bind an Email Address to a User Account
+
+Binding associates an existing mailbox with the currently logged-in user account so it can be managed in the user center. For Telegram bindings, see [Telegram Bot](./telegram.md#per-user-mail-push).
+
+`POST /user_api/bind_address` requires both credentials:
+
+| Header | Value |
+| --- | --- |
+| `x-user-token` | The current account's User JWT, from the `jwt` field returned by `POST /user_api/login` |
+| `Authorization` | `Bearer <Address-JWT>`, using the `jwt` returned when [creating a mailbox](./new-address-api.md) or the Address JWT obtained after mailbox login |
+
+No request body is required. User and mailbox identities come from these two JWTs; `user_id`, `address_id`, and email addresses cannot be supplied through the request body. Include `x-custom-auth` if the site requires an access password.
+
+```python
+import requests
+
+response = requests.post(
+    "https://<your-worker-address>/user_api/bind_address",
+    headers={
+        "x-user-token": "<your-user-JWT-token>",
+        "Authorization": "Bearer <your-address-JWT>",
+        # "x-custom-auth": "<your-site-password>",
+    },
+)
+print(response.json())  # {"success": True}
+```
+
+Success returns `{"success": true}`; binding the same address to the same user again also succeeds. An address already bound to another user or a user who has reached their address limit results in 400.
 
 ### Bound Address List
 
@@ -205,6 +234,42 @@ querystring = {
 }
 response = requests.get(url, headers=headers, params=querystring)
 print(response.json())
+```
+
+### Get an Address JWT for a Bound Mailbox
+
+`GET /user_api/bind_address_jwt/:address_id` uses the User JWT and only returns credentials for mailboxes bound to the current user. Obtain `address_id` from `results[].id` in the bound address list above. Use the returned `jwt` as `Authorization: Bearer <jwt>` for `/api/*` mailbox endpoints.
+
+```python
+import requests
+
+address_id = 1
+response = requests.get(
+    f"https://<your-worker-address>/user_api/bind_address_jwt/{address_id}",
+    headers={
+        "x-user-token": "<your-user-JWT-token>",
+        # "x-custom-auth": "<your-site-password>",
+    },
+)
+print(response.json())  # {"jwt": "..."}
+```
+
+### Unbind an Email Address
+
+`POST /user_api/unbind_address` uses the User JWT with a body of `{"address_id": 1}` and returns `{"success": true}` on success. It removes only the current user's association with the mailbox, without deleting the mailbox or its messages or revoking issued Address JWTs. Save the mailbox credential before unbinding to retain access or bind it again later.
+
+```python
+import requests
+
+response = requests.post(
+    "https://<your-worker-address>/user_api/unbind_address",
+    headers={
+        "x-user-token": "<your-user-JWT-token>",
+        # "x-custom-auth": "<your-site-password>",
+    },
+    json={"address_id": 1},
+)
+print(response.json())  # {"success": True}
 ```
 
 ### User Mail List
