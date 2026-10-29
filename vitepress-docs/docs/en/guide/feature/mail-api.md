@@ -1,16 +1,14 @@
 # Mail API
 
-## Mailbox Password Sessions
+## Mailbox Password JWT Validation and Renewal
 
-With both `ENABLE_ADDRESS_PASSWORD=true` and `ADDRESS_PASSWORD_LOGIN_ONLY=true`, password login, mailbox creation, and authorized user-center, admin, or Telegram access issue 30-day mailbox JWTs with `type: "address_password_login"`, `address`, `address_id`, `iat`, and `exp`. Mailbox APIs continue using `Authorization: Bearer <jwt>` without a database migration.
+Mailbox APIs accept legacy mailbox credentials and password sessions containing `type: "address_password_login"`, `address`, `address_id`, `iat`, and `exp`. The backend verifies signatures and mailbox identity, and requires password sessions to be unexpired, issued no later than the current time, and valid for no more than 30 days.
 
-- `GET /api/settings` returns mailbox identity, `send_balance`, and `new_address_token`. A valid password-login JWT with less than seven days remaining receives a new 30-day token; otherwise the field is `null`. Expired sessions must log in again; legacy credentials do not renew.
-- The web client saves the renewed token and updates its local mailbox cache from one successful settings response, without making a second validation request. External clients should also save `new_address_token`.
-- The local cache keeps its existing token-string format and decodes JWTs to display mailbox addresses and login methods. Credential-login and password-login entries remain separate, and renewal replaces matching entries in place. Decoding is used only for display and cache deduplication; authorization remains on the backend. Failed requests preserve the previous token and cache.
-- Turning the switch off or disabling mailbox passwords restores legacy issuance for new logins and authorized access. Existing valid password sessions remain usable and renewable. Legacy credentials, `/open_api/credential_login`, credential login links, and direct API access remain accepted; the switch does not yet enforce legacy-credential rejection.
-- Telegram retains its separate permanent internal binding tokens. Expiry is ignored only for stored historical bindings read after Telegram authentication; signature and mailbox identity checks remain required. New bindings must pass normal mailbox authentication.
+- Mailbox APIs retain `Authorization: Bearer <jwt>` without a database migration.
+- `GET /api/settings` returns mailbox identity, `send_balance`, and `new_address_token`. A valid password-session JWT with less than seven days remaining receives a new 30-day token; otherwise the field is `null`. Legacy credentials do not renew, and expired sessions must log in again.
+- Clients using renewal must save `new_address_token` and use it for subsequent requests.
 
-Mailbox password changes continue using `POST /api/address_change_password`, without a User-tab reset form or an old-password requirement. Password changes do not revoke issued JWTs; valid sessions remain renewable.
+This stage only adds backend validation and renewal for the new JWT type. Existing password-login, mailbox-creation, user, admin, and Telegram routes still issue legacy credentials; browser login and local caching retain their current behavior. The login-page switch still only controls the login entry and does not reject legacy credentials. Frontend renewal support will precede switching token issuance in later stages.
 
 ## Viewing Emails via Mail API
 

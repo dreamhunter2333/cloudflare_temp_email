@@ -3,7 +3,6 @@ import { ref, h, computed } from 'vue';
 import { useLocalStorage } from '@vueuse/core';
 import { useScopedI18n } from '@/i18n/app'
 import { NPopconfirm, NButton } from 'naive-ui'
-import { decodeAddressToken } from '../../utils/local-address-cache'
 
 // @ts-ignore
 import { useGlobalState } from '../../store'
@@ -15,28 +14,52 @@ const { jwt } = useGlobalState()
 const message = useMessage()
 
 const { t } = useScopedI18n('views.index.LocalAddress')
-const { t: loginT } = useScopedI18n('views.common.Login')
 
 const tabValue = ref('address')
-const localAddressCache = useLocalStorage<string[]>("LocalAddressCache", []);
+const localAddressCache = useLocalStorage("LocalAddressCache", []);
 const data = computed(() => {
-    const tokens = localAddressCache.value.includes(jwt.value) || !jwt.value
-        ? localAddressCache.value : [...localAddressCache.value, jwt.value];
-    return tokens.map((token) => {
-        const payload = decodeAddressToken(token);
-        if (!payload) return { valid: false, address: `invalid jwt [${token}]`, jwt: token };
-        const isPasswordLogin = payload.type === 'address_password_login';
-        return {
-            valid: true,
-            address: `${payload.address} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`,
-            jwt: token
+    // @ts-ignore
+    if (!localAddressCache.value.includes(jwt.value)) {
+        // @ts-ignore
+        localAddressCache.value.push(jwt.value)
+    }
+    return localAddressCache.value.map((curJwt: string) => {
+        try {
+            const payload = JSON.parse(
+                decodeURIComponent(
+                    atob(curJwt.split(".")[1]
+                        .replace(/-/g, "+").replace(/_/g, "/")
+                    )
+                )
+            );
+            return {
+                valid: true,
+                address: payload.address,
+                jwt: curJwt
+            }
+        } catch (e) {
+            return {
+                valid: false,
+                address: `invalid jwt [${curJwt}]`,
+                jwt: curJwt
+            }
         }
     })
+
 })
 
-const bindAddress = () => {
-    tabValue.value = 'address'
-    message.success(t('bindAddressSuccess'));
+const bindAddress = async () => {
+    try {
+        // @ts-ignore
+        if (!localAddressCache.value.includes(jwt.value)) {
+            // @ts-ignore
+            localAddressCache.value.push(jwt.value)
+        }
+        tabValue.value = 'address'
+        message.success(t('bindAddressSuccess'));
+    } catch (error) {
+        message.error((error as Error).message || "error");
+    }
 }
 
 const columns = [
@@ -74,7 +97,7 @@ const columns = [
                                 return;
                             }
                             localAddressCache.value = localAddressCache.value.filter(
-                                token => token !== row.jwt
+                                (curJwt: string) => curJwt !== row.jwt
                             );
                         }
                     },

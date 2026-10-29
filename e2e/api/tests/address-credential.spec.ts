@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { createHmac } from 'node:crypto';
 
-import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress, seedTestMail, hashPassword } from '../../fixtures/test-helpers';
+import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress, seedTestMail } from '../../fixtures/test-helpers';
 
 function signToken(payload: Record<string, unknown>) {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
@@ -9,83 +9,6 @@ function signToken(payload: Record<string, unknown>) {
   const signature = createHmac('sha256', 'e2e-test-secret-key')
     .update(`${header}.${body}`).digest('base64url');
   return `${header}.${body}.${signature}`;
-}
-
-for (const mode of ['default', 'password-only', 'password-disabled']) {
-  test(`mailbox session issuance: ${mode}`, async ({ request }) => {
-    const mailbox = await createTestAddress(request, 'password-policy');
-    const headers = mode === 'default' ? {} : { 'x-test-address-password-mode': mode };
-    const passwordOnly = mode === 'password-only';
-    const password = hashPassword('mailbox-policy-password');
-    try {
-      const reset = await request.post(`${WORKER_URL}/api/address_change_password`, {
-        headers: { Authorization: `Bearer ${mailbox.jwt}` }, data: { new_password: password },
-      });
-      expect(reset.ok()).toBe(true);
-      const openSettings = await request.get(`${WORKER_URL}/open_api/settings`, { headers });
-      expect(await openSettings.json()).toMatchObject({
-        addressPasswordLoginOnly: passwordOnly, enableAddressPassword: mode !== 'password-disabled',
-      });
-      const credentialLogin = await request.post(`${WORKER_URL}/open_api/credential_login`, {
-        headers, data: { credential: mailbox.jwt },
-      });
-      expect(credentialLogin.status()).toBe(200);
-      for (const path of ['/api/settings', '/api/mails?limit=10&offset=0']) {
-        const response = await request.get(`${WORKER_URL}${path}`, {
-          headers: { ...headers, Authorization: `Bearer ${mailbox.jwt}` },
-        });
-        expect(response.status()).toBe(200);
-      }
-      const login = await request.post(`${WORKER_URL}/api/address_login`, {
-        headers, data: { email: mailbox.address, password },
-      });
-      if (mode === 'password-disabled') {
-        expect(login.status()).toBe(403);
-        return;
-      }
-      expect(login.ok()).toBe(true);
-      const { jwt } = await login.json();
-      const settings = await request.get(`${WORKER_URL}/api/settings`, {
-        headers: { ...headers, Authorization: `Bearer ${jwt}` },
-      });
-      expect(settings.ok()).toBe(true);
-      const loginSettings = await settings.json();
-      expect(loginSettings.address).toBe(mailbox.address);
-      expect(loginSettings.new_address_token).toBeNull();
-      if (passwordOnly) {
-        expect(loginSettings.type).toBe('address_password_login');
-        expect(loginSettings.exp - loginSettings.iat).toBe(30 * 86400);
-        const newPassword = hashPassword('updated-mailbox-policy-password');
-        const changePassword = await request.post(`${WORKER_URL}/api/address_change_password`, {
-          headers: { ...headers, Authorization: `Bearer ${jwt}` }, data: { new_password: newPassword },
-        });
-        expect(changePassword.ok()).toBe(true);
-        const loginWithNewPassword = await request.post(`${WORKER_URL}/api/address_login`, {
-          headers, data: { email: mailbox.address, password: newPassword },
-        });
-        expect(loginWithNewPassword.ok()).toBe(true);
-      } else {
-        expect(loginSettings).not.toHaveProperty('type');
-        expect(loginSettings).not.toHaveProperty('iat');
-        expect(loginSettings).not.toHaveProperty('exp');
-      }
-      const now = Math.floor(Date.now() / 1000);
-      const token = signToken({ address: mailbox.address, address_id: mailbox.address_id,
-        type: 'address_password_login', iat: now - 24 * 86400, exp: now + 6 * 86400 });
-      const renewal = await request.get(`${WORKER_URL}/api/settings`, {
-        headers: { ...headers, Authorization: `Bearer ${token}` },
-      });
-      expect(renewal.ok()).toBe(true);
-      const { new_address_token } = await renewal.json();
-      expect(new_address_token).toEqual(expect.any(String));
-      const renewed = await request.get(`${WORKER_URL}/api/settings`, {
-        headers: { ...headers, Authorization: `Bearer ${new_address_token}` },
-      });
-      expect(renewed.ok()).toBe(true);
-    } finally {
-      await deleteAddress(request, mailbox.jwt);
-    }
-  });
 }
 
 test('password login tokens renew below seven days; legacy credentials do not renew', async ({ request }) => {

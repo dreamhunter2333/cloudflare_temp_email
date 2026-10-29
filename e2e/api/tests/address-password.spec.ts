@@ -30,11 +30,6 @@ test.describe('Address Password Login', () => {
         headers: { Authorization: `Bearer ${loginBody.jwt}` },
       });
       expect(settingsRes.ok()).toBe(true);
-      const settings = await settingsRes.json();
-      expect(settings).not.toHaveProperty('type');
-      expect(settings).not.toHaveProperty('iat');
-      expect(settings).not.toHaveProperty('exp');
-      expect(settings.new_address_token).toBeNull();
     } finally {
       await deleteAddress(request, jwt);
     }

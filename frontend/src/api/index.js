@@ -1,6 +1,5 @@
 import { useGlobalState } from '../store'
 import { h } from 'vue'
-import { useLocalStorage } from '@vueuse/core'
 import axios from 'axios'
 
 import i18n from '../i18n'
@@ -10,7 +9,6 @@ import { sanitizeHtml } from '../utils/sanitize-html'
 import { APP_CONFIG } from '../config'
 import { createUserAccessTokenInterceptor } from './user-access-token-interceptor'
 import { ErrorCode } from './error-codes'
-import { updateLocalAddressCache } from '../utils/local-address-cache'
 
 const API_BASE = APP_CONFIG.API_BASE || "";
 const {
@@ -18,8 +16,6 @@ const {
     userOpenSettings, userSettings, announcement,
     showAuth, adminAuth, showAdminAuth, userJwt
 } = useGlobalState();
-
-const localAddressCache = useLocalStorage('LocalAddressCache', []);
 
 const instance = axios.create({
     baseURL: API_BASE,
@@ -59,7 +55,7 @@ const apiFetch = async (path, options = {}) => {
         if (customAuthHeader) headers['x-custom-auth'] = customAuthHeader;
         const adminAuthHeader = safeHeaderValue(adminAuth.value);
         if (adminAuthHeader) headers['x-admin-auth'] = adminAuthHeader;
-        const authorizationHeader = safeBearerHeader(options.addressJwt ?? jwt.value);
+        const authorizationHeader = safeBearerHeader(jwt.value);
         if (authorizationHeader) headers['Authorization'] = authorizationHeader;
 
         const initialResponse = await instance.request(path, {
@@ -159,23 +155,18 @@ const getOpenSettings = async (message, notification) => {
 }
 
 const getSettings = async () => {
-    let addressToken = jwt.value;
     try {
         if (typeof jwt.value != 'string' || jwt.value.trim() === '' || jwt.value === 'undefined') {
             return "";
         }
-        const res = await apiFetch('/api/settings', { addressJwt: addressToken });
-        if (jwt.value !== addressToken) return;
-        localAddressCache.value = updateLocalAddressCache(localAddressCache.value, addressToken, res);
-        addressToken = res.new_address_token || addressToken;
-        jwt.value = addressToken;
+        const res = await apiFetch("/api/settings");;
         settings.value = {
             address: res["address"],
             auto_reply: res["auto_reply"],
             send_balance: res["send_balance"],
         };
     } finally {
-        if (jwt.value === addressToken) settings.value.fetched = true;
+        settings.value.fetched = true;
     }
 }
 

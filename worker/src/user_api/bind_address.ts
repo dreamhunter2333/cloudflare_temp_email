@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import { createAddressToken } from '../address_auth';
+import { Jwt } from 'hono/utils/jwt'
 
 import { isAddressCountLimitReached } from "../utils"
 import { unbindTelegramByAddress } from '../telegram_api/common';
@@ -186,7 +186,10 @@ const UserBindAddressModule = {
         if (!name) {
             return c.text(msgs.AddressNotBindedMsg, 400)
         }
-        const jwt = await createAddressToken(c, name, Number(address_id));
+        const jwt = await Jwt.sign({
+            address: name,
+            address_id: address_id
+        }, c.env.JWT_SECRET, "HS256")
         return c.json({
             jwt: jwt
         })

@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import { createAddressToken } from './address_auth';
+import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
 import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, isDomainOrSubdomain, normalizeDomains, trimLower } from './utils';
@@ -454,7 +454,10 @@ export const newAddress = async (
             const generatedPassword = await generatePasswordForAddress(c, address);
 
             // create jwt
-            const jwt = await createAddressToken(c, address, address_id);
+            const jwt = await Jwt.sign({
+                address: address,
+                address_id: address_id
+            }, c.env.JWT_SECRET, "HS256")
             return {
                 jwt: jwt,
                 address: address,

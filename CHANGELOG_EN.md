@@ -10,7 +10,7 @@
 
 ### Features
 
-- feat: |Mailbox Sessions| Issue 30-day password-login JWTs while the switch is effective and renew below 7 days; update tokens in one request, retaining the existing string cache and replacing renewed entries, retaining legacy credential access
+- feat: |Mailbox Sessions| Validate 30-day password-login JWTs and renew through settings below 7 days; existing login and authorized-access routes retain legacy issuance
 
 - feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
 

@@ -3,7 +3,6 @@ import { jwt } from 'hono/jwt';
 import { Jwt } from 'hono/utils/jwt';
 
 import i18n from './i18n';
-import { isAddressPasswordLoginOnly } from './utils';
 
 const ADDRESS_PASSWORD_LOGIN_TTL_SECONDS = 30 * 24 * 60 * 60;
 export const ADDRESS_PASSWORD_LOGIN_RENEWAL_WINDOW_SECONDS = 7 * 24 * 60 * 60;
@@ -16,14 +15,6 @@ export const createAddressPasswordLoginToken = (
         address, address_id: addressId, type: 'address_password_login',
         iat: now, exp: now + ADDRESS_PASSWORD_LOGIN_TTL_SECONDS,
     };
-    return Jwt.sign(payload, c.env.JWT_SECRET, 'HS256');
-};
-
-export const createAddressToken = (
-    c: Context<HonoCustomType>, address: string, addressId: number,
-) => {
-    if (isAddressPasswordLoginOnly(c)) return createAddressPasswordLoginToken(c, address, addressId);
-    const payload: AddressCredentialPayload = { address, address_id: addressId };
     return Jwt.sign(payload, c.env.JWT_SECRET, 'HS256');
 };
 
