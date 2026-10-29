@@ -32,7 +32,7 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
       await expect(modal.getByTestId('address-credential-jwt')).toHaveCount(passwordOnly ? 0 : 1);
       await expect(modal.locator('.credential-collapse')).toHaveCount(passwordOnly ? 0 : 1);
       await page.keyboard.press('Escape');
-      await page.getByRole('tab', { name: 'Mailbox Settings', exact: true }).click();
+      await page.locator('.n-tabs-tab').getByText('Mailbox Settings', { exact: true }).click();
       await expect(page.getByRole('button', { name: 'Credentials & Connection Methods', exact: true })).toHaveCount(passwordOnly ? 0 : 1);
       const changePassword = page.getByRole('button', { name: 'Change Mailbox Password', exact: true });
       if (mode === 'password-disabled') {
@@ -78,6 +78,7 @@ test('historical mailbox cache keeps both login methods through renewal and pass
       supersededPasswordToken,
     ]);
     await page.goto(`${FRONTEND_URL}/en/?jwt=${mailbox.jwt}`);
+    await expect(page.locator('.address-select')).toContainText(mailbox.address);
     await expect.poll(readCache).toEqual([
       mailbox.jwt, passwordToken, other.jwt,
       supersededPasswordToken,
