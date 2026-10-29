@@ -31,8 +31,11 @@ const textContrast = (locator: Locator) => locator.evaluate(element => {
   return (values[0] + 0.05) / (values[1] + 0.05);
 });
 
-for (const fallback of [false, true]) {
-  test(`HTML mail document colors (fallback: ${fallback})`, async ({ page }, testInfo) => {
+for (const [fallback, colorScheme] of [
+  [false, 'light'], [false, 'dark'], [true, 'light'], [true, 'dark'],
+] as const) {
+  test(`HTML mail document colors (fallback: ${fallback}, browser: ${colorScheme})`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ colorScheme });
     const api = await apiRequest.newContext();
     const mailbox = await createTestAddress(api, 'body-colors');
     const errors: string[] = [];
@@ -45,7 +48,15 @@ for (const fallback of [false, true]) {
         <div style="background: white"><a id="link" href="https://example.com">Default link</a></div>
         <div id="panel" style="color: white; background: #222">Sender dark panel
           <a id="authored" href="https://example.org" style="color: #ffcc00">Sender link</a>
-        </div>` });
+        </div>
+        <div id="yellow-panel" style="color: black; background: #ffcc00">Sender yellow panel</div>
+        <style>
+          .sender-link { color: #996600; }
+          @media (prefers-color-scheme: dark) { .sender-media { color: white !important; } }
+        </style>
+        <a id="stylesheet-link" class="sender-link" href="https://example.org">Sender stylesheet link</a>
+        <div style="background: white"><p id="media" class="sender-media" style="color: #101214">Sender media query</p></div>
+        <p id="local-variable" style="--reader-test-color: #ffcc00; color: var(--reader-test-color)">Sender variable</p>` });
       await seedTestMail(api, mailbox.address, { subject: 'Empty document', html: '<!-- Empty HTML document -->' });
       await seedTestMail(api, mailbox.address, { subject: 'Replacement document', html: '<p id="replacement">Replacement text</p>' });
       await page.setViewportSize({ width: 1360, height: 900 });
@@ -59,8 +70,11 @@ for (const fallback of [false, true]) {
       await page.goto(`${FRONTEND_URL}/en/?jwt=${mailbox.jwt}`);
       await page.getByRole('listitem').filter({ hasText: 'Document colors' }).click();
       const reader = page.locator('.mail-content-renderer');
+      const colorsByView = new Map();
       for (const theme of ['dark', 'light']) {
-        if (theme === 'light') await page.getByRole('button', { name: 'Light', exact: true }).click();
+        if (theme === 'light') {
+          await page.getByRole('button', { name: 'Light', exact: true }).click();
+        }
         await expect(page.locator('html')).toHaveClass(theme === 'dark' ? /dark/ : /^(?!.*dark)/);
         for (const fullscreen of [false, true]) {
           if (fullscreen) {
@@ -68,19 +82,35 @@ for (const fallback of [false, true]) {
             await page.getByRole('button', { name: 'Fullscreen', exact: true }).click();
           }
           const root = fullscreen ? page.locator('.fullscreen-mail-content') : reader;
-          const canvas = root.locator('.mail-document');
-          await expect(canvas).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+          const canvas = root.locator('.mail-boundary');
+          await expect(canvas).toHaveCSS('color-scheme', 'normal');
           await expect(canvas).toHaveCSS('color', 'rgb(0, 0, 0)');
-          await expect(canvas).toHaveCSS('color-scheme', 'light');
-          expect(await canvas.evaluate(element => Boolean(element.shadowRoot))).toBe(!fallback);
+          await expect(canvas).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+          expect(await root.locator('.mail-document').evaluate(element => Boolean(element.shadowRoot))).toBe(!fallback);
           for (const id of ['unstyled', 'black', 'cell', 'link']) {
             await expect(root.locator(`#${id}`)).toBeVisible();
             expect(await textContrast(root.locator(`#${id}`))).toBeGreaterThanOrEqual(4.5);
           }
+          await expect(root.locator('#black')).toHaveCSS('color', 'rgb(0, 0, 0)');
+          await expect(root.locator('#cell')).toHaveCSS('color', 'rgb(0, 0, 0)');
+          await expect(root.locator('#local-variable')).toHaveCSS('color', 'rgb(255, 204, 0)');
           await expect(root.locator('#panel')).toHaveCSS('color', 'rgb(255, 255, 255)');
           await expect(root.locator('#panel')).toHaveCSS('background-color', 'rgb(34, 34, 34)');
           await expect(root.locator('#authored')).toHaveCSS('color', 'rgb(255, 204, 0)');
-          if (!fallback) await page.screenshot({ path: testInfo.outputPath(`${theme}-${fullscreen ? 'fullscreen' : 'normal'}.png`) });
+          await expect(root.locator('#yellow-panel')).toHaveCSS('color', 'rgb(0, 0, 0)');
+          await expect(root.locator('#yellow-panel')).toHaveCSS('background-color', 'rgb(255, 204, 0)');
+          await expect(root.locator('#stylesheet-link')).toHaveCSS('color', 'rgb(153, 102, 0)');
+          await expect(root.locator('#media')).toHaveCSS('color', colorScheme === 'dark'
+            ? 'rgb(255, 255, 255)' : 'rgb(16, 18, 20)');
+          if (colorScheme === 'dark') expect(await textContrast(root.locator('#media'))).toBe(1);
+          const colors = await canvas.evaluate(element => {
+            const style = getComputedStyle(element);
+            return [style.color, style.backgroundColor];
+          });
+          if (theme === 'dark') colorsByView.set(fullscreen, colors);
+          else expect(colors).toEqual(colorsByView.get(fullscreen));
+          await expect(page.getByText('loading...', { exact: true })).not.toBeVisible();
+          await page.screenshot({ path: testInfo.outputPath(`${theme}-${fullscreen ? 'fullscreen' : 'normal'}.png`), animations: 'disabled' });
           if (fullscreen) await page.locator('.n-drawer-header__close').last().click();
         }
       }

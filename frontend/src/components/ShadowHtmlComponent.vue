@@ -1,6 +1,8 @@
 <template>
-    <div v-if="useFallback" class="mail-document" v-html="htmlContent"></div>
-    <div v-else ref="shadowHost" class="mail-document"></div>
+    <div class="mail-boundary">
+        <div v-if="useFallback" class="mail-document" v-html="htmlContent"></div>
+        <div v-else ref="shadowHost" class="mail-document"></div>
+    </div>
 </template>
 
 <script setup>
@@ -79,10 +81,12 @@ watch(() => [props.htmlContent, props.isDark], () => {
 </script>
 
 <style scoped>
-/* Give sender HTML a document canvas independent of the application theme. */
-.mail-document {
-    background-color: #fff;
-    color: #000;
-    color-scheme: light;
+.mail-boundary {
+    all: initial;
+    display: block;
+    width: 100%;
+    color-scheme: normal;
+    color: CanvasText;
+    background-color: Canvas;
 }
 </style>
