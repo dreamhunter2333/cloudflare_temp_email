@@ -122,6 +122,7 @@ const getOpenSettings = async (message, notification) => {
             isS3Enabled: res["isS3Enabled"] || false,
             showGithubForUser: res["showGithubForUser"] ?? openSettings.value.showGithubForUser,
             enableAddressPassword: res["enableAddressPassword"] || false,
+            addressPasswordLoginOnly: res["addressPasswordLoginOnly"] === true,
             enableAgentEmailInfo: res["enableAgentEmailInfo"] || false,
             enableRedeemCode: res["enableRedeemCode"] || false,
             redeemCodeUrl: res["redeemCodeUrl"] || "",
