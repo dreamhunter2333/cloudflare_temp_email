@@ -128,10 +128,21 @@ type Bindings = {
     CLEANUP_BATCH_SIZE: string | number | undefined
 }
 
-type JwtPayload = {
+type AddressCredentialPayload = {
     address: string
     address_id: number
+    type?: never
 }
+
+type AddressPasswordLoginPayload = {
+    address: string
+    address_id: number
+    type: 'address_password_login'
+    iat: number
+    exp: number
+}
+
+type JwtPayload = AddressCredentialPayload | AddressPasswordLoginPayload
 
 type UserPayload = {
     user_email: string

@@ -1,5 +1,15 @@
 # Mail API
 
+## Mailbox Password JWT Validation and Renewal
+
+Mailbox APIs accept legacy mailbox credentials and password sessions containing `type: "address_password_login"`, `address`, `address_id`, `iat`, and `exp`. The backend verifies signatures and mailbox identity, and requires password sessions to be unexpired, issued no later than the current time, and valid for no more than 30 days.
+
+- Mailbox APIs retain `Authorization: Bearer <jwt>` without a database migration.
+- `GET /api/settings` returns mailbox identity, `send_balance`, and `new_address_token`. A valid password-session JWT with less than seven days remaining receives a new 30-day token; otherwise the field is `null`. Legacy credentials do not renew, and expired sessions must log in again.
+- Clients using renewal must save `new_address_token` and use it for subsequent requests.
+
+This stage only adds backend validation and renewal for the new JWT type. Existing password-login, mailbox-creation, user, admin, and Telegram routes still issue legacy credentials; browser login and local caching retain their current behavior. The login-page switch still only controls the login entry and does not reject legacy credentials. Frontend renewal support will precede switching token issuance in later stages.
+
 ## Viewing Emails via Mail API
 
 This is a `python` example using the `requests` library to view emails.
