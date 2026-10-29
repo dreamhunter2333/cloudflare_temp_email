@@ -71,6 +71,28 @@ test.describe('User send mail API', () => {
       await bindAddress(request, user.jwt, bound.jwt);
       await bindAddress(request, user.jwt, accessRequest.jwt);
 
+      for (const mode of ['default', 'password-only', 'password-disabled']) {
+        const headers = { 'x-user-token': user.jwt, ...(mode === 'default' ? {} : { 'x-test-address-password-mode': mode }) };
+        for (const path of [`/user_api/bind_address_jwt/${bound.address_id}`, `/admin/show_password/${bound.address_id}`]) {
+          const issued = await request.get(`${WORKER_URL}${path}`, { headers });
+          expect(issued.ok()).toBe(true);
+          const { jwt } = await issued.json();
+          const settings = await request.get(`${WORKER_URL}/api/settings`, {
+            headers: { ...headers, Authorization: `Bearer ${jwt}` },
+          });
+          expect(settings.ok()).toBe(true);
+          const payload = await settings.json();
+          expect(payload.address).toBe(bound.address);
+          if (mode === 'password-only') {
+            expect(payload.type).toBe('address_password_login');
+            expect(payload.exp - payload.iat).toBe(30 * 86400);
+          } else {
+            expect(payload).not.toHaveProperty('type');
+            expect(payload).not.toHaveProperty('exp');
+          }
+        }
+      }
+
       const invalidAddressSettingsRes = await request.get(
         `${WORKER_URL}/user_api/address/0/settings`,
         { headers: { 'x-user-token': user.jwt } },

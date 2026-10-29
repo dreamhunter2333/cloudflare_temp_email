@@ -10,7 +10,9 @@ Mailbox APIs accept legacy mailbox credentials and password sessions containing 
 
 The web client persists renewed tokens from one successful settings response and replaces matching local entries in place. The cache retains token strings and decodes JWTs for mailbox labels and login methods. Both methods remain separate; failed requests preserve the token and cache, and an uncached current mailbox remains visible. Decoding is only for display and deduplication; authorization remains on the backend.
 
-Existing password-login, mailbox-creation, user, admin, and Telegram routes still issue legacy credentials. The login-page switch still only controls the login entry and does not reject legacy credentials; switching issuance follows in a later stage.
+With both `ENABLE_ADDRESS_PASSWORD=true` and `ADDRESS_PASSWORD_LOGIN_ONLY=true`, password login, mailbox creation, and authorized user, admin, and Telegram access issue 30-day password-session JWTs. Disabling either setting restores legacy issuance; previously issued valid sessions remain usable and renewable. Legacy credentials, credential-login links, and direct API access remain compatible until enforcement is added in a later stage.
+
+Telegram retains its separate permanent internal binding tokens. Expiry is ignored only for stored historical bindings read after Telegram authentication, with signature and mailbox identity still checked; new bindings require normal mailbox authentication. Mailbox password changes retain the existing endpoint and do not revoke issued JWTs.
 
 ## Viewing Emails via Mail API
 
