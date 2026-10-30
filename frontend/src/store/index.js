@@ -20,7 +20,7 @@ export const useGlobalState = createGlobalState(
             addressRegex: '',
             needAuth: false,
             adminContact: '',
-            disableUserSystem: false,
+            disableUserSystem: true,
             enableUserCreateEmail: false,
             disableAnonymousUserCreateEmail: false,
             disableCustomAddressName: false,

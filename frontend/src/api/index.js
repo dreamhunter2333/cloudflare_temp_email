@@ -14,7 +14,7 @@ const API_BASE = APP_CONFIG.API_BASE || "";
 const {
     loading, auth, jwt, settings, openSettings,
     userOpenSettings, userSettings, announcement,
-    showAuth, adminAuth, showAdminAuth, userJwt
+    showAuth, adminAuth, showAdminAuth, userJwt, showUserSystem
 } = useGlobalState();
 
 const instance = axios.create({
@@ -185,7 +185,7 @@ const getUserOpenSettings = async (message) => {
 
 const getUserSettings = async (message) => {
     try {
-        if (!userJwt.value) return;
+        if (!showUserSystem.value || !userJwt.value) return;
         const res = await api.fetch("/user_api/settings")
         Object.assign(userSettings.value, res)
         // auto refresh user jwt

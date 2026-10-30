@@ -257,7 +257,7 @@ app.use('/admin/*', async (c, next) => {
 	}
 	// check if user is admin
 	const access_token = c.req.raw.headers.get("x-user-access-token");
-	if (c.env.ADMIN_USER_ROLE && access_token) {
+	if (!getBooleanValue(c.env.DISABLE_USER_SYSTEM) && c.env.ADMIN_USER_ROLE && access_token) {
 		try {
 			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, { alg: "HS256", exp: false });
 			// check expired
