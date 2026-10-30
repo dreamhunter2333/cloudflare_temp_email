@@ -147,7 +147,7 @@ const menuOptions = computed(() => [
             }
         ),
         key: "user",
-        show: !isTelegram.value
+        show: openSettings.value.fetched && !openSettings.value.disableUserSystem && !isTelegram.value
     },
     {
         label: () => h(

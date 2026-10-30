@@ -9,7 +9,6 @@ import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
 import Footer from './views/Footer.vue';
-import { api } from './api'
 import { getNaiveLocaleConfig } from './i18n/naive-locale'
 import { DEFAULT_LOCALE, isSupportedLocale } from './i18n/utils'
 import { APP_CONFIG } from './config'
@@ -43,12 +42,6 @@ if (showAd.value) {
 }
 
 onMounted(async () => {
-  try {
-    await api.getUserSettings();
-  } catch (error) {
-    console.error(error);
-  }
-
   const token = APP_CONFIG.CF_WEB_ANALY_TOKEN;
 
   const exist = document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]') !== null

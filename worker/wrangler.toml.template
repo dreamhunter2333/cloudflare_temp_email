@@ -73,6 +73,8 @@ DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all domain names
 # ]
 JWT_SECRET = "xxx"
 BLACK_LIST = ""
+# Disable the user system and hide its frontend entries
+# DISABLE_USER_SYSTEM = true
 # Allow users to create email addresses
 ENABLE_USER_CREATE_EMAIL = true
 # Disable anonymous user create email, if set true, users can only create email addresses after logging in

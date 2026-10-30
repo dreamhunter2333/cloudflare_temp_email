@@ -54,6 +54,10 @@ app.use('/*', async (c, next) => {
 	if (lang) { c.set("lang", lang); }
 	const msgs = i18n.getMessages(lang || c.env.DEFAULT_LANG);
 
+	if (getBooleanValue(c.env.DISABLE_USER_SYSTEM) && c.req.path.startsWith("/user_api/")) {
+		return c.text("User system is disabled", 403);
+	}
+
 	// check header x-custom-auth
 	const passwords = getPasswords(c);
 	if (!c.req.path.startsWith("/open_api")
@@ -116,6 +120,7 @@ app.use('/*', async (c, next) => {
 const checkUserPayload = async (
 	c: Context<HonoCustomType>
 ): Promise<void> => {
+	if (getBooleanValue(c.env.DISABLE_USER_SYSTEM)) return;
 	try {
 		const token = c.req.raw.headers.get("x-user-token");
 		if (!token) return;
@@ -136,6 +141,7 @@ const checkoutUserRolePayload = async (
 	c: Context<HonoCustomType>,
 	userId?: number
 ): Promise<Response | void> => {
+	if (getBooleanValue(c.env.DISABLE_USER_SYSTEM)) return;
 	try {
 		const token = c.req.raw.headers.get("x-user-access-token");
 		if (!token) return;
@@ -254,7 +260,7 @@ app.use('/admin/*', async (c, next) => {
 	}
 	// check if user is admin
 	const access_token = c.req.raw.headers.get("x-user-access-token");
-	if (c.env.ADMIN_USER_ROLE && access_token) {
+	if (!getBooleanValue(c.env.DISABLE_USER_SYSTEM) && c.env.ADMIN_USER_ROLE && access_token) {
 		try {
 			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, { alg: "HS256", exp: false });
 			// check expired

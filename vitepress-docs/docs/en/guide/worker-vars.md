@@ -10,6 +10,7 @@
 | `DOMAINS`                  | JSON        | All domains for temporary email, supports multiple domains             | `["awsl.uk", "dreamhunter2333.xyz"]` |
 | `JWT_SECRET`               | Text/Secret | Secret key for signing JWTs used in login and authentication. Use a random string, e.g. generated via `openssl rand -hex 32` | `a1b2c3d4...`                        |
 | `ADMIN_PASSWORDS`          | JSON        | Admin console passwords, console access disabled if not configured     | `["123", "456"]`                     |
+| `DISABLE_USER_SYSTEM` | Text/JSON | Disable the user system and user role authentication and hide frontend user entries; disabled by default | `true` |
 | `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | Whether to allow users to create mailboxes, disabled if not configured | `true`                               |
 | `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | Whether to allow users to delete emails, disabled if not configured    | `true`                               |
 | `ENABLE_MAIL_READ_STATUS` | Text/JSON | Enables read/unread mail state. Upgrade the database schema before enabling | `true` |

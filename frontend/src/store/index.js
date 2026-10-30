@@ -20,6 +20,7 @@ export const useGlobalState = createGlobalState(
             addressRegex: '',
             needAuth: false,
             adminContact: '',
+            disableUserSystem: false,
             enableUserCreateEmail: false,
             disableAnonymousUserCreateEmail: false,
             disableCustomAddressName: false,
@@ -131,7 +132,7 @@ export const useGlobalState = createGlobalState(
         });
         const showAdminPage = computed(() =>
             !!adminAuth.value
-            || userSettings.value.is_admin
+            || (!openSettings.value.disableUserSystem && userSettings.value.is_admin)
             || openSettings.value.disableAdminPasswordCheck
         );
         const telegramApp = ref(window.Telegram?.WebApp || {});

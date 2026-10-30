@@ -18,7 +18,7 @@ const router = useRouter()
 
 const {
     jwt, settings, showAddressCredential, userJwt,
-    isTelegram, addressPassword
+    isTelegram, addressPassword, openSettings
 } = useGlobalState()
 
 const { locale, t } = useScopedI18n('views.index.AddressBar')
@@ -36,7 +36,7 @@ onMounted(async () => {
 
 <template>
     <div>
-        <n-card :bordered="false" embedded v-if="!settings.fetched">
+        <n-card :bordered="false" embedded v-if="!settings.fetched || !openSettings.fetched">
             <n-skeleton style="height: 50vh" />
         </n-card>
         <div v-else-if="settings.address">
@@ -55,7 +55,7 @@ onMounted(async () => {
         <div v-else-if="isTelegram">
             <TelegramAddress />
         </div>
-        <div v-else-if="userJwt" class="center">
+        <div v-else-if="!openSettings.disableUserSystem && userJwt" class="center">
             <n-card :bordered="false" embedded style="max-width: 900px; width: 100%;">
                 <AddressManagement />
             </n-card>
@@ -66,8 +66,8 @@ onMounted(async () => {
                     <span>{{ t('fetchAddressError') }}</span>
                 </n-alert>
                 <Login />
-                <n-divider />
-                <n-button @click="onUserLogin" type="primary" block secondary strong>
+                <n-divider v-if="openSettings.fetched && !openSettings.disableUserSystem" />
+                <n-button v-if="openSettings.fetched && !openSettings.disableUserSystem" @click="onUserLogin" type="primary" block secondary strong>
                     <template #icon>
                         <n-icon :component="User" />
                     </template>
@@ -80,7 +80,7 @@ onMounted(async () => {
         <n-modal v-model:show="showAddressManage" preset="card" :title="t('addressManage')"
             style="width: 720px;">
             <TelegramAddress v-if="isTelegram" />
-            <AddressManagement v-else-if="userJwt" />
+            <AddressManagement v-else-if="!openSettings.disableUserSystem && userJwt" />
             <LocalAddress v-else />
         </n-modal>
     </div>
