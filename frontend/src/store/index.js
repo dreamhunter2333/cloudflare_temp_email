@@ -133,6 +133,9 @@ export const useGlobalState = createGlobalState(
         const showUserSystem = computed(() =>
             openSettings.value.fetched && !openSettings.value.disableUserSystem
         );
+        const showUserMailboxes = computed(() =>
+            showUserSystem.value && !!userJwt.value
+        );
         const showAdminPage = computed(() =>
             !!adminAuth.value
             || userSettings.value.is_admin
@@ -191,6 +194,7 @@ export const useGlobalState = createGlobalState(
             isTelegram,
             showAdminPage,
             showUserSystem,
+            showUserMailboxes,
             userOauth2SessionState,
             userOauth2SessionClientID,
             useSimpleIndex,
