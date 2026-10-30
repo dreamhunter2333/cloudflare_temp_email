@@ -36,7 +36,7 @@ onMounted(async () => {
 
 <template>
     <div>
-        <n-card :bordered="false" embedded v-if="!settings.fetched || !openSettings.fetched">
+        <n-card :bordered="false" embedded v-if="!settings.fetched">
             <n-skeleton style="height: 50vh" />
         </n-card>
         <div v-else-if="settings.address">
