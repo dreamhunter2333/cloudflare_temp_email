@@ -10,8 +10,7 @@
 
 ### Features
 
-- feat: |User System| Add `DISABLE_USER_SYSTEM` to disable user APIs and role authentication and hide frontend user entries
-
+- feat: |User System| Add `DISABLE_USER_SYSTEM` to block user APIs in one middleware and hide user interfaces
 - feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
 
 ### Bug Fixes

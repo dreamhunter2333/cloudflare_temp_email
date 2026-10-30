@@ -4,7 +4,6 @@ import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
-import { api } from '../api'
 import {
     DEFAULT_LOCALE,
     getBrowserLocales,
@@ -13,7 +12,7 @@ import {
     resolveSupportedLocale,
 } from '../i18n/utils'
 
-const { jwt, preferredLocale, openSettings } = useGlobalState()
+const { jwt, preferredLocale } = useGlobalState()
 
 const router = createRouter({
     history: createWebHistory(),
@@ -26,8 +25,7 @@ const router = createRouter({
         {
             path: '/user',
             alias: '/:lang/user',
-            component: User,
-            meta: { requiresUserSystem: true }
+            component: User
         },
         {
             path: '/redeem',
@@ -37,8 +35,7 @@ const router = createRouter({
         {
             path: '/user/oauth2/callback',
             alias: '/:lang/user/oauth2/callback',
-            component: UserOauth2Callback,
-            meta: { requiresUserSystem: true }
+            component: UserOauth2Callback
         },
         {
             path: '/admin',
@@ -58,7 +55,7 @@ const router = createRouter({
     ]
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach((to, from, next) => {
     const routeLocale = resolveSupportedLocale(to.path.split('/')[1])
     const resolvedLocale = routeLocale || DEFAULT_LOCALE
     i18n.global.locale.value = resolvedLocale
@@ -94,16 +91,6 @@ router.beforeEach(async (to, from, next) => {
 
     if (routeLocale === DEFAULT_LOCALE) {
         return next(replaceLocaleInFullPath(to.fullPath, DEFAULT_LOCALE))
-    }
-
-    if (to.meta.requiresUserSystem) {
-        if (!openSettings.value.fetched) {
-            const settings = await api.fetch('/open_api/settings');
-            openSettings.value.disableUserSystem = settings.disableUserSystem === true;
-        }
-        if (openSettings.value.disableUserSystem) {
-            return next(replaceLocaleInFullPath('/', resolvedLocale));
-        }
     }
 
     next()

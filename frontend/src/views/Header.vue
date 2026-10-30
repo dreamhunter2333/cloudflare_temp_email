@@ -241,7 +241,7 @@ const logoClick = async () => {
 onMounted(async () => {
     await api.getOpenSettings(message, notification);
     // make sure user_id is fetched
-    if (!userSettings.value.user_id) await api.getUserSettings(message);
+    if (!openSettings.value.disableUserSystem && !userSettings.value.user_id) await api.getUserSettings(message);
 });
 </script>
 

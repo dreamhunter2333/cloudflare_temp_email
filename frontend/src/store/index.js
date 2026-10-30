@@ -132,7 +132,7 @@ export const useGlobalState = createGlobalState(
         });
         const showAdminPage = computed(() =>
             !!adminAuth.value
-            || (!openSettings.value.disableUserSystem && userSettings.value.is_admin)
+            || userSettings.value.is_admin
             || openSettings.value.disableAdminPasswordCheck
         );
         const telegramApp = ref(window.Telegram?.WebApp || {});

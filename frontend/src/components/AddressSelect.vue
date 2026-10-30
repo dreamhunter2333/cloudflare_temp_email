@@ -150,7 +150,7 @@ const refreshAddressOptions = async () => {
             return;
         }
         const groups = [];
-        if (openSettings.value.fetched && !openSettings.value.disableUserSystem && userJwt.value) {
+        if (!openSettings.value.disableUserSystem && userJwt.value) {
             const userChildren = await buildUserOptions();
             if (userChildren.length > 0) {
                 groups.push({ type: 'group', label: t('linkedMailboxes'), children: userChildren });
@@ -207,7 +207,7 @@ onMounted(async () => {
     await refreshAddressOptions();
 });
 
-watch([userJwt, isTelegram, () => openSettings.value.fetched, () => openSettings.value.disableUserSystem, () => settings.value.address], async () => {
+watch([userJwt, isTelegram, () => openSettings.value.disableUserSystem, () => settings.value.address], async () => {
     await refreshAddressOptions();
 });
 </script>

@@ -48,9 +48,9 @@ const apiFetch = async (path, options = {}) => {
             'Content-Type': 'application/json',
         };
         const userTokenHeader = safeHeaderValue(options.userJwt || userJwt.value);
-        if (!openSettings.value.disableUserSystem && userTokenHeader) headers['x-user-token'] = userTokenHeader;
+        if (userTokenHeader) headers['x-user-token'] = userTokenHeader;
         const userAccessHeader = safeHeaderValue(userSettings.value.access_token);
-        if (!openSettings.value.disableUserSystem && userAccessHeader) headers['x-user-access-token'] = userAccessHeader;
+        if (userAccessHeader) headers['x-user-access-token'] = userAccessHeader;
         const customAuthHeader = safeHeaderValue(auth.value);
         if (customAuthHeader) headers['x-custom-auth'] = customAuthHeader;
         const adminAuthHeader = safeHeaderValue(adminAuth.value);
@@ -185,7 +185,7 @@ const getUserOpenSettings = async (message) => {
 
 const getUserSettings = async (message) => {
     try {
-        if (!openSettings.value.fetched || openSettings.value.disableUserSystem || !userJwt.value) return;
+        if (!userJwt.value) return;
         const res = await api.fetch("/user_api/settings")
         Object.assign(userSettings.value, res)
         // auto refresh user jwt
@@ -228,7 +228,7 @@ const adminDeleteAddress = async (id) => {
 }
 
 const bindUserAddress = async () => {
-    if (openSettings.value.disableUserSystem || !userJwt.value) return;
+    if (!userJwt.value) return;
     try {
         await apiFetch(`/user_api/bind_address`, {
             method: 'POST',

@@ -12,6 +12,6 @@ Configure user registration and email verification here. Disabling registration 
 
 ## Disable the User System
 
-Set `DISABLE_USER_SYSTEM = true` in the Worker to disable the entire user system: all `/user_api/*` endpoints return 403, existing user tokens and role access tokens no longer participate in authentication, and the frontend hides the user center, user management, and user settings entries. Direct visits to user pages or the OAuth2 callback redirect to the home page. Leaving it unset preserves existing behavior.
+Set `DISABLE_USER_SYSTEM = true` in the Worker to disable the entire user system: all `/user_api/*` endpoints return 403 through a shared middleware, and the frontend hides user interfaces including the user center, user management, and user settings. Leaving it unset preserves existing behavior.
 
 Anonymous mailboxes and admin password login remain available. Do not also enable `DISABLE_ANONYMOUS_USER_CREATE_EMAIL`, or self-service mailbox creation will be unavailable. Disabling the user system does not delete existing users or mailboxes.
