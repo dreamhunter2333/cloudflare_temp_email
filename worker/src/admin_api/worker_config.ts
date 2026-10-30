@@ -37,6 +37,7 @@ export default {
             "NO_LIMIT_SEND_ROLE": utils.getSplitStringListValue(c.env.NO_LIMIT_SEND_ROLE),
 
             "ADMIN_CONTACT": c.env.ADMIN_CONTACT,
+            "DISABLE_USER_SYSTEM": utils.getBooleanValue(c.env.DISABLE_USER_SYSTEM),
             "ENABLE_USER_CREATE_EMAIL": utils.getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
             "DISABLE_ANONYMOUS_USER_CREATE_EMAIL": utils.getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL),
             "ENABLE_USER_DELETE_EMAIL": utils.getBooleanValue(c.env.ENABLE_USER_DELETE_EMAIL),

@@ -36,6 +36,7 @@ api.get('/open_api/settings', async (c) => {
         "domainLabels": utils.getStringArray(c.env.DOMAIN_LABELS),
         "needAuth": needAuth,
         "adminContact": c.env.ADMIN_CONTACT,
+        "disableUserSystem": utils.getBooleanValue(c.env.DISABLE_USER_SYSTEM),
         "enableUserCreateEmail": utils.getBooleanValue(c.env.ENABLE_USER_CREATE_EMAIL),
         "disableAnonymousUserCreateEmail": utils.getBooleanValue(c.env.DISABLE_ANONYMOUS_USER_CREATE_EMAIL),
         "disableCustomAddressName": utils.getBooleanValue(c.env.DISABLE_CUSTOM_ADDRESS_NAME),

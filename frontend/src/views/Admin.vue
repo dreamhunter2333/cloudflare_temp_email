@@ -35,7 +35,7 @@ import RedeemCodes from './admin/RedeemCodes.vue';
 const {
   adminAuth, showAdminAuth, adminTab, loading,
   globalTabplacement, showAdminPage, userSettings,
-  openSettings
+  openSettings, showUserSystem
 } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
@@ -128,7 +128,7 @@ onMounted(async () => {
           <n-tab-pane name="account_settings" :tab="t('mailbox_settings')">
             <AccountSettings />
           </n-tab-pane>
-          <n-tab-pane name="user_settings" :tab="t('user_settings')">
+          <n-tab-pane v-if="showUserSystem" name="user_settings" :tab="t('user_settings')">
             <UserSettings />
           </n-tab-pane>
           <n-tab-pane name="workerconfig" :tab="t('workerconfig')">
@@ -161,7 +161,7 @@ onMounted(async () => {
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
-      <n-tab-pane name="user" :tab="t('user')">
+      <n-tab-pane v-if="showUserSystem" name="user" :tab="t('user')">
         <n-tabs key="user-tabs" type="bar" justify-content="center" animated>
           <n-tab-pane name="user_management" :tab="t('user_management')">
             <UserManagement />
