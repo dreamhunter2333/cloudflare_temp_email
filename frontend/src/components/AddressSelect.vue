@@ -24,7 +24,7 @@ const message = useMessage()
 const { toClipboard } = useClipboard()
 
 const {
-    jwt, settings, userJwt, isTelegram, openSettings, telegramApp
+    jwt, settings, userJwt, isTelegram, openSettings, telegramApp, showUserSystem
 } = useGlobalState()
 
 const { t } = useScopedI18n('components.AddressSelect')
@@ -150,7 +150,7 @@ const refreshAddressOptions = async () => {
             return;
         }
         const groups = [];
-        if (!openSettings.value.disableUserSystem && userJwt.value) {
+        if (showUserSystem.value && userJwt.value) {
             const userChildren = await buildUserOptions();
             if (userChildren.length > 0) {
                 groups.push({ type: 'group', label: t('linkedMailboxes'), children: userChildren });
@@ -207,7 +207,7 @@ onMounted(async () => {
     await refreshAddressOptions();
 });
 
-watch([userJwt, isTelegram, () => openSettings.value.disableUserSystem, () => settings.value.address], async () => {
+watch([userJwt, isTelegram, showUserSystem, () => settings.value.address], async () => {
     await refreshAddressOptions();
 });
 </script>

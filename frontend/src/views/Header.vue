@@ -23,7 +23,7 @@ const message = useMessage()
 const notification = useNotification()
 
 const {
-    toggleDark, isDark, isTelegram, showAdminPage,
+    toggleDark, isDark, isTelegram, showAdminPage, showUserSystem,
     showAuth, auth, loading, openSettings, preferredLocale, userSettings
 } = useGlobalState()
 const route = useRoute()
@@ -147,7 +147,7 @@ const menuOptions = computed(() => [
             }
         ),
         key: "user",
-        show: openSettings.value.fetched && !openSettings.value.disableUserSystem && !isTelegram.value
+        show: showUserSystem.value && !isTelegram.value
     },
     {
         label: () => h(
@@ -241,7 +241,7 @@ const logoClick = async () => {
 onMounted(async () => {
     await api.getOpenSettings(message, notification);
     // make sure user_id is fetched
-    if (!openSettings.value.disableUserSystem && !userSettings.value.user_id) await api.getUserSettings(message);
+    if (showUserSystem.value && !userSettings.value.user_id) await api.getUserSettings(message);
 });
 </script>
 

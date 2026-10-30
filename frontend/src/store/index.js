@@ -130,6 +130,9 @@ export const useGlobalState = createGlobalState(
             /** @type {null | {domains: string[] | undefined | null, role: string, prefix: string | undefined | null}} */
             user_role: null,
         });
+        const showUserSystem = computed(() =>
+            openSettings.value.fetched && !openSettings.value.disableUserSystem
+        );
         const showAdminPage = computed(() =>
             !!adminAuth.value
             || userSettings.value.is_admin
@@ -187,6 +190,7 @@ export const useGlobalState = createGlobalState(
             telegramApp,
             isTelegram,
             showAdminPage,
+            showUserSystem,
             userOauth2SessionState,
             userOauth2SessionClientID,
             useSimpleIndex,

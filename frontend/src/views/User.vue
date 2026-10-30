@@ -11,7 +11,7 @@ import UserMailBox from './user/UserMailBox.vue';
 import UserSendBox from './user/UserSendBox.vue';
 
 const {
-    userTab, globalTabplacement, userSettings, openSettings
+    userTab, globalTabplacement, userSettings, openSettings, showUserSystem
 } = useGlobalState()
 
 const { t } = useScopedI18n('views.User')
@@ -20,7 +20,7 @@ const { t: userMailT } = useScopedI18n('views.user.UserSendBox')
 </script>
 
 <template>
-    <div v-if="openSettings.fetched && !openSettings.disableUserSystem">
+    <div v-if="showUserSystem">
         <UserBar />
         <n-tabs v-if="userSettings.user_email" type="card" v-model:value="userTab" :placement="globalTabplacement">
             <n-tab-pane name="address_management" :tab="t('address_management')">
