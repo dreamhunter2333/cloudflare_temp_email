@@ -20,7 +20,7 @@ export const useGlobalState = createGlobalState(
             addressRegex: '',
             needAuth: false,
             adminContact: '',
-            disableUserSystem: true,
+            disableUserSystem: false,
             enableUserCreateEmail: false,
             disableAnonymousUserCreateEmail: false,
             disableCustomAddressName: false,
@@ -130,9 +130,7 @@ export const useGlobalState = createGlobalState(
             /** @type {null | {domains: string[] | undefined | null, role: string, prefix: string | undefined | null}} */
             user_role: null,
         });
-        const showUserSystem = computed(() =>
-            openSettings.value.fetched && !openSettings.value.disableUserSystem
-        );
+        const showUserSystem = computed(() => !openSettings.value.disableUserSystem);
         const showUserMailboxes = computed(() =>
             showUserSystem.value && !!userJwt.value
         );
