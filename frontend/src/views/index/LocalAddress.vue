@@ -35,9 +35,18 @@ const data = computed(() => {
     }).filter(Boolean)
 })
 
-const bindAddress = () => {
-    tabValue.value = 'address'
-    message.success(t('bindAddressSuccess'));
+const bindAddress = async () => {
+    try {
+        // @ts-ignore
+        if (!localAddressCache.value.includes(jwt.value)) {
+            // @ts-ignore
+            localAddressCache.value.push(jwt.value)
+        }
+        tabValue.value = 'address'
+        message.success(t('bindAddressSuccess'));
+    } catch (error) {
+        message.error((error as Error).message || "error");
+    }
 }
 
 const columns = [
