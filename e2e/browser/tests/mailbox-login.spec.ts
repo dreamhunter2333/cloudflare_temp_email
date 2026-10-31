@@ -58,7 +58,7 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
   });
 }
 
-test('historical mailbox cache keeps both login methods through renewal and password-only mode', async ({ page, request }, testInfo) => {
+test('renewal updates the current JWT; expired cached sessions require login', async ({ page, request }, testInfo) => {
   const mailbox = await createTestAddress(request, 'cached-login');
   const other = await createTestAddress(request, 'cached-other');
   const now = Math.floor(Date.now() / 1000);
@@ -66,22 +66,27 @@ test('historical mailbox cache keeps both login methods through renewal and pass
     address: mailbox.address, address_id: mailbox.address_id, type: 'address_password_login',
     iat: now - 24 * 86400, exp: now + 6 * 86400,
   }, 'e2e-test-secret-key', 'HS256');
-  const supersededPasswordToken = await sign({
+  const expiredPasswordToken = await sign({
     address: mailbox.address, address_id: mailbox.address_id, type: 'address_password_login',
-    iat: now - 25 * 86400, exp: now + 5 * 86400,
+    iat: now - 31 * 86400, exp: now - 86400,
   }, 'e2e-test-secret-key', 'HS256');
   const readCache = () => page.evaluate(() => JSON.parse(localStorage.getItem('LocalAddressCache') || '[]'));
   try {
+    const password = 'cached-mailbox-password';
+    const changed = await request.post(`${WORKER_URL}/api/address_change_password`, {
+      headers: { Authorization: `Bearer ${mailbox.jwt}` }, data: { new_password: hashPassword(password) },
+    });
+    expect(changed.ok()).toBe(true);
     await page.goto(`${FRONTEND_URL}/en/`);
     await page.evaluate(cache => localStorage.setItem('LocalAddressCache', JSON.stringify(cache)), [
       mailbox.jwt, passwordToken, other.jwt,
-      supersededPasswordToken,
+      expiredPasswordToken,
     ]);
     await page.goto(`${FRONTEND_URL}/en/?jwt=${mailbox.jwt}`);
     await expect(page.locator('.address-select')).toContainText(mailbox.address);
     await expect.poll(readCache).toEqual([
       mailbox.jwt, passwordToken, other.jwt,
-      supersededPasswordToken,
+      expiredPasswordToken,
     ]);
 
     const settingsTokens: string[] = [];
@@ -94,11 +99,11 @@ test('historical mailbox cache keeps both login methods through renewal and pass
     await page.locator('.n-base-select-menu:visible').getByText(`${mailbox.address} (Password Login)`, { exact: true }).first().click();
     await expect.poll(() => page.evaluate(() => localStorage.getItem('jwt'))).not.toBe(passwordToken);
     await expect.poll(readCache).toEqual([
-      mailbox.jwt, expect.any(String), other.jwt,
+      mailbox.jwt, passwordToken, other.jwt, expiredPasswordToken, expect.any(String),
     ]);
     const renewedToken = await page.evaluate(() => localStorage.getItem('jwt'));
     expect(renewedToken).not.toBe(mailbox.jwt);
-    expect((await readCache())[1]).toBe(renewedToken);
+    expect((await readCache())[4]).toBe(renewedToken);
     const settings = await request.get(`${WORKER_URL}/api/settings`, {
       headers: { Authorization: `Bearer ${renewedToken}` },
     });
@@ -108,7 +113,7 @@ test('historical mailbox cache keeps both login methods through renewal and pass
 
     await page.locator('.address-manage').click();
     const rows = page.locator('.n-modal .n-data-table-tbody .n-data-table-tr');
-    await expect(rows).toHaveCount(3);
+    await expect(rows).toHaveCount(5);
     await expect(rows.nth(0)).toContainText(`${mailbox.address} (Credential Login)`);
     await expect(rows.nth(1)).toContainText(`${mailbox.address} (Password Login)`);
     await expect(rows.nth(2)).toContainText(`${other.address} (Credential Login)`);
@@ -123,22 +128,24 @@ test('historical mailbox cache keeps both login methods through renewal and pass
     await expect(options).toContainText('Password Login');
     await options.getByText(`${other.address} (Credential Login)`, { exact: true }).click();
     await expect.poll(readCache).toEqual([
-      mailbox.jwt, renewedToken, other.jwt,
+      mailbox.jwt, passwordToken, other.jwt, expiredPasswordToken, renewedToken,
     ]);
 
-    await page.evaluate(cache => {
-      const oldValue = localStorage.getItem('LocalAddressCache');
-      const newValue = JSON.stringify(cache);
-      localStorage.setItem('LocalAddressCache', newValue);
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'LocalAddressCache', oldValue, newValue, storageArea: localStorage,
-      }));
-    }, [renewedToken, other.jwt]);
     await page.locator('.address-select').click();
-    await expect(options.getByText(`${mailbox.address} (Credential Login)`, { exact: true })).toHaveCount(0);
-    await expect(options.getByText(`${mailbox.address} (Password Login)`, { exact: true })).toBeVisible();
-    await page.keyboard.press('Escape');
-    await page.evaluate(cache => localStorage.setItem('LocalAddressCache', JSON.stringify(cache)), [mailbox.jwt, renewedToken, other.jwt]);
+    const expiredSettings = page.waitForResponse(response => new URL(response.url()).pathname === '/api/settings');
+    await options.getByText(`${mailbox.address} (Password Login)`, { exact: true }).nth(1).click();
+    expect((await expiredSettings).status()).toBe(401);
+    await expect(page.getByText('Mail address credential is invalid or account not exist, it may be network connection issue, please try again later.', { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('jwt'))).toBe(expiredPasswordToken);
+    expect(await readCache()).toEqual([mailbox.jwt, passwordToken, other.jwt, expiredPasswordToken, renewedToken]);
+    const form = page.locator('.n-form:visible').first();
+    await form.locator('input').first().fill(mailbox.address);
+    await form.locator('input[type="password"]').fill(password);
+    await form.getByRole('button', { name: 'Log In to Mailbox', exact: true }).click();
+    await expect(page.locator('.address-select')).toContainText(mailbox.address);
+    expect(await readCache()).toContain(expiredPasswordToken);
+
+    const historicalCache = await readCache();
     await page.setExtraHTTPHeaders({ 'x-test-address-password-mode': 'password-only' });
     await page.goto(`${FRONTEND_URL}/en/?jwt=${renewedToken}`);
     await expect(page.locator('.address-select')).toContainText('Password Login');
@@ -148,12 +155,12 @@ test('historical mailbox cache keeps both login methods through renewal and pass
     await expect(passwordOptions).not.toContainText('Credential Login');
     await page.keyboard.press('Escape');
     await page.locator('.address-manage').click();
-    await expect(rows).toHaveCount(1);
+    await expect(rows).toHaveCount(historicalCache.length - 2);
     await expect(rows.first()).toContainText('Password Login');
     await testInfo.attach('Password-only mailbox cache', {
       body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
     });
-    expect(await readCache()).toHaveLength(3);
+    expect(await readCache()).toEqual(historicalCache);
     await page.keyboard.press('Escape');
     await page.evaluate(() => localStorage.setItem('jwt', ''));
     await page.reload();
@@ -191,7 +198,7 @@ test('failed mailbox settings preserve the current token and historical cache', 
   }
 });
 
-test('an uncached current mailbox remains visible when settings fail', async ({ page, request }) => {
+test('the original local mailbox list saves the current token when settings fail', async ({ page, request }) => {
   const mailbox = await createTestAddress(request, 'cached-current');
   const other = await createTestAddress(request, 'uncached-current');
   const cache = JSON.stringify([mailbox.jwt]);
@@ -214,7 +221,7 @@ test('an uncached current mailbox remains visible when settings fail', async ({ 
     await expect(page.locator('.address-select')).toContainText(other.address);
     expect(await page.evaluate(() => ({
       token: localStorage.getItem('jwt'), cache: localStorage.getItem('LocalAddressCache'),
-    }))).toEqual({ token: other.jwt, cache });
+    }))).toEqual({ token: other.jwt, cache: JSON.stringify([mailbox.jwt, other.jwt]) });
   } finally {
     await deleteAddress(request, mailbox.jwt);
     await deleteAddress(request, other.jwt);

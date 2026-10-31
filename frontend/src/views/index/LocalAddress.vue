@@ -20,9 +20,10 @@ const { t: loginT } = useScopedI18n('views.common.Login')
 const tabValue = ref('address')
 const localAddressCache = useLocalStorage<string[]>("LocalAddressCache", []);
 const data = computed(() => {
-    const tokens = localAddressCache.value.includes(jwt.value) || !jwt.value
-        ? localAddressCache.value : [...localAddressCache.value, jwt.value];
-    return tokens.map((token) => {
+    if (!localAddressCache.value.includes(jwt.value)) {
+        localAddressCache.value.push(jwt.value)
+    }
+    return localAddressCache.value.map((token) => {
         const payload = decodeAddressToken(token);
         if (!payload) return { valid: false, address: `invalid jwt [${token}]`, jwt: token };
         const isPasswordLogin = payload.type === 'address_password_login';
