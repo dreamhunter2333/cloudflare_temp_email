@@ -49,6 +49,7 @@ const validateAddressLoginPayload = async (
     payload: Record<string, unknown>,
 ): Promise<JwtPayload | null> => {
     if (payload.type !== undefined && payload.type !== 'address_password_login') return null;
+    if (isAddressPasswordLoginOnly(c) && payload.type !== 'address_password_login') return null;
     const identity = await validateAddressPayload(c, payload);
     if (!identity) return null;
     if (payload.type !== 'address_password_login') return identity;
