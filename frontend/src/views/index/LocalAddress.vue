@@ -10,7 +10,7 @@ import { useGlobalState } from '../../store'
 // @ts-ignore
 import Login from '../common/Login.vue';
 
-const { jwt } = useGlobalState()
+const { jwt, openSettings } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
@@ -27,12 +27,13 @@ const data = computed(() => {
         const payload = decodeAddressToken(token);
         if (!payload) return { valid: false, address: `invalid jwt [${token}]`, jwt: token };
         const isPasswordLogin = payload.type === 'address_password_login';
+        if (openSettings.value.addressPasswordLoginOnly && !isPasswordLogin) return null;
         return {
             valid: true,
             address: `${payload.address} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`,
             jwt: token
         }
-    })
+    }).filter(Boolean)
 })
 
 const bindAddress = async () => {

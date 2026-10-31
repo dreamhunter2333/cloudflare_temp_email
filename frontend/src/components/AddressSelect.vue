@@ -70,6 +70,7 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
             if (!payload || excludeAddresses.has(payload.address)) return null;
             const { address, type } = payload;
             const isPasswordLogin = type === 'address_password_login';
+            if (openSettings.value.addressPasswordLoginOnly && !isPasswordLogin) return null;
             const label = `${formatAddressLabel(address)} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`;
             const key = `local:${token}`;
             const option = { label, value: getOptionValue(key, 'local', token, address), address };
@@ -195,7 +196,7 @@ onMounted(async () => {
     await refreshAddressOptions();
 });
 
-watch([userJwt, isTelegram, jwt, localAddressCache, () => settings.value.address], async () => {
+watch([userJwt, isTelegram, jwt, localAddressCache, () => settings.value.address, () => openSettings.value.addressPasswordLoginOnly], async () => {
     await refreshAddressOptions();
 });
 </script>
