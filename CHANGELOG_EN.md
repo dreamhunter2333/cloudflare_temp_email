@@ -14,7 +14,7 @@
 
 - feat: |Mailbox Sessions| Issue renewable 30-day JWTs at mailbox creation, password login, and authorized user, admin, and Telegram access while the password-only switch is effective
 
-- feat: |Mailbox Sessions| Persist renewed settings tokens using the existing string cache and JWT decoding, preserving login methods, ordering, and failure state
+- feat: |Mailbox Sessions| Update only the active mailbox JWT on renewal, retaining the existing string cache; expired historical tokens require login
 
 - feat: |Mailbox Sessions| Validate 30-day password-login JWTs and renew through settings below 7 days
 

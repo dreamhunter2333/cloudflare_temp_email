@@ -61,9 +61,10 @@ const getOptionValue = (key, scope, payload, address) => {
 }
 
 const buildLocalOptions = (excludeAddresses = new Set()) => {
-    const tokens = localAddressCache.value.includes(jwt.value) || !jwt.value
-        ? localAddressCache.value : [...localAddressCache.value, jwt.value];
-    const children = tokens
+    if (typeof jwt.value === 'string' && jwt.value && !localAddressCache.value.includes(jwt.value)) {
+        localAddressCache.value.push(jwt.value)
+    }
+    const children = localAddressCache.value
         .map((token) => {
             const payload = decodeAddressToken(token);
             if (!payload || excludeAddresses.has(payload.address)) return null;

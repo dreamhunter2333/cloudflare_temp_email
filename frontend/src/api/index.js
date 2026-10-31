@@ -1,6 +1,5 @@
 import { useGlobalState } from '../store'
 import { h } from 'vue'
-import { useLocalStorage } from '@vueuse/core'
 import axios from 'axios'
 
 import i18n from '../i18n'
@@ -10,7 +9,6 @@ import { sanitizeHtml } from '../utils/sanitize-html'
 import { APP_CONFIG } from '../config'
 import { createUserAccessTokenInterceptor } from './user-access-token-interceptor'
 import { ErrorCode } from './error-codes'
-import { updateLocalAddressCache } from '../utils/local-address-cache'
 
 const API_BASE = APP_CONFIG.API_BASE || "";
 const {
@@ -18,8 +16,6 @@ const {
     userOpenSettings, userSettings, announcement,
     showAuth, adminAuth, showAdminAuth, userJwt
 } = useGlobalState();
-
-const localAddressCache = useLocalStorage('LocalAddressCache', []);
 
 const instance = axios.create({
     baseURL: API_BASE,
@@ -166,7 +162,6 @@ const getSettings = async () => {
         }
         const res = await apiFetch('/api/settings', { addressJwt: addressToken });
         if (jwt.value !== addressToken) return;
-        localAddressCache.value = updateLocalAddressCache(localAddressCache.value, addressToken, res);
         addressToken = res.new_address_token || addressToken;
         jwt.value = addressToken;
         settings.value = {
