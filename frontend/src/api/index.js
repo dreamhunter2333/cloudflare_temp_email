@@ -55,7 +55,7 @@ const apiFetch = async (path, options = {}) => {
         if (customAuthHeader) headers['x-custom-auth'] = customAuthHeader;
         const adminAuthHeader = safeHeaderValue(adminAuth.value);
         if (adminAuthHeader) headers['x-admin-auth'] = adminAuthHeader;
-        const authorizationHeader = safeBearerHeader(jwt.value);
+        const authorizationHeader = safeBearerHeader(options.addressJwt ?? jwt.value);
         if (authorizationHeader) headers['Authorization'] = authorizationHeader;
 
         const initialResponse = await instance.request(path, {
@@ -155,18 +155,22 @@ const getOpenSettings = async (message, notification) => {
 }
 
 const getSettings = async () => {
+    let addressToken = jwt.value;
     try {
         if (typeof jwt.value != 'string' || jwt.value.trim() === '' || jwt.value === 'undefined') {
             return "";
         }
-        const res = await apiFetch("/api/settings");;
+        const res = await apiFetch('/api/settings', { addressJwt: addressToken });
+        if (jwt.value !== addressToken) return;
+        addressToken = res.new_address_token || addressToken;
+        jwt.value = addressToken;
         settings.value = {
             address: res["address"],
             auto_reply: res["auto_reply"],
             send_balance: res["send_balance"],
         };
     } finally {
-        settings.value.fetched = true;
+        if (jwt.value === addressToken) settings.value.fetched = true;
     }
 }
 
