@@ -214,69 +214,85 @@ for (const action of ['bind', 'create']) {
   });
 }
 
-test('expired historical Telegram bindings still allow opening and unbinding the mailbox', async ({ request }) => {
-  const mailbox = await createTestAddress(request, 'tg-expired');
-  const owner = Date.now();
-  try {
-    await seedTestMail(request, mailbox.address, {
-      subject: 'Historical Telegram mail', text: 'Historical binding mail body',
-    });
-    const now = Math.floor(Date.now() / 1000);
-    const expiredJwt = await sign({
-      address: mailbox.address, address_id: mailbox.address_id,
-      iat: now - 31 * 86400, exp: now - 86400,
-    }, 'e2e-test-secret-key', 'HS256');
-    const seed = await request.post(`${WORKER_URL}/__test/telegram_binding`, {
-      data: { userId: owner, address: mailbox.address, jwt: expiredJwt },
-    });
-    expect(seed.ok()).toBe(true);
+for (const [passwordOnly, type] of [
+  [false, undefined],
+  [true, undefined],
+  [true, 'address_password_login'],
+] as const) {
+  test(`expired historical Telegram bindings allow opening and unbinding: ${type ?? 'legacy'}, password-only=${passwordOnly}`, async ({ request }) => {
+    const mailbox = await createTestAddress(request, 'tg-expired');
+    const owner = Date.now();
+    const headers = passwordOnly ? { 'x-test-address-password-mode': 'password-only' } : {};
+    try {
+      await seedTestMail(request, mailbox.address, {
+        subject: 'Historical Telegram mail', text: 'Historical binding mail body',
+      });
+      const now = Math.floor(Date.now() / 1000);
+      const expiredJwt = await sign({
+        address: mailbox.address, address_id: mailbox.address_id,
+        ...(type ? { type } : {}),
+        iat: now - 31 * 86400, exp: now - 86400,
+      }, 'e2e-test-secret-key', 'HS256');
+      const seed = await request.post(`${WORKER_URL}/__test/telegram_binding`, {
+        data: { userId: owner, address: mailbox.address, jwt: expiredJwt },
+      });
+      expect(seed.ok()).toBe(true);
 
-    const expiredSettings = await request.get(`${WORKER_URL}/api/settings`, {
-      headers: { Authorization: `Bearer ${expiredJwt}` },
-    });
-    expect(expiredSettings.status()).toBe(401);
-    const rebind = await request.post(`${WORKER_URL}/telegram/bind_address`, {
-      data: { initData: initData(owner + 1), jwt: expiredJwt },
-    });
-    expect(rebind.status()).toBe(400);
-    expect(await addressList(request, owner + 1)).toEqual([]);
-    await expectPushOwner(request, mailbox.address, owner);
+      const expiredSettings = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { ...headers, Authorization: `Bearer ${expiredJwt}` },
+      });
+      expect(expiredSettings.status()).toBe(401);
+      const rebind = await request.post(`${WORKER_URL}/telegram/bind_address`, {
+        headers, data: { initData: initData(owner + 1), jwt: expiredJwt },
+      });
+      expect(rebind.status()).toBe(400);
+      expect(await addressList(request, owner + 1)).toEqual([]);
+      await expectPushOwner(request, mailbox.address, owner);
 
-    const mails = await request.get(`${WORKER_URL}/api/mails?limit=10&offset=0`, {
-      headers: { Authorization: `Bearer ${mailbox.jwt}` },
-    });
-    expect(mails.ok(), await mails.text()).toBe(true);
-    const { results } = await mails.json();
-    expect(results).toHaveLength(1);
-    const response = await request.post(`${WORKER_URL}/telegram/get_mail`, {
-      data: { initData: initData(owner), mailId: results[0].id },
-    });
-    expect(response.ok(), await response.text()).toBe(true);
-    const mail = await response.json();
-    expect(mail).toMatchObject({ id: results[0].id, address: mailbox.address });
-    expect(mail.raw).toContain('Historical binding mail body');
+      const mails = await request.get(`${WORKER_URL}/api/mails?limit=10&offset=0`, {
+        headers: { Authorization: `Bearer ${mailbox.jwt}` },
+      });
+      expect(mails.ok(), await mails.text()).toBe(true);
+      const { results } = await mails.json();
+      expect(results).toHaveLength(1);
+      const response = await request.post(`${WORKER_URL}/telegram/get_mail`, {
+        headers, data: { initData: initData(owner), mailId: results[0].id },
+      });
+      expect(response.ok(), await response.text()).toBe(true);
+      const mail = await response.json();
+      expect(mail).toMatchObject({ id: results[0].id, address: mailbox.address });
+      expect(mail.raw).toContain('Historical binding mail body');
 
-    const listing = await request.post(`${WORKER_URL}/telegram/get_bind_address`, {
-      data: { initData: initData(owner) },
-    });
-    expect(listing.ok()).toBe(true);
-    const bindings = await listing.json();
-    expect(bindings).toHaveLength(1);
-    expect(bindings[0].address).toBe(mailbox.address);
-    expect(bindings[0].jwt).not.toBe(expiredJwt);
-    const settings = await request.get(`${WORKER_URL}/api/settings`, {
-      headers: { Authorization: `Bearer ${bindings[0].jwt}` },
-    });
-    expect(settings.ok()).toBe(true);
-    expect((await settings.json()).address).toBe(mailbox.address);
+      const listing = await request.post(`${WORKER_URL}/telegram/get_bind_address`, {
+        headers, data: { initData: initData(owner) },
+      });
+      expect(listing.ok()).toBe(true);
+      const bindings = await listing.json();
+      expect(bindings).toHaveLength(1);
+      expect(bindings[0].address).toBe(mailbox.address);
+      expect(bindings[0].jwt).not.toBe(expiredJwt);
+      const settings = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { ...headers, Authorization: `Bearer ${bindings[0].jwt}` },
+      });
+      expect(settings.ok()).toBe(true);
+      const settingsBody = await settings.json();
+      expect(settingsBody.address).toBe(mailbox.address);
+      if (passwordOnly) {
+        expect(settingsBody.type).toBe('address_password_login');
+        expect(settingsBody.exp - settingsBody.iat).toBe(30 * 86400);
+      }
 
-    await unbind(request, owner, mailbox.address);
-    expect(await addressList(request, owner)).toEqual([]);
-    await expectPushOwner(request, mailbox.address, null);
-  } finally {
-    await deleteAddress(request, mailbox.jwt);
-  }
-});
+      const unbound = await request.post(`${WORKER_URL}/telegram/unbind_address`, {
+        headers, data: { initData: initData(owner), address: mailbox.address },
+      });
+      expect(unbound.ok(), await unbound.text()).toBe(true);
+      expect(await addressList(request, owner)).toEqual([]);
+      await expectPushOwner(request, mailbox.address, null);
+    } finally {
+      await deleteAddress(request, mailbox.jwt);
+    }
+  });
+}
 
 test('Telegram users can remove their own bindings after another user binds the mailbox', async ({ request }) => {
   const mailbox = await createTestAddress(request, 'tg-owner');
