@@ -8,7 +8,7 @@
 - `GET /api/settings` 返回邮箱身份信息、`send_balance` 和 `new_address_token`。有效密码登录 JWT 剩余不足 7 天时返回新的 30 天 token，否则为 `null`；原有凭据不会续期，已过期 JWT 必须重新登录。
 - 使用续期接口的客户端应保存 `new_address_token`，在后续请求中使用新 token。
 
-网页通过一次成功的 settings 请求保存续期 token，并原位替换本地同类记录。缓存继续保存 token 字符串，通过解码 JWT 显示邮箱地址和登录方式；两种登录方式分别保留，请求失败时保留 token 和缓存，未缓存的当前邮箱仍可显示。解码仅用于显示和去重，权限由后端校验。
+网页通过一次成功的 settings 请求仅更新当前使用的 JWT。本地缓存继续保存 token 字符串，沿用原来的追加和绑定逻辑，不替换或去重历史 token；切换到已过期的缓存会话后，需要重新登录。JWT 解码仅用于显示邮箱和登录方式，权限由后端校验。
 
 同时启用 `ENABLE_ADDRESS_PASSWORD=true` 和 `ADDRESS_PASSWORD_LOGIN_ONLY=true` 后，密码登录、创建邮箱以及用户、管理员和 Telegram 授权入口签发 30 天密码登录 JWT。关闭任一配置后恢复签发原有凭据；已签发的有效密码登录 JWT 仍可使用和续期。旧凭据、凭据登录链接与直接 API 访问仍兼容，后续再启用旧凭据拒绝规则。
 
