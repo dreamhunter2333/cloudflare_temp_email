@@ -4,9 +4,6 @@ import { computed } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 
 import AddressCredentialContent from './AddressCredentialContent.vue'
-import { useGlobalState } from '../store'
-
-const { openSettings } = useGlobalState()
 
 const props = defineProps({
   show: {
@@ -37,7 +34,7 @@ const modalShow = computed({
 </script>
 
 <template>
-  <n-modal v-model:show="modalShow" preset="card" :title="t(openSettings.addressPasswordLoginOnly ? 'addressPassword' : 'title')"
+  <n-modal v-model:show="modalShow" preset="card" :title="t('title')"
     style="width: min(760px, calc(100vw - 32px));">
     <AddressCredentialContent :address="address" :jwt="jwt" :address-password="addressPassword" />
   </n-modal>
