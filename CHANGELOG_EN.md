@@ -14,7 +14,7 @@
 - feat: |Admin Statistics| Add a dashboard with mail, mailbox, user and sent mail totals, 7- and 30-day mailbox and user activity, and site-wide trends by date
 - feat: |Mail Forwarding| Route forwarding rules internally by configured domain with independent receive processing, extraction and notifications, no second forwarding and only one auto-reply; optionally delete the original at the end and keep global forwarding external-only with its existing behavior
 - feat: |User System| Add `DISABLE_USER_SYSTEM` to block user APIs, disable user admin tokens, and hide user interfaces
-- feat: |Mailbox Sessions| Validate 30-day password-login JWTs and renew through settings below 7 days; existing login and authorized-access routes retain legacy issuance
+- feat: |Mailbox Sessions| Issue 30-day JWTs at password login when password-only mode is effective, validate mailbox access, and renew through settings below 7 days; other creation and authorized-access routes retain legacy issuance
 - feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
 - feat: |Mailbox Credential| Show a QR code of the auto-login link in the credential dialog for opening the mailbox on mobile, with a reminder that anyone with the QR code can access the mailbox (issue #1189)
 
