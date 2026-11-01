@@ -11,6 +11,58 @@ function signToken(payload: Record<string, unknown>) {
   return `${header}.${body}.${signature}`;
 }
 
+test('password login tokens renew below seven days; legacy credentials do not renew', async ({ request }) => {
+  const mailbox = await createTestAddress(request, 'password-renewal');
+  const day = 24 * 60 * 60;
+  const now = Math.floor(Date.now() / 1000);
+  const identity = { address: mailbox.address, address_id: mailbox.address_id };
+  try {
+    for (const remainingDays of [8, 6]) {
+      const token = signToken({
+        ...identity, type: 'address_password_login',
+        iat: now - (30 - remainingDays) * day, exp: now + remainingDays * day,
+      });
+      const response = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(response.ok()).toBe(true);
+      const settings = await response.json();
+      expect(settings.type).toBe('address_password_login');
+      if (remainingDays > 7) {
+        expect(settings.new_address_token).toBeNull();
+        continue;
+      }
+      expect(settings.new_address_token).toEqual(expect.any(String));
+      const renewed = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${settings.new_address_token}` },
+      });
+      expect(renewed.ok()).toBe(true);
+      const renewedSettings = await renewed.json();
+      expect(renewedSettings).toMatchObject({ ...identity, type: 'address_password_login', new_address_token: null });
+      expect(renewedSettings.exp - renewedSettings.iat).toBe(30 * day);
+    }
+    const legacy = await request.get(`${WORKER_URL}/api/settings`, {
+      headers: { Authorization: `Bearer ${mailbox.jwt}` },
+    });
+    expect(legacy.ok()).toBe(true);
+    expect(await legacy.json()).toMatchObject({ ...identity, new_address_token: null });
+    for (const claims of [
+      { type: 'telegram_binding' },
+      { type: 'unknown' },
+      { type: 'address_password_login' },
+      { type: 'address_password_login', iat: now - 30 * day, exp: now - 1 },
+      { type: 'address_password_login', iat: now, exp: now + 31 * day },
+    ]) {
+      const response = await request.get(`${WORKER_URL}/api/settings`, {
+        headers: { Authorization: `Bearer ${signToken({ ...identity, ...claims })}` },
+      });
+      expect(response.status(), JSON.stringify(claims)).toBe(401);
+    }
+  } finally {
+    await deleteAddress(request, mailbox.jwt);
+  }
+});
+
 async function expectRejected(request: APIRequestContext, jwt: string) {
   for (const [method, path] of [
     ['GET', '/api/settings'],

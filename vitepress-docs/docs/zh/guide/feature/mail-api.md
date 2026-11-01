@@ -1,5 +1,15 @@
 # 查看邮件 API
 
+## 邮箱密码登录 JWT 的鉴权与续期
+
+邮箱 API 支持两种 JWT：原有邮箱凭据，以及带 `type: "address_password_login"`、`address`、`address_id`、`iat` 和 `exp` 的密码登录会话。后端继续校验签名和邮箱身份，并要求密码登录会话未过期、签发时间不晚于当前时间、有效期不超过 30 天。
+
+- 邮箱 API 继续使用 `Authorization: Bearer <jwt>`，无需数据库迁移。
+- `GET /api/settings` 返回邮箱身份信息、`send_balance` 和 `new_address_token`。有效密码登录 JWT 剩余不足 7 天时返回新的 30 天 token，否则为 `null`；原有凭据不会续期，已过期 JWT 必须重新登录。
+- 使用续期接口的客户端应保存 `new_address_token`，在后续请求中使用新 token。
+
+本阶段仅增加后端对新 JWT 类型的鉴权和续期支持。现有密码登录、创建邮箱以及用户、管理员和 Telegram 授权入口仍签发原有凭据；网页登录和本地缓存保持原有行为。登录页开关仍仅控制登录入口，尚不禁用旧凭据。后续先接入前端续期，再切换签发入口。
+
 ## 通过 邮件 API 查看邮件
 
 这是一个 `python` 的例子，使用 `requests` 库查看邮件。
