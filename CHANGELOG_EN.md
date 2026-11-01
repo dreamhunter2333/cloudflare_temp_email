@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Mailbox Login| Hide legacy credential displays, connection details, and local legacy choices while password-only mode is effective, retaining historical cache strings
 - feat: |Mailbox Sessions| Extend renewable 30-day JWT issuance to mailbox creation and authorized user, admin, and Telegram access
 - feat: |Mailbox Sessions| Update only the active mailbox JWT on renewal, retaining the existing string cache; expired historical tokens require login; show login method columns or tags only when both token types appear in the list
 - feat: |Admin| Switch between single and batch creation, create batches of up to 100 random-name mailboxes, and export their auto-login links as spreadsheet-safe or lossless CSV

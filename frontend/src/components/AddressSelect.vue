@@ -89,6 +89,7 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
             if (!address) return null;
             if (excludeAddresses.has(address)) return null;
             const loginMethod = payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin';
+            if (openSettings.value.addressPasswordLoginOnly && loginMethod !== 'passwordLogin') return null;
             const label = formatAddressLabel(address);
             const key = `local:${curJwt}`;
             const option = { label, value: getOptionValue(key, 'local', curJwt, address), address, loginMethod };
