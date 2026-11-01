@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Mailbox Sessions| Update only the active mailbox JWT on renewal, retaining the existing string cache; expired historical tokens require login
 - feat: |Admin| Switch between single and batch creation, create batches of up to 100 random-name mailboxes, and export their auto-login links as spreadsheet-safe or lossless CSV
 - feat: |Admin Statistics| Add a dashboard with mail, mailbox, user and sent mail totals, 7- and 30-day mailbox and user activity, and site-wide trends by date
 - feat: |Mail Forwarding| Route forwarding rules internally by configured domain with independent receive processing, extraction and notifications, no second forwarding and only one auto-reply; optionally delete the original at the end and keep global forwarding external-only with its existing behavior
