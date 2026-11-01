@@ -1,5 +1,6 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { createHmac } from 'node:crypto';
+import { verify } from 'hono/jwt';
 
 import { WORKER_URL, TEST_DOMAIN, createTestAddress, deleteAddress, seedTestMail } from '../../fixtures/test-helpers';
 
@@ -27,7 +28,7 @@ test('password login tokens renew below seven days; legacy credentials do not re
       });
       expect(response.ok()).toBe(true);
       const settings = await response.json();
-      expect(settings.type).toBe('address_password_login');
+      expect(Object.keys(settings).sort()).toEqual(['address', 'new_address_token', 'send_balance']);
       if (remainingDays > 7) {
         expect(settings.new_address_token).toBeNull();
         continue;
@@ -38,14 +39,16 @@ test('password login tokens renew below seven days; legacy credentials do not re
       });
       expect(renewed.ok()).toBe(true);
       const renewedSettings = await renewed.json();
-      expect(renewedSettings).toMatchObject({ ...identity, type: 'address_password_login', new_address_token: null });
-      expect(renewedSettings.exp - renewedSettings.iat).toBe(30 * day);
+      expect(renewedSettings).toMatchObject({ address: mailbox.address, new_address_token: null });
+      const payload = await verify(settings.new_address_token, 'e2e-test-secret-key', 'HS256');
+      expect(payload).toMatchObject({ ...identity, type: 'address_password_login' });
+      expect(Number(payload.exp) - Number(payload.iat)).toBe(30 * day);
     }
     const legacy = await request.get(`${WORKER_URL}/api/settings`, {
       headers: { Authorization: `Bearer ${mailbox.jwt}` },
     });
     expect(legacy.ok()).toBe(true);
-    expect(await legacy.json()).toMatchObject({ ...identity, new_address_token: null });
+    expect(await legacy.json()).toMatchObject({ address: mailbox.address, new_address_token: null });
     for (const claims of [
       { type: 'telegram_binding' },
       { type: 'unknown' },
