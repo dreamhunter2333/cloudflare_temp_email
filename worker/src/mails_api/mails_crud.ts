@@ -72,10 +72,6 @@ const getSettings = async (c: Context<HonoCustomType>) => {
     const { balance } = await getSendBalanceState(c, address);
     return c.json({
         address: address,
-        address_id: payload.address_id,
-        type: payload.type,
-        iat: payload.iat,
-        exp: payload.exp,
         send_balance: balance || 0,
         new_address_token: renewedAddressToken,
     });
