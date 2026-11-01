@@ -11,7 +11,7 @@
 ### Features
 
 - feat: |User System| Add `DISABLE_USER_SYSTEM` to block user APIs, disable user admin tokens, and hide user interfaces
-- feat: |Mailbox Sessions| Validate 30-day password-login JWTs and renew through settings below 7 days; existing login and authorized-access routes retain legacy issuance
+- feat: |Mailbox Sessions| Issue 30-day JWTs at password login when password-only mode is effective, validate mailbox access, and renew through settings below 7 days; other creation and authorized-access routes retain legacy issuance
 - feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
 
 ### Bug Fixes
