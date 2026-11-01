@@ -14,6 +14,7 @@ const createTelegramBindingToken = (c: Context<HonoCustomType>, address: string,
 export const verifyTelegramBindingToken = async (c: Context<HonoCustomType>, token: string) => {
     const payload = await Jwt.verify(token, c.env.JWT_SECRET, { alg: 'HS256', exp: false });
     const identity = payload.type === undefined || payload.type === 'telegram_binding'
+        || payload.type === 'address_password_login'
         ? await validateAddressPayload(c, payload)
         : null;
     if (!identity) throw new Error(i18n.getMessagesbyContext(c).InvalidAddressCredentialMsg);
@@ -142,7 +143,8 @@ export const unbindTelegramAddress = async (
     const bindings = await getTelegramBindings(c, userId);
     for (const { payload } of bindings) {
         if (payload?.address !== address) continue;
-        if (payload.type !== undefined && payload.type !== 'telegram_binding') continue;
+        if (payload.type !== undefined && payload.type !== 'telegram_binding'
+            && payload.type !== 'address_password_login') continue;
         try {
             if (!await validateAddressPayload(c, payload)) continue;
         } catch (e) {
