@@ -215,6 +215,11 @@ const copyText = async (text) => {
           <div class="credential-field">
             <code class="credential-code">{{ autoLoginUrl }}</code>
           </div>
+          <div class="credential-field">
+            <span class="credential-label">{{ t('autoLoginQrCode') }}</span>
+            <n-qr-code class="credential-qr-code" :value="autoLoginUrl" :size="160" />
+            <p class="credential-tip">{{ t('autoLoginQrCodeTip') }}</p>
+          </div>
         </div>
       </n-collapse-item>
     </n-collapse>
@@ -290,6 +295,10 @@ const copyText = async (text) => {
 .credential-code-block {
   margin: 0;
   white-space: pre-wrap;
+}
+
+.credential-qr-code {
+  justify-self: start;
 }
 
 .credential-actions {
