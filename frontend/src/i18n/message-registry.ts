@@ -392,6 +392,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Auto-login link",
       "zh": "自动登录链接"
     },
+    "autoLoginQrCode": {
+      "en": "Scan to open on mobile",
+      "zh": "手机扫码打开"
+    },
+    "autoLoginQrCodeTip": {
+      "en": "Anyone with this QR code can access this mailbox. Do not share it.",
+      "zh": "任何获取此二维码的人都可以访问该邮箱，请勿分享。"
+    },
     "copyFailed": {
       "en": "Copy failed",
       "zh": "复制失败"
