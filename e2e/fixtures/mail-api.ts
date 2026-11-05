@@ -1,3 +1,16 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { Telegram } from 'telegraf';
+
+const telegramRecording = new AsyncLocalStorage<{ method: string; payload: unknown }[] | undefined>();
+const callApi = Telegram.prototype.callApi;
+// Keep the shared transport stable and record only the current request.
+Telegram.prototype.callApi = function (this: Telegram, ...args: Parameters<typeof callApi>) {
+    const calls = telegramRecording.getStore();
+    if (!calls) return callApi.apply(this, args);
+    calls.push({ method: args[0], payload: args[1] });
+    return Promise.resolve({ message_id: calls.length });
+} as typeof callApi;
+
 // Direct DB insert — bypasses the email() handler.
 const seedMail = async (request: Request, env: Bindings) => {
     const { address, source, raw, message_id, created_at, address_updated_at, address_created_at } = await request.json<{
@@ -31,8 +44,9 @@ const seedMail = async (request: Request, env: Bindings) => {
 
 // Exercises the real email() handler with a mock ForwardableEmailMessage.
 const receiveMail = async (request: Request, env: Bindings, ctx: ExecutionContext) => {
-    const { from, to, raw, ai_extract_result, extract_mode } = await request.json<{
+    const { from, to, raw, ai_extract_result, extract_mode, record_telegram } = await request.json<{
         from: string; to: string; raw: string; ai_extract_result?: unknown; extract_mode?: string;
+        record_telegram?: boolean;
     }>();
     if (!from || !to || !raw) {
         return new Response("from, to and raw are required", { status: 400 });
@@ -45,7 +59,9 @@ const receiveMail = async (request: Request, env: Bindings, ctx: ExecutionContex
         const idx = line.indexOf(':');
         if (idx > 0) headers.append(line.substring(0, idx).trim(), line.substring(idx + 1).trim());
     }
-    if (!headers.has('Message-ID')) headers.set('Message-ID', `<e2e-${Date.now()}@test>`);
+    if (!headers.has('Message-ID') && !request.headers.has('x-test-no-message-id')) {
+        headers.set('Message-ID', `<e2e-${Date.now()}@test>`);
+    }
 
     const rawBytes = new TextEncoder().encode(raw);
     const state = { rejected: undefined as string | undefined, replyCalled: false, forwardedTo: [] as string[] };
@@ -68,12 +84,15 @@ const receiveMail = async (request: Request, env: Bindings, ctx: ExecutionContex
     const emailEnv = ai_extract_result || extract_mode !== undefined
         ? { ...env, ...aiExtractEnvOverrides }
         : env;
-    await emailHandler(mockMessage, emailEnv, ctx);
+    const telegramCalls: { method: string; payload: unknown }[] = [];
+    await telegramRecording.run(record_telegram ? telegramCalls : undefined,
+        () => emailHandler(mockMessage, emailEnv, ctx));
 
     return Response.json({
         success: !state.rejected,
         replyCalled: state.replyCalled,
         forwardedTo: state.forwardedTo,
+        ...(record_telegram ? { telegramCalls } : {}),
         ...(state.rejected ? { rejected: state.rejected } : {})
     });
 };

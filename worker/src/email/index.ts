@@ -83,13 +83,13 @@ async function email(message: ForwardableEmailMessage, env: Bindings, ctx: Execu
     await forwardEmail(message, env);
 
     // AI email content extraction
-    const aiExtractResult = await extractEmailInfo(parsedEmailContext, env, message_id, toAddress);
+    const aiExtractResult = await extractEmailInfo(parsedEmailContext, env, storedMailId, toAddress);
 
     // send email to telegram
     try {
         await sendMailToTelegram(
             { env: env } as Context<HonoCustomType>,
-            toAddress, parsedEmailContext, message_id, aiExtractResult);
+            toAddress, parsedEmailContext, storedMailId, aiExtractResult);
     } catch (error) {
         console.error("send mail to telegram error", error);
     }
