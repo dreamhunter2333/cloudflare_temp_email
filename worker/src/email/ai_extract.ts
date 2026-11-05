@@ -145,14 +145,15 @@ async function extractWithCloudflareAI(
  * Shared by the Workers AI mode and the local rule mode.
  *
  * @param env - Cloudflare Workers environment bindings
- * @param message_id - The email message ID
+ * @param mailId - The stored mail row ID
  * @param result - The extraction result to persist
  */
 async function saveExtractMetadata(
     env: Bindings,
-    message_id: string | null,
+    mailId: number | undefined,
     result: ExtractResult
 ): Promise<void> {
+    if (!mailId) return;
     try {
         const metadata = JSON.stringify({
             ai_extract: result,
@@ -161,8 +162,8 @@ async function saveExtractMetadata(
 
         // Update the raw_mails record with metadata
         await env.DB.prepare(
-            `UPDATE raw_mails SET metadata = ? WHERE message_id = ?`
-        ).bind(metadata, message_id).run();
+            `UPDATE raw_mails SET metadata = ? WHERE id = ?`
+        ).bind(metadata, mailId).run();
     } catch (e) {
         console.error('AI extraction metadata save error:', e);
     }
@@ -251,14 +252,14 @@ function isAddressInAiAllowlist(settings: AiExtractSettings | null | undefined, 
  *
  * @param parsedEmailContext - The parsed email context
  * @param env - Cloudflare Workers environment bindings
- * @param message_id - The email message ID
+ * @param mailId - The stored mail row ID
  * @param address - The recipient email address
  * @returns Promise<ExtractResult | null>
  */
 export async function extractEmailInfo(
     parsedEmailContext: ParsedEmailContext,
     env: Bindings,
-    message_id: string | null,
+    mailId: number | undefined,
     address: string
 ): Promise<ExtractResult | null> {
     try {
@@ -287,8 +288,8 @@ export async function extractEmailInfo(
             const code = localContent ? extractCode(localContent) : null;
             if (!code) return null;
             const result: ExtractResult = { type: 'auth_code', result: code, result_text: '' };
-            await saveExtractMetadata(env, message_id, result);
-            console.log(`Local code extraction completed for ${message_id}`);
+            await saveExtractMetadata(env, mailId, result);
+            console.log(`Local code extraction completed for ${mailId}`);
             return result;
         };
 
@@ -322,8 +323,8 @@ export async function extractEmailInfo(
 
         // If extraction found something useful, save it to database
         if (result.type !== 'none' && result.result) {
-            await saveExtractMetadata(env, message_id, result);
-            console.log(`AI extraction completed for ${message_id}: ${result.type}`);
+            await saveExtractMetadata(env, mailId, result);
+            console.log(`AI extraction completed for ${mailId}: ${result.type}`);
         }
         return result;
     } catch (e) {

@@ -470,7 +470,7 @@ const parseMail = async (
 export async function sendMailToTelegram(
     c: Context<HonoCustomType>, address: string,
     parsedEmailContext: ParsedEmailContext,
-    message_id: string | null,
+    mailId: number | undefined,
     aiExtract?: ExtractResult | null
 ) {
     if (!c.env.TELEGRAM_BOT_TOKEN || !c.env.KV) {
@@ -482,9 +482,6 @@ export async function sendMailToTelegram(
     if (!userId && !globalPush) {
         return;
     }
-    const mailId = await c.env.DB.prepare(
-        `SELECT id FROM raw_mails where address = ? and message_id = ?`
-    ).bind(address, message_id).first<string>("id");
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
 
     const buildAndSend = async (targetUserId: string, msgs: LocaleMessages) => {
@@ -497,7 +494,7 @@ export async function sendMailToTelegram(
         if (settings?.miniAppUrl && mailId) {
             const url = new URL(settings.miniAppUrl);
             url.pathname = "/telegram_mail"
-            url.searchParams.set("mail_id", mailId);
+            url.searchParams.set("mail_id", String(mailId));
             buttons.push(Markup.button.webApp(msgs.TgViewMailBtnMsg, url.toString()));
         }
         await bot.telegram.sendMessage(targetUserId, mail, {
