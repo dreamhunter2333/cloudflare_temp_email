@@ -102,7 +102,7 @@
 | `ENABLE_CHECK_JUNK_MAIL`        | 文本/JSON | 是否启用垃圾邮件检查，配合下列两个列表使用                                 | `false`                    |
 | `JUNK_MAIL_CHECK_LIST`          | JSON      | 存在性检查；已注册的失败/错误结果判定为垃圾邮件，`none` 和 SPF/DKIM `neutral` 按不存在处理 | `["spf", "dkim", "dmarc"]` |
 | `JUNK_MAIL_FORCE_PASS_LIST`     | JSON      | 强制通过检查；每一项都必须明确返回 `pass`，否则判定为垃圾邮件              | `["spf", "dkim", "dmarc"]` |
-| `FORWARD_ADDRESS_LIST`          | JSON      | 全局转发地址列表，如果不配置则不启用，启用后所有邮件都会转发到列表中的地址 | `["xxx@xxx.com"]`          |
+| `FORWARD_ADDRESS_LIST`          | JSON      | 全局转发地址列表，仅支持外部地址，通过 Cloudflare 转发，不走站内收件流程；不配置则不启用 | `["xxx@xxx.com"]`          |
 | `REMOVE_EXCEED_SIZE_ATTACHMENT` | 文本/JSON | 如果附件大小超过 2MB，则删除附件，邮件可能由于解析而丢失一些信息           | `true`                     |
 | `REMOVE_ALL_ATTACHMENT`         | 文本/JSON | 移除所有附件，邮件可能由于解析而丢失一些信息                               | `true`                     |
 | `ENABLE_MAIL_GZIP`             | 文本/JSON | 启用后新邮件将 Gzip 压缩存储到 `raw_blob` 字段，可节省 D1 数据库空间。已有明文 `raw` 数据自动兼容读取。**启用前请先执行数据库迁移（`Admin -> 快速设置 -> 数据库 -> 升级数据库 Schema` 或 `POST /admin/db_migration`），确保 `raw_blob` 列已创建。该功能会增加压缩/解压 CPU 开销，建议使用 Cloudflare Worker 付费 Plan 再开启。** | `true`                     |
@@ -188,6 +188,8 @@
 
 ## 邮件转发相关变量
 
+Admin 或 `SUBDOMAIN_FORWARD_ADDRESS_LIST` 规则将转发目标设为 `DOMAINS` 中域名下的地址，即可复用收件流程入库并独立提取和推送，但不再转发或自动回复；未知地址仍按原收件配置决定是否拒收。默认保留原邮件；规则可开启“转发成功后删除原邮件”，在收件流程最后删除本次原件。`FORWARD_ADDRESS_LIST` 仅支持通过 Cloudflare 转发到外部地址，不走站内收件流程。无需数据库迁移。
+
 | 变量名                            | 类型 | 说明                                                                                                       | 示例   |
 | --------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------- | ------ |
 | `SUBDOMAIN_FORWARD_ADDRESS_LIST`  | JSON | 子域名/规则转发配置，支持按域名和来源地址正则过滤转发                                                       | 见下方 |
@@ -198,6 +200,7 @@
 >
 > - `domains`: 目标域名列表，为空则匹配所有域名
 > - `forward`: 转发目标地址
+> - `deleteOriginal`: 该规则转发成功后，在收件流程最后删除原邮件（可选，默认 `false`；自转发或失败不删除，删除后原邮件及其附件链接失效）
 > - `sourcePatterns`: 来源地址正则表达式列表（可选）
 > - `sourceMatchMode`: 匹配模式，`any`(任一匹配，默认) 或 `all`(全部匹配)
 >

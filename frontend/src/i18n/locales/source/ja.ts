@@ -238,6 +238,7 @@ export const jaMessages = {
   "views.admin.UserOauth2Settings.delete": "削除",
   "views.admin.SenderAccess.delete": "削除",
   "views.admin.UserManagement.delete": "削除",
+  "views.admin.AccountSettings.delete_original": "転送成功後に元のメールを削除",
   "views.admin.AccountSettings.delete_rule": "削除",
   "views.admin.Maintenance.deleteCustomSql": "削除",
   "views.index.AccountSettings.deleteMailbox": "メールボックスを削除",
