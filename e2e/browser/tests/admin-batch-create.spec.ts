@@ -28,7 +28,7 @@ async function exportCsv(page: Page, name = 'Export CSV') {
 }
 
 function expectedCsv(rows: { address: string; jwt: string }[]) {
-  const quote = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  const quote = (value: string) => `"${value.replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`;
   return [ ['address', 'login_url'], ...rows.map(r => [r.address, `${new URL(FRONTEND_URL).origin}/?jwt=${encodeURIComponent(r.jwt)}`]) ]
     .map(fields => fields.map(quote).join(',')).join('\r\n');
 }
@@ -114,7 +114,7 @@ test('requires a domain', async ({ page }) => {
 
 test('sends selected domain, prefix and subdomain settings and retains CSV results', async ({ page }) => {
   const bodies: Record<string, unknown>[] = [];
-  const rows = [row(1), { ...row(2), address: 'comma,"quote"@random.test.example.com' }, row(3)];
+  const rows = [row(1), { ...row(2), address: 'comma,"quote"@random.test.example.com' }, { ...row(3), address: '=1+1@team.other.example.com' }];
   await page.route('**/admin/new_address', route => {
     bodies.push(route.request().postDataJSON());
     return route.fulfill({ json: rows[bodies.length - 1] });
@@ -143,7 +143,9 @@ test('sends selected domain, prefix and subdomain settings and retains CSV resul
     { enablePrefix: false, enableRandomSubdomain: false, domain: 'team.other.example.com', name: expect.stringMatching(/^[a-z0-9]{1,30}$/) },
   ]);
   expect(new Set(bodies.map(body => body.name)).size).toBe(3);
-  expect(await exportCsv(page)).toBe(expectedCsv(rows));
+  const csv = await exportCsv(page);
+  expect(csv).toBe(expectedCsv(rows));
+  expect(csv.split('\r\n')[3]).toMatch(/^"'=1\+1@team\.other\.example\.com",/);
   await page.getByRole('button', { name: 'Clear results', exact: true }).click();
   await expect(page.getByText('Saved results: 0', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Export CSV' })).toBeDisabled();

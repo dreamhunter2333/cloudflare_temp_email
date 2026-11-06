@@ -92,7 +92,11 @@ const clearBatch = () => {
 
 const exportBatch = () => {
     if (busy.value || !batchRows.value.length) return
-    const quote = value => `"${String(value).replace(/"/g, '""')}"`
+    // Leading ' keeps spreadsheets from evaluating a cell (e.g. an =PREFIX address) as a formula.
+    const quote = value => {
+        const text = String(value).replace(/^[=+\-@\t\r]/, "'$&")
+        return `"${text.replace(/"/g, '""')}"`
+    }
     const rows = [['address', 'login_url'], ...batchRows.value.map(row => [
         row.address, `${window.location.origin}/?jwt=${encodeURIComponent(row.jwt)}`,
     ])]

@@ -14,7 +14,7 @@ In **Admin Console → Mailbox Management → Create Email Address**, select the
 
 Creation runs sequentially and displays completed/requested progress. If a request fails, creation stops without retrying and preserves confirmed successes. An interrupted request may already have created a mailbox with an unknown outcome; check the mailbox list before starting another batch. Leaving the view stops further requests.
 
-Click **Export CSV** to download UTF-8 CSV containing only `address` and `login_url`. Each link opens the created mailbox on this frontend. Successful rows accumulate across batches until **Clear results** is clicked or you leave the view; they are kept only in memory. Export and clear are unavailable during creation.
+Click **Export CSV** to download UTF-8 CSV containing only `address` and `login_url`. Each link opens the created mailbox on this frontend. Successful rows accumulate across batches until **Clear results** is clicked or you leave the view; they are kept only in memory. Export and clear are unavailable during creation. A cell that starts with `=`, `+`, `-` or `@` (for example an address from such a `PREFIX`) is written with a leading `'` so spreadsheets keep it as text.
 
 Anyone holding a login link can access that mailbox. Treat the CSV as mailbox credentials and share it privately. Private deployments still require their existing site-access credentials; these are not included in the export.
 
