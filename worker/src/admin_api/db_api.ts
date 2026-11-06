@@ -21,6 +21,10 @@ CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);
 
+CREATE INDEX IF NOT EXISTS idx_raw_mails_cleanup_unknown ON raw_mails(created_at, id, address);
+
+CREATE INDEX IF NOT EXISTS idx_raw_mails_source_domain_created_at ON raw_mails(lower(trim(substr(source, instr(source, '@') + 1), ' <>')), created_at, id);
+
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
@@ -161,7 +165,8 @@ export default {
     },
     migrate: async (c: Context<HonoCustomType>) => {
         const version = await utils.getSetting(c, CONSTANTS.DB_VERSION_KEY);
-        if (version && version <= "v0.0.2") {
+        const patchVersion = Number(version?.replace(/^v0\.0\./, ""));
+        if (version && patchVersion <= 2) {
             // migration to v0.0.3: add password column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(address)`
@@ -173,7 +178,7 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE address ADD COLUMN password TEXT;`);
             }
         }
-        if (version && version <= "v0.0.3") {
+        if (version && patchVersion <= 3) {
             // migration to v0.0.4: add metadata column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(raw_mails)`
@@ -185,7 +190,7 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN metadata TEXT;`);
             }
         }
-        if (version && version <= "v0.0.4") {
+        if (version && patchVersion <= 4) {
             // migration to v0.0.5: add source_meta column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(address)`
@@ -198,11 +203,11 @@ export default {
                 await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_address_source_meta ON address(source_meta);`);
             }
         }
-        if (version && version <= "v0.0.5") {
+        if (version && patchVersion <= 5) {
             // migration to v0.0.6: add message_id index on raw_mails
             await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);`);
         }
-        if (version && version <= "v0.0.6") {
+        if (version && patchVersion <= 6) {
             // migration to v0.0.7: add raw_blob column for gzip compressed email storage
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(raw_mails)`
@@ -214,7 +219,7 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_blob BLOB;`);
             }
         }
-        if (version && version <= "v0.0.7") {
+        if (version && patchVersion <= 7) {
             const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(raw_mails)`).all();
             if (!tableInfo.results?.some((col: any) => col.name === 'is_unread')) {
                 await c.env.DB.exec(
