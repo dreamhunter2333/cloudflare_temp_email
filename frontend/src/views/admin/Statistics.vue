@@ -28,7 +28,6 @@ const totalsLoading = ref(false)
 const totalsError = ref('')
 const loading = ref(false)
 const error = ref('')
-const snapshots = new Map()
 const pending = new Map()
 let requestId = 0
 let totalsRequestId = 0
@@ -39,7 +38,7 @@ const rangeError = computed(() => Date.parse(to.value) - Date.parse(from.value) 
 const draftError = computed(() => !draftRange.value || Date.parse(dayKey(draftRange.value[1])) - Date.parse(dayKey(draftRange.value[0])) >= 30 * DAY ? t('rangeLimit') : '')
 const rangeLabel = computed(() => preset.value ? t(preset.value === 1 ? 'today' : preset.value === 7 ? 'days7' : 'days30') : `${from.value} – ${to.value}`)
 const domainOptions = computed(() => [{ label: t('allDomains'), value: '' }, ...openSettings.value.domains])
-const series = computed(() => statistics.value?.daily.filter(point => point.day.slice(0, 10) >= from.value && point.day.slice(0, 10) <= to.value) ?? [])
+const series = computed(() => statistics.value?.daily ?? [])
 const panels = computed(() => [
     { metric: 'mailCount', title: t('received'), color: theme.value.primaryColor },
     { metric: 'addressCount', title: t('newAddresses'), color: theme.value.infoColor },
@@ -52,38 +51,22 @@ const colors = computed(() => ({
     '--surface': theme.value.cardColor,
 }))
 
-const fetchSnapshot = query => {
+const fetchStatisticsData = query => {
     if (pending.has(query)) return pending.get(query)
-    const request = api.fetch(`/admin/statistics?${query}`, { showLoading: false }).then(snapshot => {
-        for (const [key, value] of snapshots) {
-            if (Date.now() - Date.parse(value.generatedAt) >= 600000) snapshots.delete(key)
-        }
-        if (snapshots.size >= 100) snapshots.delete(snapshots.keys().next().value)
-        snapshots.set(query, snapshot)
-        return snapshot
-    }).finally(() => pending.delete(query))
+    const request = api.fetch(`/admin/statistics?${query}`, { showLoading: false }).finally(() => pending.delete(query))
     pending.set(query, request)
     return request
 }
-const fetchStatistics = async (refresh = false) => {
+const fetchStatistics = async () => {
     const id = ++requestId
     error.value = ''
     statistics.value = null
     loading.value = false
     if (rangeError.value) return
     const query = new URLSearchParams({ from: from.value, to: to.value, domain: domain.value }).toString()
-    const exact = snapshots.get(query)
-    const cached = exact && Date.now() - Date.parse(exact.generatedAt) < 600000 ? exact : [...snapshots.values()].find(snapshot =>
-        from.value !== to.value && snapshot.interval === 'day' && snapshot.domain === domain.value
-        && snapshot.from <= from.value && snapshot.to >= to.value
-        && Date.now() - Date.parse(snapshot.generatedAt) < 600000)
-    if (!refresh && cached && Date.now() - Date.parse(cached.generatedAt) < 600000) {
-        statistics.value = cached
-        return
-    }
     loading.value = true
     try {
-        const snapshot = await fetchSnapshot(query)
+        const snapshot = await fetchStatisticsData(query)
         if (id === requestId) statistics.value = snapshot
     } catch (cause) {
         if (id === requestId) error.value = cause.message || t('loadError')
@@ -91,20 +74,14 @@ const fetchStatistics = async (refresh = false) => {
         if (id === requestId) loading.value = false
     }
 }
-const fetchTotals = async (refresh = false) => {
+const fetchTotals = async () => {
     const id = ++totalsRequestId
     const query = new URLSearchParams({ view: 'totals', domain: domain.value }).toString()
     totalsError.value = ''
-    const cached = snapshots.get(query)
-    if (!refresh && cached && Date.now() - Date.parse(cached.generatedAt) < 600000) {
-        totals.value = cached
-        totalsLoading.value = false
-        return
-    }
     totals.value = null
     totalsLoading.value = true
     try {
-        const snapshot = await fetchSnapshot(query)
+        const snapshot = await fetchStatisticsData(query)
         if (id === totalsRequestId) totals.value = snapshot
     } catch (cause) {
         if (id === totalsRequestId) totalsError.value = cause.message || t('loadError')
@@ -112,7 +89,7 @@ const fetchTotals = async (refresh = false) => {
         if (id === totalsRequestId) totalsLoading.value = false
     }
 }
-const refresh = () => Promise.all([fetchStatistics(true), fetchTotals(true)])
+const refresh = () => Promise.all([fetchStatistics(), fetchTotals()])
 const selectPreset = value => { preset.value = value; range.value = presetRange(value); showTime.value = false }
 const applyRange = () => {
     if (draftError.value) return

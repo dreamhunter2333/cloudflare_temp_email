@@ -44,7 +44,7 @@ The **Statistics** page shows linked line charts for received mail, new mailboxe
 
 Domain options come from configured mailbox domains without scanning mail to populate the selector. User growth is site-wide and unaffected by the mailbox-domain filter. Charts count retained records, exclude deleted data, and do not represent net growth.
 
-Trends query only the selected dates, aggregating time buckets and mailbox domains once for reuse across domain filters. Site-wide totals use direct counts. Domain totals are aggregated on demand only when filtering by domain, then reused across all domains independently of date parameters. The existing Cache API caches snapshots for 10 minutes. Cached larger date ranges can be reused in the browser, and identical concurrent requests within one Worker isolate are coalesced. KV is not used, and no D1 cache table or receive-path counter writes are added. Cache API entries are local to each data center, so computation is not globally once-only.
+Trends query only the selected dates and filter the selected mailbox domain directly in SQL, without grouping other domains. Totals are queried separately and ignore date parameters. Neither frontend nor backend caches statistics results. KV is not used, and no D1 cache table or receive-path counter writes are added. The frontend only coalesces identical pending requests; time changes do not query totals again.
 
 Database migration v0.0.11 adds the user creation-time index. Existing databases must apply the migration before user trends can use that index.
 
