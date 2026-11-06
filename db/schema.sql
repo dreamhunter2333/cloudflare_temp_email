@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_user_email ON users(user_email);
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
 
 CREATE TABLE IF NOT EXISTS users_address (
     id INTEGER PRIMARY KEY,

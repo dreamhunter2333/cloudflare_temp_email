@@ -1914,6 +1914,23 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.admin.Statistics": {
+    "refresh": { "en": "Refresh", "zh": "刷新" },
+    "dateRange": { "en": "Time range", "zh": "时间范围" },
+    "days7": { "en": "Last 7 days", "zh": "近 7 天" },
+    "days30": { "en": "Last 30 days", "zh": "近 30 天" },
+    "today": { "en": "Today", "zh": "今天" },
+    "allDomains": { "en": "All", "zh": "全部" },
+    "mailboxDomain": { "en": "Mailbox domain", "zh": "邮箱域名" },
+    "rangeLimit": { "en": "Select a range of up to 30 days.", "zh": "单次最多查看 30 天，请缩小日期范围。" },
+    "rangeHelp": { "en": "Up to 30 days", "zh": "最多 30 天" },
+    "applyRange": { "en": "Apply", "zh": "应用" },
+    "received": { "en": "Incoming mail", "zh": "收件量" },
+    "newAddresses": { "en": "Mailbox growth", "zh": "邮箱增长" },
+    "sent": { "en": "Outgoing mail", "zh": "发件量" },
+    "newUsers": { "en": "User growth", "zh": "用户增长" },
+    "global": { "en": "Site-wide", "zh": "全站" },
+    "chartLabel": { "en": "{title}: {count}", "zh": "{title}：{count}" },
+    "loadError": { "en": "Could not load statistics. Try refreshing.", "zh": "统计加载失败，请刷新重试。" },
     "activeAddressCount30days": {
       "en": "30 days Active Address Count",
       "zh": "30天活跃邮箱地址总数"
@@ -1923,19 +1940,19 @@ export const MESSAGE_REGISTRY = {
       "zh": "7天活跃邮箱地址总数"
     },
     "addressCount": {
-      "en": "Address Count",
-      "zh": "邮箱地址总数"
+      "en": "Total mailboxes",
+      "zh": "邮箱总数"
     },
     "mailCount": {
-      "en": "Mail Count",
+      "en": "Total mail",
       "zh": "邮件总数"
     },
     "sendMailCount": {
-      "en": "Send Mail Count",
-      "zh": "发送邮件总数"
+      "en": "Total sent",
+      "zh": "发件总数"
     },
     "userCount": {
-      "en": "User Count",
+      "en": "Total users",
       "zh": "用户总数"
     }
   },

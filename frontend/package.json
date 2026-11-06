@@ -30,6 +30,7 @@
     "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.20.0",
     "dompurify": "^3.4.17",
+    "echarts": "^6.1.0",
     "jszip": "^3.10.2",
     "mail-parser-wasm": "^0.2.3",
     "naive-ui": "^2.45.3",
@@ -37,6 +38,7 @@
     "vooks": "^0.2.12",
     "vue": "^3.5.44",
     "vue-clipboard3": "^2.0.0",
+    "vue-echarts": "^8.3.2",
     "vue-i18n": "^11.4.16",
     "vue-router": "^4.6.4"
   },
