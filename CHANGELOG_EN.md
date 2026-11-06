@@ -17,6 +17,7 @@
 
 ### Bug Fixes
 
+- fix: |Scheduled Cleanup| Catch errors for each built-in and custom SQL cleanup task, log failures, and continue with subsequent tasks
 - fix: |Mail Processing| Use the newly stored row ID for metadata updates and Telegram links, avoiding wrong-row updates or links when Message-ID is repeated or missing
 - fix: |Mail Reader| Reset inherited application defaults in Shadow mail and use browser-default system colors for a normal document while preserving sender colors
 - fix: |Telegram| Clean up the current push recipient's binding and push mapping before admin mailbox deletion, freeing a slot and preventing stale pushes on recreation; KV cleanup failures preserve the mailbox for retry, while database deletion failures may leave it unbound
@@ -29,6 +30,7 @@
 
 ### Improvements
 
+- perf: |Database| Upgrade the schema to `v0.0.10` with a covering index for unknown-mail cleanup and an expression-based composite index for domain cleanup; compare major, minor, and patch versions numerically to avoid two-digit version errors and version-marker downgrades
 - docs: |User| Document mailbox binding, bound mailbox credential retrieval, and unbinding APIs with dual authentication requirements and request examples
 
 - perf: |CI| Organize test suites and run a dedicated Webhook UI group alongside API, other browser tests and SMTP/IMAP, with only each group's required services, separate unit/WASM tests and one aggregate check

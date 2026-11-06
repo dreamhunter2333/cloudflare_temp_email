@@ -1,6 +1,7 @@
 import { Context } from "hono";
 import { CONSTANTS } from "../constants";
 import utils from "../utils";
+import { compareVersions } from "../utils/version";
 
 const DB_INIT_QUERIES = `
 CREATE TABLE IF NOT EXISTS raw_mails (
@@ -20,6 +21,10 @@ CREATE INDEX IF NOT EXISTS idx_raw_mails_address ON raw_mails(address);
 CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);
+
+CREATE INDEX IF NOT EXISTS idx_raw_mails_cleanup_unknown ON raw_mails(created_at, id, address);
+
+CREATE INDEX IF NOT EXISTS idx_raw_mails_source_domain_created_at ON raw_mails(lower(trim(substr(source, instr(source, '@') + 1), ' <>')), created_at, id);
 
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -161,7 +166,7 @@ export default {
     },
     migrate: async (c: Context<HonoCustomType>) => {
         const version = await utils.getSetting(c, CONSTANTS.DB_VERSION_KEY);
-        if (version && version <= "v0.0.2") {
+        if (version && compareVersions(version, "v0.0.2") <= 0) {
             // migration to v0.0.3: add password column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(address)`
@@ -173,7 +178,7 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE address ADD COLUMN password TEXT;`);
             }
         }
-        if (version && version <= "v0.0.3") {
+        if (version && compareVersions(version, "v0.0.3") <= 0) {
             // migration to v0.0.4: add metadata column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(raw_mails)`
@@ -185,7 +190,7 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN metadata TEXT;`);
             }
         }
-        if (version && version <= "v0.0.4") {
+        if (version && compareVersions(version, "v0.0.4") <= 0) {
             // migration to v0.0.5: add source_meta column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(address)`
@@ -198,11 +203,11 @@ export default {
                 await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_address_source_meta ON address(source_meta);`);
             }
         }
-        if (version && version <= "v0.0.5") {
+        if (version && compareVersions(version, "v0.0.5") <= 0) {
             // migration to v0.0.6: add message_id index on raw_mails
             await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);`);
         }
-        if (version && version <= "v0.0.6") {
+        if (version && compareVersions(version, "v0.0.6") <= 0) {
             // migration to v0.0.7: add raw_blob column for gzip compressed email storage
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(raw_mails)`
@@ -214,7 +219,7 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_blob BLOB;`);
             }
         }
-        if (version && version <= "v0.0.7") {
+        if (version && compareVersions(version, "v0.0.7") <= 0) {
             const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(raw_mails)`).all();
             if (!tableInfo.results?.some((col: any) => col.name === 'is_unread')) {
                 await c.env.DB.exec(
@@ -222,7 +227,7 @@ export default {
                 );
             }
         }
-        if (version != CONSTANTS.DB_VERSION) {
+        if (!version || compareVersions(version, CONSTANTS.DB_VERSION) < 0) {
             // remove all \r and \n characters from the query string
             // split by ; and join with a ;\n
             const query = DB_INIT_QUERIES.replace(/[\r\n]/g, "")
@@ -247,7 +252,7 @@ export default {
         const sizeResult = await c.env.DB.prepare("SELECT 1").run();
         return c.json({
             need_initialization: !version,
-            need_migration: version && version != CONSTANTS.DB_VERSION,
+            need_migration: version && compareVersions(version, CONSTANTS.DB_VERSION) < 0,
             current_db_version: version,
             code_db_version: CONSTANTS.DB_VERSION,
             database_size: sizeResult.meta.size_after ?? null
