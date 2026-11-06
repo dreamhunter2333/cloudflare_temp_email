@@ -17,64 +17,96 @@ export async function scheduled(event: ScheduledEvent, env: Bindings, ctx: any) 
     }
     console.log("autoCleanupSetting:", JSON.stringify(autoCleanupSetting));
     if (autoCleanupSetting.enableMailsAutoCleanup) {
-        await cleanup(
-            { env: env, } as Context<HonoCustomType>,
-            "mails",
-            autoCleanupSetting.cleanMailsDays
-        );
+        try {
+            await cleanup(
+                { env: env, } as Context<HonoCustomType>,
+                "mails",
+                autoCleanupSetting.cleanMailsDays
+            );
+        } catch (error) {
+            console.error("Cleanup [mails] failed:", error);
+        }
     }
     if (autoCleanupSetting.enableUnknowMailsAutoCleanup) {
-        await cleanup(
-            { env: env, } as Context<HonoCustomType>,
-            "mails_unknow",
-            autoCleanupSetting.cleanUnknowMailsDays
-        );
+        try {
+            await cleanup(
+                { env: env, } as Context<HonoCustomType>,
+                "mails_unknow",
+                autoCleanupSetting.cleanUnknowMailsDays
+            );
+        } catch (error) {
+            console.error("Cleanup [mails_unknow] failed:", error);
+        }
     }
     if (autoCleanupSetting.enableSendBoxAutoCleanup) {
-        await cleanup(
-            { env: env, } as Context<HonoCustomType>,
-            "sendbox",
-            autoCleanupSetting.cleanSendBoxDays
-        );
+        try {
+            await cleanup(
+                { env: env, } as Context<HonoCustomType>,
+                "sendbox",
+                autoCleanupSetting.cleanSendBoxDays
+            );
+        } catch (error) {
+            console.error("Cleanup [sendbox] failed:", error);
+        }
     }
     if (autoCleanupSetting.enableInactiveAddressAutoCleanup) {
-        await cleanup(
-            { env: env, } as Context<HonoCustomType>,
-            "inactiveAddress",
-            autoCleanupSetting.cleanInactiveAddressDays
-        );
+        try {
+            await cleanup(
+                { env: env, } as Context<HonoCustomType>,
+                "inactiveAddress",
+                autoCleanupSetting.cleanInactiveAddressDays
+            );
+        } catch (error) {
+            console.error("Cleanup [inactiveAddress] failed:", error);
+        }
     }
     if (autoCleanupSetting.enableAddressAutoCleanup) {
-        await cleanup(
-            { env: env, } as Context<HonoCustomType>,
-            "addressCreated",
-            autoCleanupSetting.cleanAddressDays
-        );
+        try {
+            await cleanup(
+                { env: env, } as Context<HonoCustomType>,
+                "addressCreated",
+                autoCleanupSetting.cleanAddressDays
+            );
+        } catch (error) {
+            console.error("Cleanup [addressCreated] failed:", error);
+        }
     }
     if (autoCleanupSetting.enableUnboundAddressAutoCleanup) {
-        await cleanup(
-            { env: env, } as Context<HonoCustomType>,
-            "unboundAddress",
-            autoCleanupSetting.cleanUnboundAddressDays
-        );
+        try {
+            await cleanup(
+                { env: env, } as Context<HonoCustomType>,
+                "unboundAddress",
+                autoCleanupSetting.cleanUnboundAddressDays
+            );
+        } catch (error) {
+            console.error("Cleanup [unboundAddress] failed:", error);
+        }
     }
     if (autoCleanupSetting.enableEmptyAddressAutoCleanup) {
-        await cleanup(
-            { env: env, } as Context<HonoCustomType>,
-            "emptyAddress",
-            autoCleanupSetting.cleanEmptyAddressDays
-        );
+        try {
+            await cleanup(
+                { env: env, } as Context<HonoCustomType>,
+                "emptyAddress",
+                autoCleanupSetting.cleanEmptyAddressDays
+            );
+        } catch (error) {
+            console.error("Cleanup [emptyAddress] failed:", error);
+        }
     }
     // Execute custom SQL cleanup tasks
     if (autoCleanupSetting.customSqlCleanupList && autoCleanupSetting.customSqlCleanupList.length > 0) {
         for (const customSql of autoCleanupSetting.customSqlCleanupList) {
             if (customSql.enabled && customSql.sql) {
-                const result = await executeCustomSqlCleanup(
-                    { env: env, } as Context<HonoCustomType>,
-                    customSql
-                );
-                if (!result.success) {
-                    console.error(`Custom SQL cleanup [${customSql.name}] failed: ${result.error}`);
+                try {
+                    const result = await executeCustomSqlCleanup(
+                        { env: env, } as Context<HonoCustomType>,
+                        customSql
+                    );
+                    if (!result.success) {
+                        console.error(`Custom SQL cleanup [${customSql.name}] failed: ${result.error}`);
+                    }
+                } catch (error) {
+                    console.error(`Custom SQL cleanup [${customSql.name}] failed:`, error);
                 }
             }
         }
