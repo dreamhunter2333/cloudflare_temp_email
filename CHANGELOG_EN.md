@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Admin Statistics| Add totals, shared filters and lazy-loaded ECharts; query trends for the selected dates and mailbox domain without result caching, and coalesce identical pending frontend requests
 - feat: |Mail Forwarding| Route forwarding rules internally by configured domain with independent receive processing, extraction and notifications, no second forwarding and only one auto-reply; optionally delete the original at the end and keep global forwarding external-only with its existing behavior
 - feat: |User System| Add `DISABLE_USER_SYSTEM` to block user APIs, disable user admin tokens, and hide user interfaces
 - feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
@@ -17,6 +18,8 @@
 
 ### Bug Fixes
 
+- fix: |Admin Statistics| Separate totals and trend queries so time changes do not query totals again; index user creation time and upgrade the database to v0.0.11
+- fix: |Admin Statistics| Add horizontal dashboard and header spacing on phones and tablets to keep filters, cards and menu away from screen edges
 - fix: |Scheduled Cleanup| Catch errors for each built-in and custom SQL cleanup task, log failures, and continue with subsequent tasks
 - fix: |Mail Processing| Use the newly stored row ID for metadata updates and Telegram links, avoiding wrong-row updates or links when Message-ID is repeated or missing
 - fix: |Mail Reader| Reset inherited application defaults in Shadow mail and use browser-default system colors for a normal document while preserving sender colors

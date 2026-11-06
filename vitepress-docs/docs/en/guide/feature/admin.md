@@ -23,6 +23,18 @@ same role to that user in user management.
 
 ![admin](/feature/admin.png)
 
+## Statistics Dashboard
+
+The top row shows totals for retained mail, mailboxes, users and sent mail, independent of the selected time range. Time changes do not query totals again. Mailbox-domain filters apply to mail, mailboxes and sent mail; user totals remain site-wide.
+
+The **Statistics** page shows linked line charts for received mail, new mailboxes, sent mail, and new users, with shared time-range and mailbox-domain filters. Use the time button to select today, the last 7 or 30 days, or a custom range of up to 30 days. Custom dates take effect after **Apply**. Single-day charts use hourly buckets; other ranges use daily buckets, all in UTC. ECharts loads lazily and supports linked tooltips and zooming.
+
+Domain options come from configured mailbox domains without scanning mail to populate the selector. User growth is site-wide and unaffected by the mailbox-domain filter. Charts count retained records, exclude deleted data, and do not represent net growth.
+
+Trends query only the selected dates and filter the selected mailbox domain directly in SQL, without grouping other domains. Totals are queried separately and ignore date parameters. Neither frontend nor backend caches statistics results. KV is not used, and no D1 cache table or receive-path counter writes are added. The frontend only coalesces identical pending requests; time changes do not query totals again.
+
+Database migration v0.0.11 adds the user creation-time index. Existing databases must apply the migration before user trends can use that index.
+
 ## Mailbox List Sorting
 
 **Admin Console → Mailbox Management → Mailboxes** supports column sorting. Click a column header to toggle ascending/descending order for:

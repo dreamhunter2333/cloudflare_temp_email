@@ -1,32 +1,78 @@
-import { Context } from 'hono'
+import type { Context } from 'hono'
+import { getDomains } from '../utils'
+import i18n from '../i18n'
+
+const DAY = 86400000;
+const metrics = [
+    ['mailCount', 'raw_mails', 'address'],
+    ['addressCount', 'address', 'name'],
+    ['userCount', 'users', null],
+    ['sendMailCount', 'sendbox', 'address'],
+] as const;
+type CountRow = { day?: string; count: number };
+
+const getTotals = async (c: Context<HonoCustomType>, domain = '') => {
+    const results = await c.env.DB.batch<CountRow>(metrics.map(([, table, column]) => {
+        const filter = domain && column;
+        const statement = c.env.DB.prepare(`SELECT count(*) AS count FROM ${table}${filter
+            ? ` WHERE substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE` : ''}`);
+        return filter ? statement.bind(domain) : statement;
+    }));
+    return Object.fromEntries(metrics.map(([key], i) => [key, results[i].results[0].count]));
+};
 
 const get = async (c: Context<HonoCustomType>) => {
-    const { count: mailCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM raw_mails`
-    ).first<{ count: number }>() || {};
-    const { count: addressCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM address`
-    ).first<{ count: number }>() || {};
-    const { count: activeAddressCount7days } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM address where updated_at > datetime('now', '-7 day')`
-    ).first<{ count: number }>() || {};
-    const { count: activeAddressCount30days } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM address where updated_at > datetime('now', '-30 day')`
-    ).first<{ count: number }>() || {};
-    const { count: sendMailCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM sendbox`
-    ).first<{ count: number }>() || {};
-    const { count: userCount } = await c.env.DB.prepare(
-        `SELECT count(*) as count FROM users`
-    ).first<{ count: number }>() || {};
-    return c.json({
-        mailCount,
-        addressCount,
-        activeAddressCount7days,
-        activeAddressCount30days,
-        userCount,
-        sendMailCount,
+    const today = new Date().toISOString().slice(0, 10);
+    const { from, to, domain: domainQuery, view } = c.req.query();
+    const domain = domainQuery?.trim().toLowerCase() || '';
+    const msgs = i18n.getMessagesbyContext(c);
+    if (domain && !getDomains(c).includes(domain)) return c.text(msgs.InvalidStatisticsDomainMsg, 400);
+    if (view === 'totals') {
+        const totals = await getTotals(c, domain);
+        return c.json({ generatedAt: new Date().toISOString(), domain, ...totals }, 200, { 'Cache-Control': 'private, no-store' });
+    }
+
+    const startDay = from || new Date(Date.parse(today) - 29 * DAY).toISOString().slice(0, 10);
+    const endDay = to || today;
+    const start = Date.parse(startDay);
+    const end = Date.parse(endDay) + DAY;
+    const validDay = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value)
+        && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+    if (!validDay(startDay) || !validDay(endDay) || end <= start || end - start > 30 * DAY || endDay > today) {
+        return c.text(msgs.InvalidStatisticsRangeMsg, 400);
+    }
+    const legacy = !from && !to && !domain;
+    const hourly = end - start === DAY && !legacy;
+    const bucket = hourly ? "strftime('%Y-%m-%d %H:00', created_at)" : 'date(created_at)';
+    const results = await c.env.DB.batch<CountRow>(metrics.map(([, table, column]) => {
+        const filter = domain && column;
+        return c.env.DB.prepare(
+            `SELECT ${bucket} AS day, count(*) AS count FROM ${table}
+             WHERE created_at >= ? AND created_at < ?${filter
+                ? ` AND substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE` : ''} GROUP BY day`
+        ).bind(`${startDay} 00:00:00`, `${new Date(end).toISOString().slice(0, 10)} 00:00:00`, ...(filter ? [domain] : []));
+    }));
+    const generatedAt = new Date().toISOString();
+    const counts = results.map(result => new Map(result.results.map(row => [row.day, row.count])));
+    const step = hourly ? DAY / 24 : DAY;
+    const bucketCount = hourly && endDay === today ? new Date(generatedAt).getUTCHours() + 1 : (end - start) / step;
+    const daily = Array.from({ length: bucketCount }, (_, index) => {
+        const iso = new Date(start + index * step).toISOString();
+        const day = hourly ? iso.slice(0, 13).replace('T', ' ') + ':00' : iso.slice(0, 10);
+        return { day, ...Object.fromEntries(metrics.map(([key], i) => [key, counts[i].get(day) ?? 0])) };
     });
+    const response = { generatedAt, from: startDay, to: endDay, domain, interval: hourly ? 'hour' : 'day', daily };
+    if (!legacy) return c.json(response, 200, { 'Cache-Control': 'private, no-store' });
+    const [totals, activity] = await Promise.all([
+        getTotals(c),
+        c.env.DB.prepare(
+            `SELECT count(*) AS active30, coalesce(sum(updated_at > datetime('now', '-7 days')), 0) AS active7
+             FROM address WHERE updated_at > datetime('now', '-30 days')`
+        ).first<{ active7: number; active30: number }>(),
+    ]);
+    return c.json({ ...response, ...totals,
+        activeAddressCount7days: activity?.active7 ?? 0, activeAddressCount30days: activity?.active30 ?? 0,
+    }, 200, { 'Cache-Control': 'private, no-store' });
 };
 
 export default { get };
