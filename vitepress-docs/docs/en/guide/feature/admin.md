@@ -23,6 +23,18 @@ same role to that user in user management.
 
 ![admin](/feature/admin.png)
 
+## Statistics Dashboard
+
+The top row shows totals for retained mail, mailboxes, users and sent mail, independent of the selected time range. Time changes do not query totals again. Mailbox-domain filters apply to mail, mailboxes and sent mail; user totals remain site-wide.
+
+The **Statistics** page shows linked line charts for received mail, new mailboxes, sent mail, and new users, with shared time-range and mailbox-domain filters. Use the time button to select today, the last 7 or 30 days, or a custom range of up to 30 days. Custom dates take effect after **Apply**. Single-day charts use hourly buckets; other ranges use daily buckets, all in UTC. ECharts loads lazily and supports linked tooltips and zooming.
+
+Domain options come from configured mailbox domains without scanning mail to populate the selector. User growth is site-wide and unaffected by the mailbox-domain filter. Charts count retained records, exclude deleted data, and do not represent net growth.
+
+Trends query only the selected dates, aggregating time buckets and mailbox domains once for reuse across domain filters. Site-wide totals use direct counts. Domain totals are aggregated on demand only when filtering by domain, then reused across all domains independently of date parameters. The existing Cache API caches snapshots for 10 minutes. Cached larger date ranges can be reused in the browser, and identical concurrent requests within one Worker isolate are coalesced. KV is not used, and no D1 cache table or receive-path counter writes are added. Cache API entries are local to each data center, so computation is not globally once-only.
+
+Database migration v0.0.11 adds the user creation-time index. Existing databases must apply the migration before user trends can use that index.
+
 ## Mailbox List Sorting
 
 **Admin Console → Mailbox Management → Mailboxes** supports column sorting. Click a column header to toggle ascending/descending order for:

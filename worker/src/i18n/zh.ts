@@ -1,6 +1,8 @@
 import { LocaleMessages } from "./type";
 
 const messages: LocaleMessages = {
+    InvalidStatisticsRangeMsg: "请选择最近或历史的有效日期，单次最多统计 30 天",
+    InvalidStatisticsDomainMsg: "请选择已配置的邮箱域名",
     InvalidRequestBodyMsg: "无效的请求体",
     InvalidWebhookFilterMsg: "无效的过滤规则",
     WebhookFilterEvaluationFailedMsg: "无法判断过滤规则，请检查邮件是否能正常解析",

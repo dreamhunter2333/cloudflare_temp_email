@@ -1,6 +1,8 @@
 import { LocaleMessages } from "./type";
 
 const messages: LocaleMessages = {
+    InvalidStatisticsRangeMsg: "Choose a valid date range of up to 30 days ending today or earlier",
+    InvalidStatisticsDomainMsg: "Choose a configured mailbox domain",
     InvalidRequestBodyMsg: "Invalid request body",
     InvalidWebhookFilterMsg: "Invalid filter",
     WebhookFilterEvaluationFailedMsg: "Unable to evaluate filter; check whether the email can be parsed",

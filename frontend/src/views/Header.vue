@@ -253,7 +253,7 @@ onMounted(async () => {
             </template>
             <template #avatar>
                 <div @click="logoClick">
-                    <n-avatar style="margin-left: 10px;" src="/logo.png" />
+                    <n-avatar class="header-logo" src="/logo.png" />
                 </div>
             </template>
             <template #extra>
@@ -331,6 +331,10 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.header-logo {
+    margin-left: 10px;
+}
+
 :deep(.n-page-header) {
     align-items: center;
     flex-wrap: nowrap;
@@ -460,9 +464,19 @@ onMounted(async () => {
     margin-top: 10px;
 }
 
+@media (max-width: 1024px) {
+    :deep(.n-page-header) {
+        padding-inline: 16px;
+    }
+
+    .header-logo {
+        margin-left: 0;
+    }
+}
+
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 10px 12px;
+        padding: 10px 16px;
     }
 
     :deep(.n-page-header__title) {
