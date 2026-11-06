@@ -5,6 +5,7 @@ import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
+import BatchExportModal from './BatchExportModal.vue'
 
 const {
     loading, openSettings,
@@ -29,6 +30,7 @@ const batchRows = ref([])
 const batchCompleted = ref(0)
 const batchRequested = ref(0)
 const batchError = ref("")
+const showExportModal = ref(false)
 let unmounted = false
 onBeforeUnmount(() => { unmounted = true })
 
@@ -88,27 +90,6 @@ const clearBatch = () => {
     batchCompleted.value = 0
     batchRequested.value = 0
     batchError.value = ""
-}
-
-const exportBatch = () => {
-    if (busy.value || !batchRows.value.length) return
-    // Leading ' keeps spreadsheets from evaluating a cell (e.g. an =PREFIX address) as a formula.
-    const quote = value => {
-        const text = String(value).replace(/^[=+\-@\t\r]/, "'$&")
-        return `"${text.replace(/"/g, '""')}"`
-    }
-    const rows = [['address', 'login_url'], ...batchRows.value.map(row => [
-        row.address, `${window.location.origin}/?jwt=${encodeURIComponent(row.jwt)}`,
-    ])]
-    const csv = rows.map(row => row.map(quote).join(',')).join('\r\n')
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'mailbox-login-links.csv'
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 const addressRegex = computed(() => {
@@ -200,6 +181,7 @@ onMounted(async () => {
     <div class="center">
         <AddressCredentialModal v-model:show="showReultModal" :address="createdAddress" :jwt="result"
             :address-password="addressPassword" />
+        <BatchExportModal v-model:show="showExportModal" :rows="batchRows" />
         <n-card :bordered="false" embedded style="max-width: 600px;">
             <n-form-item-row v-if="openSettings.prefix" :label="t('enablePrefix')">
                 <n-switch :disabled="busy" v-model:value="enablePrefix" :round="false" />
@@ -258,7 +240,7 @@ onMounted(async () => {
                 {{ t('batchStopped') }} {{ batchError }}
             </n-alert>
             <n-space>
-                <n-button @click="exportBatch" :disabled="busy || !batchRows.length">{{ t('exportCsv') }}</n-button>
+                <n-button @click="showExportModal = true" :disabled="busy || !batchRows.length">{{ t('exportCsv') }}</n-button>
                 <n-button @click="clearBatch" :disabled="busy || !batchRows.length">{{ t('clearResults') }}</n-button>
             </n-space>
             <p>{{ t('batchTotal', { count: batchRows.length }) }}</p>

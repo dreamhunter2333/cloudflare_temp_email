@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { parse } from 'csv-parse/sync';
 import { FRONTEND_URL, WORKER_URL } from '../../fixtures/test-helpers';
 
 async function openCreate(page: Page, locale = 'en', domains = ['test.example.com', 'other.example.com']) {
@@ -21,17 +22,40 @@ const createBatch = (page: Page) => page.getByRole('button', { name: 'Create bat
 const form = (page: Page) => page.locator('.n-card').filter({ has: countInput(page) });
 const row = (index: number) => ({ address: `server${index}@random.test.example.com`, jwt: `jwt${index}+/?=&%#`, address_id: index });
 
-async function exportCsv(page: Page, name = 'Export CSV') {
+const labels = {
+  en: { open: 'Export CSV', download: 'Download CSV', close: 'Close', spreadsheet: /^Spreadsheet-safe CSV/, raw: /^Lossless CSV/ },
+  zh: { open: '导出 CSV', download: '下载 CSV', close: '关闭', spreadsheet: /^电子表格安全 CSV/, raw: /^无损 CSV/ },
+};
+
+// Downloads through the export dialog and parses the file with csv-parse, independent of the app's escaping.
+async function exportCsv(page: Page, { mode = 'spreadsheet', locale = 'en' }: { mode?: 'spreadsheet' | 'raw'; locale?: 'en' | 'zh' } = {}) {
+  const text = labels[locale];
+  await page.getByRole('button', { name: text.open, exact: true }).click();
+  const modal = page.locator('.n-modal');
+  await expect(modal).toBeVisible();
+  await modal.getByText(text[mode]).click();
   const downloading = page.waitForEvent('download');
-  await page.getByRole('button', { name, exact: true }).click();
-  return readFile((await (await downloading).path())!, 'utf8');
+  await modal.getByRole('button', { name: text.download, exact: true }).click();
+  const download = await downloading;
+  const records: string[][] = parse(await readFile((await download.path())!, 'utf8'));
+  await modal.getByRole('button', { name: text.close, exact: true }).click();
+  await expect(modal).toBeHidden();
+  return { filename: download.suggestedFilename(), records };
 }
 
-function expectedCsv(rows: { address: string; jwt: string }[]) {
-  const quote = (value: string) => `"${value.replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`;
-  return [ ['address', 'login_url'], ...rows.map(r => [r.address, `${new URL(FRONTEND_URL).origin}/?jwt=${encodeURIComponent(r.jwt)}`]) ]
-    .map(fields => fields.map(quote).join(',')).join('\r\n');
+// Reads each login_url back through URL parsing so the JWT check does not reuse the app's encoding.
+function decodeRows(records: string[][]) {
+  expect(records[0]).toEqual(['address', 'login_url']);
+  return records.slice(1).map(([address, link]) => {
+    const url = new URL(link);
+    expect(`${url.origin}${url.pathname}`).toBe(`${new URL(FRONTEND_URL).origin}/`);
+    expect([...url.searchParams.keys()]).toEqual(['jwt']);
+    expect(url.hash).toBe('');
+    return { address, jwt: url.searchParams.get('jwt') };
+  });
 }
+
+const pick = (rows: { address: string; jwt: string }[]) => rows.map(({ address, jwt }) => ({ address, jwt }));
 
 function gate() {
   let release!: () => void;
@@ -52,13 +76,10 @@ test('admin exports a batch of mailbox login links', async ({ page, request, bro
     await page.getByRole('textbox', { name: 'Batch count' }).fill('3');
     await page.getByRole('button', { name: 'Create batch', exact: true }).click();
     await expect(page.getByText('Completed: 3 / 3', { exact: true })).toBeVisible();
-    const csv = await exportCsv(page);
+    const { records } = await exportCsv(page, { mode: 'raw' });
     expect(created).toHaveLength(3);
+    expect(decodeRows(records)).toEqual(pick(created));
     const origin = new URL(FRONTEND_URL).origin;
-    expect(csv.split('\r\n')).toEqual([
-      '"address","login_url"',
-      ...created.map(({ address, jwt }) => `"${address}","${origin}/?jwt=${encodeURIComponent(jwt)}"`),
-    ]);
 
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     try {
@@ -143,12 +164,51 @@ test('sends selected domain, prefix and subdomain settings and retains CSV resul
     { enablePrefix: false, enableRandomSubdomain: false, domain: 'team.other.example.com', name: expect.stringMatching(/^[a-z0-9]{1,30}$/) },
   ]);
   expect(new Set(bodies.map(body => body.name)).size).toBe(3);
-  const csv = await exportCsv(page);
-  expect(csv).toBe(expectedCsv(rows));
-  expect(csv.split('\r\n')[3]).toMatch(/^"'=1\+1@team\.other\.example\.com",/);
+  const { records } = await exportCsv(page);
+  expect(decodeRows(records)).toEqual(pick([rows[0], rows[1], { ...rows[2], address: "'=1+1@team.other.example.com" }]));
   await page.getByRole('button', { name: 'Clear results', exact: true }).click();
   await expect(page.getByText('Saved results: 0', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Export CSV' })).toBeDisabled();
+});
+
+test('export dialog offers a lossless CSV and a spreadsheet-safe CSV', async ({ page }) => {
+  const rows = [
+    { address: '+alice@test.example.com', jwt: 'eyJ+a/b=.c?d&e%f#g "h",i' },
+    { address: '-bob@test.example.com', jwt: 'jwt-2' },
+    { address: '=1+1@test.example.com', jwt: '=jwt3' },
+    { address: '@carol@test.example.com', jwt: 'jwt4' },
+    { address: 'comma,"quote"@test.example.com', jwt: 'jwt,"5"' },
+    { address: 'plain@test.example.com', jwt: 'jwt6' },
+  ].map((value, index) => ({ ...value, address_id: index }));
+  let calls = 0;
+  await page.route('**/admin/new_address', route => route.fulfill({ json: rows[calls++] }));
+  await openCreate(page);
+  await countInput(page).fill(String(rows.length));
+  await createBatch(page).click();
+  await expect(page.getByText(`Saved results: ${rows.length}`, { exact: true })).toBeVisible();
+
+  const modal = page.locator('.n-modal');
+  await page.getByRole('button', { name: 'Export CSV', exact: true }).click();
+  await expect(modal).toBeVisible();
+  await expect(modal).toContainText('Export login links');
+  await modal.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(modal).toBeHidden();
+
+  const raw = await exportCsv(page, { mode: 'raw' });
+  expect(raw.filename).toBe('mailbox-login-links-raw.csv');
+  expect(decodeRows(raw.records)).toEqual(pick(rows));
+
+  const safe = await exportCsv(page, { mode: 'spreadsheet' });
+  expect(safe.filename).toBe('mailbox-login-links.csv');
+  expect(decodeRows(safe.records)).toEqual(pick([
+    { ...rows[0], address: "'+alice@test.example.com" },
+    { ...rows[1], address: "'-bob@test.example.com" },
+    { ...rows[2], address: "'=1+1@test.example.com" },
+    { ...rows[3], address: "'@carol@test.example.com" },
+    rows[4],
+    rows[5],
+  ]));
+  expect(calls).toBe(rows.length);
 });
 
 test('locks configuration and both creation actions for the entire sequential batch', async ({ page }) => {
@@ -221,11 +281,11 @@ for (const scenario of [
     if (scenario.status) await expect(page.locator('.n-alert')).toContainText('batch-test-failure');
     await expect(button).toBeEnabled();
     expect(calls).toBe(scenario.successes + 1);
-    const exportName = chinese ? '导出 CSV' : 'Export CSV';
     if (scenario.successes) {
-      expect(await exportCsv(page, exportName)).toBe(expectedCsv(Array.from({ length: scenario.successes }, (_, i) => row(i))));
+      const { records } = await exportCsv(page, { locale: chinese ? 'zh' : 'en' });
+      expect(decodeRows(records)).toEqual(pick(Array.from({ length: scenario.successes }, (_, i) => row(i))));
     } else {
-      await expect(page.getByRole('button', { name: exportName })).toBeDisabled();
+      await expect(page.getByRole('button', { name: chinese ? '导出 CSV' : 'Export CSV' })).toBeDisabled();
     }
     expect(calls).toBe(scenario.successes + 1);
   });

@@ -2381,6 +2381,36 @@ export const MESSAGE_REGISTRY = {
       "zh": "Telegram 白名单(手动输入 Chat ID, 回车增加)"
     }
   },
+  "views.admin.BatchExportModal": {
+    "title": {
+      "en": "Export login links",
+      "zh": "导出登录链接"
+    },
+    "spreadsheet": {
+      "en": "Spreadsheet-safe CSV (Excel, Google Sheets)",
+      "zh": "电子表格安全 CSV（Excel、Google 表格）"
+    },
+    "spreadsheetTip": {
+      "en": "Cells that start with =, +, -, {'@'}, tab or carriage return get a leading ' so spreadsheets keep them as text. Programs reading this file will see the ' as part of the value.",
+      "zh": "以 =、+、-、{'@'}、制表符或回车开头的单元格会加上前导 '，使表格软件将其作为文本显示。程序读取此文件时，' 会成为值的一部分。"
+    },
+    "raw": {
+      "en": "Lossless CSV (scripts and programs)",
+      "zh": "无损 CSV（脚本和程序）"
+    },
+    "rawTip": {
+      "en": "Standard CSV with the original addresses and login links unchanged. Do not open it in a spreadsheet if an address starts with =, +, - or {'@'}.",
+      "zh": "标准 CSV，原样保留地址和登录链接。如果地址以 =、+、- 或 {'@'} 开头，请勿用表格软件打开。"
+    },
+    "download": {
+      "en": "Download CSV",
+      "zh": "下载 CSV"
+    },
+    "close": {
+      "en": "Close",
+      "zh": "关闭"
+    }
+  },
   "views.admin.CreateAccount": {
     "batchTitle": {
       "en": "Batch creation (random names)",

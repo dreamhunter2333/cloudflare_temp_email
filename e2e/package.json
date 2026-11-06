@@ -10,6 +10,7 @@
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "@types/ws": "^8.18.2",
+    "csv-parse": "^7.0.3",
     "hono": "^4.13.13",
     "mimetext": "^3.0.28",
     "postal-mime": "^4.1.4",
