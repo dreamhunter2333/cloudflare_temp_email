@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, h } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
-import { NButton, NPopconfirm, NInput, NSelect, NRadioGroup, NRadio } from 'naive-ui'
+import { NButton, NPopconfirm, NInput, NSelect, NRadioGroup, NRadio, NSwitch } from 'naive-ui'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
@@ -126,6 +126,20 @@ const emailForwardingColumns = [
                 placeholder: 'forward@example.com'
             })
         }
+    },
+    {
+        title: t('delete_original'),
+        key: 'deleteOriginal',
+        render: (row, index) => h(NSwitch, {
+            value: row.deleteOriginal === true,
+            'aria-label': t('delete_original'),
+            onUpdateValue: (val) => {
+                emailForwardingList.value[index] = {
+                    ...emailForwardingList.value[index],
+                    deleteOriginal: val
+                }
+            }
+        })
     },
     {
         title: t('actions'),

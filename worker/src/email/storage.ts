@@ -69,6 +69,19 @@ export const storeRawMail = async (
     ).bind(source, address, raw, messageId).run();
 }
 
+export const deleteRawMail = async (
+    env: Bindings, mailId: number, address: string
+): Promise<void> => {
+    try {
+        const { success } = await env.DB.prepare(
+            `DELETE FROM raw_mails WHERE id = ? AND address = ?`
+        ).bind(mailId, address).run();
+        if (!success) throw new Error(`Failed to delete mail ${mailId}`);
+    } catch (error) {
+        console.error("delete mail error", error);
+    }
+};
+
 export const sendAdminInternalMail = async (
     c: Context<HonoCustomType>, toMail: string, subject: string, text: string
 ): Promise<boolean> => {

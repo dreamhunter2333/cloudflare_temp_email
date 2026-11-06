@@ -238,6 +238,7 @@ export const esMessages = {
   "views.admin.UserOauth2Settings.delete": "Eliminar",
   "views.admin.SenderAccess.delete": "Eliminar",
   "views.admin.UserManagement.delete": "Eliminar",
+  "views.admin.AccountSettings.delete_original": "Eliminar el original tras reenviar correctamente",
   "views.admin.AccountSettings.delete_rule": "Eliminar",
   "views.admin.Maintenance.deleteCustomSql": "Eliminar",
   "views.index.AccountSettings.deleteMailbox": "Eliminar buzón",

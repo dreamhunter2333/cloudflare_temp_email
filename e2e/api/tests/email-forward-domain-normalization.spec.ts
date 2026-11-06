@@ -35,7 +35,7 @@ test.describe('Email forward domain normalization', () => {
 
   test('normalizes uppercase forwarding rule and recipient domains', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'forward-case');
-    const forwardAddress = 'forward-target@test.example.com';
+    const forwardAddress = 'forward-target@outside.example';
 
     try {
       const saveRes = await request.post(`${WORKER_URL}/admin/account_settings`, {
@@ -132,7 +132,7 @@ test.describe('Email forward domain normalization', () => {
 
   test('keeps blank forwarding rule domain as catch-all', async ({ request }) => {
     const { jwt, address } = await createTestAddress(request, 'forward-catch-all');
-    const forwardAddress = 'forward-catch-all-target@test.example.com';
+    const forwardAddress = 'forward-catch-all-target@outside.example';
 
     try {
       const saveRes = await request.post(`${WORKER_URL}/admin/account_settings`, {

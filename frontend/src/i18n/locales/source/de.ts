@@ -238,6 +238,7 @@ export const deMessages = {
   "views.admin.UserOauth2Settings.delete": "Löschen",
   "views.admin.SenderAccess.delete": "Löschen",
   "views.admin.UserManagement.delete": "Löschen",
+  "views.admin.AccountSettings.delete_original": "Original nach erfolgreicher Weiterleitung löschen",
   "views.admin.AccountSettings.delete_rule": "Löschen",
   "views.admin.Maintenance.deleteCustomSql": "Löschen",
   "views.index.AccountSettings.deleteMailbox": "Postfach löschen",
