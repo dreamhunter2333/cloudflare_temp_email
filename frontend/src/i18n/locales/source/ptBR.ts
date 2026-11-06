@@ -238,6 +238,7 @@ export const ptBRMessages = {
   "views.admin.UserOauth2Settings.delete": "Excluir",
   "views.admin.SenderAccess.delete": "Excluir",
   "views.admin.UserManagement.delete": "Excluir",
+  "views.admin.AccountSettings.delete_original": "Excluir o original após encaminhar com sucesso",
   "views.admin.AccountSettings.delete_rule": "Excluir",
   "views.admin.Maintenance.deleteCustomSql": "Excluir",
   "views.index.AccountSettings.deleteMailbox": "Excluir caixa de correio",

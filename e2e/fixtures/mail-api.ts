@@ -44,9 +44,12 @@ const seedMail = async (request: Request, env: Bindings) => {
 
 // Exercises the real email() handler with a mock ForwardableEmailMessage.
 const receiveMail = async (request: Request, env: Bindings, ctx: ExecutionContext) => {
-    const { from, to, raw, ai_extract_result, extract_mode, record_telegram } = await request.json<{
+    const { from, to, raw, ai_extract_result, extract_mode, forward_address_list, subdomain_forward_address_list,
+        record_telegram, record_another_worker } = await request.json<{
         from: string; to: string; raw: string; ai_extract_result?: unknown; extract_mode?: string;
-        record_telegram?: boolean;
+        forward_address_list?: string[];
+        subdomain_forward_address_list?: SubdomainForwardAddressList[];
+        record_telegram?: boolean; record_another_worker?: boolean;
     }>();
     if (!from || !to || !raw) {
         return new Response("from, to and raw are required", { status: 400 });
@@ -64,14 +67,20 @@ const receiveMail = async (request: Request, env: Bindings, ctx: ExecutionContex
     }
 
     const rawBytes = new TextEncoder().encode(raw);
-    const state = { rejected: undefined as string | undefined, replyCalled: false, forwardedTo: [] as string[] };
+    const forwardFailure = request.headers.get('x-test-forward-failure');
+    const failedAddress = request.headers.get('x-test-forward-failure-address');
+    const state = { rejected: undefined as string | undefined, replyCalled: false, replyCount: 0, forwardedTo: [] as string[] };
     const mockMessage: ForwardableEmailMessage = {
         from, to, headers,
         rawSize: rawBytes.byteLength,
         raw: new ReadableStream({ start(ctrl) { ctrl.enqueue(rawBytes); ctrl.close(); } }),
         setReject(reason: string) { state.rejected = reason; },
-        forward: async (recipient: string) => { state.forwardedTo.push(recipient); return { messageId: '' }; },
-        reply: async () => { state.replyCalled = true; return { messageId: '' }; },
+        forward: async (recipient: string) => {
+            if (forwardFailure === 'external' && recipient === failedAddress) throw new Error('Injected external forward failure');
+            state.forwardedTo.push(recipient);
+            return { messageId: '' };
+        },
+        reply: async () => { state.replyCalled = true; state.replyCount++; return { messageId: '' }; },
     };
     const { email: emailHandler } = await import('../../worker/src/email');
     const aiExtractEnvOverrides: Partial<Bindings> = {
@@ -84,15 +93,49 @@ const receiveMail = async (request: Request, env: Bindings, ctx: ExecutionContex
     const emailEnv = ai_extract_result || extract_mode !== undefined
         ? { ...env, ...aiExtractEnvOverrides }
         : env;
+    const DB = forwardFailure && forwardFailure !== 'external' ? {
+        prepare(sql: string) {
+            const statement = env.DB.prepare(sql);
+            const write = forwardFailure.startsWith('write-') && sql.startsWith('INSERT INTO raw_mails ');
+            const reject = forwardFailure === 'reject' && sql === 'SELECT id FROM address where name = ? ';
+            if (!write && !reject) return statement;
+            return {
+                bind(...values: unknown[]) {
+                    const bound = statement.bind(...values);
+                    if (values[write ? 1 : 0] !== failedAddress) return bound;
+                    return {
+                        first: async () => null,
+                        run: async () => {
+                            if (forwardFailure === 'write-false') return { success: false };
+                            throw new Error('Injected forward write failure');
+                        },
+                    } as D1PreparedStatement;
+                },
+            } as D1PreparedStatement;
+        },
+    } as D1Database : env.DB;
     const telegramCalls: { method: string; payload: unknown }[] = [];
+    const workerCalls: unknown[] = [];
     await telegramRecording.run(record_telegram ? telegramCalls : undefined,
-        () => emailHandler(mockMessage, emailEnv, ctx));
+        () => emailHandler(mockMessage, {
+            ...emailEnv, DB,
+            ...(record_telegram ? { TELEGRAM_BOT_TOKEN: 'e2e-record-only-token' } : {}),
+            ...(record_another_worker ? {
+                ENABLE_ANOTHER_WORKER: true,
+                ANOTHER_WORKER_LIST: [{ binding: 'TEST_WORKER', method: 'rpcEmail', keywords: ['Original body'] }],
+                TEST_WORKER: { rpcEmail: async (body: string) => { workerCalls.push(JSON.parse(body)); } },
+            } : {}),
+            ...(forward_address_list === undefined ? {} : { FORWARD_ADDRESS_LIST: forward_address_list }),
+            ...(subdomain_forward_address_list === undefined ? {} : { SUBDOMAIN_FORWARD_ADDRESS_LIST: subdomain_forward_address_list }),
+        }, ctx));
 
     return Response.json({
         success: !state.rejected,
         replyCalled: state.replyCalled,
+        replyCount: state.replyCount,
         forwardedTo: state.forwardedTo,
         ...(record_telegram ? { telegramCalls } : {}),
+        ...(record_another_worker ? { workerCalls } : {}),
         ...(state.rejected ? { rejected: state.rejected } : {})
     });
 };

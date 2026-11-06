@@ -2646,6 +2646,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Only affects /api/new_address and /admin/new_address domain validation. Example: when enabled, foo.example.com can match configured base domain example.com.",
       "zh": "仅影响 /api/new_address 和 /admin/new_address 的域名校验。例如开启后，foo.example.com 可以匹配已配置的基础域名 example.com。"
     },
+    "delete_original": {
+      "en": "Delete original after forwarding",
+      "zh": "转发成功后删除原邮件"
+    },
     "delete_rule": {
       "en": "Delete",
       "zh": "删除"
