@@ -2382,6 +2382,50 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.admin.CreateAccount": {
+    "batchTitle": {
+      "en": "Batch creation (random names)",
+      "zh": "批量创建（随机名称）"
+    },
+    "batchCount": {
+      "en": "Batch count (1–100)",
+      "zh": "批量数量（1–100）"
+    },
+    "createBatch": {
+      "en": "Create batch",
+      "zh": "批量创建"
+    },
+    "batchValidation": {
+      "en": "Choose a domain and an integer count from 1 to 100. Custom subdomains cannot be empty.",
+      "zh": "请选择域名并输入 1–100 的整数数量，自定义子域名不能为空。"
+    },
+    "batchNameError": {
+      "en": "The configured address normalization cannot produce a valid random name.",
+      "zh": "配置的地址规范化规则无法生成有效的随机名称。"
+    },
+    "batchProgress": {
+      "en": "Completed: {completed} / {requested}",
+      "zh": "已完成：{completed} / {requested}"
+    },
+    "batchStopped": {
+      "en": "Batch stopped. Interrupted requests may have created a mailbox with an unknown outcome. Known successes can still be exported.",
+      "zh": "批量创建已停止。中断的请求可能已创建邮箱，结果未知。仍可导出已确认成功的记录。"
+    },
+    "exportCsv": {
+      "en": "Export CSV",
+      "zh": "导出 CSV"
+    },
+    "clearResults": {
+      "en": "Clear results",
+      "zh": "清空结果"
+    },
+    "batchTotal": {
+      "en": "Saved results: {count}",
+      "zh": "已保存结果：{count}"
+    },
+    "batchSecurity": {
+      "en": "Anyone holding these links can access the mailboxes. Private deployments still require site-access credentials. Results stay in memory until you leave this view or clear them.",
+      "zh": "任何持有这些链接的人都可访问邮箱。私有部署仍需要站点访问凭据。结果仅保存在内存中，离开此页面或清空后即消失。"
+    },
     "address": {
       "en": "Email Address",
       "zh": "邮箱地址"

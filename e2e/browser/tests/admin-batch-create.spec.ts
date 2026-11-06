@@ -1,0 +1,291 @@
+import { expect, test, type Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { FRONTEND_URL, WORKER_URL } from '../../fixtures/test-helpers';
+
+async function openCreate(page: Page, locale = 'en', domains = ['test.example.com', 'other.example.com']) {
+  await page.addInitScript(() => {
+    localStorage.setItem('adminAuth', 'e2e-admin-pass');
+    sessionStorage.setItem('adminTab', 'account');
+  });
+  await page.route('**/open_api/settings', async route => {
+    const response = await route.fetch();
+    await route.fulfill({ json: { ...await response.json(), domains, prefix: 'tmp', randomSubdomainDomains: domains } });
+  });
+  await page.goto(`${FRONTEND_URL}/${locale}/admin`);
+  await page.locator('.n-tabs-tab').getByText(locale === 'en' ? 'Create Email Address' : '创建邮箱', { exact: true }).click();
+  await expect(page.getByRole('textbox', { name: locale === 'en' ? 'Batch count' : '批量数量' })).toBeVisible();
+}
+
+const countInput = (page: Page) => page.getByRole('textbox', { name: 'Batch count' });
+const createBatch = (page: Page) => page.getByRole('button', { name: 'Create batch', exact: true });
+const form = (page: Page) => page.locator('.n-card').filter({ has: countInput(page) });
+const row = (index: number) => ({ address: `server${index}@random.test.example.com`, jwt: `jwt${index}+/?=&%#`, address_id: index });
+
+async function exportCsv(page: Page, name = 'Export CSV') {
+  const downloading = page.waitForEvent('download');
+  await page.getByRole('button', { name, exact: true }).click();
+  return readFile((await (await downloading).path())!, 'utf8');
+}
+
+function expectedCsv(rows: { address: string; jwt: string }[]) {
+  const quote = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  return [ ['address', 'login_url'], ...rows.map(r => [r.address, `${new URL(FRONTEND_URL).origin}/?jwt=${encodeURIComponent(r.jwt)}`]) ]
+    .map(fields => fields.map(quote).join(',')).join('\r\n');
+}
+
+function gate() {
+  let release!: () => void;
+  const promise = new Promise<void>(resolve => { release = resolve; });
+  return { promise, release };
+}
+
+test('admin exports a batch of mailbox login links', async ({ page, request, browser }) => {
+  const created: { address: string; jwt: string; address_id: number }[] = [];
+  await page.route('**/admin/new_address', async (route) => {
+    const response = await route.fetch();
+    if (response.ok()) created.push(await response.json());
+    await route.fulfill({ response });
+  });
+
+  try {
+    await openCreate(page);
+    await page.getByRole('textbox', { name: 'Batch count' }).fill('3');
+    await page.getByRole('button', { name: 'Create batch', exact: true }).click();
+    await expect(page.getByText('Completed: 3 / 3', { exact: true })).toBeVisible();
+    const csv = await exportCsv(page);
+    expect(created).toHaveLength(3);
+    const origin = new URL(FRONTEND_URL).origin;
+    expect(csv.split('\r\n')).toEqual([
+      '"address","login_url"',
+      ...created.map(({ address, jwt }) => `"${address}","${origin}/?jwt=${encodeURIComponent(jwt)}"`),
+    ]);
+
+    const context = await browser.newContext({ ignoreHTTPSErrors: true });
+    try {
+      const mailbox = await context.newPage();
+      const settings = mailbox.waitForResponse((res) => new URL(res.url()).pathname === '/api/settings');
+      await mailbox.goto(`${origin}/?jwt=${encodeURIComponent(created[0].jwt)}`);
+      expect((await (await settings).json()).address).toBe(created[0].address);
+    } finally {
+      await context.close();
+    }
+  } finally {
+    const failures: string[] = [];
+    for (const row of created) {
+      try {
+        const response = await request.delete(`${WORKER_URL}/admin/delete_address/${row.address_id}`, {
+          headers: { 'x-admin-auth': 'e2e-admin-pass' },
+        });
+        if (!response.ok()) failures.push(`${row.address_id}: HTTP ${response.status()} ${await response.text()}`);
+      } catch (error) {
+        failures.push(`${row.address_id}: ${String(error)}`);
+      }
+    }
+    expect(failures, 'Failed mailbox cleanup (address_id: error)').toEqual([]);
+  }
+});
+
+test('rejects invalid counts and accepts both boundaries', async ({ page }) => {
+  let calls = 0;
+  await page.route('**/admin/new_address', route => route.fulfill({ json: row(++calls) }));
+  await openCreate(page);
+  for (const value of ['0', '-1', '1.5', '', '101']) {
+    await countInput(page).fill(value);
+    await countInput(page).blur();
+    await expect(createBatch(page)).toBeDisabled();
+  }
+  expect(calls).toBe(0);
+  for (const value of [1, 100]) {
+    await countInput(page).fill(String(value));
+    await createBatch(page).click();
+    await expect(page.getByText(`Completed: ${value} / ${value}`, { exact: true })).toBeVisible();
+  }
+  expect(calls).toBe(101);
+});
+
+test('requires a domain', async ({ page }) => {
+  let calls = 0;
+  await page.route('**/admin/new_address', route => { calls++; return route.fulfill({ json: row(calls) }); });
+  await openCreate(page, 'en', []);
+  await expect(createBatch(page)).toBeDisabled();
+  await expect(form(page).getByRole('button', { name: 'Create Email Address', exact: true })).toBeDisabled();
+  expect(calls).toBe(0);
+});
+
+test('sends selected domain, prefix and subdomain settings and retains CSV results', async ({ page }) => {
+  const bodies: Record<string, unknown>[] = [];
+  const rows = [row(1), { ...row(2), address: 'comma,"quote"@random.test.example.com' }, row(3)];
+  await page.route('**/admin/new_address', route => {
+    bodies.push(route.request().postDataJSON());
+    return route.fulfill({ json: rows[bodies.length - 1] });
+  });
+  await openCreate(page);
+  await countInput(page).fill('1');
+  await createBatch(page).click();
+  await expect(page.getByText('Saved results: 1', { exact: true })).toBeVisible();
+  await form(page).getByRole('switch').click();
+  await form(page).locator('.n-select').click();
+  await page.getByText('other.example.com', { exact: true }).last().click();
+  await form(page).getByText('Use Random Subdomain', { exact: true }).click();
+  await createBatch(page).click();
+  await expect(page.getByText('Saved results: 2', { exact: true })).toBeVisible();
+  await form(page).getByText('Use Custom Subdomain', { exact: true }).click();
+  await expect(createBatch(page)).toBeDisabled();
+  await form(page).locator('.n-input-group .n-input input').last().fill('   ');
+  await expect(createBatch(page)).toBeDisabled();
+  expect(bodies).toHaveLength(2);
+  await form(page).locator('.n-input-group .n-input input').last().fill('team');
+  await createBatch(page).click();
+  await expect(page.getByText('Saved results: 3', { exact: true })).toBeVisible();
+  expect(bodies).toEqual([
+    { enablePrefix: true, enableRandomSubdomain: false, domain: 'test.example.com', name: expect.stringMatching(/^[a-z0-9]{1,30}$/) },
+    { enablePrefix: false, enableRandomSubdomain: true, domain: 'other.example.com', name: expect.stringMatching(/^[a-z0-9]{1,30}$/) },
+    { enablePrefix: false, enableRandomSubdomain: false, domain: 'team.other.example.com', name: expect.stringMatching(/^[a-z0-9]{1,30}$/) },
+  ]);
+  expect(new Set(bodies.map(body => body.name)).size).toBe(3);
+  expect(await exportCsv(page)).toBe(expectedCsv(rows));
+  await page.getByRole('button', { name: 'Clear results', exact: true }).click();
+  await expect(page.getByText('Saved results: 0', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Export CSV' })).toBeDisabled();
+});
+
+test('locks configuration and both creation actions for the entire sequential batch', async ({ page }) => {
+  const gates = [gate(), gate()];
+  let calls = 0;
+  let active = 0;
+  let maxActive = 0;
+  await page.route('**/admin/new_address', async route => {
+    const index = calls++;
+    maxActive = Math.max(maxActive, ++active);
+    await gates[index].promise;
+    await route.fulfill({ json: row(index) });
+    active--;
+  });
+  await openCreate(page);
+  await countInput(page).fill('2');
+  await form(page).getByText('Use Custom Subdomain', { exact: true }).click();
+  await form(page).locator('.n-input-group .n-input input').last().fill('team');
+  try {
+    await createBatch(page).click();
+    for (let i = 0; i < 2; i++) {
+      await expect.poll(() => calls).toBe(i + 1);
+      await expect(createBatch(page)).toBeDisabled();
+      await expect(form(page).getByRole('button', { name: 'Create Email Address', exact: true })).toBeDisabled();
+      await expect(form(page).getByRole('button', { name: 'Generate Fake Name' })).toBeDisabled();
+      await expect(countInput(page)).toBeDisabled();
+      for (const input of await form(page).locator('.n-input-group .n-input input').all()) await expect(input).toBeDisabled();
+      await expect(form(page).locator('.n-select .n-base-selection')).toHaveClass(/n-base-selection--disabled/);
+      await expect(form(page).getByRole('switch')).toHaveClass(/n-switch--disabled/);
+      for (const radio of await form(page).getByRole('radio').all()) await expect(radio).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'Export CSV' })).toBeDisabled();
+      await expect(page.getByRole('button', { name: 'Clear results' })).toBeDisabled();
+      // Dispatch repeated clicks even while disabled to exercise the handler's busy guard.
+      await createBatch(page).dispatchEvent('click');
+      await form(page).getByRole('button', { name: 'Create Email Address', exact: true }).dispatchEvent('click');
+      expect(calls).toBe(i + 1);
+      gates[i].release();
+    }
+    await expect(page.getByText('Completed: 2 / 2', { exact: true })).toBeVisible();
+    expect(calls).toBe(2);
+    expect(maxActive).toBe(1);
+    await expect(createBatch(page)).toBeEnabled();
+  } finally {
+    gates.forEach(g => g.release());
+  }
+});
+
+for (const scenario of [
+  { locale: 'en', status: 400, successes: 2 },
+  { locale: 'en', status: 429, successes: 2 },
+  { locale: 'en', status: 500, successes: 2 },
+  { locale: 'en', status: 0, successes: 2 },
+  { locale: 'zh', status: 429, successes: 2 },
+  { locale: 'en', status: 500, successes: 0 },
+]) {
+  test(`stops after ${scenario.successes} successes on ${scenario.status || 'network failure'} (${scenario.locale})`, async ({ page }) => {
+    let calls = 0;
+    await page.route('**/admin/new_address', route => {
+      const index = calls++;
+      if (index < scenario.successes) return route.fulfill({ json: row(index) });
+      return scenario.status ? route.fulfill({ status: scenario.status, body: 'batch-test-failure' }) : route.abort('failed');
+    });
+    await openCreate(page, scenario.locale);
+    const chinese = scenario.locale === 'zh';
+    await page.getByRole('textbox', { name: chinese ? '批量数量' : 'Batch count' }).fill('5');
+    const button = page.getByRole('button', { name: chinese ? '批量创建' : 'Create batch', exact: true });
+    await button.click();
+    await expect(page.getByText(chinese ? '已完成：2 / 5' : `Completed: ${scenario.successes} / 5`, { exact: true })).toBeVisible();
+    await expect(page.getByText(chinese ? /批量创建已停止。中断的请求/ : /Batch stopped\. Interrupted requests/)).toBeVisible();
+    if (scenario.status) await expect(page.locator('.n-alert')).toContainText('batch-test-failure');
+    await expect(button).toBeEnabled();
+    expect(calls).toBe(scenario.successes + 1);
+    const exportName = chinese ? '导出 CSV' : 'Export CSV';
+    if (scenario.successes) {
+      expect(await exportCsv(page, exportName)).toBe(expectedCsv(Array.from({ length: scenario.successes }, (_, i) => row(i))));
+    } else {
+      await expect(page.getByRole('button', { name: exportName })).toBeDisabled();
+    }
+    expect(calls).toBe(scenario.successes + 1);
+  });
+}
+
+test('leaving the create pane stops an outstanding batch', async ({ page }) => {
+  const held = gate();
+  const finished = gate();
+  let calls = 0;
+  await page.route('**/admin/new_address', async route => {
+    calls++;
+    await held.promise;
+    await route.fulfill({ json: row(1) });
+    finished.release();
+  });
+  await openCreate(page);
+  await countInput(page).fill('3');
+  try {
+    await createBatch(page).click();
+    await expect.poll(() => calls).toBe(1);
+    await page.locator('.n-tabs-tab').getByText('Mailboxes', { exact: true }).click();
+    await expect(countInput(page)).toHaveCount(0);
+    const response = page.waitForResponse('**/admin/new_address');
+    held.release();
+    await response;
+    await finished.promise;
+    await page.locator('.n-tabs-tab').getByText('Create Email Address', { exact: true }).click();
+    await expect(page.getByText('Saved results: 0', { exact: true })).toBeVisible();
+    // Give the abandoned continuation a chance to send another request.
+    await page.waitForTimeout(200);
+    expect(calls).toBe(1);
+  } finally {
+    held.release();
+  }
+});
+
+for (const locale of ['en', 'zh']) {
+  test(`single creation still opens credentials and batch controls fit mobile (${locale})`, async ({ page }, testInfo) => {
+    const single = { ...row(1), password: 'single-mailbox-password' };
+    let body: Record<string, unknown> | undefined;
+    await page.route('**/admin/new_address', route => {
+      body = route.request().postDataJSON();
+      return route.fulfill({ json: single });
+    });
+    await openCreate(page, locale);
+    await testInfo.attach('desktop', { body: await page.screenshot(), contentType: 'image/png' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    const chinese = locale === 'zh';
+    const count = page.getByRole('textbox', { name: chinese ? '批量数量' : 'Batch count' });
+    const card = page.locator('.n-card').filter({ has: count });
+    for (const control of [count, page.getByRole('button', { name: chinese ? '批量创建' : 'Create batch', exact: true }), page.getByRole('button', { name: chinese ? '导出 CSV' : 'Export CSV' })]) {
+      await expect(control).toBeVisible();
+      const bounds = (await control.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+    }
+    await testInfo.attach('mobile', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+    await card.locator('.n-input-group .n-input input').first().fill('singlemailbox');
+    await card.getByRole('button', { name: chinese ? '创建邮箱' : 'Create Email Address', exact: true }).click();
+    await expect(page.locator('.n-modal')).toBeVisible();
+    await expect(page.locator('.n-modal')).toContainText(single.address);
+    await expect(page.locator('.n-modal')).toContainText(single.password);
+    expect(body).toEqual({ enablePrefix: true, enableRandomSubdomain: false, domain: 'test.example.com', name: 'singlemailbox' });
+  });
+}
