@@ -1932,12 +1932,12 @@ export const MESSAGE_REGISTRY = {
     "chartLabel": { "en": "{title}: {count}", "zh": "{title}：{count}" },
     "loadError": { "en": "Could not load statistics. Try refreshing.", "zh": "统计加载失败，请刷新重试。" },
     "activeAddressCount30days": {
-      "en": "Active (30 days)",
-      "zh": "30 天活跃"
+      "en": "30 days Active Address Count",
+      "zh": "30天活跃邮箱地址总数"
     },
     "activeAddressCount7days": {
-      "en": "Active (7 days)",
-      "zh": "7 天活跃"
+      "en": "7 days Active Address Count",
+      "zh": "7天活跃邮箱地址总数"
     },
     "addressCount": {
       "en": "Total mailboxes",

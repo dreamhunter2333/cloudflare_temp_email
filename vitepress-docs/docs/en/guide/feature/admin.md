@@ -38,7 +38,7 @@ same role to that user in user management.
 
 ## Statistics Dashboard
 
-The top row shows totals for retained mail, mailboxes, users and sent mail, independent of the selected time range. Time changes do not query totals again. The mailbox card also shows active mailboxes over the past 7 and 30 days. Mailbox-domain filters apply to mail, mailboxes, active mailboxes and sent mail; user totals remain site-wide.
+The top row shows totals for retained mail, mailboxes, users and sent mail, independent of the selected time range. Time changes do not query totals again. Mailbox-domain filters apply to mail, mailboxes and sent mail; user totals remain site-wide.
 
 The **Statistics** page shows linked line charts for received mail, new mailboxes, sent mail, and new users, with shared time-range and mailbox-domain filters. Use the time button to select today, the last 7 or 30 days, or a custom range of up to 30 days. Custom dates take effect after **Apply**. Single-day charts use hourly buckets; other ranges use daily buckets, all in UTC. ECharts loads lazily and supports linked tooltips and zooming.
 
