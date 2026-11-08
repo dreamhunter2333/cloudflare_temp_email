@@ -12,13 +12,16 @@ const metrics = [
 type CountRow = { day?: string; count: number };
 
 const getTotals = async (c: Context<HonoCustomType>, domain = '') => {
-    const results = await c.env.DB.batch<CountRow>(metrics.map(([, table, column]) => {
+    const results = await c.env.DB.batch<Record<string, number>>(metrics.map(([key, table, column]) => {
         const filter = domain && column;
-        const statement = c.env.DB.prepare(`SELECT count(*) AS count FROM ${table}${filter
+        const activity = table === 'address' ? `,
+            count(CASE WHEN updated_at > datetime('now', '-7 days') THEN 1 END) AS activeAddressCount7days,
+            count(CASE WHEN updated_at > datetime('now', '-30 days') THEN 1 END) AS activeAddressCount30days` : '';
+        const statement = c.env.DB.prepare(`SELECT count(*) AS ${key}${activity} FROM ${table}${filter
             ? ` WHERE substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE` : ''}`);
         return filter ? statement.bind(domain) : statement;
     }));
-    return Object.fromEntries(metrics.map(([key], i) => [key, results[i].results[0].count]));
+    return Object.assign({}, ...results.map(result => result.results[0]));
 };
 
 const get = async (c: Context<HonoCustomType>) => {
@@ -33,16 +36,7 @@ const get = async (c: Context<HonoCustomType>) => {
     }
 
     if (!from && !to && !domain) {
-        const [totals, activity] = await Promise.all([
-            getTotals(c),
-            c.env.DB.prepare(
-                `SELECT count(*) AS active30, coalesce(sum(updated_at > datetime('now', '-7 days')), 0) AS active7
-                 FROM address WHERE updated_at > datetime('now', '-30 days')`
-            ).first<{ active7: number; active30: number }>(),
-        ]);
-        return c.json({ ...totals,
-            activeAddressCount7days: activity?.active7 ?? 0, activeAddressCount30days: activity?.active30 ?? 0,
-        }, 200, { 'Cache-Control': 'private, no-store' });
+        return c.json(await getTotals(c), 200, { 'Cache-Control': 'private, no-store' });
     }
 
     const startDay = from || new Date(Date.parse(today) - 29 * DAY).toISOString().slice(0, 10);

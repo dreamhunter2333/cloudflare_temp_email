@@ -32,6 +32,7 @@ const pending = new Map()
 let requestId = 0
 let totalsRequestId = 0
 const totalMetrics = ['mailCount', 'addressCount', 'userCount', 'sendMailCount']
+const activityMetrics = ['activeAddressCount7days', 'activeAddressCount30days']
 const from = computed(() => dayKey(range.value[0]))
 const to = computed(() => dayKey(range.value[1]))
 const rangeError = computed(() => Date.parse(to.value) - Date.parse(from.value) >= 30 * DAY ? t('rangeLimit') : '')
@@ -89,14 +90,13 @@ const fetchTotals = async () => {
         if (id === totalsRequestId) totalsLoading.value = false
     }
 }
-const refresh = () => {
+const syncPresetRange = () => {
     const today = utcDay()
-    if (preset.value && to.value !== today) {
-        range.value = presetRange(preset.value, today)
-        return fetchTotals()
-    }
-    return Promise.all([fetchStatistics(), fetchTotals()])
+    if (!preset.value || to.value === today) return false
+    range.value = presetRange(preset.value, today)
+    return true
 }
+const refresh = () => Promise.all([syncPresetRange() ? undefined : fetchStatistics(), fetchTotals()])
 const selectPreset = value => { preset.value = value; range.value = presetRange(value); showTime.value = false }
 const applyRange = () => {
     if (draftError.value) return
@@ -106,7 +106,9 @@ const applyRange = () => {
     range.value = [...draftRange.value]
 }
 watch(showTime, value => { if (value) draftRange.value = [...range.value] })
-watch([from, to, domain], () => fetchStatistics(), { immediate: true })
+watch([from, to, domain], () => {
+    if (!syncPresetRange()) fetchStatistics()
+}, { immediate: true })
 watch(domain, () => fetchTotals(), { immediate: true })
 </script>
 
@@ -149,6 +151,11 @@ watch(domain, () => fetchTotals(), { immediate: true })
                 <n-statistic :label="t(key)" :value="totals ? format(totals[key]) : undefined" tabular-nums>
                     <template v-if="!totals" #default><n-skeleton v-if="totalsLoading" height="30px" width="100px" /><span v-else>—</span></template>
                 </n-statistic>
+                <div v-if="key === 'addressCount' && totals?.activeAddressCount7days !== undefined" class="mailbox-activity">
+                    <div v-for="metric in activityMetrics" :key="metric">
+                        <n-text depth="3">{{ t(metric) }}</n-text><strong>{{ format(totals[metric]) }}</strong>
+                    </div>
+                </div>
             </n-card>
         </div>
         <div v-if="loading" class="charts"><n-skeleton v-for="panel in panels" :key="panel.metric" height="322px" /></div>
@@ -172,6 +179,8 @@ watch(domain, () => fetchTotals(), { immediate: true })
 .range-help { font-size: 12px; }
 .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .totals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin-bottom: 20px; }
+.mailbox-activity { display: grid; gap: 4px; margin-top: 8px; font-size: 12px; }
+.mailbox-activity > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 8px; }
 .error { margin-bottom: 20px; }
 @media (max-width: 1024px) {
     .dashboard { padding-inline: 16px; }

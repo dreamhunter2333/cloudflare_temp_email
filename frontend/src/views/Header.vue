@@ -3,7 +3,7 @@ import { ref, h, computed, onMounted } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { useHead } from '@unhead/vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { useIsMobile } from '../utils/composables'
+import { useMediaQuery } from '@vueuse/core'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
     AdminPanelSettingsFilled, MonitorHeartFilled,
@@ -28,7 +28,7 @@ const {
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
-const isMobile = useIsMobile()
+const isMobile = useMediaQuery('(max-width: 1024px)')
 
 const showMobileMenu = ref(false)
 const menuValue = computed(() => {

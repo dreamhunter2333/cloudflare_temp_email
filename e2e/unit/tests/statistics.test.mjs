@@ -54,15 +54,17 @@ test('legacy statistics return only totals and activity without a trend query', 
         mailCount: 5, addressCount: 4, userCount: 1, sendMailCount: 4,
         activeAddressCount7days: 2, activeAddressCount30days: 3,
     });
-    assert.equal(f.queries.length, 5);
+    assert.equal(f.queries.length, 4);
 });
 
 test('totals filter the selected domain directly and ignore date parameters', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
+    f.db.prepare('UPDATE address SET updated_at = ? WHERE name = ?').run(`${day(-10)} 00:00:00`, 'three@b.test');
     const results = await Promise.all(['b.test', 'a.test'].map(domain => f.call(api, { view: 'totals', domain, from: 'ignored', to: 'ignored' }).then(r => r.json())));
     assert.equal(f.batches(), 2); assert.equal(f.queries.length, 8);
     assert.equal(results[0].mailCount, 1); assert.equal(results[1].mailCount, 3);
     assert.equal(results[0].userCount, 1); assert.equal(results[1].userCount, 1);
+    assert.deepEqual(results.map(result => [result.activeAddressCount7days, result.activeAddressCount30days]), [[0, 1], [2, 2]]);
     assert.equal(f.queries.filter(sql => sql.includes('COLLATE NOCASE')).length, 6);
     assert.equal(f.queries.every(sql => !sql.includes('GROUP BY')), true);
     const response = await f.call(api, { view: 'totals' });
