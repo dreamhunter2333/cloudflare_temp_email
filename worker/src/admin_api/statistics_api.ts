@@ -32,6 +32,19 @@ const get = async (c: Context<HonoCustomType>) => {
         return c.json({ generatedAt: new Date().toISOString(), domain, ...totals }, 200, { 'Cache-Control': 'private, no-store' });
     }
 
+    if (!from && !to && !domain) {
+        const [totals, activity] = await Promise.all([
+            getTotals(c),
+            c.env.DB.prepare(
+                `SELECT count(*) AS active30, coalesce(sum(updated_at > datetime('now', '-7 days')), 0) AS active7
+                 FROM address WHERE updated_at > datetime('now', '-30 days')`
+            ).first<{ active7: number; active30: number }>(),
+        ]);
+        return c.json({ ...totals,
+            activeAddressCount7days: activity?.active7 ?? 0, activeAddressCount30days: activity?.active30 ?? 0,
+        }, 200, { 'Cache-Control': 'private, no-store' });
+    }
+
     const startDay = from || new Date(Date.parse(today) - 29 * DAY).toISOString().slice(0, 10);
     const endDay = to || today;
     const start = Date.parse(startDay);
@@ -41,38 +54,43 @@ const get = async (c: Context<HonoCustomType>) => {
     if (!validDay(startDay) || !validDay(endDay) || end <= start || end - start > 30 * DAY || endDay > today) {
         return c.text(msgs.InvalidStatisticsRangeMsg, 400);
     }
-    const legacy = !from && !to && !domain;
-    const hourly = end - start === DAY && !legacy;
-    const bucket = hourly ? "strftime('%Y-%m-%d %H:00', created_at)" : 'date(created_at)';
+    const hourly = end - start === DAY;
+    const increment = hourly ? '+1 hour' : '+1 day';
+    const startTime = `${startDay} 00:00:00`;
+    const endTime = `${new Date(end).toISOString().slice(0, 10)} 00:00:00`;
     const results = await c.env.DB.batch<CountRow>(metrics.map(([, table, column]) => {
-        const filter = domain && column;
+        if (table === 'users') {
+            const bucket = hourly ? "strftime('%Y-%m-%d %H:00', created_at)" : 'date(created_at)';
+            return c.env.DB.prepare(
+                `SELECT ${bucket} AS day, count(*) AS count FROM ${table}
+                 WHERE created_at >= ? AND created_at < ? GROUP BY day`
+            ).bind(startTime, endTime);
+        }
         return c.env.DB.prepare(
-            `SELECT ${bucket} AS day, count(*) AS count FROM ${table}
-             WHERE created_at >= ? AND created_at < ?${filter
-                ? ` AND substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE` : ''} GROUP BY day`
-        ).bind(`${startDay} 00:00:00`, `${new Date(end).toISOString().slice(0, 10)} 00:00:00`, ...(filter ? [domain] : []));
+            `WITH RECURSIVE buckets(start) AS (
+                VALUES (?)
+                UNION ALL
+                SELECT datetime(start, '${increment}') FROM buckets WHERE datetime(start, '${increment}') < ?
+            )
+            SELECT substr(buckets.start, 1, ${hourly ? 16 : 10}) AS day, (
+                SELECT count(*) FROM ${table}
+                WHERE created_at >= buckets.start AND created_at < datetime(buckets.start, '${increment}')${domain
+                    ? ` AND substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE` : ''}
+            ) AS count FROM buckets`
+        ).bind(startTime, endTime, ...(domain ? [domain] : []));
     }));
     const generatedAt = new Date().toISOString();
     const counts = results.map(result => new Map(result.results.map(row => [row.day, row.count])));
     const step = hourly ? DAY / 24 : DAY;
-    const bucketCount = hourly && endDay === today ? new Date(generatedAt).getUTCHours() + 1 : (end - start) / step;
+    const bucketCount = hourly && endDay === generatedAt.slice(0, 10)
+        ? new Date(generatedAt).getUTCHours() + 1 : (end - start) / step;
     const daily = Array.from({ length: bucketCount }, (_, index) => {
         const iso = new Date(start + index * step).toISOString();
         const day = hourly ? iso.slice(0, 13).replace('T', ' ') + ':00' : iso.slice(0, 10);
         return { day, ...Object.fromEntries(metrics.map(([key], i) => [key, counts[i].get(day) ?? 0])) };
     });
-    const response = { generatedAt, from: startDay, to: endDay, domain, interval: hourly ? 'hour' : 'day', daily };
-    if (!legacy) return c.json(response, 200, { 'Cache-Control': 'private, no-store' });
-    const [totals, activity] = await Promise.all([
-        getTotals(c),
-        c.env.DB.prepare(
-            `SELECT count(*) AS active30, coalesce(sum(updated_at > datetime('now', '-7 days')), 0) AS active7
-             FROM address WHERE updated_at > datetime('now', '-30 days')`
-        ).first<{ active7: number; active30: number }>(),
-    ]);
-    return c.json({ ...response, ...totals,
-        activeAddressCount7days: activity?.active7 ?? 0, activeAddressCount30days: activity?.active30 ?? 0,
-    }, 200, { 'Cache-Control': 'private, no-store' });
+    return c.json({ generatedAt, from: startDay, to: endDay, domain, interval: hourly ? 'hour' : 'day', daily },
+        200, { 'Cache-Control': 'private, no-store' });
 };
 
 export default { get };

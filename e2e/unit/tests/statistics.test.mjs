@@ -46,6 +46,17 @@ const fixture = () => {
     return { db, env, queries, call, batches: () => batches };
 };
 
+test('legacy statistics return only totals and activity without a trend query', async t => {
+    const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
+    f.db.prepare('UPDATE address SET updated_at = ? WHERE name = ?').run(`${day(-10)} 00:00:00`, 'three@b.test');
+    const result = await (await f.call(api)).json();
+    assert.deepEqual(result, {
+        mailCount: 5, addressCount: 4, userCount: 1, sendMailCount: 4,
+        activeAddressCount7days: 2, activeAddressCount30days: 3,
+    });
+    assert.equal(f.queries.length, 5);
+});
+
 test('totals filter the selected domain directly and ignore date parameters', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     const results = await Promise.all(['b.test', 'a.test'].map(domain => f.call(api, { view: 'totals', domain, from: 'ignored', to: 'ignored' }).then(r => r.json())));
@@ -94,12 +105,31 @@ test('trends query the selected range and domain, preserve empty days and keep u
     assert.equal(b.daily.reduce((n, d) => n + d.mailCount, 0), 1);
     assert.deepEqual(a.daily.map(d => d.userCount), b.daily.map(d => d.userCount));
     assert.equal(all.daily[1].mailCount, 0);
-    assert.equal(f.queries.every(sql => sql.includes('created_at >= ? AND created_at < ?')), true);
-    assert.equal(f.queries.filter(sql => sql.includes('COLLATE NOCASE')).length, 6);
-    assert.equal(f.queries.every(sql => !sql.includes('GROUP BY day, domain')), true);
     assert.equal((await f.call(api, { from: day(-40), to: day(0) })).status, 400);
     assert.equal((await f.call(api, { ...range, domain: 'unknown.test' })).status, 400);
     assert.equal(f.batches(), 3);
+});
+
+test('an hourly query that crosses UTC midnight retains the full requested day', async t => {
+    t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-11-07T23:59:59.500Z') });
+    const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
+    const today = day(0);
+    const insert = f.db.prepare('INSERT INTO raw_mails(address,created_at) VALUES(?,?)');
+    insert.run('late@a.test', `${today} 23:59:59`);
+    insert.run('tomorrow@a.test', `${day(1)} 00:00:00`);
+    const batch = f.env.DB.batch;
+    f.env.DB.batch = async statements => {
+        const results = await batch(statements);
+        t.mock.timers.tick(1000);
+        return results;
+    };
+
+    const result = await (await f.call(api, { from: today, to: today })).json();
+    assert.equal(result.interval, 'hour');
+    assert.equal(result.daily.length, 24);
+    assert.equal(result.daily[23].day, `${today} 23:00`);
+    assert.equal(result.daily[23].mailCount, 1);
+    assert.equal(result.daily.reduce((n, point) => n + point.mailCount, 0), 2);
 });
 
 test('database failures propagate and later requests recover', async t => {

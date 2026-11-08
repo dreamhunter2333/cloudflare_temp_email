@@ -13,10 +13,10 @@ const { t, locale } = useScopedI18n('views.admin.Statistics')
 const format = value => new Intl.NumberFormat(locale.value).format(value)
 const { openSettings } = useGlobalState()
 const theme = useThemeVars()
-const today = new Date().toISOString().slice(0, 10)
+const utcDay = () => new Date().toISOString().slice(0, 10)
 const localDate = day => { const [y, m, d] = day.split('-').map(Number); return new Date(y, m - 1, d).getTime() }
 const dayKey = timestamp => { const date = new Date(timestamp); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
-const presetRange = days => [localDate(new Date(Date.parse(today) - (days - 1) * DAY).toISOString().slice(0, 10)), localDate(today)]
+const presetRange = (days, today = utcDay()) => [localDate(new Date(Date.parse(today) - (days - 1) * DAY).toISOString().slice(0, 10)), localDate(today)]
 const range = ref(presetRange(7))
 const preset = ref(7)
 const showTime = ref(false)
@@ -89,7 +89,14 @@ const fetchTotals = async () => {
         if (id === totalsRequestId) totalsLoading.value = false
     }
 }
-const refresh = () => Promise.all([fetchStatistics(), fetchTotals()])
+const refresh = () => {
+    const today = utcDay()
+    if (preset.value && to.value !== today) {
+        range.value = presetRange(preset.value, today)
+        return fetchTotals()
+    }
+    return Promise.all([fetchStatistics(), fetchTotals()])
+}
 const selectPreset = value => { preset.value = value; range.value = presetRange(value); showTime.value = false }
 const applyRange = () => {
     if (draftError.value) return
@@ -99,7 +106,7 @@ const applyRange = () => {
     range.value = [...draftRange.value]
 }
 watch(showTime, value => { if (value) draftRange.value = [...range.value] })
-watch([range, domain], () => fetchStatistics(), { immediate: true })
+watch([from, to, domain], () => fetchStatistics(), { immediate: true })
 watch(domain, () => fetchTotals(), { immediate: true })
 </script>
 
@@ -124,7 +131,7 @@ watch(domain, () => fetchTotals(), { immediate: true })
                                 <n-tag size="small" :bordered="false">UTC</n-tag>
                             </div>
                             <n-date-picker v-model:value="draftRange" panel type="daterange" :actions="['confirm']"
-                                :is-date-disabled="timestamp => dayKey(timestamp) > today" @confirm="applyRange">
+                                :is-date-disabled="timestamp => dayKey(timestamp) > utcDay()" @confirm="applyRange">
                                 <template #footer><span class="range-help">{{ draftError || t('rangeHelp') }}</span></template>
                                 <template #confirm="{ onConfirm, disabled }"><n-button size="small" type="primary" :disabled="disabled || !!draftError" @click="onConfirm">{{ t('applyRange') }}</n-button></template>
                             </n-date-picker>
