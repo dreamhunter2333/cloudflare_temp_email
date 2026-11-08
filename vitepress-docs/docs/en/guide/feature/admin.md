@@ -10,11 +10,11 @@ You need to configure `ADMIN_PASSWORDS` in the backend or ensure the current use
 
 ## Batch Mailbox Creation and Login Link Export
 
-In **Admin Console → Mailbox Management → Create Email Address**, select the domain, prefix and optional random/custom subdomain, then enter a batch count from **1 to 100** (default 10) and click **Create batch**. Each mailbox receives a browser-generated random name; the single-address name field is not used for batches.
+In **Admin Console → Mailbox Management → Create Email Address**, switch the creation mode from the default **Single creation** to **Batch creation**. Select the domain, prefix and optional random/custom subdomain, then enter a batch count from **1 to 100** (default 10) and click **Create batch**. Each mailbox receives a browser-generated random name. Single mode shows the name field; batch mode shows the count field. Both modes share the domain settings.
 
 Creation runs sequentially and displays completed/requested progress. If a request fails, creation stops without retrying and preserves confirmed successes. An interrupted request may already have created a mailbox with an unknown outcome; check the mailbox list before starting another batch. Leaving the view stops further requests.
 
-Click **Export CSV** to open the export dialog, choose a format, then click **Download CSV** to download UTF-8 CSV containing only `address` and `login_url`. Each link opens the created mailbox on this frontend. Successful rows accumulate across batches until **Clear results** is clicked or you leave the view; they are kept only in memory. Export and clear are unavailable during creation.
+Click **Export CSV** to open the export dialog, choose a format, then click **Download CSV** to download UTF-8 CSV containing only `address` and `login_url`. Each link opens the created mailbox on this frontend. Successful rows accumulate across batches and remain when switching creation modes, until **Clear results** is clicked or you leave the view; they are kept only in memory. Mode switching, shared settings, export and clear are unavailable during creation.
 
 - **Spreadsheet-safe CSV** (`mailbox-login-links.csv`): for Excel or Google Sheets. A cell that starts with `=`, `+`, `-`, `@`, tab or carriage return (for example an address from such a `PREFIX`) is written with a leading `'` so spreadsheets keep it as text. Programs reading this file see the `'` as part of the value.
 - **Lossless CSV** (`mailbox-login-links-raw.csv`): for scripts and programs. Standard CSV quoting only, so a CSV parser returns the original addresses and login links unchanged. Do not open it in a spreadsheet if an address starts with one of the characters above.

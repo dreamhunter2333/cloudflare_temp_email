@@ -14,12 +14,17 @@ async function openCreate(page: Page, locale = 'en', domains = ['test.example.co
   });
   await page.goto(`${FRONTEND_URL}/${locale}/admin`);
   await page.locator('.n-tabs-tab').getByText(locale === 'en' ? 'Create Email Address' : '创建邮箱', { exact: true }).click();
+  await expect(page.getByRole('radio', { name: locale === 'en' ? 'Single creation' : '单个创建', exact: true })).toBeChecked();
+  await expect(page.getByRole('textbox', { name: locale === 'en' ? 'Batch count' : '批量数量' })).toBeHidden();
+  await page.locator('.n-radio').getByText(locale === 'en' ? 'Batch creation' : '批量创建', { exact: true }).click();
   await expect(page.getByRole('textbox', { name: locale === 'en' ? 'Batch count' : '批量数量' })).toBeVisible();
 }
 
 const countInput = (page: Page) => page.getByRole('textbox', { name: 'Batch count' });
-const createBatch = (page: Page) => page.getByRole('button', { name: 'Create batch', exact: true });
-const form = (page: Page) => page.locator('.n-card').filter({ has: countInput(page) });
+const createBatch = (page: Page) => page.getByRole('button', { name: /Create batch$/ });
+const form = (page: Page) => page.locator('.n-card').filter({
+  has: page.getByRole('radio', { name: /^(Single creation|单个创建)$/ }),
+});
 const row = (index: number) => ({ address: `server${index}@random.test.example.com`, jwt: `jwt${index}+/?=&%#`, address_id: index });
 
 const labels = {
@@ -129,8 +134,90 @@ test('requires a domain', async ({ page }) => {
   await page.route('**/admin/new_address', route => { calls++; return route.fulfill({ json: row(calls) }); });
   await openCreate(page, 'en', []);
   await expect(createBatch(page)).toBeDisabled();
-  await expect(form(page).getByRole('button', { name: 'Create Email Address', exact: true })).toBeDisabled();
+  await page.locator('.n-radio').getByText('Single creation', { exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Create Email Address', exact: true })).toBeDisabled();
   expect(calls).toBe(0);
+});
+
+test('creation mode arrow keys stay within the mode group', async ({ page }) => {
+  await openCreate(page);
+  const single = page.getByRole('radio', { name: 'Single creation', exact: true });
+  const batch = page.getByRole('radio', { name: 'Batch creation', exact: true });
+  await single.press('ArrowRight');
+  await expect(batch).toBeFocused();
+  await expect(batch).toBeChecked();
+  await batch.press('ArrowRight');
+  await expect(single).toBeFocused();
+  await expect(single).toBeChecked();
+  await single.press('ArrowLeft');
+  await expect(batch).toBeFocused();
+  await expect(batch).toBeChecked();
+  await expect(form(page).getByRole('radio', { name: 'Normal Domain', exact: true })).toBeChecked();
+  await expect(form(page).getByRole('radio', { name: 'Use Random Subdomain', exact: true })).not.toBeChecked();
+  await expect(form(page).getByRole('radio', { name: 'Use Custom Subdomain', exact: true })).not.toBeChecked();
+});
+
+test('export format arrow keys do not change creation or subdomain modes', async ({ page }) => {
+  let calls = 0;
+  await page.route('**/admin/new_address', route => route.fulfill({ json: row(++calls) }));
+  await openCreate(page);
+  await form(page).getByText('Use Random Subdomain', { exact: true }).click();
+  await countInput(page).fill('1');
+  await createBatch(page).click();
+  await expect(page.getByText('Saved results: 1', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Export CSV', exact: true }).click();
+  const modal = page.locator('.n-modal');
+  const spreadsheet = modal.getByRole('radio', { name: labels.en.spreadsheet });
+  const raw = modal.getByRole('radio', { name: labels.en.raw });
+  await spreadsheet.press('ArrowRight');
+  await expect(raw).toBeFocused();
+  await expect(raw).toBeChecked();
+  await raw.press('ArrowRight');
+  await expect(spreadsheet).toBeFocused();
+  await expect(spreadsheet).toBeChecked();
+  await spreadsheet.press('ArrowLeft');
+  await expect(raw).toBeFocused();
+  await expect(raw).toBeChecked();
+  await modal.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Batch creation', exact: true })).toBeChecked();
+  await expect(form(page).getByRole('radio', { name: 'Use Random Subdomain', exact: true })).toBeChecked();
+  expect(calls).toBe(1);
+});
+
+test('switching modes retains shared settings, the single name and batch results', async ({ page }) => {
+  const bodies: Record<string, unknown>[] = [];
+  await page.route('**/admin/new_address', route => {
+    bodies.push(route.request().postDataJSON());
+    return route.fulfill({ json: row(bodies.length) });
+  });
+  await openCreate(page);
+  await page.locator('.n-radio').getByText('Single creation', { exact: true }).click();
+  await form(page).locator('.n-input-group .n-input input').first().fill('singlemailbox');
+  await form(page).getByRole('switch').click();
+  await form(page).getByText('Use Custom Subdomain', { exact: true }).click();
+  await form(page).locator('.n-input-group .n-input input').last().fill('team');
+  await expect(createBatch(page)).toBeHidden();
+  await page.locator('.n-radio').getByText('Batch creation', { exact: true }).click();
+  await expect(form(page).getByRole('button', { name: 'Generate Fake Name' })).toHaveCount(0);
+  await expect(form(page).getByRole('button', { name: 'Create Email Address', exact: true })).toHaveCount(0);
+  await countInput(page).fill('1');
+  await createBatch(page).click();
+  await expect(page.getByText('Saved results: 1', { exact: true })).toBeVisible();
+  await page.locator('.n-radio').getByText('Single creation', { exact: true }).click();
+  await expect(form(page).locator('.n-input-group .n-input input').first()).toHaveValue('singlemailbox');
+  await expect(page.getByRole('button', { name: 'Export CSV' })).toBeHidden();
+  await form(page).getByRole('button', { name: 'Create Email Address', exact: true }).click();
+  await expect(page.locator('.n-modal')).toBeVisible();
+  await page.locator('.n-modal').getByRole('button', { name: 'close', exact: true }).click();
+  await page.locator('.n-radio').getByText('Batch creation', { exact: true }).click();
+  await expect(countInput(page)).toHaveValue('1');
+  await expect(page.getByText('Saved results: 1', { exact: true })).toBeVisible();
+  expect(bodies).toEqual([
+    { enablePrefix: false, enableRandomSubdomain: false, domain: 'team.test.example.com', name: expect.stringMatching(/^[a-z0-9]{1,30}$/) },
+    { enablePrefix: false, enableRandomSubdomain: false, domain: 'team.test.example.com', name: 'singlemailbox' },
+  ]);
+  const { records } = await exportCsv(page, { mode: 'raw' });
+  expect(decodeRows(records)).toEqual(pick([row(1)]));
 });
 
 test('sends selected domain, prefix and subdomain settings and retains CSV results', async ({ page }) => {
@@ -211,7 +298,7 @@ test('export dialog offers a lossless CSV and a spreadsheet-safe CSV', async ({ 
   expect(calls).toBe(rows.length);
 });
 
-test('locks configuration and both creation actions for the entire sequential batch', async ({ page }) => {
+test('locks shared settings and mode switching for the entire sequential batch', async ({ page }) => {
   const gates = [gate(), gate()];
   let calls = 0;
   let active = 0;
@@ -232,8 +319,8 @@ test('locks configuration and both creation actions for the entire sequential ba
     for (let i = 0; i < 2; i++) {
       await expect.poll(() => calls).toBe(i + 1);
       await expect(createBatch(page)).toBeDisabled();
-      await expect(form(page).getByRole('button', { name: 'Create Email Address', exact: true })).toBeDisabled();
-      await expect(form(page).getByRole('button', { name: 'Generate Fake Name' })).toBeDisabled();
+      await expect(form(page).getByRole('button', { name: 'Create Email Address', exact: true })).toHaveCount(0);
+      await expect(form(page).getByRole('button', { name: 'Generate Fake Name' })).toHaveCount(0);
       await expect(countInput(page)).toBeDisabled();
       for (const input of await form(page).locator('.n-input-group .n-input input').all()) await expect(input).toBeDisabled();
       await expect(form(page).locator('.n-select .n-base-selection')).toHaveClass(/n-base-selection--disabled/);
@@ -243,7 +330,6 @@ test('locks configuration and both creation actions for the entire sequential ba
       await expect(page.getByRole('button', { name: 'Clear results' })).toBeDisabled();
       // Dispatch repeated clicks even while disabled to exercise the handler's busy guard.
       await createBatch(page).dispatchEvent('click');
-      await form(page).getByRole('button', { name: 'Create Email Address', exact: true }).dispatchEvent('click');
       expect(calls).toBe(i + 1);
       gates[i].release();
     }
@@ -313,6 +399,7 @@ test('leaving the create pane stops an outstanding batch', async ({ page }) => {
     await response;
     await finished.promise;
     await page.locator('.n-tabs-tab').getByText('Create Email Address', { exact: true }).click();
+    await page.locator('.n-radio').getByText('Batch creation', { exact: true }).click();
     await expect(page.getByText('Saved results: 0', { exact: true })).toBeVisible();
     // Give the abandoned continuation a chance to send another request.
     await page.waitForTimeout(200);
@@ -335,7 +422,7 @@ for (const locale of ['en', 'zh']) {
     await page.setViewportSize({ width: 390, height: 844 });
     const chinese = locale === 'zh';
     const count = page.getByRole('textbox', { name: chinese ? '批量数量' : 'Batch count' });
-    const card = page.locator('.n-card').filter({ has: count });
+    const card = form(page);
     for (const control of [count, page.getByRole('button', { name: chinese ? '批量创建' : 'Create batch', exact: true }), page.getByRole('button', { name: chinese ? '导出 CSV' : 'Export CSV' })]) {
       await expect(control).toBeVisible();
       const bounds = (await control.boundingBox())!;
@@ -343,6 +430,8 @@ for (const locale of ['en', 'zh']) {
       expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
     }
     await testInfo.attach('mobile', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+    await page.locator('.n-radio').getByText(chinese ? '单个创建' : 'Single creation', { exact: true }).click();
+    await expect(count).toBeHidden();
     await card.locator('.n-input-group .n-input input').first().fill('singlemailbox');
     await card.getByRole('button', { name: chinese ? '创建邮箱' : 'Create Email Address', exact: true }).click();
     await expect(page.locator('.n-modal')).toBeVisible();
