@@ -2411,11 +2411,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "关闭"
     }
   },
-  "views.admin.CreateAccount": {
-    "batchTitle": {
-      "en": "Batch creation (random names)",
-      "zh": "批量创建（随机名称）"
-    },
+  "views.admin.BatchCreate": {
+    "randomNameTip": { "en": "Mailbox names are generated randomly.", "zh": "邮箱名称将随机生成。" },
     "batchCount": {
       "en": "Batch count (1–100)",
       "zh": "批量数量（1–100）"
@@ -2456,6 +2453,12 @@ export const MESSAGE_REGISTRY = {
       "en": "Anyone holding these links can access the mailboxes. Private deployments still require site-access credentials. Results stay in memory until you leave this view or clear them.",
       "zh": "任何持有这些链接的人都可访问邮箱。私有部署仍需要站点访问凭据。结果仅保存在内存中，离开此页面或清空后即消失。"
     },
+  },
+  "views.admin.CreateAccount": {
+    "creationMode": { "en": "Creation mode", "zh": "创建方式" },
+    "singleMode": { "en": "Single creation", "zh": "单个创建" },
+    "batchMode": { "en": "Batch creation", "zh": "批量创建" },
+    "domain": { "en": "Domain", "zh": "域名" },
     "address": {
       "en": "Email Address",
       "zh": "邮箱地址"

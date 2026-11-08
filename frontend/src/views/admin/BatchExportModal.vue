@@ -51,7 +51,7 @@ const download = () => {
 <template>
     <n-modal v-model:show="modalShow" preset="card" :title="t('title')"
         style="width: min(560px, calc(100vw - 32px));">
-        <n-radio-group v-model:value="mode">
+        <n-radio-group v-model:value="mode" name="batch-export-format">
             <n-space vertical>
                 <n-radio value="spreadsheet">{{ t('spreadsheet') }}</n-radio>
                 <n-text depth="3">{{ t('spreadsheetTip') }}</n-text>
