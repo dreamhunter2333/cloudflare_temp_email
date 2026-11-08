@@ -1,9 +1,9 @@
 <script setup>
-import { ref, h, computed, onMounted } from 'vue'
+import { ref, h, computed, onMounted, watch } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { useHead } from '@unhead/vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { useIsMobile } from '../utils/composables'
+import { useMediaQuery } from '@vueuse/core'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
     AdminPanelSettingsFilled, MonitorHeartFilled,
@@ -28,9 +28,13 @@ const {
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
-const isMobile = useIsMobile()
+const isMobile = useMediaQuery('(max-width: 1024px)')
 
 const showMobileMenu = ref(false)
+watch(isMobile, (mobile) => {
+    if (!mobile) showMobileMenu.value = false
+})
+
 const menuValue = computed(() => {
     if (route.path.includes("user")) return "user";
     if (route.path.includes("admin")) return "admin";
@@ -253,7 +257,7 @@ onMounted(async () => {
             </template>
             <template #avatar>
                 <div @click="logoClick">
-                    <n-avatar style="margin-left: 10px;" src="/logo.png" />
+                    <n-avatar class="header-logo" src="/logo.png" />
                 </div>
             </template>
             <template #extra>
@@ -331,6 +335,10 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.header-logo {
+    margin-left: 10px;
+}
+
 :deep(.n-page-header) {
     align-items: center;
     flex-wrap: nowrap;
@@ -460,9 +468,19 @@ onMounted(async () => {
     margin-top: 10px;
 }
 
+@media (max-width: 1024px) {
+    :deep(.n-page-header) {
+        padding-inline: 16px;
+    }
+
+    .header-logo {
+        margin-left: 0;
+    }
+}
+
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 10px 12px;
+        padding: 10px 16px;
     }
 
     :deep(.n-page-header__title) {
