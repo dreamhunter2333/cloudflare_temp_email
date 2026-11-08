@@ -1,5 +1,5 @@
 <script setup>
-import { ref, h, computed, onMounted, watch } from 'vue'
+import { ref, h, computed, onMounted } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { useHead } from '@unhead/vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
@@ -31,10 +31,6 @@ const router = useRouter()
 const isMobile = useIsMobile()
 
 const showMobileMenu = ref(false)
-watch(isMobile, (mobile) => {
-    if (!mobile) showMobileMenu.value = false
-})
-
 const menuValue = computed(() => {
     if (route.path.includes("user")) return "user";
     if (route.path.includes("admin")) return "admin";
