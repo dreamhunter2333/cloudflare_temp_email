@@ -19,6 +19,7 @@
 
 ### Bug Fixes
 
+- fix: |Admin Statistics| Query mailbox totals and 7- and 30-day activity together, reuse date indexes for trends, and preserve hourly counts and sync date presets across UTC midnight
 - fix: |Scheduled Cleanup| Catch errors for each built-in and custom SQL cleanup task, log failures, and continue with subsequent tasks
 - fix: |Mail Processing| Use the newly stored row ID for metadata updates and Telegram links, avoiding wrong-row updates or links when Message-ID is repeated or missing
 - fix: |Mail Reader| Reset inherited application defaults in Shadow mail and use browser-default system colors for a normal document while preserving sender colors
