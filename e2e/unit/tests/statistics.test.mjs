@@ -89,6 +89,7 @@ test('trends query the selected range and domain, preserve empty days and keep u
     const b = await (await f.call(api, { ...range, domain: 'b.test' })).json();
     assert.equal(f.batches(), 3); assert.equal(all.daily.length, 7);
     assert.equal(all.daily.reduce((n, d) => n + d.mailCount, 0), 4);
+    assert.equal(all.daily.reduce((n, d) => n + d.userCount, 0), 1);
     assert.equal(a.daily.reduce((n, d) => n + d.mailCount, 0), 2);
     assert.equal(b.daily.reduce((n, d) => n + d.mailCount, 0), 1);
     assert.deepEqual(a.daily.map(d => d.userCount), b.daily.map(d => d.userCount));
@@ -96,7 +97,6 @@ test('trends query the selected range and domain, preserve empty days and keep u
     assert.equal(f.queries.every(sql => sql.includes('created_at >= ? AND created_at < ?')), true);
     assert.equal(f.queries.filter(sql => sql.includes('COLLATE NOCASE')).length, 6);
     assert.equal(f.queries.every(sql => !sql.includes('GROUP BY day, domain')), true);
-    assert.match(f.db.prepare('EXPLAIN QUERY PLAN SELECT date(created_at),count(*) FROM users WHERE created_at>=? AND created_at<? GROUP BY date(created_at)').all(day(-6), day(1)).map(r => r.detail).join(' '), /COVERING INDEX idx_users_created_at/);
     assert.equal((await f.call(api, { from: day(-40), to: day(0) })).status, 400);
     assert.equal((await f.call(api, { ...range, domain: 'unknown.test' })).status, 400);
     assert.equal(f.batches(), 3);
@@ -110,30 +110,4 @@ test('database failures propagate and later requests recover', async t => {
     await assert.rejects(() => f.call(api, { view: 'totals' }), /database unavailable/);
     f.env.DB.batch = batch;
     await f.call(api, { view: 'totals' }); assert.equal(f.batches(), 2);
-});
-
-test('v0.0.10 migration adds the user time index, preserves data and is idempotent', async t => {
-    const f = fixture(); t.after(() => f.db.close());
-    f.db.exec("DROP INDEX idx_users_created_at; INSERT INTO settings(key,value) VALUES('db_version','v0.0.10')");
-    let ddl = 0;
-    f.env.DB.exec = async sql => { ddl++; f.db.exec(sql); };
-    const prepare = f.env.DB.prepare;
-    f.env.DB.prepare = sql => ({ ...prepare(sql), async run() { return f.db.prepare(sql).run(...this.params); } });
-    const constants = new URL('../../../worker/src/constants.ts', import.meta.url);
-    const version = new URL('../../../worker/src/utils/version.ts', import.meta.url);
-    const source = `import { CONSTANTS } from '${constants.href}'; import { compareVersions } from '${version.href}';
-        const utils = {
-            getSetting: async (c,key) => (await c.env.DB.prepare('SELECT value FROM settings WHERE key=?').bind(key).first())?.value,
-            saveSetting: async (c,key,value) => c.env.DB.prepare('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)').bind(key,value).run()
-        };
-        ${readFileSync(new URL('../../../worker/src/admin_api/db_api.ts', import.meta.url), 'utf8').replace(/^import .*\n/gm, '')}`;
-    const { default: migration } = await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(source)).toString('base64')}`);
-    const context = { env: f.env, json: data => data };
-    assert.equal((await migration.migrate(context)).success, true);
-    assert.equal(f.db.prepare("SELECT value FROM settings WHERE key='db_version'").get().value, 'v0.0.11');
-    assert.equal(f.db.prepare("SELECT count(*) n FROM sqlite_master WHERE name='idx_users_created_at'").get().n, 1);
-    assert.equal(f.db.prepare('SELECT count(*) n FROM raw_mails').get().n, 5);
-    const previousDdl = ddl;
-    await migration.migrate(context);
-    assert.equal(ddl, previousDdl);
 });

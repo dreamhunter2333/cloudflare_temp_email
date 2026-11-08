@@ -19,7 +19,7 @@
 
 ### Bug Fixes
 
-- fix: |Admin Statistics| Separate totals and trend queries so time changes do not query totals again; index user creation time and upgrade the database to v0.0.11
+- fix: |Admin Statistics| Separate totals and trend queries so time changes do not query totals again
 - fix: |Admin Statistics| Add horizontal dashboard and header spacing on phones and tablets to keep filters, cards and menu away from screen edges
 - fix: |Scheduled Cleanup| Catch errors for each built-in and custom SQL cleanup task, log failures, and continue with subsequent tasks
 - fix: |Mail Processing| Use the newly stored row ID for metadata updates and Telegram links, avoiding wrong-row updates or links when Message-ID is repeated or missing
