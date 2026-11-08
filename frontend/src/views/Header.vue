@@ -28,7 +28,7 @@ const {
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
-const isMobile = useIsMobile(1025)
+const isMobile = useIsMobile()
 
 const showMobileMenu = ref(false)
 watch(isMobile, (mobile) => {
@@ -468,7 +468,7 @@ onMounted(async () => {
     margin-top: 10px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 767px) {
     :deep(.n-page-header) {
         padding-inline: 16px;
     }
@@ -480,7 +480,7 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 10px 16px;
+        padding-block: 10px;
     }
 
     :deep(.n-page-header__title) {
