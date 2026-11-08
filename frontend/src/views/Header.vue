@@ -468,7 +468,7 @@ onMounted(async () => {
     margin-top: 10px;
 }
 
-@media (max-width: 767px) {
+@media (width < 768px) {
     :deep(.n-page-header) {
         padding-inline: 16px;
     }
