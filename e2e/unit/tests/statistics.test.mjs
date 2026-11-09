@@ -112,6 +112,27 @@ test('trends query the selected range and domain, preserve empty days and keep u
     assert.equal(f.batches(), 3);
 });
 
+test('domain totals and trends use the mailbox-domain indexes', async t => {
+    const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
+    const batch = f.env.DB.batch;
+    const plans = [];
+    f.env.DB.batch = async statements => {
+        plans.push(statements.flatMap(({ sql, params }) =>
+            f.db.prepare(`EXPLAIN QUERY PLAN ${sql}`).all(...params).map(row => row.detail)));
+        return batch(statements);
+    };
+
+    assert.equal((await f.call(api, { view: 'totals', domain: 'a.test' })).status, 200);
+    assert.equal((await f.call(api, { from: day(-6), to: day(0), domain: 'a.test' })).status, 200);
+    for (const table of ['raw_mails', 'address', 'sendbox']) {
+        const search = `SEARCH ${table}`;
+        const index = `idx_${table}_mailbox_domain_created_at`;
+        assert.ok(plans[0].some(line => line.startsWith(search) && line.includes(index)), plans[0].join('\n'));
+        assert.ok(plans[1].some(line => line.startsWith(search) && line.includes(index)
+            && line.includes('created_at>? AND created_at<?')), plans[1].join('\n'));
+    }
+});
+
 test('an hourly query that crosses UTC midnight retains the full requested day', async t => {
     t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-11-07T23:59:59.500Z') });
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();

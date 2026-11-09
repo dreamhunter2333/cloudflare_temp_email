@@ -26,6 +26,8 @@ CREATE INDEX IF NOT EXISTS idx_raw_mails_cleanup_unknown ON raw_mails(created_at
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_source_domain_created_at ON raw_mails(lower(trim(substr(source, instr(source, '@') + 1), ' <>')), created_at, id);
 
+CREATE INDEX IF NOT EXISTS idx_raw_mails_mailbox_domain_created_at ON raw_mails(substr(address, instr(address, '@') + 1) COLLATE NOCASE, created_at);
+
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
@@ -38,6 +40,8 @@ CREATE TABLE IF NOT EXISTS address (
 CREATE INDEX IF NOT EXISTS idx_address_name ON address(name);
 
 CREATE INDEX IF NOT EXISTS idx_address_created_at ON address(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_address_mailbox_domain_created_at ON address(substr(name, instr(name, '@') + 1) COLLATE NOCASE, created_at);
 
 CREATE INDEX IF NOT EXISTS idx_address_updated_at ON address(updated_at);
 
@@ -75,6 +79,8 @@ CREATE TABLE IF NOT EXISTS sendbox (
 
 CREATE INDEX IF NOT EXISTS idx_sendbox_address ON sendbox(address);
 CREATE INDEX IF NOT EXISTS idx_sendbox_created_at ON sendbox(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_sendbox_mailbox_domain_created_at ON sendbox(substr(address, instr(address, '@') + 1) COLLATE NOCASE, created_at);
 
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,

@@ -46,6 +46,8 @@ Domain options come from configured mailbox domains without scanning mail to pop
 
 Trends query only the selected dates and filter the selected mailbox domain directly in SQL, without grouping other domains. Totals are queried separately and ignore date parameters. Neither frontend nor backend caches statistics results. KV is not used, and no D1 cache table or receive-path counter writes are added. The frontend only coalesces identical pending requests; time changes do not query totals again.
 
+Database v0.0.11 adds indexes for mailbox-domain statistics. Use the database migration in the admin console to enable them on existing databases.
+
 ## Mailbox List Sorting
 
 **Admin Console → Mailbox Management → Mailboxes** supports column sorting. Click a column header to toggle ascending/descending order for:
