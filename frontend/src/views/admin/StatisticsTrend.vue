@@ -9,7 +9,7 @@ import VChart from 'vue-echarts'
 import { useScopedI18n } from '@/i18n/app'
 
 use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, AriaComponent, CanvasRenderer])
-const props = defineProps({ title: String, metric: String, color: String, points: Array, group: String, global: Boolean })
+const props = defineProps({ title: String, metric: String, color: String, points: Array, group: String })
 const { t, locale } = useScopedI18n('views.admin.Statistics')
 const theme = useThemeVars()
 const format = value => new Intl.NumberFormat(locale.value).format(value)
@@ -38,7 +38,7 @@ onBeforeUnmount(() => disconnect(props.group))
 
 <template>
     <n-card class="trend-panel" size="small">
-        <header><h3>{{ title }}</h3><n-tag v-if="global" size="small" :bordered="false">{{ t('global') }}</n-tag></header>
+        <h3>{{ title }}</h3>
         <div class="panel-total"><strong>{{ format(total) }}</strong></div>
         <VChart class="trend-chart" :option="option" :group="group" autoresize />
     </n-card>
@@ -47,7 +47,6 @@ onBeforeUnmount(() => disconnect(props.group))
 <style scoped>
 .trend-panel { min-width: 0; border-radius: 12px; }
 .trend-panel :deep(.n-card__content) { padding: 22px 24px 18px; }
-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 h3 { font-size: 14px; font-weight: 600; margin: 0; }
 .panel-total { display: flex; gap: 12px; align-items: baseline; margin: 12px 0 14px; }
 .panel-total strong { font-size: 28px; font-weight: 600; letter-spacing: -.02em; line-height: 1.3; }

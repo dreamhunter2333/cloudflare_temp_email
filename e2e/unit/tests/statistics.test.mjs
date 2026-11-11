@@ -8,8 +8,7 @@ const day = offset => new Date(Date.parse(new Date().toISOString().slice(0, 10))
 const bounds = (from, to) => ({ from: `${day(from)} 00:00:00`, to: `${day(to + 1)} 00:00:00`, granularity: 'day' });
 const apiUrl = new URL('../../../worker/src/admin_api/statistics_api.ts', import.meta.url);
 const createApi = async () => {
-    const source = `const getDomains = c => c.env.DOMAINS;
-        const i18n = { getMessagesbyContext: () => ({ InvalidStatisticsRangeMsg: 'range', InvalidStatisticsDomainMsg: 'domain', InvalidStatisticsGranularityMsg: 'granularity' }) };
+    const source = `const i18n = { getMessagesbyContext: () => ({ InvalidStatisticsRangeMsg: 'range', InvalidStatisticsGranularityMsg: 'granularity' }) };
         ${readFileSync(apiUrl, 'utf8').replace(/^import .*\n/gm, '')}`;
     return (await import(`data:text/javascript;base64,${Buffer.from(stripTypeScriptTypes(source)).toString('base64')}`)).default;
 };
@@ -27,7 +26,6 @@ const fixture = () => {
     const queries = [];
     let batches = 0;
     const env = {
-        DOMAINS: ['a.test', 'b.test'],
         DB: {
             prepare: sql => ({ sql, params: [], bind(...params) { this.params = params; return this; }, async first() { queries.push(sql); return db.prepare(sql).get(...this.params); } }),
             batch: async statements => {
@@ -58,28 +56,23 @@ test('legacy statistics return only totals and activity without a trend query', 
     assert.equal(f.queries.length, 4);
 });
 
-test('one statistics request batches filtered totals and trends', async t => {
+test('one statistics request batches site-wide totals and trends', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     f.db.prepare('UPDATE address SET updated_at = ? WHERE name = ?').run(`${day(-10)} 00:00:00`, 'three@b.test');
     f.db.prepare('UPDATE users SET updated_at = ?').run(`${day(-1)} 00:00:00`);
     const addUser = f.db.prepare('INSERT INTO users(user_email,password,created_at,updated_at) VALUES(?,?,?,?)');
     addUser.run('returning@example.com', 'test', `${day(-40)} 00:00:00`, `${day(-10)} 00:00:00`);
     addUser.run('inactive@example.com', 'test', `${day(-40)} 00:00:00`, `${day(-40)} 00:00:00`);
-    const responses = await Promise.all(['b.test', 'a.test'].map(domain =>
-        f.call(api, { ...bounds(-6, 0), domain, includeTotals: 'true' }).then(r => r.json())));
-    const results = responses.map(result => result.totals);
-    assert.equal(f.batches(), 2); assert.equal(f.queries.length, 16);
-    assert.equal(results[0].mailCount, 1); assert.equal(results[1].mailCount, 3);
-    assert.deepEqual(results.map(result => [result.userCount, result.activeUserCount7days, result.activeUserCount30days]), [[3, 1, 2], [3, 1, 2]]);
-    assert.deepEqual(results.map(result => [result.activeAddressCount7days, result.activeAddressCount30days]), [[0, 1], [2, 2]]);
-    assert.equal(responses[1].trends.mailCount.reduce((sum, row) => sum + row.count, 0), 2);
-    assert.equal(f.queries.filter(sql => sql.includes('COLLATE NOCASE')).length, 12);
     const response = await f.call(api, { ...bounds(-6, 0), includeTotals: 'true' });
     assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
-    const { totals: all } = await response.json();
-    assert.equal(all.mailCount, 5); assert.equal(all.addressCount, 4); assert.equal(all.sendMailCount, 4);
-    assert.equal(f.batches(), 3);
-    assert.equal(f.queries.slice(-8, -4).every(sql => !sql.includes('COLLATE NOCASE')), true);
+    const { totals, trends } = await response.json();
+    assert.deepEqual(totals, {
+        mailCount: 5, addressCount: 4, sendMailCount: 4, userCount: 3,
+        activeAddressCount7days: 2, activeAddressCount30days: 3,
+        activeUserCount7days: 1, activeUserCount30days: 2,
+    });
+    assert.equal(trends.mailCount.reduce((sum, row) => sum + row.count, 0), 4);
+    assert.equal(f.batches(), 1); assert.equal(f.queries.length, 8);
 });
 
 test('statistics return fresh counts without accessing Cache API or KV', async t => {
@@ -102,32 +95,25 @@ test('statistics return fresh counts without accessing Cache API or KV', async t
     assert.equal(f.batches(), 2);
 });
 
-test('trends return counts per metric for the requested dates and domain', async t => {
+test('trends return counts for all four metrics in the requested dates', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     const range = bounds(-6, 0);
-    const unfiltered = await (await f.call(api, range)).json();
-    assert.ok(!('totals' in unfiltered));
-    const { trends: all } = unfiltered;
-    const { trends: a } = await (await f.call(api, { ...range, domain: 'a.test' })).json();
-    const { trends: b } = await (await f.call(api, { ...range, domain: 'b.test' })).json();
-    assert.equal(f.batches(), 3); assert.equal(all.mailCount.length, 7);
-    assert.equal(all.mailCount.reduce((sum, row) => sum + row.count, 0), 4);
-    assert.equal(a.mailCount.reduce((sum, row) => sum + row.count, 0), 2);
-    assert.equal(b.mailCount.reduce((sum, row) => sum + row.count, 0), 1);
-    assert.deepEqual(all.userCount, [{ day: day(-2), count: 1 }]);
-    assert.deepEqual(a.userCount, all.userCount);
-    assert.deepEqual(b.userCount, all.userCount);
-    assert.equal((await f.call(api, { domain: 'a.test' })).status, 400);
+    const { totals, trends } = await (await f.call(api, range)).json();
+    assert.equal(totals, undefined);
+    assert.equal(trends.mailCount.length, 7);
+    assert.equal(trends.mailCount.reduce((sum, row) => sum + row.count, 0), 4);
+    assert.equal(trends.addressCount.reduce((sum, row) => sum + row.count, 0), 3);
+    assert.deepEqual(trends.sendMailCount, trends.addressCount);
+    assert.deepEqual(trends.userCount, [{ day: day(-2), count: 1 }]);
     assert.equal((await f.call(api, { from: '', to: '' })).status, 400);
     assert.equal((await f.call(api, { from: range.from })).status, 400);
     assert.equal((await f.call(api, bounds(-40, 0))).status, 400);
     assert.equal((await f.call(api, { ...range, from: `${day(-6)} 01:00:00` })).status, 400);
     assert.equal((await f.call(api, { ...range, from: '2026-02-30 00:00:00' })).status, 400);
-    assert.equal((await f.call(api, { ...range, domain: 'unknown.test' })).status, 400);
     const invalidGranularity = await f.call(api, { ...range, granularity: 'hour' });
     assert.equal(invalidGranularity.status, 400);
     assert.equal(await invalidGranularity.text(), 'granularity');
-    assert.equal(f.batches(), 3);
+    assert.equal(f.batches(), 1); assert.equal(f.queries.length, 4);
 });
 
 test('single-day aggregates respect UTC day boundaries', async t => {
@@ -145,18 +131,17 @@ test('single-day aggregates respect UTC day boundaries', async t => {
     }
     f.db.prepare('INSERT INTO users(user_email,password,created_at) VALUES(?,?,?)')
         .run('daily@example.com', 'test', `${day(-1)} 04:30:00`);
-    const { trends: past } = await (await f.call(api, { ...bounds(-1, -1), domain: 'a.test' })).json();
-    for (const key of ['mailCount', 'addressCount', 'sendMailCount']) {
+    const { trends: past } = await (await f.call(api, bounds(-1, -1))).json();
+    assert.deepEqual(past.mailCount, [{ day: day(-1), count: 3 }]);
+    for (const key of ['addressCount', 'sendMailCount']) {
         assert.deepEqual(past[key], [{ day: day(-1), count: 2 }]);
     }
     assert.deepEqual(past.userCount, [{ day: day(-1), count: 1 }]);
-    const { trends: today } = await (await f.call(api, { ...bounds(0, 0), domain: 'a.test' })).json();
+    const { trends: today } = await (await f.call(api, bounds(0, 0))).json();
     assert.deepEqual(today.mailCount, [{ day: day(0), count: 2 }]);
-    const { trends: all } = await (await f.call(api, bounds(-1, -1))).json();
-    assert.deepEqual(all.mailCount, [{ day: day(-1), count: 3 }]);
 });
 
-test('domain totals and trends use the mailbox-domain indexes', async t => {
+test('daily trends use the existing creation-time indexes', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     const batch = f.env.DB.batch;
     const plans = [];
@@ -166,12 +151,9 @@ test('domain totals and trends use the mailbox-domain indexes', async t => {
         return batch(statements);
     };
 
-    assert.equal((await f.call(api, { ...bounds(-29, 0), domain: 'a.test', includeTotals: 'true' })).status, 200);
+    assert.equal((await f.call(api, bounds(-29, 0))).status, 200);
     for (const table of ['raw_mails', 'address', 'sendbox']) {
-        const search = `SEARCH ${table}`;
-        const index = `idx_${table}_mailbox_domain_created_at`;
-        assert.ok(plans[0].some(line => line.startsWith(search) && line.endsWith(`${index} (<expr>=?)`)), plans[0].join('\n'));
-        assert.ok(plans[0].some(line => line.startsWith(search) && line.includes(index)
+        assert.ok(plans[0].some(line => line.startsWith(`SEARCH ${table} USING COVERING INDEX idx_${table}_`)
             && line.includes('created_at>? AND created_at<?')), plans[0].join('\n'));
     }
     assert.equal(plans[0].filter(line => line.includes('USE TEMP B-TREE FOR GROUP BY')).length, 1);

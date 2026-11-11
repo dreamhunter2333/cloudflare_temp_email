@@ -4,7 +4,6 @@ import { useAsyncState } from '@vueuse/core'
 import { useThemeVars } from 'naive-ui'
 import { DateRangeOutlined, KeyboardArrowDownOutlined, RefreshOutlined } from '@vicons/material'
 import { useScopedI18n } from '@/i18n/app'
-import { useGlobalState } from '../../store'
 import { api } from '../../api'
 const StatisticsTrend = defineAsyncComponent(() => import('./StatisticsTrend.vue'))
 const chartGroup = `statistics-${useId()}`
@@ -14,7 +13,6 @@ const presets = [{ days: 1, label: 'today' }, { days: 7, label: 'days7' }, { day
 const { t, locale } = useScopedI18n('views.admin.Statistics')
 const numberFormat = computed(() => new Intl.NumberFormat(locale.value))
 const format = value => numberFormat.value.format(value)
-const { openSettings } = useGlobalState()
 const theme = useThemeVars()
 const utcDay = () => new Date().toISOString().slice(0, 10)
 const presetRange = (days, today = utcDay()) => [new Date(Date.parse(today) - (days - 1) * DAY).toISOString().slice(0, 10), today]
@@ -22,7 +20,6 @@ const range = ref(presetRange(7))
 const preset = ref(presets[1])
 const showTime = ref(false)
 const draftRange = ref([...range.value])
-const domain = ref('')
 const totalMetrics = ['mailCount', 'addressCount', 'userCount', 'sendMailCount',
     'activeAddressCount7days', 'activeAddressCount30days', 'activeUserCount7days', 'activeUserCount30days']
 const from = computed(() => range.value[0])
@@ -30,18 +27,17 @@ const to = computed(() => range.value[1])
 const validRange = dates => dates && Date.parse(dates[1]) - Date.parse(dates[0]) < 30 * DAY
 const draftError = computed(() => validRange(draftRange.value) ? '' : t('rangeLimit'))
 const rangeLabel = computed(() => preset.value ? t(preset.value.label) : range.value.join(' – '))
-const domainOptions = computed(() => [{ label: t('allDomains'), value: '' }, ...openSettings.value.domains])
 const panels = computed(() => [
     { metric: 'mailCount', title: t('received'), color: theme.value.primaryColor },
     { metric: 'sendMailCount', title: t('sent'), color: theme.value.warningColorPressed },
-    { metric: 'userCount', title: t('newUsers'), color: theme.value.textColor2, global: !!domain.value },
+    { metric: 'userCount', title: t('newUsers'), color: theme.value.textColor2 },
     { metric: 'addressCount', title: t('newAddresses'), color: theme.value.infoColor },
 ])
 const colors = computed(() => ({
     '--text': theme.value.textColor1, '--line': theme.value.borderColor,
 }))
 
-const fetchDashboard = async (params, previous) => {
+const fetchDashboard = async (params, previousTotals) => {
     const data = await api.fetch(`/admin/statistics?${new URLSearchParams(params)}`, { showLoading: false })
     const counts = Object.entries(data.trends).map(([key, rows]) => [key, new Map(rows.map(row => [row.day, row.count]))])
     const start = Date.parse(params.from.slice(0, 10))
@@ -50,18 +46,17 @@ const fetchDashboard = async (params, previous) => {
         const day = new Date(start + i * DAY).toISOString().slice(0, 10)
         return { day, ...Object.fromEntries(counts.map(([key, values]) => [key, values.get(day) ?? 0])) }
     })
-    return { daily, totals: data.totals ?? previous?.totals, domain: params.domain }
+    return { daily, totals: data.totals ?? previousTotals }
 }
 const { state: statistics, isLoading: loading, error, executeImmediate: loadStatistics } = useAsyncState(
     fetchDashboard, null, { immediate: false, resetOnExecute: false, onError: () => {} },
 )
-const totals = computed(() => statistics.value?.domain === domain.value ? statistics.value.totals : null)
+const totals = computed(() => statistics.value?.totals)
 const fetchStatistics = (refresh = false) => {
-    const previous = statistics.value
     const endDay = new Date(Date.parse(to.value) + DAY).toISOString().slice(0, 10)
-    const params = { from: `${from.value} 00:00:00`, to: `${endDay} 00:00:00`, domain: domain.value, granularity: 'day' }
-    if (refresh || previous?.domain !== params.domain || !previous?.totals) params.includeTotals = 'true'
-    return loadStatistics(params, previous)
+    const params = { from: `${from.value} 00:00:00`, to: `${endDay} 00:00:00`, granularity: 'day' }
+    if (refresh || !totals.value) params.includeTotals = 'true'
+    return loadStatistics(params, totals.value)
 }
 const loadError = computed(() => error.value ? error.value.message || t('loadError') : '')
 const syncPresetRange = () => {
@@ -88,7 +83,7 @@ const applyRange = (_, dates) => {
     range.value = dates
 }
 watch(showTime, value => { if (value) draftRange.value = [...range.value] })
-watch([from, to, domain, refreshVersion], ([, , , version], [, , , previousVersion] = []) => {
+watch([from, to, refreshVersion], ([, , version], [, , previousVersion] = []) => {
     if (!syncPresetRange()) fetchStatistics(version !== previousVersion)
 }, { immediate: true })
 </script>
@@ -96,9 +91,6 @@ watch([from, to, domain, refreshVersion], ([, , , version], [, , , previousVersi
 <template>
     <section class="dashboard" :style="colors" :aria-busy="loading">
         <div class="filters">
-            <div class="domain-filter"><span>{{ t('mailboxDomain') }}</span>
-                <n-select v-model:value="domain" :options="domainOptions" filterable :disabled="loading" :aria-label="t('mailboxDomain')" />
-            </div>
             <div class="toolbar-actions">
                 <n-popover v-model:show="showTime" trigger="click" placement="bottom-end" :show-arrow="false" :style="{ padding: 0 }">
                     <template #trigger>
@@ -144,11 +136,8 @@ watch([from, to, domain, refreshVersion], ([, , , version], [, , , previousVersi
 
 <style scoped>
 .dashboard { color: var(--text); font-variant-numeric: tabular-nums; text-align: left; }
-.filters { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 0 22px; border-bottom: 1px solid var(--line); margin-bottom: 22px; flex-wrap: wrap; }
-.domain-filter { display: flex; align-items: center; gap: 12px; }
-.domain-filter > span { font-size: 13px; white-space: nowrap; }
-.domain-filter :deep(.n-select) { width: 230px; }
-.toolbar-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.filters { padding-bottom: 22px; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+.toolbar-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
 .time-panel { max-width: calc(100vw - 24px); }
 .time-panel :deep(.n-scrollbar-container) { overscroll-behavior: contain; }
 .quick-ranges { display: flex; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--n-divider-color); }
@@ -159,15 +148,9 @@ watch([from, to, domain, refreshVersion], ([, , , version], [, , , previousVersi
 @media (max-width: 1024px) {
     .dashboard { padding-inline: 16px; }
 }
-@media (max-width: 900px) {
-    .filters { gap: 14px; }
-}
 @media (max-width: 650px) {
     .charts { grid-template-columns: 1fr; gap: 16px; }
     .totals { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-    .domain-filter { width: 100%; }
-    .domain-filter :deep(.n-select) { width: auto; flex: 1; }
-    .toolbar-actions { width: 100%; justify-content: space-between; }
     .time-panel :deep(.n-date-panel--daterange) { grid-template-areas: "left-calendar" "right-calendar" "footer" "action"; }
     .time-panel :deep(.n-date-panel__vertical-divider) { display: none; }
 }
