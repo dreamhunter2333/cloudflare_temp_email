@@ -3,6 +3,7 @@ import { getDomains } from '../utils'
 import i18n from '../i18n'
 
 const DAY = 86400000;
+const noStore = { 'Cache-Control': 'private, no-store' };
 const metrics = [
     ['mailCount', 'raw_mails', 'address'],
     ['addressCount', 'address', 'name'],
@@ -29,27 +30,23 @@ const getTotals = async (c: Context<HonoCustomType>, domain: string, includeUser
 };
 
 const get = async (c: Context<HonoCustomType>) => {
-    const today = new Date().toISOString().slice(0, 10);
     const { from, to, domain: domainQuery, view } = c.req.query();
     const domain = domainQuery?.trim().toLowerCase() || '';
     const msgs = i18n.getMessagesbyContext(c);
     if (domain && !getDomains(c).includes(domain)) return c.text(msgs.InvalidStatisticsDomainMsg, 400);
     if (view === 'totals' || (!from && !to && !domain)) {
-        const totals = await getTotals(c, domain, view === 'totals');
-        return c.json(view === 'totals' ? { generatedAt: new Date().toISOString(), domain, ...totals } : totals,
-            200, { 'Cache-Control': 'private, no-store' });
+        return c.json(await getTotals(c, domain, view === 'totals'), 200, noStore);
     }
 
-    const startDay = from || new Date(Date.parse(today) - 29 * DAY).toISOString().slice(0, 10);
-    const endDay = to || today;
-    const start = Date.parse(startDay);
-    const end = Date.parse(endDay) + DAY;
-    const validDay = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value)
-        && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
-    if (!validDay(startDay) || !validDay(endDay) || end <= start || end - start > 30 * DAY || endDay > today) {
+    const start = Date.parse(from);
+    const lastDay = Date.parse(to);
+    const validDay = (value: string, timestamp: number) => /^\d{4}-\d{2}-\d{2}$/.test(value)
+        && Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value;
+    if (!validDay(from, start) || !validDay(to, lastDay) || lastDay < start || lastDay - start >= 30 * DAY || lastDay > Date.now()) {
         return c.text(msgs.InvalidStatisticsRangeMsg, 400);
     }
-    const hourly = end - start === DAY;
+    const end = lastDay + DAY;
+    const hourly = from === to;
     const step = hourly ? DAY / 24 : DAY;
     const interval = hourly ? 'hour' : 'day';
     const labelLength = hourly ? 16 : 10;
@@ -70,15 +67,14 @@ const get = async (c: Context<HonoCustomType>) => {
              ) AS count FROM buckets`
         ).bind(...buckets, ...(domain ? [domain] : []));
     }));
-    const generatedAt = new Date().toISOString();
+    const now = new Date();
     const counts = results.map(result => new Map(result.results.map(row => [row.day, row.count])));
-    const visibleHours = hourly && endDay === generatedAt.slice(0, 10) ? new Date(generatedAt).getUTCHours() + 1 : undefined;
+    const visibleHours = hourly && to === now.toISOString().slice(0, 10) ? now.getUTCHours() + 1 : undefined;
     const daily = buckets.slice(0, visibleHours).map(time => {
         const day = time.slice(0, labelLength);
         return { day, ...Object.fromEntries(metrics.map(([key], i) => [key, counts[i].get(day) ?? 0])) };
     });
-    return c.json({ generatedAt, from: startDay, to: endDay, domain, interval, daily },
-        200, { 'Cache-Control': 'private, no-store' });
+    return c.json({ interval, daily }, 200, noStore);
 };
 
 export default { get };

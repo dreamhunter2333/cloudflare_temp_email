@@ -111,6 +111,8 @@ test('trends query the selected range and domain, preserve empty days and keep u
     assert.equal(b.daily.reduce((n, d) => n + d.mailCount, 0), 1);
     assert.deepEqual(a.daily.map(d => d.userCount), b.daily.map(d => d.userCount));
     assert.equal(all.daily[1].mailCount, 0);
+    assert.equal((await f.call(api, { domain: 'a.test' })).status, 400);
+    assert.equal((await f.call(api, { from: day(-6) })).status, 400);
     assert.equal((await f.call(api, { from: day(-40), to: day(0) })).status, 400);
     assert.equal((await f.call(api, { ...range, domain: 'unknown.test' })).status, 400);
     assert.equal(f.batches(), 3);
