@@ -11,15 +11,12 @@ const metrics = [
     ['sendMailCount', 'sendbox', 'address'],
 ] as const;
 type Metric = typeof metrics[number];
-type CountRow = { day: string; count: number };
 const domainCondition = (column: string) => `substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE`;
-const parseDay = (value: string) => {
-    const timestamp = Date.parse(`${value}T00:00:00Z`);
-    return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value ? timestamp : NaN;
-};
+const isUtcMidnight = (value: string, timestamp: number) => timestamp % DAY === 0
+    && /^\d{4}-/.test(value) && new Date(timestamp).toISOString() === value;
 
-const queryTotals = async (c: Context<HonoCustomType>, domain: string, includeUserActivity: boolean, selectedMetrics: readonly Metric[]) => {
-    const results = await c.env.DB.batch<Record<string, number>>(selectedMetrics.map(([key, table, column]) => {
+const totalStatements = (c: Context<HonoCustomType>, domain: string, includeUserActivity: boolean, selectedMetrics: readonly Metric[]) =>
+    selectedMetrics.map(([key, table, column]) => {
         const filter = domain && column;
         const activityKey = table === 'address' ? 'activeAddressCount' :
             table === 'users' && includeUserActivity ? 'activeUserCount' : '';
@@ -29,38 +26,30 @@ const queryTotals = async (c: Context<HonoCustomType>, domain: string, includeUs
         const statement = c.env.DB.prepare(`SELECT count(*) AS ${key}${activity} FROM ${table}${filter
             ? ` WHERE ${domainCondition(filter)}` : ''}`);
         return filter ? statement.bind(domain) : statement;
-    }));
-    return Object.assign({}, ...results.map(result => result.results[0]));
-};
+    });
 
-const readFilters = (c: Context<HonoCustomType>) => {
-    const { from, to, domain: domainQuery, skipUsers } = c.req.query();
+const get = async (c: Context<HonoCustomType>) => {
+    const { from, to, domain: domainQuery, includeTotals, skipUsers } = c.req.query();
     const domain = domainQuery?.trim().toLowerCase() || '';
-    const selectedMetrics = skipUsers === 'true' ? metrics.filter(([key]) => key !== 'userCount') : metrics;
-    return { from, to, domain, selectedMetrics, invalidDomain: domain && !getDomains(c).includes(domain) };
-};
-
-const get = async (c: Context<HonoCustomType>) => c.json(await queryTotals(c, '', false, metrics), 200, noStore);
-
-const totals = async (c: Context<HonoCustomType>) => {
-    const { domain, selectedMetrics, invalidDomain } = readFilters(c);
-    if (invalidDomain) return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsDomainMsg, 400);
-    return c.json(await queryTotals(c, domain, true, selectedMetrics), 200, noStore);
-};
-
-const trends = async (c: Context<HonoCustomType>) => {
-    const { from, to, domain, selectedMetrics, invalidDomain } = readFilters(c);
-    if (invalidDomain) return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsDomainMsg, 400);
-    const start = parseDay(from);
-    const lastDay = parseDay(to);
-    if (!(start <= lastDay && lastDay <= Date.now() && lastDay - start < 30 * DAY)) {
+    if (!from && !to && !domain) {
+        const totals = await c.env.DB.batch(totalStatements(c, '', false, metrics));
+        return c.json(Object.assign({}, ...totals.map(result => result.results[0])), 200, noStore);
+    }
+    if (domain && !getDomains(c).includes(domain)) {
+        return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsDomainMsg, 400);
+    }
+    const start = Date.parse(from);
+    const end = Date.parse(to);
+    if (!isUtcMidnight(from, start) || !isUtcMidnight(to, end) || end <= start || end - start > 30 * DAY || end - DAY > Date.now()) {
         return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsRangeMsg, 400);
     }
-    const startTime = `${from} 00:00:00`;
-    const endTime = `${new Date(lastDay + DAY).toISOString().slice(0, 10)} 00:00:00`;
-    const [step, format] = from === to ? ['+1 hour', '%Y-%m-%d %H:00'] : ['+1 day', '%Y-%m-%d'];
+    const startTime = from.slice(0, 19).replace('T', ' ');
+    const endTime = to.slice(0, 19).replace('T', ' ');
+    const [step, format] = end - start === DAY ? ['+1 hour', '%Y-%m-%d %H:00'] : ['+1 day', '%Y-%m-%d'];
+    const selectedMetrics = skipUsers === 'true' ? metrics.filter(([key]) => key !== 'userCount') : metrics;
+    const totalsQueries = includeTotals === 'true' ? totalStatements(c, domain, true, selectedMetrics) : [];
 
-    const results = await c.env.DB.batch<CountRow>(selectedMetrics.map(([, table, column]) => {
+    const trendQueries = selectedMetrics.map(([, table, column]) => {
         if (!column) {
             return c.env.DB.prepare(
                 `SELECT strftime(?, created_at) AS day, count(*) AS count
@@ -80,8 +69,12 @@ const trends = async (c: Context<HonoCustomType>) => {
                 WHERE created_at >= time_ranges.start_time AND created_at < time_ranges.end_time${domainFilter}
              ) AS count FROM time_ranges`
         ).bind(startTime, startTime, step, step, endTime, format, ...(domain ? [domain] : []));
-    }));
-    return c.json(Object.fromEntries(selectedMetrics.map(([key], i) => [key, results[i].results])), 200, noStore);
+    });
+    const results = await c.env.DB.batch([...totalsQueries, ...trendQueries]);
+    const trendResults = results.slice(totalsQueries.length);
+    const trends = Object.fromEntries(selectedMetrics.map(([key], i) => [key, trendResults[i].results]));
+    const totals = totalsQueries.length ? Object.assign({}, ...results.slice(0, totalsQueries.length).map(result => result.results[0])) : undefined;
+    return c.json({ totals, trends }, 200, noStore);
 };
 
-export default { get, totals, trends };
+export default { get };

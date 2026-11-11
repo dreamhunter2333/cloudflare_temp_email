@@ -41,7 +41,7 @@
 
 趋势只查询所选日期范围，并在 SQL 中直接筛选所选邮箱域名。统计加载结束后可以切换邮箱域名，页面沿用已加载的全站用户统计。手动刷新会重新查询用户统计，切换时间只查询趋势。
 
-总量和趋势分别使用 `GET /admin/statistics/totals` 和 `GET /admin/statistics/trends`。趋势查询需要 `from` 和 `to`，两个接口均可按 `domain` 筛选。旧版 `GET /admin/statistics` 仍返回原有总量字段。
+统计页使用 `GET /admin/statistics`。`from` 和 `to` 是 UTC 零点，结束时间不计入范围。可用 `domain` 筛选邮箱域名，并用 `includeTotals=true` 随趋势返回总量。无参数调用仍返回旧版总量字段。
 
 数据库 v0.0.11 为邮箱域名统计增加索引。已有数据库可通过管理后台的数据库迁移启用索引。
 

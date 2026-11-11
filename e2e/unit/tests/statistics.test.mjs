@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { test } from 'node:test';
 
 const day = offset => new Date(Date.parse(new Date().toISOString().slice(0, 10)) + offset * 86400000).toISOString().slice(0, 10);
+const bounds = (from, to) => ({ from: `${day(from)}T00:00:00.000Z`, to: `${day(to + 1)}T00:00:00.000Z` });
 const apiUrl = new URL('../../../worker/src/admin_api/statistics_api.ts', import.meta.url);
 const createApi = async () => {
     const source = `const getDomains = c => c.env.DOMAINS;
@@ -35,8 +36,8 @@ const fixture = () => {
             },
         },
     };
-    const call = async (handler, params = {}) => {
-        const response = await handler({
+    const call = async (api, params = {}) => {
+        const response = await api.get({
             env, req: { query: () => params },
             json: (data, status, headers) => new Response(JSON.stringify(data), { status, headers }),
             text: (body, status) => new Response(body, { status }),
@@ -49,7 +50,7 @@ const fixture = () => {
 test('legacy statistics return only totals and activity without a trend query', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     f.db.prepare('UPDATE address SET updated_at = ? WHERE name = ?').run(`${day(-10)} 00:00:00`, 'three@b.test');
-    const result = await (await f.call(api.get)).json();
+    const result = await (await f.call(api)).json();
     assert.deepEqual(result, {
         mailCount: 5, addressCount: 4, userCount: 1, sendMailCount: 4,
         activeAddressCount7days: 2, activeAddressCount30days: 3,
@@ -57,26 +58,28 @@ test('legacy statistics return only totals and activity without a trend query', 
     assert.equal(f.queries.length, 4);
 });
 
-test('totals filter the selected domain directly and ignore date parameters', async t => {
+test('one statistics request batches filtered totals and trends', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     f.db.prepare('UPDATE address SET updated_at = ? WHERE name = ?').run(`${day(-10)} 00:00:00`, 'three@b.test');
     f.db.prepare('UPDATE users SET updated_at = ?').run(`${day(-1)} 00:00:00`);
     const addUser = f.db.prepare('INSERT INTO users(user_email,password,created_at,updated_at) VALUES(?,?,?,?)');
     addUser.run('returning@example.com', 'test', `${day(-40)} 00:00:00`, `${day(-10)} 00:00:00`);
     addUser.run('inactive@example.com', 'test', `${day(-40)} 00:00:00`, `${day(-40)} 00:00:00`);
-    const results = await Promise.all(['b.test', 'a.test'].map(domain => f.call(api.totals, { domain, from: 'ignored', to: 'ignored' }).then(r => r.json())));
-    assert.equal(f.batches(), 2); assert.equal(f.queries.length, 8);
+    const responses = await Promise.all(['b.test', 'a.test'].map(domain =>
+        f.call(api, { ...bounds(-6, 0), domain, includeTotals: 'true' }).then(r => r.json())));
+    const results = responses.map(result => result.totals);
+    assert.equal(f.batches(), 2); assert.equal(f.queries.length, 16);
     assert.equal(results[0].mailCount, 1); assert.equal(results[1].mailCount, 3);
     assert.deepEqual(results.map(result => [result.userCount, result.activeUserCount7days, result.activeUserCount30days]), [[3, 1, 2], [3, 1, 2]]);
     assert.deepEqual(results.map(result => [result.activeAddressCount7days, result.activeAddressCount30days]), [[0, 1], [2, 2]]);
-    assert.equal(f.queries.filter(sql => sql.includes('COLLATE NOCASE')).length, 6);
-    assert.equal(f.queries.every(sql => !sql.includes('GROUP BY')), true);
-    const response = await f.call(api.totals);
+    assert.equal(responses[1].trends.mailCount.reduce((sum, row) => sum + row.count, 0), 2);
+    assert.equal(f.queries.filter(sql => sql.includes('COLLATE NOCASE')).length, 12);
+    const response = await f.call(api, { ...bounds(-6, 0), includeTotals: 'true' });
     assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
-    const all = await response.json();
+    const { totals: all } = await response.json();
     assert.equal(all.mailCount, 5); assert.equal(all.addressCount, 4); assert.equal(all.sendMailCount, 4);
     assert.equal(f.batches(), 3);
-    assert.equal(f.queries.slice(-4).every(sql => !sql.includes('WHERE')), true);
+    assert.equal(f.queries.slice(-8, -4).every(sql => !sql.includes('WHERE')), true);
 });
 
 test('statistics return fresh counts without accessing Cache API or KV', async t => {
@@ -92,31 +95,34 @@ test('statistics return fresh counts without accessing Cache API or KV', async t
     } };
     f.env.KV = { get: () => assert.fail('KV must not be read'), put: () => assert.fail('KV must not be written') };
     const api = await createApi();
-    assert.equal((await (await f.call(api.totals)).json()).mailCount, 5);
+    const params = { ...bounds(-6, 0), includeTotals: 'true' };
+    assert.equal((await (await f.call(api, params)).json()).totals.mailCount, 5);
     f.db.prepare('INSERT INTO raw_mails(address,created_at) VALUES(?,?)').run('new@a.test', `${day(0)} 01:00:00`);
-    assert.equal((await (await f.call(api.totals)).json()).mailCount, 6);
+    assert.equal((await (await f.call(api, params)).json()).totals.mailCount, 6);
     assert.equal(f.batches(), 2);
 });
 
 test('totals and trends can omit site-wide user queries', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
-    const totals = await (await f.call(api.totals, { domain: 'a.test', skipUsers: 'true' })).json();
-    const trends = await (await f.call(api.trends, { from: day(-6), to: day(0), skipUsers: 'true' })).json();
+    const { totals, trends } = await (await f.call(api, { ...bounds(-6, 0), domain: 'a.test', includeTotals: 'true', skipUsers: 'true' })).json();
     assert.equal(totals.mailCount, 3);
     assert.equal(totals.activeAddressCount7days, 2);
-    assert.equal(trends.mailCount.reduce((sum, row) => sum + row.count, 0), 4);
+    assert.equal(trends.mailCount.reduce((sum, row) => sum + row.count, 0), 2);
     assert.deepEqual(Object.keys(trends).sort(), ['addressCount', 'mailCount', 'sendMailCount']);
     assert.ok(!Object.keys(totals).some(key => /user/i.test(key)));
     assert.equal(f.queries.length, 6);
+    assert.equal(f.batches(), 1);
     assert.ok(f.queries.every(sql => !sql.includes('FROM users')));
 });
 
 test('trends return counts per metric for the requested dates and domain', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
-    const range = { from: day(-6), to: day(0) };
-    const all = await (await f.call(api.trends, range)).json();
-    const a = await (await f.call(api.trends, { ...range, domain: 'a.test' })).json();
-    const b = await (await f.call(api.trends, { ...range, domain: 'b.test' })).json();
+    const range = bounds(-6, 0);
+    const unfiltered = await (await f.call(api, range)).json();
+    assert.ok(!('totals' in unfiltered));
+    const { trends: all } = unfiltered;
+    const { trends: a } = await (await f.call(api, { ...range, domain: 'a.test' })).json();
+    const { trends: b } = await (await f.call(api, { ...range, domain: 'b.test' })).json();
     assert.equal(f.batches(), 3); assert.equal(all.mailCount.length, 7);
     assert.equal(all.mailCount.reduce((sum, row) => sum + row.count, 0), 4);
     assert.equal(a.mailCount.reduce((sum, row) => sum + row.count, 0), 2);
@@ -124,10 +130,11 @@ test('trends return counts per metric for the requested dates and domain', async
     assert.deepEqual(all.userCount, [{ day: day(-2), count: 1 }]);
     assert.deepEqual(a.userCount, all.userCount);
     assert.deepEqual(b.userCount, all.userCount);
-    assert.equal((await f.call(api.trends, { domain: 'a.test' })).status, 400);
-    assert.equal((await f.call(api.trends, { from: day(-6) })).status, 400);
-    assert.equal((await f.call(api.trends, { from: day(-40), to: day(0) })).status, 400);
-    assert.equal((await f.call(api.trends, { ...range, domain: 'unknown.test' })).status, 400);
+    assert.equal((await f.call(api, { domain: 'a.test' })).status, 400);
+    assert.equal((await f.call(api, { from: range.from })).status, 400);
+    assert.equal((await f.call(api, bounds(-40, 0))).status, 400);
+    assert.equal((await f.call(api, { ...range, from: `${day(-6)}T01:00:00.000Z` })).status, 400);
+    assert.equal((await f.call(api, { ...range, domain: 'unknown.test' })).status, 400);
     assert.equal(f.batches(), 3);
 });
 
@@ -146,7 +153,7 @@ test('hourly aggregates respect UTC day boundaries', async t => {
     }
     f.db.prepare('INSERT INTO users(user_email,password,created_at) VALUES(?,?,?)')
         .run('hourly@example.com', 'test', `${day(-1)} 04:30:00`);
-    const past = await (await f.call(api.trends, { from: day(-1), to: day(-1), domain: 'a.test' })).json();
+    const { trends: past } = await (await f.call(api, { ...bounds(-1, -1), domain: 'a.test' })).json();
     for (const key of ['mailCount', 'addressCount', 'sendMailCount']) {
         assert.equal(past[key].length, 24);
         assert.deepEqual(past[key][0], { day: `${day(-1)} 00:00`, count: 1 });
@@ -154,11 +161,11 @@ test('hourly aggregates respect UTC day boundaries', async t => {
         assert.equal(past[key].reduce((sum, row) => sum + row.count, 0), 2);
     }
     assert.deepEqual(past.userCount, [{ day: `${day(-1)} 04:00`, count: 1 }]);
-    const today = await (await f.call(api.trends, { from: day(0), to: day(0), domain: 'a.test' })).json();
+    const { trends: today } = await (await f.call(api, { ...bounds(0, 0), domain: 'a.test' })).json();
     assert.equal(today.mailCount[0].count, 1);
     assert.deepEqual(today.mailCount[13], { day: `${day(0)} 13:00`, count: 1 });
     assert.equal(today.mailCount.reduce((sum, row) => sum + row.count, 0), 2);
-    const all = await (await f.call(api.trends, { from: day(-1), to: day(-1) })).json();
+    const { trends: all } = await (await f.call(api, bounds(-1, -1))).json();
     assert.equal(all.mailCount[0].count, 2);
     assert.equal(all.mailCount.reduce((sum, row) => sum + row.count, 0), 3);
 });
@@ -173,24 +180,24 @@ test('domain totals and trends use the mailbox-domain indexes', async t => {
         return batch(statements);
     };
 
-    assert.equal((await f.call(api.totals, { domain: 'a.test' })).status, 200);
-    assert.equal((await f.call(api.trends, { from: day(-29), to: day(0), domain: 'a.test' })).status, 200);
+    assert.equal((await f.call(api, { ...bounds(-29, 0), domain: 'a.test', includeTotals: 'true' })).status, 200);
     for (const table of ['raw_mails', 'address', 'sendbox']) {
         const search = `SEARCH ${table}`;
         const index = `idx_${table}_mailbox_domain_created_at`;
-        assert.ok(plans[0].some(line => line.startsWith(search) && line.includes(index)), plans[0].join('\n'));
-        assert.ok(plans[1].some(line => line.startsWith(search) && line.includes(index)
-            && line.includes('created_at>? AND created_at<?')), plans[1].join('\n'));
+        assert.ok(plans[0].some(line => line.startsWith(search) && line.endsWith(`${index} (<expr>=?)`)), plans[0].join('\n'));
+        assert.ok(plans[0].some(line => line.startsWith(search) && line.includes(index)
+            && line.includes('created_at>? AND created_at<?')), plans[0].join('\n'));
     }
-    assert.equal(plans[1].filter(line => line.includes('USE TEMP B-TREE FOR GROUP BY')).length, 1);
+    assert.equal(plans[0].filter(line => line.includes('USE TEMP B-TREE FOR GROUP BY')).length, 1);
 });
 
 test('database failures propagate and later requests recover', async t => {
     const f = fixture(); t.after(() => f.db.close());
-    await f.call((await createApi()).totals);
+    const params = { ...bounds(-6, 0), includeTotals: 'true' };
+    await f.call(await createApi(), params);
     const api = await createApi(), batch = f.env.DB.batch;
     f.env.DB.batch = async () => { throw new Error('database unavailable'); };
-    await assert.rejects(() => f.call(api.totals), /database unavailable/);
+    await assert.rejects(() => f.call(api, params), /database unavailable/);
     f.env.DB.batch = batch;
-    await f.call(api.totals); assert.equal(f.batches(), 2);
+    await f.call(api, params); assert.equal(f.batches(), 2);
 });

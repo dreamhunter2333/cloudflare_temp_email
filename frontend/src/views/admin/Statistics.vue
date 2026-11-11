@@ -43,24 +43,17 @@ const colors = computed(() => ({
     '--text': theme.value.textColor1, '--line': theme.value.borderColor,
 }))
 
-const pending = new Map()
-const fetchStatisticsData = async (path, params) => {
-    const url = `/admin/statistics/${path}?${new URLSearchParams(params)}`
-    if (pending.has(url)) return pending.get(url)
-    const request = api.fetch(url, { showLoading: false }).finally(() => pending.delete(url))
-    pending.set(url, request)
-    return request
-}
-const fetchTrends = async (params, userRows) => {
-    const data = await fetchStatisticsData('trends', params)
-    const series = userRows ? { userCount: userRows, ...data } : data
+const fetchDashboard = async (params, previous) => {
+    const data = await api.fetch(`/admin/statistics?${new URLSearchParams(params)}`, { showLoading: false })
+    const series = params.skipUsers ? { userCount: previous.userRows, ...data.trends } : data.trends
     const counts = Object.entries(series).map(([key, rows]) => [key, new Map(rows.map(row => [row.day, row.count]))])
     const start = Date.parse(params.from)
-    const hourly = params.from === params.to
+    const duration = Date.parse(params.to) - start
+    const hourly = duration === DAY
     const step = hourly ? DAY / 24 : DAY
     const now = new Date()
-    let length = (Date.parse(params.to) + DAY - start) / step
-    if (hourly && params.to === now.toISOString().slice(0, 10)) {
+    let length = duration / step
+    if (hourly && params.from.slice(0, 10) === now.toISOString().slice(0, 10)) {
         const hoursWithData = Object.values(series).flat().filter(row => row.count > 0)
             .map(row => Number(row.day.slice(11, 13)))
         length = Math.max(now.getUTCHours(), ...hoursWithData) + 1
@@ -70,35 +63,38 @@ const fetchTrends = async (params, userRows) => {
         const day = hourly ? iso.slice(0, 16).replace('T', ' ') : iso.slice(0, 10)
         return { day, ...Object.fromEntries(counts.map(([key, values]) => [key, values.get(day) ?? 0])) }
     })
-    return { interval: hourly ? 'hour' : 'day', daily, userRows: series.userCount }
+    const userTotals = params.skipUsers ? Object.fromEntries(userTotalMetrics.map(key => [key, previous.totals[key]])) : {}
+    const totals = data.totals ? { ...userTotals, ...data.totals } : previous?.totals
+    return { interval: hourly ? 'hour' : 'day', daily, userRows: series.userCount, totals,
+        domain: params.domain, from: params.from, to: params.to }
 }
-const fetchTotalStats = async (params, userTotals) => ({ ...userTotals, ...await fetchStatisticsData('totals', params) })
-const loadOptions = { immediate: false, onError: () => {} }
-const { state: statistics, isLoading: loading, error, executeImmediate: loadTrends } = useAsyncState(fetchTrends, null, loadOptions)
-const { state: totals, isLoading: totalsLoading, error: totalsError, executeImmediate: loadTotals } = useAsyncState(fetchTotalStats, null, loadOptions)
-const fetchStatistics = (reuseUsers = false) => {
-    const userRows = reuseUsers ? statistics.value?.userRows : undefined
-    const params = { from: from.value, to: to.value, domain: domain.value }
-    if (userRows) params.skipUsers = 'true'
-    return loadTrends(params, userRows)
+const { state: statistics, isLoading: loading, error, executeImmediate: loadStatistics } = useAsyncState(
+    fetchDashboard, null, { immediate: false, resetOnExecute: false, onError: () => {} },
+)
+const totals = computed(() => statistics.value?.domain === domain.value ? statistics.value.totals : null)
+const fetchStatistics = (refresh = false) => {
+    const previous = statistics.value
+    const params = { from: `${from.value}T00:00:00.000Z`, to: new Date(Date.parse(to.value) + DAY).toISOString(), domain: domain.value }
+    const domainChanged = previous?.domain !== params.domain
+    const sameRange = previous?.from === params.from && previous?.to === params.to
+    if (refresh || domainChanged || !previous?.totals) params.includeTotals = 'true'
+    if (!refresh && domainChanged && sameRange && previous.userRows && userTotalMetrics.every(key => previous.totals?.[key] != null)) {
+        params.skipUsers = 'true'
+    }
+    return loadStatistics(params, previous)
 }
-const fetchTotals = (reuseUsers = false) => {
-    const params = { domain: domain.value }
-    if (!reuseUsers || !userTotalMetrics.every(key => totals.value?.[key] != null)) return loadTotals(params)
-    const userTotals = Object.fromEntries(userTotalMetrics.map(key => [key, totals.value[key]]))
-    return loadTotals({ ...params, skipUsers: 'true' }, userTotals)
-}
-const loadError = computed(() => {
-    const cause = error.value || totalsError.value
-    return cause ? cause.message || t('loadError') : ''
-})
+const loadError = computed(() => error.value ? error.value.message || t('loadError') : '')
 const syncPresetRange = () => {
     const today = utcDay()
     if (!preset.value || to.value === today) return false
     range.value = presetRange(preset.value.days, today)
     return true
 }
-const refresh = () => Promise.all([syncPresetRange() ? undefined : fetchStatistics(), fetchTotals()])
+const refreshVersion = ref(0)
+const refresh = () => {
+    syncPresetRange()
+    refreshVersion.value++
+}
 const selectPreset = option => {
     preset.value = option
     range.value = presetRange(option.days)
@@ -112,22 +108,21 @@ const applyRange = (_, dates) => {
     range.value = dates
 }
 watch(showTime, value => { if (value) draftRange.value = [...range.value] })
-watch([from, to, domain], ([start, end], [previousStart, previousEnd] = []) => {
-    if (!syncPresetRange()) fetchStatistics(start === previousStart && end === previousEnd)
+watch([from, to, domain, refreshVersion], ([, , , version], [, , , previousVersion] = []) => {
+    if (!syncPresetRange()) fetchStatistics(version !== previousVersion)
 }, { immediate: true })
-watch(domain, () => fetchTotals(true), { immediate: true })
 </script>
 
 <template>
-    <section class="dashboard" :style="colors" :aria-busy="loading || totalsLoading">
+    <section class="dashboard" :style="colors" :aria-busy="loading">
         <div class="filters">
             <div class="domain-filter"><span>{{ t('mailboxDomain') }}</span>
-                <n-select v-model:value="domain" :options="domainOptions" filterable :disabled="loading || totalsLoading" :aria-label="t('mailboxDomain')" />
+                <n-select v-model:value="domain" :options="domainOptions" filterable :disabled="loading" :aria-label="t('mailboxDomain')" />
             </div>
             <div class="toolbar-actions">
                 <n-popover v-model:show="showTime" trigger="click" placement="bottom-end" :show-arrow="false" :style="{ padding: 0 }">
                     <template #trigger>
-                        <n-button :aria-label="t('dateRange')" :aria-expanded="showTime" aria-haspopup="dialog" :title="`${from} – ${to}`">
+                        <n-button :disabled="loading" :aria-label="t('dateRange')" :aria-expanded="showTime" aria-haspopup="dialog" :title="`${from} – ${to}`">
                             <template #icon><n-icon :component="DateRangeOutlined" /></template>
                             {{ rangeLabel }}<n-icon :component="KeyboardArrowDownOutlined" />
                         </n-button>
@@ -147,7 +142,7 @@ watch(domain, () => fetchTotals(true), { immediate: true })
                         </n-scrollbar>
                     </div>
                 </n-popover>
-                <n-button secondary :loading="loading || totalsLoading" @click="refresh">
+                <n-button secondary :loading="loading" :disabled="loading" @click="refresh">
                     <template #icon><n-icon :component="RefreshOutlined" /></template>{{ t('refresh') }}
                 </n-button>
             </div>
@@ -156,12 +151,12 @@ watch(domain, () => fetchTotals(true), { immediate: true })
         <div class="totals">
             <n-card v-for="key in totalMetrics" :key="key" size="small">
                 <n-statistic :label="t(key)" :value="totals?.[key] != null ? format(totals[key]) : undefined" tabular-nums>
-                    <template v-if="totals?.[key] == null" #default><n-skeleton v-if="totalsLoading" height="30px" width="100px" /><span v-else>—</span></template>
+                    <template v-if="totals?.[key] == null" #default><n-skeleton v-if="loading" height="30px" width="100px" /><span v-else>—</span></template>
                 </n-statistic>
             </n-card>
         </div>
         <div v-if="loading" class="charts"><n-skeleton v-for="panel in panels" :key="panel.metric" height="322px" /></div>
-        <div v-else-if="statistics?.daily.length" class="charts">
+        <div v-else-if="!loadError && statistics?.daily.length" class="charts">
             <StatisticsTrend v-for="panel in panels" :key="panel.metric" v-bind="panel" :points="statistics.daily"
                 :interval="statistics.interval" :group="chartGroup" />
         </div>
