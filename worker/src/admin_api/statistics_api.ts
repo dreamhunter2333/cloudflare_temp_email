@@ -33,41 +33,51 @@ const getTotals = async (c: Context<HonoCustomType>, domain: string, includeUser
     return Object.assign({}, ...results.map(result => result.results[0]));
 };
 
-const get = async (c: Context<HonoCustomType>) => {
-    const { from, to, domain: domainQuery, view, skipUsers } = c.req.query();
-    const domain = domainQuery?.trim().toLowerCase() || '';
-    const msgs = i18n.getMessagesbyContext(c);
-    if (domain && !getDomains(c).includes(domain)) return c.text(msgs.InvalidStatisticsDomainMsg, 400);
-    const selectedMetrics = skipUsers === 'true' ? metrics.filter(([key]) => key !== 'userCount') : metrics;
-    if (view === 'totals' || (!from && !to && !domain)) {
-        return c.json(await getTotals(c, domain, view === 'totals', selectedMetrics), 200, noStore);
-    }
-
+const getTrends = async (c: Context<HonoCustomType>, from: string, to: string, domain: string, selectedMetrics: readonly Metric[]) => {
     const start = parseDay(from);
     const lastDay = parseDay(to);
     if (!(start <= lastDay && lastDay <= Date.now() && lastDay - start < 30 * DAY)) {
-        return c.text(msgs.InvalidStatisticsRangeMsg, 400);
+        return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsRangeMsg, 400);
     }
     const startTime = `${from} 00:00:00`;
     const endTime = `${new Date(lastDay + DAY).toISOString().slice(0, 10)} 00:00:00`;
     const [step, format] = from === to ? ['+1 hour', '%Y-%m-%d %H:00'] : ['+1 day', '%Y-%m-%d'];
+
     const results = await c.env.DB.batch<CountRow>(selectedMetrics.map(([, table, column]) => {
         if (!column) {
-            return c.env.DB.prepare(`SELECT strftime(?, created_at) AS day, count(*) AS count FROM ${table}
-                WHERE created_at >= ? AND created_at < ? GROUP BY day`).bind(format, startTime, endTime);
+            return c.env.DB.prepare(
+                `SELECT strftime(?, created_at) AS day, count(*) AS count
+                 FROM ${table} WHERE created_at >= ? AND created_at < ? GROUP BY day`
+            ).bind(format, startTime, endTime);
         }
+
+        const domainFilter = domain ? ` AND ${domainCondition(column)}` : '';
         return c.env.DB.prepare(
-            `WITH RECURSIVE buckets(start_time, end_time) AS (
+            `WITH RECURSIVE time_ranges(start_time, end_time) AS (
                 SELECT ?, datetime(?, ?)
-                UNION ALL SELECT end_time, datetime(end_time, ?) FROM buckets WHERE end_time < ?
+                UNION ALL
+                SELECT end_time, datetime(end_time, ?) FROM time_ranges WHERE end_time < ?
              )
              SELECT strftime(?, start_time) AS day, (
-                SELECT count(*) FROM ${table} WHERE created_at >= start_time AND created_at < end_time${domain
-                    ? ` AND ${domainCondition(column)}` : ''}
-             ) AS count FROM buckets`
+                SELECT count(*) FROM ${table}
+                WHERE created_at >= time_ranges.start_time AND created_at < time_ranges.end_time${domainFilter}
+             ) AS count FROM time_ranges`
         ).bind(startTime, startTime, step, step, endTime, format, ...(domain ? [domain] : []));
     }));
     return c.json(Object.fromEntries(selectedMetrics.map(([key], i) => [key, results[i].results])), 200, noStore);
+};
+
+const get = async (c: Context<HonoCustomType>) => {
+    const { from, to, domain: domainQuery, view, skipUsers } = c.req.query();
+    const domain = domainQuery?.trim().toLowerCase() || '';
+    if (domain && !getDomains(c).includes(domain)) {
+        return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsDomainMsg, 400);
+    }
+    const selectedMetrics = skipUsers === 'true' ? metrics.filter(([key]) => key !== 'userCount') : metrics;
+    if (view === 'totals' || (!from && !to && !domain)) {
+        return c.json(await getTotals(c, domain, view === 'totals', selectedMetrics), 200, noStore);
+    }
+    return getTrends(c, from, to, domain, selectedMetrics);
 };
 
 export default { get };
