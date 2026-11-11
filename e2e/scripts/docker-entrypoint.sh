@@ -127,7 +127,7 @@ fi
 if [ -n "${SMTP_PROXY_TLS_HOST:-}" ]; then
   echo "==> Waiting for smtp-proxy-tls SMTP on $SMTP_PROXY_TLS_HOST:$SMTP_PROXY_TLS_SMTP_PORT ..."
   for i in $(seq 1 30); do
-    if nc -z "$SMTP_PROXY_TLS_HOST" "$SMTP_PROXY_TLS_SMTP_PORT" 2>/dev/null; then
+    if timeout 5 bash -c 'true > /dev/tcp/"$1"/"$2"' _ "$SMTP_PROXY_TLS_HOST" "$SMTP_PROXY_TLS_SMTP_PORT" 2>/dev/null; then
       echo "    smtp-proxy-tls SMTP ready after ${i}s"
       break
     fi
