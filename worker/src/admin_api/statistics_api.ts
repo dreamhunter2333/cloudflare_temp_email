@@ -18,7 +18,7 @@ const parseDay = (value: string) => {
     return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value ? timestamp : NaN;
 };
 
-const getTotals = async (c: Context<HonoCustomType>, domain: string, includeUserActivity: boolean, selectedMetrics: readonly Metric[]) => {
+const queryTotals = async (c: Context<HonoCustomType>, domain: string, includeUserActivity: boolean, selectedMetrics: readonly Metric[]) => {
     const results = await c.env.DB.batch<Record<string, number>>(selectedMetrics.map(([key, table, column]) => {
         const filter = domain && column;
         const activityKey = table === 'address' ? 'activeAddressCount' :
@@ -33,7 +33,24 @@ const getTotals = async (c: Context<HonoCustomType>, domain: string, includeUser
     return Object.assign({}, ...results.map(result => result.results[0]));
 };
 
-const getTrends = async (c: Context<HonoCustomType>, from: string, to: string, domain: string, selectedMetrics: readonly Metric[]) => {
+const readFilters = (c: Context<HonoCustomType>) => {
+    const { from, to, domain: domainQuery, skipUsers } = c.req.query();
+    const domain = domainQuery?.trim().toLowerCase() || '';
+    const selectedMetrics = skipUsers === 'true' ? metrics.filter(([key]) => key !== 'userCount') : metrics;
+    return { from, to, domain, selectedMetrics, invalidDomain: domain && !getDomains(c).includes(domain) };
+};
+
+const get = async (c: Context<HonoCustomType>) => c.json(await queryTotals(c, '', false, metrics), 200, noStore);
+
+const totals = async (c: Context<HonoCustomType>) => {
+    const { domain, selectedMetrics, invalidDomain } = readFilters(c);
+    if (invalidDomain) return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsDomainMsg, 400);
+    return c.json(await queryTotals(c, domain, true, selectedMetrics), 200, noStore);
+};
+
+const trends = async (c: Context<HonoCustomType>) => {
+    const { from, to, domain, selectedMetrics, invalidDomain } = readFilters(c);
+    if (invalidDomain) return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsDomainMsg, 400);
     const start = parseDay(from);
     const lastDay = parseDay(to);
     if (!(start <= lastDay && lastDay <= Date.now() && lastDay - start < 30 * DAY)) {
@@ -67,17 +84,4 @@ const getTrends = async (c: Context<HonoCustomType>, from: string, to: string, d
     return c.json(Object.fromEntries(selectedMetrics.map(([key], i) => [key, results[i].results])), 200, noStore);
 };
 
-const get = async (c: Context<HonoCustomType>) => {
-    const { from, to, domain: domainQuery, view, skipUsers } = c.req.query();
-    const domain = domainQuery?.trim().toLowerCase() || '';
-    if (domain && !getDomains(c).includes(domain)) {
-        return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsDomainMsg, 400);
-    }
-    const selectedMetrics = skipUsers === 'true' ? metrics.filter(([key]) => key !== 'userCount') : metrics;
-    if (view === 'totals' || (!from && !to && !domain)) {
-        return c.json(await getTotals(c, domain, view === 'totals', selectedMetrics), 200, noStore);
-    }
-    return getTrends(c, from, to, domain, selectedMetrics);
-};
-
-export default { get };
+export default { get, totals, trends };

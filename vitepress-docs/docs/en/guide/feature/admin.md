@@ -44,7 +44,9 @@ The **Statistics** page shows linked line charts for received mail, new mailboxe
 
 Domain options come from configured mailbox domains without scanning mail to populate the selector. User growth is site-wide and unaffected by the mailbox-domain filter. Charts count retained records, exclude deleted data, and do not represent net growth.
 
-Trends query only the selected dates and filter the selected mailbox domain directly in SQL. Totals are queried separately and ignore date parameters. Changing the mailbox domain reuses the site-wide user statistics already on the page. A manual refresh queries them again. The frontend coalesces identical pending requests, and date changes request only trends. Statistics queries read directly from D1.
+Trends query only the selected dates and filter the selected mailbox domain directly in SQL. The mailbox domain selector becomes available when statistics finish loading. Changing the domain reuses site-wide user statistics already on the page. A manual refresh queries them again, and date changes request only trends.
+
+The dashboard uses `GET /admin/statistics/totals` for totals and `GET /admin/statistics/trends` for trends. Trends require `from` and `to`. Both endpoints accept a `domain` filter. The legacy `GET /admin/statistics` continues to return its original totals fields.
 
 Database v0.0.11 adds indexes for mailbox-domain statistics. Use the database migration in the admin console to enable them on existing databases.
 

@@ -48,6 +48,8 @@ api.delete('/admin/sendbox/:id', sendbox_api.remove)
 
 // statistics
 api.get('/admin/statistics', statistics_api.get)
+api.get('/admin/statistics/totals', statistics_api.totals)
+api.get('/admin/statistics/trends', statistics_api.trends)
 
 // account settings
 api.get('/admin/account_settings', account_settings_api.get)

@@ -44,15 +44,15 @@ const colors = computed(() => ({
 }))
 
 const pending = new Map()
-const fetchStatisticsData = async params => {
-    const query = new URLSearchParams(params).toString()
-    if (pending.has(query)) return pending.get(query)
-    const request = api.fetch(`/admin/statistics?${query}`, { showLoading: false }).finally(() => pending.delete(query))
-    pending.set(query, request)
+const fetchStatisticsData = async (path, params) => {
+    const url = `/admin/statistics/${path}?${new URLSearchParams(params)}`
+    if (pending.has(url)) return pending.get(url)
+    const request = api.fetch(url, { showLoading: false }).finally(() => pending.delete(url))
+    pending.set(url, request)
     return request
 }
 const fetchTrends = async (params, userRows) => {
-    const data = await fetchStatisticsData(params)
+    const data = await fetchStatisticsData('trends', params)
     const series = userRows ? { userCount: userRows, ...data } : data
     const counts = Object.entries(series).map(([key, rows]) => [key, new Map(rows.map(row => [row.day, row.count]))])
     const start = Date.parse(params.from)
@@ -72,30 +72,7 @@ const fetchTrends = async (params, userRows) => {
     })
     return { interval: hourly ? 'hour' : 'day', daily, userRows: series.userCount }
 }
-let userTotalsRequest
-const fetchTotalStats = async (params, reuseUsers) => {
-    if (reuseUsers && userTotalsRequest) {
-        const [userTotals, mailboxTotals] = await Promise.all([
-            userTotalsRequest,
-            fetchStatisticsData({ ...params, skipUsers: 'true' }),
-        ])
-        if (userTotals) return { ...userTotals, ...mailboxTotals }
-    }
-
-    const request = fetchStatisticsData(params)
-    const users = request.then(data => {
-        if (userTotalMetrics.every(key => data?.[key] != null)) {
-            return Object.fromEntries(userTotalMetrics.map(key => [key, data[key]]))
-        }
-    }, () => undefined)
-    userTotalsRequest = users
-    try {
-        return await request
-    } finally {
-        const userTotals = await users
-        if (!userTotals && userTotalsRequest === users) userTotalsRequest = undefined
-    }
-}
+const fetchTotalStats = async (params, userTotals) => ({ ...userTotals, ...await fetchStatisticsData('totals', params) })
 const loadOptions = { immediate: false, onError: () => {} }
 const { state: statistics, isLoading: loading, error, executeImmediate: loadTrends } = useAsyncState(fetchTrends, null, loadOptions)
 const { state: totals, isLoading: totalsLoading, error: totalsError, executeImmediate: loadTotals } = useAsyncState(fetchTotalStats, null, loadOptions)
@@ -105,7 +82,12 @@ const fetchStatistics = (reuseUsers = false) => {
     if (userRows) params.skipUsers = 'true'
     return loadTrends(params, userRows)
 }
-const fetchTotals = (reuseUsers = false) => loadTotals({ view: 'totals', domain: domain.value }, reuseUsers)
+const fetchTotals = (reuseUsers = false) => {
+    const params = { domain: domain.value }
+    if (!reuseUsers || !userTotalMetrics.every(key => totals.value?.[key] != null)) return loadTotals(params)
+    const userTotals = Object.fromEntries(userTotalMetrics.map(key => [key, totals.value[key]]))
+    return loadTotals({ ...params, skipUsers: 'true' }, userTotals)
+}
 const loadError = computed(() => {
     const cause = error.value || totalsError.value
     return cause ? cause.message || t('loadError') : ''
@@ -140,7 +122,7 @@ watch(domain, () => fetchTotals(true), { immediate: true })
     <section class="dashboard" :style="colors" :aria-busy="loading || totalsLoading">
         <div class="filters">
             <div class="domain-filter"><span>{{ t('mailboxDomain') }}</span>
-                <n-select v-model:value="domain" :options="domainOptions" filterable :disabled="loading" :aria-label="t('mailboxDomain')" />
+                <n-select v-model:value="domain" :options="domainOptions" filterable :disabled="loading || totalsLoading" :aria-label="t('mailboxDomain')" />
             </div>
             <div class="toolbar-actions">
                 <n-popover v-model:show="showTime" trigger="click" placement="bottom-end" :show-arrow="false" :style="{ padding: 0 }">
