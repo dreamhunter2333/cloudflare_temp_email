@@ -23,10 +23,10 @@ const preset = ref(presets[1])
 const showTime = ref(false)
 const draftRange = ref([...range.value])
 const domain = ref('')
-const totalMetrics = [
-    'mailCount', 'addressCount', 'userCount', 'sendMailCount',
-    'activeAddressCount7days', 'activeAddressCount30days', 'activeUserCount7days', 'activeUserCount30days',
-]
+const userActivityMetrics = ['activeUserCount7days', 'activeUserCount30days']
+const userTotalMetrics = ['userCount', ...userActivityMetrics]
+const totalMetrics = ['mailCount', 'addressCount', 'userCount', 'sendMailCount',
+    'activeAddressCount7days', 'activeAddressCount30days', ...userActivityMetrics]
 const from = computed(() => range.value[0])
 const to = computed(() => range.value[1])
 const validRange = dates => dates && Date.parse(dates[1]) - Date.parse(dates[0]) < 30 * DAY
@@ -51,28 +51,43 @@ const fetchStatisticsData = async params => {
     pending.set(query, request)
     return request
 }
-const fetchTrends = async params => {
-    const series = await fetchStatisticsData(params)
+const fetchTrends = async (params, userRows) => {
+    const data = await fetchStatisticsData(params)
+    const series = userRows ? { userCount: userRows, ...data } : data
     const counts = Object.entries(series).map(([key, rows]) => [key, new Map(rows.map(row => [row.day, row.count]))])
     const start = Date.parse(params.from)
     const hourly = params.from === params.to
     const step = hourly ? DAY / 24 : DAY
     const now = new Date()
-    const length = hourly
-        ? (params.to === now.toISOString().slice(0, 10) ? now.getUTCHours() + 1 : 24)
-        : (Date.parse(params.to) - start) / DAY + 1
+    let length = (Date.parse(params.to) + DAY - start) / step
+    if (hourly && params.to === now.toISOString().slice(0, 10)) {
+        const hoursWithData = Object.values(series).flat().filter(row => row.count > 0)
+            .map(row => Number(row.day.slice(11, 13)))
+        length = Math.max(now.getUTCHours(), ...hoursWithData) + 1
+    }
     const daily = Array.from({ length }, (_, i) => {
         const iso = new Date(start + i * step).toISOString()
         const day = hourly ? iso.slice(0, 16).replace('T', ' ') : iso.slice(0, 10)
         return { day, ...Object.fromEntries(counts.map(([key, values]) => [key, values.get(day) ?? 0])) }
     })
-    return { interval: hourly ? 'hour' : 'day', daily }
+    return { interval: hourly ? 'hour' : 'day', daily, userRows: series.userCount }
 }
+const fetchTotalStats = async (params, userTotals) => ({ ...userTotals, ...await fetchStatisticsData(params) })
 const loadOptions = { immediate: false, onError: () => {} }
 const { state: statistics, isLoading: loading, error, executeImmediate: loadTrends } = useAsyncState(fetchTrends, null, loadOptions)
-const { state: totals, isLoading: totalsLoading, error: totalsError, executeImmediate: loadTotals } = useAsyncState(fetchStatisticsData, null, loadOptions)
-const fetchStatistics = () => loadTrends({ from: from.value, to: to.value, domain: domain.value })
-const fetchTotals = () => loadTotals({ view: 'totals', domain: domain.value })
+const { state: totals, isLoading: totalsLoading, error: totalsError, executeImmediate: loadTotals } = useAsyncState(fetchTotalStats, null, loadOptions)
+const fetchStatistics = (reuseUsers = false) => {
+    const userRows = reuseUsers ? statistics.value?.userRows : undefined
+    const params = { from: from.value, to: to.value, domain: domain.value }
+    if (userRows) params.skipUsers = 'true'
+    return loadTrends(params, userRows)
+}
+const fetchTotals = (reuseUsers = false) => {
+    const params = { view: 'totals', domain: domain.value }
+    if (!reuseUsers || !userTotalMetrics.every(key => totals.value?.[key] != null)) return loadTotals(params)
+    const userTotals = Object.fromEntries(userTotalMetrics.map(key => [key, totals.value[key]]))
+    return loadTotals({ ...params, skipUsers: 'true' }, userTotals)
+}
 const loadError = computed(() => {
     const cause = error.value || totalsError.value
     return cause ? cause.message || t('loadError') : ''
@@ -97,10 +112,10 @@ const applyRange = (_, dates) => {
     range.value = dates
 }
 watch(showTime, value => { if (value) draftRange.value = [...range.value] })
-watch([from, to, domain], () => {
-    if (!syncPresetRange()) fetchStatistics()
+watch([from, to, domain], ([start, end], [previousStart, previousEnd] = []) => {
+    if (!syncPresetRange()) fetchStatistics(start === previousStart && end === previousEnd)
 }, { immediate: true })
-watch(domain, () => fetchTotals(), { immediate: true })
+watch(domain, () => fetchTotals(true), { immediate: true })
 </script>
 
 <template>

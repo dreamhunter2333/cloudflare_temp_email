@@ -98,6 +98,19 @@ test('statistics return fresh counts without accessing Cache API or KV', async t
     assert.equal(f.batches(), 2);
 });
 
+test('totals and trends can omit site-wide user queries', async t => {
+    const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
+    const totals = await (await f.call(api, { view: 'totals', domain: 'a.test', skipUsers: 'true' })).json();
+    const trends = await (await f.call(api, { from: day(-6), to: day(0), skipUsers: 'true' })).json();
+    assert.equal(totals.mailCount, 3);
+    assert.equal(totals.activeAddressCount7days, 2);
+    assert.equal(trends.mailCount.reduce((sum, row) => sum + row.count, 0), 4);
+    assert.deepEqual(Object.keys(trends).sort(), ['addressCount', 'mailCount', 'sendMailCount']);
+    assert.ok(!Object.keys(totals).some(key => /user/i.test(key)));
+    assert.equal(f.queries.length, 6);
+    assert.ok(f.queries.every(sql => !sql.includes('FROM users')));
+});
+
 test('trends return counts per metric for the requested dates and domain', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     const range = { from: day(-6), to: day(0) };

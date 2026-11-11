@@ -10,12 +10,13 @@ const metrics = [
     ['userCount', 'users', null],
     ['sendMailCount', 'sendbox', 'address'],
 ] as const;
+type Metric = typeof metrics[number];
 type CountRow = { day: string; count: number };
 const domainCondition = (column: string) => `substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE`;
 const sqlTime = (timestamp: number) => new Date(timestamp).toISOString().slice(0, 19).replace('T', ' ');
 
-const getTotals = async (c: Context<HonoCustomType>, domain: string, includeUserActivity: boolean) => {
-    const results = await c.env.DB.batch<Record<string, number>>(metrics.map(([key, table, column]) => {
+const getTotals = async (c: Context<HonoCustomType>, domain: string, includeUserActivity: boolean, selectedMetrics: readonly Metric[]) => {
+    const results = await c.env.DB.batch<Record<string, number>>(selectedMetrics.map(([key, table, column]) => {
         const filter = domain && column;
         const activityKey = table === 'address' ? 'activeAddressCount' :
             table === 'users' && includeUserActivity ? 'activeUserCount' : '';
@@ -30,12 +31,13 @@ const getTotals = async (c: Context<HonoCustomType>, domain: string, includeUser
 };
 
 const get = async (c: Context<HonoCustomType>) => {
-    const { from, to, domain: domainQuery, view } = c.req.query();
+    const { from, to, domain: domainQuery, view, skipUsers } = c.req.query();
     const domain = domainQuery?.trim().toLowerCase() || '';
     const msgs = i18n.getMessagesbyContext(c);
     if (domain && !getDomains(c).includes(domain)) return c.text(msgs.InvalidStatisticsDomainMsg, 400);
+    const selectedMetrics = skipUsers === 'true' ? metrics.filter(([key]) => key !== 'userCount') : metrics;
     if (view === 'totals' || (!from && !to && !domain)) {
-        return c.json(await getTotals(c, domain, view === 'totals'), 200, noStore);
+        return c.json(await getTotals(c, domain, view === 'totals', selectedMetrics), 200, noStore);
     }
 
     const start = Date.parse(from);
@@ -52,7 +54,7 @@ const get = async (c: Context<HonoCustomType>) => {
     const format = hourly ? '%Y-%m-%d %H:00' : '%Y-%m-%d';
     const buckets = Array.from({ length: (end - start) / step }, (_, i) => sqlTime(start + i * step));
     const placeholders = buckets.map(() => '(?)').join(', ');
-    const results = await c.env.DB.batch<CountRow>(metrics.map(([, table, column]) => {
+    const results = await c.env.DB.batch<CountRow>(selectedMetrics.map(([, table, column]) => {
         if (!column) {
             return c.env.DB.prepare(`SELECT strftime('${format}', created_at) AS day, count(*) AS count FROM ${table}
                 WHERE created_at >= ? AND created_at < ? GROUP BY day`).bind(buckets[0], sqlTime(end));
@@ -66,7 +68,7 @@ const get = async (c: Context<HonoCustomType>) => {
              ) AS count FROM buckets`
         ).bind(...buckets, ...(domain ? [domain] : []));
     }));
-    return c.json(Object.fromEntries(metrics.map(([key], i) => [key, results[i].results])), 200, noStore);
+    return c.json(Object.fromEntries(selectedMetrics.map(([key], i) => [key, results[i].results])), 200, noStore);
 };
 
 export default { get };

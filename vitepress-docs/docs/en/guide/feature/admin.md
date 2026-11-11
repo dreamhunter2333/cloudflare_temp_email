@@ -44,7 +44,7 @@ The **Statistics** page shows linked line charts for received mail, new mailboxe
 
 Domain options come from configured mailbox domains without scanning mail to populate the selector. User growth is site-wide and unaffected by the mailbox-domain filter. Charts count retained records, exclude deleted data, and do not represent net growth.
 
-Trends query only the selected dates and filter the selected mailbox domain directly in SQL, without grouping other domains. Totals are queried separately and ignore date parameters. Neither frontend nor backend caches statistics results. KV is not used, and no D1 cache table or receive-path counter writes are added. The frontend only coalesces identical pending requests; time changes do not query totals again.
+Trends query only the selected dates and filter the selected mailbox domain directly in SQL. Totals are queried separately and ignore date parameters. Changing the mailbox domain reuses the site-wide user statistics already on the page. A manual refresh queries them again. The frontend coalesces identical pending requests, and date changes request only trends. Statistics queries read directly from D1.
 
 Database v0.0.11 adds indexes for mailbox-domain statistics. Use the database migration in the admin console to enable them on existing databases.
 
