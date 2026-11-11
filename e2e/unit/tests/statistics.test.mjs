@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { test } from 'node:test';
 
 const day = offset => new Date(Date.parse(new Date().toISOString().slice(0, 10)) + offset * 86400000).toISOString().slice(0, 10);
-const bounds = (from, to) => ({ from: `${day(from)}T00:00:00.000Z`, to: `${day(to + 1)}T00:00:00.000Z` });
+const bounds = (from, to) => ({ from: `${day(from)} 00:00:00`, to: `${day(to + 1)} 00:00:00` });
 const apiUrl = new URL('../../../worker/src/admin_api/statistics_api.ts', import.meta.url);
 const createApi = async () => {
     const source = `const getDomains = c => c.env.DOMAINS;
@@ -79,7 +79,7 @@ test('one statistics request batches filtered totals and trends', async t => {
     const { totals: all } = await response.json();
     assert.equal(all.mailCount, 5); assert.equal(all.addressCount, 4); assert.equal(all.sendMailCount, 4);
     assert.equal(f.batches(), 3);
-    assert.equal(f.queries.slice(-8, -4).every(sql => !sql.includes('WHERE')), true);
+    assert.equal(f.queries.slice(-8, -4).every(sql => !sql.includes('COLLATE NOCASE')), true);
 });
 
 test('statistics return fresh counts without accessing Cache API or KV', async t => {
@@ -131,9 +131,11 @@ test('trends return counts per metric for the requested dates and domain', async
     assert.deepEqual(a.userCount, all.userCount);
     assert.deepEqual(b.userCount, all.userCount);
     assert.equal((await f.call(api, { domain: 'a.test' })).status, 400);
+    assert.equal((await f.call(api, { from: '', to: '' })).status, 400);
     assert.equal((await f.call(api, { from: range.from })).status, 400);
     assert.equal((await f.call(api, bounds(-40, 0))).status, 400);
-    assert.equal((await f.call(api, { ...range, from: `${day(-6)}T01:00:00.000Z` })).status, 400);
+    assert.equal((await f.call(api, { ...range, from: `${day(-6)} 01:00:00` })).status, 400);
+    assert.equal((await f.call(api, { ...range, from: '2026-02-30 00:00:00' })).status, 400);
     assert.equal((await f.call(api, { ...range, domain: 'unknown.test' })).status, 400);
     assert.equal(f.batches(), 3);
 });

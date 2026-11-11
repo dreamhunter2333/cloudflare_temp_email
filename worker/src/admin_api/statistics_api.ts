@@ -10,51 +10,62 @@ const metrics = [
     ['userCount', 'users', null],
     ['sendMailCount', 'sendbox', 'address'],
 ] as const;
-type Metric = typeof metrics[number];
 const domainCondition = (column: string) => `substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE`;
-const isUtcMidnight = (value: string, timestamp: number) => timestamp % DAY === 0
-    && /^\d{4}-/.test(value) && new Date(timestamp).toISOString() === value;
+const parseMidnight = (value = '') => {
+    if (!/^\d{4}-\d{2}-\d{2} 00:00:00$/.test(value)) return NaN;
+    const day = value.slice(0, 10);
+    const timestamp = Date.parse(day);
+    return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === day ? timestamp : NaN;
+};
 
-const totalStatements = (c: Context<HonoCustomType>, domain: string, includeUserActivity: boolean, selectedMetrics: readonly Metric[]) =>
-    selectedMetrics.map(([key, table, column]) => {
-        const filter = domain && column;
-        const activityKey = table === 'address' ? 'activeAddressCount' :
-            table === 'users' && includeUserActivity ? 'activeUserCount' : '';
-        const activity = activityKey ? `,
-            count(CASE WHEN updated_at > datetime('now', '-7 days') THEN 1 END) AS ${activityKey}7days,
-            count(CASE WHEN updated_at > datetime('now', '-30 days') THEN 1 END) AS ${activityKey}30days` : '';
-        const statement = c.env.DB.prepare(`SELECT count(*) AS ${key}${activity} FROM ${table}${filter
-            ? ` WHERE ${domainCondition(filter)}` : ''}`);
-        return filter ? statement.bind(domain) : statement;
-    });
+const totalStatements = (db: D1Database, domain: string, { skipUsers = false, legacy = false } = {}) => {
+    const forDomain = (sql: string, column: string) => domain
+        ? db.prepare(`${sql} WHERE ${domainCondition(column)}`).bind(domain)
+        : db.prepare(sql);
+    const statements = [
+        forDomain('SELECT count(*) AS mailCount FROM raw_mails', 'address'),
+        forDomain(`SELECT count(*) AS addressCount,
+            count(*) FILTER (WHERE updated_at > datetime('now', '-7 days')) AS activeAddressCount7days,
+            count(*) FILTER (WHERE updated_at > datetime('now', '-30 days')) AS activeAddressCount30days
+            FROM address`, 'name'),
+        forDomain('SELECT count(*) AS sendMailCount FROM sendbox', 'address'),
+    ];
+    if (!skipUsers) {
+        statements.push(db.prepare(legacy ? 'SELECT count(*) AS userCount FROM users' :
+            `SELECT count(*) AS userCount,
+             count(*) FILTER (WHERE updated_at > datetime('now', '-7 days')) AS activeUserCount7days,
+             count(*) FILTER (WHERE updated_at > datetime('now', '-30 days')) AS activeUserCount30days
+             FROM users`));
+    }
+    return statements;
+};
 
 const get = async (c: Context<HonoCustomType>) => {
     const { from, to, domain: domainQuery, includeTotals, skipUsers } = c.req.query();
     const domain = domainQuery?.trim().toLowerCase() || '';
-    if (!from && !to && !domain) {
-        const totals = await c.env.DB.batch(totalStatements(c, '', false, metrics));
+    if (from === undefined && to === undefined && !domain) {
+        const totals = await c.env.DB.batch(totalStatements(c.env.DB, '', { legacy: true }));
         return c.json(Object.assign({}, ...totals.map(result => result.results[0])), 200, noStore);
     }
     if (domain && !getDomains(c).includes(domain)) {
         return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsDomainMsg, 400);
     }
-    const start = Date.parse(from);
-    const end = Date.parse(to);
-    if (!isUtcMidnight(from, start) || !isUtcMidnight(to, end) || end <= start || end - start > 30 * DAY || end - DAY > Date.now()) {
+    const start = parseMidnight(from);
+    const end = parseMidnight(to);
+    if (!(start < end && end - start <= 30 * DAY && end - DAY <= Date.now())) {
         return c.text(i18n.getMessagesbyContext(c).InvalidStatisticsRangeMsg, 400);
     }
-    const startTime = from.slice(0, 19).replace('T', ' ');
-    const endTime = to.slice(0, 19).replace('T', ' ');
     const [step, format] = end - start === DAY ? ['+1 hour', '%Y-%m-%d %H:00'] : ['+1 day', '%Y-%m-%d'];
-    const selectedMetrics = skipUsers === 'true' ? metrics.filter(([key]) => key !== 'userCount') : metrics;
-    const totalsQueries = includeTotals === 'true' ? totalStatements(c, domain, true, selectedMetrics) : [];
+    const omitUsers = skipUsers === 'true';
+    const selectedMetrics = omitUsers ? metrics.filter(([key]) => key !== 'userCount') : metrics;
+    const totalsQueries = includeTotals === 'true' ? totalStatements(c.env.DB, domain, { skipUsers: omitUsers }) : [];
 
     const trendQueries = selectedMetrics.map(([, table, column]) => {
         if (!column) {
             return c.env.DB.prepare(
                 `SELECT strftime(?, created_at) AS day, count(*) AS count
                  FROM ${table} WHERE created_at >= ? AND created_at < ? GROUP BY day`
-            ).bind(format, startTime, endTime);
+            ).bind(format, from, to);
         }
 
         const domainFilter = domain ? ` AND ${domainCondition(column)}` : '';
@@ -68,7 +79,7 @@ const get = async (c: Context<HonoCustomType>) => {
                 SELECT count(*) FROM ${table}
                 WHERE created_at >= time_ranges.start_time AND created_at < time_ranges.end_time${domainFilter}
              ) AS count FROM time_ranges`
-        ).bind(startTime, startTime, step, step, endTime, format, ...(domain ? [domain] : []));
+        ).bind(from, from, step, step, to, format, ...(domain ? [domain] : []));
     });
     const results = await c.env.DB.batch([...totalsQueries, ...trendQueries]);
     const trendResults = results.slice(totalsQueries.length);

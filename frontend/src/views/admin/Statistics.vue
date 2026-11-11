@@ -47,8 +47,8 @@ const fetchDashboard = async (params, previous) => {
     const data = await api.fetch(`/admin/statistics?${new URLSearchParams(params)}`, { showLoading: false })
     const series = params.skipUsers ? { userCount: previous.userRows, ...data.trends } : data.trends
     const counts = Object.entries(series).map(([key, rows]) => [key, new Map(rows.map(row => [row.day, row.count]))])
-    const start = Date.parse(params.from)
-    const duration = Date.parse(params.to) - start
+    const start = Date.parse(params.from.slice(0, 10))
+    const duration = Date.parse(params.to.slice(0, 10)) - start
     const hourly = duration === DAY
     const step = hourly ? DAY / 24 : DAY
     const now = new Date()
@@ -74,7 +74,8 @@ const { state: statistics, isLoading: loading, error, executeImmediate: loadStat
 const totals = computed(() => statistics.value?.domain === domain.value ? statistics.value.totals : null)
 const fetchStatistics = (refresh = false) => {
     const previous = statistics.value
-    const params = { from: `${from.value}T00:00:00.000Z`, to: new Date(Date.parse(to.value) + DAY).toISOString(), domain: domain.value }
+    const endDay = new Date(Date.parse(to.value) + DAY).toISOString().slice(0, 10)
+    const params = { from: `${from.value} 00:00:00`, to: `${endDay} 00:00:00`, domain: domain.value }
     const domainChanged = previous?.domain !== params.domain
     const sameRange = previous?.from === params.from && previous?.to === params.to
     if (refresh || domainChanged || !previous?.totals) params.includeTotals = 'true'

@@ -20,6 +20,8 @@ async function mockStatistics(page: Page, initialFails = false) {
   });
   await page.route('**/admin/statistics?*', async route => {
     const params = new URL(route.request().url()).searchParams;
+    expect(params.get('from')).toMatch(/^\d{4}-\d{2}-\d{2} 00:00:00$/);
+    expect(params.get('to')).toMatch(/^\d{4}-\d{2}-\d{2} 00:00:00$/);
     const headers = { 'access-control-allow-origin': '*' };
     const skipUsers = params.get('skipUsers');
     const includeTotals = params.get('includeTotals');

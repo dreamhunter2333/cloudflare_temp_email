@@ -46,7 +46,7 @@ Domain options come from configured mailbox domains without scanning mail to pop
 
 Trends query only the selected dates and filter the selected mailbox domain directly in SQL. The mailbox domain selector becomes available when statistics finish loading. Changing the domain reuses site-wide user statistics already on the page. A manual refresh queries them again, and date changes request only trends.
 
-The dashboard uses `GET /admin/statistics` with UTC midnight bounds in `from` and `to`. The end bound is exclusive. Use `domain` to filter mailbox domains and `includeTotals=true` to include totals with the trends. Requests without parameters return the original totals fields.
+The dashboard uses `GET /admin/statistics` with UTC midnight bounds in `from` and `to`, formatted as `YYYY-MM-DD 00:00:00`. The end bound is exclusive. Use `domain` to filter mailbox domains and `includeTotals=true` to include totals with the trends. Requests without parameters return the original totals fields.
 
 Database v0.0.11 adds indexes for mailbox-domain statistics. Use the database migration in the admin console to enable them on existing databases.
 
