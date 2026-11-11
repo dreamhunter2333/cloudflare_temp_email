@@ -9,7 +9,7 @@ import VChart from 'vue-echarts'
 import { useScopedI18n } from '@/i18n/app'
 
 use([LineChart, GridComponent, TooltipComponent, DataZoomComponent, AriaComponent, CanvasRenderer])
-const props = defineProps({ title: String, metric: String, color: String, points: Array, interval: String, group: String, global: Boolean })
+const props = defineProps({ title: String, metric: String, color: String, points: Array, group: String, global: Boolean })
 const { t, locale } = useScopedI18n('views.admin.Statistics')
 const theme = useThemeVars()
 const format = value => new Intl.NumberFormat(locale.value).format(value)
@@ -25,7 +25,7 @@ const option = computed(() => ({
         valueFormatter: format, axisPointer: { type: 'line', lineStyle: { color: theme.value.textColor3, type: 'dashed' } } },
     xAxis: { type: 'category', boundaryGap: false, data: props.points.map(point => point.day),
         axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: theme.value.textColor2,
-            formatter: day => props.interval === 'hour' ? day.slice(11) : day.slice(5).replace('-', '/') } },
+            formatter: day => day.slice(5).replace('-', '/') } },
     yAxis: { type: 'value', min: 0, minInterval: 1, splitNumber: 3,
         axisLabel: { color: theme.value.textColor2, formatter: format }, splitLine: { lineStyle: { color: theme.value.borderColor } } },
     dataZoom: [{ type: 'inside', zoomOnMouseWheel: 'ctrl', moveOnMouseWheel: false }],

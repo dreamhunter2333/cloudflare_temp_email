@@ -40,13 +40,13 @@ same role to that user in user management.
 
 Eight cards show totals for retained mail, mailboxes, users, and sent mail, plus active mailboxes and users over the past 7 and 30 days. Activity uses each record's last update time. Registration and OAuth sign-in update user records. Password and passkey sign-in leave the user record timestamp unchanged. Mailbox-domain filters apply to mail, mailboxes, active mailboxes, and sent mail. User totals and activity are site-wide.
 
-The **Statistics** page shows linked line charts for received mail, new mailboxes, sent mail, and new users, with shared time-range and mailbox-domain filters. Use the time button to select today, the last 7 or 30 days, or a custom range of up to 30 days. Custom dates take effect after **Apply**. Single-day charts use hourly buckets; other ranges use daily buckets, all in UTC. ECharts loads lazily and supports linked tooltips and zooming.
+The **Statistics** page shows linked line charts for received mail, new mailboxes, sent mail, and new users, with shared time-range and mailbox-domain filters. Use the time button to select today, the last 7 or 30 days, or a custom range of up to 30 days. Custom dates take effect after **Apply**. Charts show daily counts in UTC. ECharts loads lazily and supports linked tooltips and zooming.
 
 Domain options come from configured mailbox domains without scanning mail to populate the selector. User growth is site-wide and unaffected by the mailbox-domain filter. Charts count retained records, exclude deleted data, and do not represent net growth.
 
-Trends query only the selected dates and filter the selected mailbox domain directly in SQL. The mailbox domain selector becomes available when statistics finish loading. Changing the domain reuses site-wide user statistics already on the page. A manual refresh queries them again, and date changes request only trends.
+Trends query only the selected dates and filter the selected mailbox domain directly in SQL. The mailbox domain selector becomes available when statistics finish loading. Changing the domain or refreshing requests totals and trends. Changing the dates requests only trends.
 
-The dashboard uses `GET /admin/statistics` with UTC midnight bounds in `from` and `to`, formatted as `YYYY-MM-DD 00:00:00`. The end bound is exclusive. Use `domain` to filter mailbox domains and `includeTotals=true` to include totals with the trends. Requests without parameters return the original totals fields.
+The dashboard uses `GET /admin/statistics` with `granularity=day` and UTC midnight bounds in `from` and `to`, formatted as `YYYY-MM-DD 00:00:00`. The end bound is exclusive. Use `domain` to filter mailbox domains and `includeTotals=true` to include totals with the trends. Requests without parameters return the original totals fields.
 
 Database v0.0.11 adds indexes for mailbox-domain statistics. Use the database migration in the admin console to enable them on existing databases.
 

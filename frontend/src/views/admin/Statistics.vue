@@ -23,10 +23,8 @@ const preset = ref(presets[1])
 const showTime = ref(false)
 const draftRange = ref([...range.value])
 const domain = ref('')
-const userActivityMetrics = ['activeUserCount7days', 'activeUserCount30days']
-const userTotalMetrics = ['userCount', ...userActivityMetrics]
 const totalMetrics = ['mailCount', 'addressCount', 'userCount', 'sendMailCount',
-    'activeAddressCount7days', 'activeAddressCount30days', ...userActivityMetrics]
+    'activeAddressCount7days', 'activeAddressCount30days', 'activeUserCount7days', 'activeUserCount30days']
 const from = computed(() => range.value[0])
 const to = computed(() => range.value[1])
 const validRange = dates => dates && Date.parse(dates[1]) - Date.parse(dates[0]) < 30 * DAY
@@ -45,28 +43,14 @@ const colors = computed(() => ({
 
 const fetchDashboard = async (params, previous) => {
     const data = await api.fetch(`/admin/statistics?${new URLSearchParams(params)}`, { showLoading: false })
-    const series = params.skipUsers ? { userCount: previous.userRows, ...data.trends } : data.trends
-    const counts = Object.entries(series).map(([key, rows]) => [key, new Map(rows.map(row => [row.day, row.count]))])
+    const counts = Object.entries(data.trends).map(([key, rows]) => [key, new Map(rows.map(row => [row.day, row.count]))])
     const start = Date.parse(params.from.slice(0, 10))
-    const duration = Date.parse(params.to.slice(0, 10)) - start
-    const hourly = duration === DAY
-    const step = hourly ? DAY / 24 : DAY
-    const now = new Date()
-    let length = duration / step
-    if (hourly && params.from.slice(0, 10) === now.toISOString().slice(0, 10)) {
-        const hoursWithData = Object.values(series).flat().filter(row => row.count > 0)
-            .map(row => Number(row.day.slice(11, 13)))
-        length = Math.max(now.getUTCHours(), ...hoursWithData) + 1
-    }
+    const length = (Date.parse(params.to.slice(0, 10)) - start) / DAY
     const daily = Array.from({ length }, (_, i) => {
-        const iso = new Date(start + i * step).toISOString()
-        const day = hourly ? iso.slice(0, 16).replace('T', ' ') : iso.slice(0, 10)
+        const day = new Date(start + i * DAY).toISOString().slice(0, 10)
         return { day, ...Object.fromEntries(counts.map(([key, values]) => [key, values.get(day) ?? 0])) }
     })
-    const userTotals = params.skipUsers ? Object.fromEntries(userTotalMetrics.map(key => [key, previous.totals[key]])) : {}
-    const totals = data.totals ? { ...userTotals, ...data.totals } : previous?.totals
-    return { interval: hourly ? 'hour' : 'day', daily, userRows: series.userCount, totals,
-        domain: params.domain, from: params.from, to: params.to }
+    return { daily, totals: data.totals ?? previous?.totals, domain: params.domain }
 }
 const { state: statistics, isLoading: loading, error, executeImmediate: loadStatistics } = useAsyncState(
     fetchDashboard, null, { immediate: false, resetOnExecute: false, onError: () => {} },
@@ -75,13 +59,8 @@ const totals = computed(() => statistics.value?.domain === domain.value ? statis
 const fetchStatistics = (refresh = false) => {
     const previous = statistics.value
     const endDay = new Date(Date.parse(to.value) + DAY).toISOString().slice(0, 10)
-    const params = { from: `${from.value} 00:00:00`, to: `${endDay} 00:00:00`, domain: domain.value }
-    const domainChanged = previous?.domain !== params.domain
-    const sameRange = previous?.from === params.from && previous?.to === params.to
-    if (refresh || domainChanged || !previous?.totals) params.includeTotals = 'true'
-    if (!refresh && domainChanged && sameRange && previous.userRows && userTotalMetrics.every(key => previous.totals?.[key] != null)) {
-        params.skipUsers = 'true'
-    }
+    const params = { from: `${from.value} 00:00:00`, to: `${endDay} 00:00:00`, domain: domain.value, granularity: 'day' }
+    if (refresh || previous?.domain !== params.domain || !previous?.totals) params.includeTotals = 'true'
     return loadStatistics(params, previous)
 }
 const loadError = computed(() => error.value ? error.value.message || t('loadError') : '')
@@ -158,8 +137,7 @@ watch([from, to, domain, refreshVersion], ([, , , version], [, , , previousVersi
         </div>
         <div v-if="loading" class="charts"><n-skeleton v-for="panel in panels" :key="panel.metric" height="322px" /></div>
         <div v-else-if="!loadError && statistics?.daily.length" class="charts">
-            <StatisticsTrend v-for="panel in panels" :key="panel.metric" v-bind="panel" :points="statistics.daily"
-                :interval="statistics.interval" :group="chartGroup" />
+            <StatisticsTrend v-for="panel in panels" :key="panel.metric" v-bind="panel" :points="statistics.daily" :group="chartGroup" />
         </div>
     </section>
 </template>

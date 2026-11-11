@@ -6,7 +6,7 @@ const domain = 'statistics.example.com';
 async function mockStatistics(page: Page, initialFails = false) {
   const userTotals = { userCount: 83, activeUserCount7days: 12, activeUserCount30days: 21 };
   const mailboxTotals = { mailCount: 9, addressCount: 7, sendMailCount: 3, activeAddressCount7days: 2, activeAddressCount30days: 4 };
-  const requests: { domain: string | null; skipUsers: string | null; includeTotals: string | null }[] = [];
+  const requests: { domain: string | null; includeTotals: string | null }[] = [];
   let releaseInitialTotals!: () => void;
   const initialTotalsPending = new Promise<void>(resolve => { releaseInitialTotals = resolve; });
 
@@ -22,11 +22,11 @@ async function mockStatistics(page: Page, initialFails = false) {
     const params = new URL(route.request().url()).searchParams;
     expect(params.get('from')).toMatch(/^\d{4}-\d{2}-\d{2} 00:00:00$/);
     expect(params.get('to')).toMatch(/^\d{4}-\d{2}-\d{2} 00:00:00$/);
+    expect(params.get('granularity')).toBe('day');
     const headers = { 'access-control-allow-origin': '*' };
-    const skipUsers = params.get('skipUsers');
     const includeTotals = params.get('includeTotals');
-    requests.push({ domain: params.get('domain'), skipUsers, includeTotals });
-    const trends = { mailCount: [], addressCount: [], sendMailCount: [], ...(!skipUsers && { userCount: [] }) };
+    requests.push({ domain: params.get('domain'), includeTotals });
+    const trends = { mailCount: [], addressCount: [], sendMailCount: [], userCount: [] };
     if (requests.length === 1) {
       await initialTotalsPending;
       if (initialFails) {
@@ -34,7 +34,7 @@ async function mockStatistics(page: Page, initialFails = false) {
         return;
       }
     }
-    const totals = includeTotals ? { ...mailboxTotals, ...(!skipUsers && userTotals) } : undefined;
+    const totals = includeTotals ? { ...mailboxTotals, ...userTotals } : undefined;
     await route.fulfill({ headers, json: { totals, trends } });
   });
   return { requests, releaseInitialTotals };
@@ -49,7 +49,7 @@ for (const initialFails of [false, true]) {
 
     try {
       await page.goto(`${FRONTEND_URL}/en/admin`);
-      await expect.poll(() => requests).toEqual([{ domain: '', skipUsers: null, includeTotals: 'true' }]);
+      await expect.poll(() => requests).toEqual([{ domain: '', includeTotals: 'true' }]);
       await expect(select).toHaveClass(/n-base-selection--disabled/);
     } finally {
       releaseInitialTotals();
@@ -60,8 +60,8 @@ for (const initialFails of [false, true]) {
     await select.click();
     await page.getByText(domain, { exact: true }).click();
     await expect.poll(() => requests).toEqual([
-      { domain: '', skipUsers: null, includeTotals: 'true' },
-      { domain, skipUsers: initialFails ? null : 'true', includeTotals: 'true' },
+      { domain: '', includeTotals: 'true' },
+      { domain, includeTotals: 'true' },
     ]);
     await expect(dashboard.locator('.totals').getByText('83', { exact: true })).toBeVisible();
     await expect(dashboard.locator('.totals').getByText('9', { exact: true })).toBeVisible();
@@ -69,9 +69,9 @@ for (const initialFails of [false, true]) {
 
     await page.getByRole('button', { name: 'Time range', exact: true }).click();
     await page.getByRole('button', { name: 'Last 30 days', exact: true }).click();
-    await expect.poll(() => requests.slice(2)).toEqual([{ domain, skipUsers: null, includeTotals: null }]);
+    await expect.poll(() => requests.slice(2)).toEqual([{ domain, includeTotals: null }]);
     await expect(dashboard.locator('.totals').getByText('83', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Refresh', exact: true }).click();
-    await expect.poll(() => requests.slice(3)).toEqual([{ domain, skipUsers: null, includeTotals: 'true' }]);
+    await expect.poll(() => requests.slice(3)).toEqual([{ domain, includeTotals: 'true' }]);
   });
 }
