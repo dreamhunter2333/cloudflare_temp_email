@@ -13,7 +13,10 @@ const metrics = [
 type Metric = typeof metrics[number];
 type CountRow = { day: string; count: number };
 const domainCondition = (column: string) => `substr(${column}, instr(${column}, '@') + 1) = ? COLLATE NOCASE`;
-const sqlTime = (timestamp: number) => new Date(timestamp).toISOString().slice(0, 19).replace('T', ' ');
+const parseDay = (value: string) => {
+    const timestamp = Date.parse(`${value}T00:00:00Z`);
+    return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value ? timestamp : NaN;
+};
 
 const getTotals = async (c: Context<HonoCustomType>, domain: string, includeUserActivity: boolean, selectedMetrics: readonly Metric[]) => {
     const results = await c.env.DB.batch<Record<string, number>>(selectedMetrics.map(([key, table, column]) => {
@@ -40,33 +43,29 @@ const get = async (c: Context<HonoCustomType>) => {
         return c.json(await getTotals(c, domain, view === 'totals', selectedMetrics), 200, noStore);
     }
 
-    const start = Date.parse(from);
-    const lastDay = Date.parse(to);
-    const validDay = (value: string, timestamp: number) => /^\d{4}-\d{2}-\d{2}$/.test(value)
-        && Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value;
-    if (!validDay(from, start) || !validDay(to, lastDay) || lastDay < start || lastDay - start >= 30 * DAY || lastDay > Date.now()) {
+    const start = parseDay(from);
+    const lastDay = parseDay(to);
+    if (!(start <= lastDay && lastDay <= Date.now() && lastDay - start < 30 * DAY)) {
         return c.text(msgs.InvalidStatisticsRangeMsg, 400);
     }
-    const end = lastDay + DAY;
-    const hourly = from === to;
-    const step = hourly ? DAY / 24 : DAY;
-    const interval = hourly ? 'hour' : 'day';
-    const format = hourly ? '%Y-%m-%d %H:00' : '%Y-%m-%d';
-    const buckets = Array.from({ length: (end - start) / step }, (_, i) => sqlTime(start + i * step));
-    const placeholders = buckets.map(() => '(?)').join(', ');
+    const startTime = `${from} 00:00:00`;
+    const endTime = `${new Date(lastDay + DAY).toISOString().slice(0, 10)} 00:00:00`;
+    const [step, format] = from === to ? ['+1 hour', '%Y-%m-%d %H:00'] : ['+1 day', '%Y-%m-%d'];
     const results = await c.env.DB.batch<CountRow>(selectedMetrics.map(([, table, column]) => {
         if (!column) {
-            return c.env.DB.prepare(`SELECT strftime('${format}', created_at) AS day, count(*) AS count FROM ${table}
-                WHERE created_at >= ? AND created_at < ? GROUP BY day`).bind(buckets[0], sqlTime(end));
+            return c.env.DB.prepare(`SELECT strftime(?, created_at) AS day, count(*) AS count FROM ${table}
+                WHERE created_at >= ? AND created_at < ? GROUP BY day`).bind(format, startTime, endTime);
         }
         return c.env.DB.prepare(
-            `WITH buckets(start_time) AS (VALUES ${placeholders})
-             SELECT strftime('${format}', start_time) AS day, (
-                SELECT count(*) FROM ${table}
-                WHERE created_at >= start_time AND created_at < datetime(start_time, '+1 ${interval}')${domain
+            `WITH RECURSIVE buckets(start_time, end_time) AS (
+                SELECT ?, datetime(?, ?)
+                UNION ALL SELECT end_time, datetime(end_time, ?) FROM buckets WHERE end_time < ?
+             )
+             SELECT strftime(?, start_time) AS day, (
+                SELECT count(*) FROM ${table} WHERE created_at >= start_time AND created_at < end_time${domain
                     ? ` AND ${domainCondition(column)}` : ''}
              ) AS count FROM buckets`
-        ).bind(...buckets, ...(domain ? [domain] : []));
+        ).bind(startTime, startTime, step, step, endTime, format, ...(domain ? [domain] : []));
     }));
     return c.json(Object.fromEntries(selectedMetrics.map(([key], i) => [key, results[i].results])), 200, noStore);
 };
