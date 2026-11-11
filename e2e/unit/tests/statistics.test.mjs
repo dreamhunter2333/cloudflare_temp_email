@@ -98,19 +98,19 @@ test('statistics return fresh counts without accessing Cache API or KV', async t
     assert.equal(f.batches(), 2);
 });
 
-test('trends query the selected range and domain, preserve empty days and keep users site-wide', async t => {
+test('trends return counts per metric for the requested dates and domain', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     const range = { from: day(-6), to: day(0) };
     const all = await (await f.call(api, range)).json();
     const a = await (await f.call(api, { ...range, domain: 'a.test' })).json();
     const b = await (await f.call(api, { ...range, domain: 'b.test' })).json();
-    assert.equal(f.batches(), 3); assert.equal(all.daily.length, 7);
-    assert.equal(all.daily.reduce((n, d) => n + d.mailCount, 0), 4);
-    assert.equal(all.daily.reduce((n, d) => n + d.userCount, 0), 1);
-    assert.equal(a.daily.reduce((n, d) => n + d.mailCount, 0), 2);
-    assert.equal(b.daily.reduce((n, d) => n + d.mailCount, 0), 1);
-    assert.deepEqual(a.daily.map(d => d.userCount), b.daily.map(d => d.userCount));
-    assert.equal(all.daily[1].mailCount, 0);
+    assert.equal(f.batches(), 3); assert.equal(all.mailCount.length, 7);
+    assert.equal(all.mailCount.reduce((sum, row) => sum + row.count, 0), 4);
+    assert.equal(a.mailCount.reduce((sum, row) => sum + row.count, 0), 2);
+    assert.equal(b.mailCount.reduce((sum, row) => sum + row.count, 0), 1);
+    assert.deepEqual(all.userCount, [{ day: day(-2), count: 1 }]);
+    assert.deepEqual(a.userCount, all.userCount);
+    assert.deepEqual(b.userCount, all.userCount);
     assert.equal((await f.call(api, { domain: 'a.test' })).status, 400);
     assert.equal((await f.call(api, { from: day(-6) })).status, 400);
     assert.equal((await f.call(api, { from: day(-40), to: day(0) })).status, 400);
@@ -118,7 +118,7 @@ test('trends query the selected range and domain, preserve empty days and keep u
     assert.equal(f.batches(), 3);
 });
 
-test('hourly aggregates preserve UTC boundaries, empty hours and the current-hour limit', async t => {
+test('hourly aggregates respect UTC day boundaries', async t => {
     t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-11-10T13:25:00Z') });
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     for (const [address, created] of [
@@ -134,23 +134,20 @@ test('hourly aggregates preserve UTC boundaries, empty hours and the current-hou
     f.db.prepare('INSERT INTO users(user_email,password,created_at) VALUES(?,?,?)')
         .run('hourly@example.com', 'test', `${day(-1)} 04:30:00`);
     const past = await (await f.call(api, { from: day(-1), to: day(-1), domain: 'a.test' })).json();
-    assert.equal(past.interval, 'hour');
-    assert.equal(past.daily.length, 24);
     for (const key of ['mailCount', 'addressCount', 'sendMailCount']) {
-        assert.equal(past.daily[0][key], 1);
-        assert.equal(past.daily[23][key], 1);
-        assert.equal(past.daily.reduce((sum, row) => sum + row[key], 0), 2);
+        assert.equal(past[key].length, 24);
+        assert.deepEqual(past[key][0], { day: `${day(-1)} 00:00`, count: 1 });
+        assert.deepEqual(past[key][23], { day: `${day(-1)} 23:00`, count: 1 });
+        assert.equal(past[key].reduce((sum, row) => sum + row.count, 0), 2);
     }
-    assert.deepEqual(past.daily[1], { day: `${day(-1)} 01:00`, mailCount: 0, addressCount: 0, userCount: 0, sendMailCount: 0 });
-    assert.equal(past.daily[4].userCount, 1);
+    assert.deepEqual(past.userCount, [{ day: `${day(-1)} 04:00`, count: 1 }]);
     const today = await (await f.call(api, { from: day(0), to: day(0), domain: 'a.test' })).json();
-    assert.equal(today.daily.length, 14);
-    assert.equal(today.daily[0].mailCount, 1);
-    assert.equal(today.daily[13].mailCount, 1);
-    assert.equal(today.daily.reduce((sum, row) => sum + row.mailCount, 0), 2);
+    assert.equal(today.mailCount[0].count, 1);
+    assert.deepEqual(today.mailCount[13], { day: `${day(0)} 13:00`, count: 1 });
+    assert.equal(today.mailCount.reduce((sum, row) => sum + row.count, 0), 2);
     const all = await (await f.call(api, { from: day(-1), to: day(-1) })).json();
-    assert.equal(all.daily[0].mailCount, 2);
-    assert.equal(all.daily.reduce((sum, row) => sum + row.mailCount, 0), 3);
+    assert.equal(all.mailCount[0].count, 2);
+    assert.equal(all.mailCount.reduce((sum, row) => sum + row.count, 0), 3);
 });
 
 test('domain totals and trends use the mailbox-domain indexes', async t => {
@@ -173,28 +170,6 @@ test('domain totals and trends use the mailbox-domain indexes', async t => {
             && line.includes('created_at>? AND created_at<?')), plans[1].join('\n'));
     }
     assert.equal(plans[1].filter(line => line.includes('USE TEMP B-TREE FOR GROUP BY')).length, 1);
-});
-
-test('an hourly query that crosses UTC midnight retains the full requested day', async t => {
-    t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-11-07T23:59:59.500Z') });
-    const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
-    const today = day(0);
-    const insert = f.db.prepare('INSERT INTO raw_mails(address,created_at) VALUES(?,?)');
-    insert.run('late@a.test', `${today} 23:59:59`);
-    insert.run('tomorrow@a.test', `${day(1)} 00:00:00`);
-    const batch = f.env.DB.batch;
-    f.env.DB.batch = async statements => {
-        const results = await batch(statements);
-        t.mock.timers.tick(1000);
-        return results;
-    };
-
-    const result = await (await f.call(api, { from: today, to: today })).json();
-    assert.equal(result.interval, 'hour');
-    assert.equal(result.daily.length, 24);
-    assert.equal(result.daily[23].day, `${today} 23:00`);
-    assert.equal(result.daily[23].mailCount, 1);
-    assert.equal(result.daily.reduce((n, point) => n + point.mailCount, 0), 2);
 });
 
 test('database failures propagate and later requests recover', async t => {

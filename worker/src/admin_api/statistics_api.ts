@@ -49,32 +49,24 @@ const get = async (c: Context<HonoCustomType>) => {
     const hourly = from === to;
     const step = hourly ? DAY / 24 : DAY;
     const interval = hourly ? 'hour' : 'day';
-    const labelLength = hourly ? 16 : 10;
+    const format = hourly ? '%Y-%m-%d %H:00' : '%Y-%m-%d';
     const buckets = Array.from({ length: (end - start) / step }, (_, i) => sqlTime(start + i * step));
     const placeholders = buckets.map(() => '(?)').join(', ');
     const results = await c.env.DB.batch<CountRow>(metrics.map(([, table, column]) => {
         if (!column) {
-            const day = hourly ? "strftime('%Y-%m-%d %H:00', created_at)" : 'date(created_at)';
-            return c.env.DB.prepare(`SELECT ${day} AS day, count(*) AS count FROM ${table}
+            return c.env.DB.prepare(`SELECT strftime('${format}', created_at) AS day, count(*) AS count FROM ${table}
                 WHERE created_at >= ? AND created_at < ? GROUP BY day`).bind(buckets[0], sqlTime(end));
         }
         return c.env.DB.prepare(
             `WITH buckets(start_time) AS (VALUES ${placeholders})
-             SELECT substr(start_time, 1, ${labelLength}) AS day, (
+             SELECT strftime('${format}', start_time) AS day, (
                 SELECT count(*) FROM ${table}
                 WHERE created_at >= start_time AND created_at < datetime(start_time, '+1 ${interval}')${domain
                     ? ` AND ${domainCondition(column)}` : ''}
              ) AS count FROM buckets`
         ).bind(...buckets, ...(domain ? [domain] : []));
     }));
-    const now = new Date();
-    const counts = results.map(result => new Map(result.results.map(row => [row.day, row.count])));
-    const visibleHours = hourly && to === now.toISOString().slice(0, 10) ? now.getUTCHours() + 1 : undefined;
-    const daily = buckets.slice(0, visibleHours).map(time => {
-        const day = time.slice(0, labelLength);
-        return { day, ...Object.fromEntries(metrics.map(([key], i) => [key, counts[i].get(day) ?? 0])) };
-    });
-    return c.json({ interval, daily }, 200, noStore);
+    return c.json(Object.fromEntries(metrics.map(([key], i) => [key, results[i].results])), 200, noStore);
 };
 
 export default { get };

@@ -51,8 +51,25 @@ const fetchStatisticsData = async params => {
     pending.set(query, request)
     return request
 }
+const fetchTrends = async params => {
+    const series = await fetchStatisticsData(params)
+    const counts = Object.entries(series).map(([key, rows]) => [key, new Map(rows.map(row => [row.day, row.count]))])
+    const start = Date.parse(params.from)
+    const hourly = params.from === params.to
+    const step = hourly ? DAY / 24 : DAY
+    const now = new Date()
+    const length = hourly
+        ? (params.to === now.toISOString().slice(0, 10) ? now.getUTCHours() + 1 : 24)
+        : (Date.parse(params.to) - start) / DAY + 1
+    const daily = Array.from({ length }, (_, i) => {
+        const iso = new Date(start + i * step).toISOString()
+        const day = hourly ? iso.slice(0, 16).replace('T', ' ') : iso.slice(0, 10)
+        return { day, ...Object.fromEntries(counts.map(([key, values]) => [key, values.get(day) ?? 0])) }
+    })
+    return { interval: hourly ? 'hour' : 'day', daily }
+}
 const loadOptions = { immediate: false, onError: () => {} }
-const { state: statistics, isLoading: loading, error, executeImmediate: loadTrends } = useAsyncState(fetchStatisticsData, null, loadOptions)
+const { state: statistics, isLoading: loading, error, executeImmediate: loadTrends } = useAsyncState(fetchTrends, null, loadOptions)
 const { state: totals, isLoading: totalsLoading, error: totalsError, executeImmediate: loadTotals } = useAsyncState(fetchStatisticsData, null, loadOptions)
 const fetchStatistics = () => loadTrends({ from: from.value, to: to.value, domain: domain.value })
 const fetchTotals = () => loadTotals({ view: 'totals', domain: domain.value })
