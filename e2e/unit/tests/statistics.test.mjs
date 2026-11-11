@@ -60,10 +60,14 @@ test('legacy statistics return only totals and activity without a trend query', 
 test('totals filter the selected domain directly and ignore date parameters', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     f.db.prepare('UPDATE address SET updated_at = ? WHERE name = ?').run(`${day(-10)} 00:00:00`, 'three@b.test');
+    f.db.prepare('UPDATE users SET updated_at = ?').run(`${day(-1)} 00:00:00`);
+    const addUser = f.db.prepare('INSERT INTO users(user_email,password,created_at,updated_at) VALUES(?,?,?,?)');
+    addUser.run('returning@example.com', 'test', `${day(-40)} 00:00:00`, `${day(-10)} 00:00:00`);
+    addUser.run('inactive@example.com', 'test', `${day(-40)} 00:00:00`, `${day(-40)} 00:00:00`);
     const results = await Promise.all(['b.test', 'a.test'].map(domain => f.call(api, { view: 'totals', domain, from: 'ignored', to: 'ignored' }).then(r => r.json())));
     assert.equal(f.batches(), 2); assert.equal(f.queries.length, 8);
     assert.equal(results[0].mailCount, 1); assert.equal(results[1].mailCount, 3);
-    assert.equal(results[0].userCount, 1); assert.equal(results[1].userCount, 1);
+    assert.deepEqual(results.map(result => [result.userCount, result.activeUserCount7days, result.activeUserCount30days]), [[3, 1, 2], [3, 1, 2]]);
     assert.deepEqual(results.map(result => [result.activeAddressCount7days, result.activeAddressCount30days]), [[0, 1], [2, 2]]);
     assert.equal(f.queries.filter(sql => sql.includes('COLLATE NOCASE')).length, 6);
     assert.equal(f.queries.every(sql => !sql.includes('GROUP BY')), true);
@@ -112,6 +116,41 @@ test('trends query the selected range and domain, preserve empty days and keep u
     assert.equal(f.batches(), 3);
 });
 
+test('hourly aggregates preserve UTC boundaries, empty hours and the current-hour limit', async t => {
+    t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-11-10T13:25:00Z') });
+    const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
+    for (const [address, created] of [
+        ['early@a.test', `${day(-1)} 00:00:00`],
+        ['late@A.TEST', `${day(-1)} 23:59:59`],
+        ['current@a.test', `${day(0)} 13:24:59`],
+        ['next@a.test', `${day(1)} 00:00:00`],
+    ]) {
+        for (const [table, column] of [['raw_mails', 'address'], ['address', 'name'], ['sendbox', 'address']]) {
+            f.db.prepare(`INSERT INTO ${table}(${column},created_at) VALUES(?,?)`).run(address, created);
+        }
+    }
+    f.db.prepare('INSERT INTO users(user_email,password,created_at) VALUES(?,?,?)')
+        .run('hourly@example.com', 'test', `${day(-1)} 04:30:00`);
+    const past = await (await f.call(api, { from: day(-1), to: day(-1), domain: 'a.test' })).json();
+    assert.equal(past.interval, 'hour');
+    assert.equal(past.daily.length, 24);
+    for (const key of ['mailCount', 'addressCount', 'sendMailCount']) {
+        assert.equal(past.daily[0][key], 1);
+        assert.equal(past.daily[23][key], 1);
+        assert.equal(past.daily.reduce((sum, row) => sum + row[key], 0), 2);
+    }
+    assert.deepEqual(past.daily[1], { day: `${day(-1)} 01:00`, mailCount: 0, addressCount: 0, userCount: 0, sendMailCount: 0 });
+    assert.equal(past.daily[4].userCount, 1);
+    const today = await (await f.call(api, { from: day(0), to: day(0), domain: 'a.test' })).json();
+    assert.equal(today.daily.length, 14);
+    assert.equal(today.daily[0].mailCount, 1);
+    assert.equal(today.daily[13].mailCount, 1);
+    assert.equal(today.daily.reduce((sum, row) => sum + row.mailCount, 0), 2);
+    const all = await (await f.call(api, { from: day(-1), to: day(-1) })).json();
+    assert.equal(all.daily[0].mailCount, 2);
+    assert.equal(all.daily.reduce((sum, row) => sum + row.mailCount, 0), 3);
+});
+
 test('domain totals and trends use the mailbox-domain indexes', async t => {
     const f = fixture(); t.after(() => f.db.close()); const api = await createApi();
     const batch = f.env.DB.batch;
@@ -123,7 +162,7 @@ test('domain totals and trends use the mailbox-domain indexes', async t => {
     };
 
     assert.equal((await f.call(api, { view: 'totals', domain: 'a.test' })).status, 200);
-    assert.equal((await f.call(api, { from: day(-6), to: day(0), domain: 'a.test' })).status, 200);
+    assert.equal((await f.call(api, { from: day(-29), to: day(0), domain: 'a.test' })).status, 200);
     for (const table of ['raw_mails', 'address', 'sendbox']) {
         const search = `SEARCH ${table}`;
         const index = `idx_${table}_mailbox_domain_created_at`;
@@ -131,6 +170,7 @@ test('domain totals and trends use the mailbox-domain indexes', async t => {
         assert.ok(plans[1].some(line => line.startsWith(search) && line.includes(index)
             && line.includes('created_at>? AND created_at<?')), plans[1].join('\n'));
     }
+    assert.equal(plans[1].filter(line => line.includes('USE TEMP B-TREE FOR GROUP BY')).length, 1);
 });
 
 test('an hourly query that crosses UTC midnight retains the full requested day', async t => {

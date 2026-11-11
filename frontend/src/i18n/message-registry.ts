@@ -1924,21 +1924,17 @@ export const MESSAGE_REGISTRY = {
     "rangeLimit": { "en": "Select a range of up to 30 days.", "zh": "单次最多查看 30 天，请缩小日期范围。" },
     "rangeHelp": { "en": "Up to 30 days", "zh": "最多 30 天" },
     "applyRange": { "en": "Apply", "zh": "应用" },
-    "received": { "en": "Incoming mail", "zh": "收件量" },
-    "newAddresses": { "en": "Mailbox growth", "zh": "邮箱增长" },
+    "received": { "en": "Incoming mail", "zh": "邮件量" },
+    "newAddresses": { "en": "New mailboxes", "zh": "邮箱量" },
     "sent": { "en": "Outgoing mail", "zh": "发件量" },
-    "newUsers": { "en": "User growth", "zh": "用户增长" },
+    "newUsers": { "en": "New users", "zh": "用户量" },
     "global": { "en": "Site-wide", "zh": "全站" },
     "chartLabel": { "en": "{title}: {count}", "zh": "{title}：{count}" },
     "loadError": { "en": "Could not load statistics. Try refreshing.", "zh": "统计加载失败，请刷新重试。" },
-    "activeAddressCount30days": {
-      "en": "Active (30 days)",
-      "zh": "30 天活跃"
-    },
-    "activeAddressCount7days": {
-      "en": "Active (7 days)",
-      "zh": "7 天活跃"
-    },
+    "activeAddressCount7days": { "en": "Active mailboxes (7 days)", "zh": "7 天活跃邮箱" },
+    "activeAddressCount30days": { "en": "Active mailboxes (30 days)", "zh": "30 天活跃邮箱" },
+    "activeUserCount7days": { "en": "Active users (7 days)", "zh": "7 天活跃用户" },
+    "activeUserCount30days": { "en": "Active users (30 days)", "zh": "30 天活跃用户" },
     "addressCount": {
       "en": "Total mailboxes",
       "zh": "邮箱总数"
