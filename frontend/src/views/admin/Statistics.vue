@@ -72,7 +72,30 @@ const fetchTrends = async (params, userRows) => {
     })
     return { interval: hourly ? 'hour' : 'day', daily, userRows: series.userCount }
 }
-const fetchTotalStats = async (params, userTotals) => ({ ...userTotals, ...await fetchStatisticsData(params) })
+let userTotalsRequest
+const fetchTotalStats = async (params, reuseUsers) => {
+    if (reuseUsers && userTotalsRequest) {
+        const [userTotals, mailboxTotals] = await Promise.all([
+            userTotalsRequest,
+            fetchStatisticsData({ ...params, skipUsers: 'true' }),
+        ])
+        if (userTotals) return { ...userTotals, ...mailboxTotals }
+    }
+
+    const request = fetchStatisticsData(params)
+    const users = request.then(data => {
+        if (userTotalMetrics.every(key => data?.[key] != null)) {
+            return Object.fromEntries(userTotalMetrics.map(key => [key, data[key]]))
+        }
+    }, () => undefined)
+    userTotalsRequest = users
+    try {
+        return await request
+    } finally {
+        const userTotals = await users
+        if (!userTotals && userTotalsRequest === users) userTotalsRequest = undefined
+    }
+}
 const loadOptions = { immediate: false, onError: () => {} }
 const { state: statistics, isLoading: loading, error, executeImmediate: loadTrends } = useAsyncState(fetchTrends, null, loadOptions)
 const { state: totals, isLoading: totalsLoading, error: totalsError, executeImmediate: loadTotals } = useAsyncState(fetchTotalStats, null, loadOptions)
@@ -82,12 +105,7 @@ const fetchStatistics = (reuseUsers = false) => {
     if (userRows) params.skipUsers = 'true'
     return loadTrends(params, userRows)
 }
-const fetchTotals = (reuseUsers = false) => {
-    const params = { view: 'totals', domain: domain.value }
-    if (!reuseUsers || !userTotalMetrics.every(key => totals.value?.[key] != null)) return loadTotals(params)
-    const userTotals = Object.fromEntries(userTotalMetrics.map(key => [key, totals.value[key]]))
-    return loadTotals({ ...params, skipUsers: 'true' }, userTotals)
-}
+const fetchTotals = (reuseUsers = false) => loadTotals({ view: 'totals', domain: domain.value }, reuseUsers)
 const loadError = computed(() => {
     const cause = error.value || totalsError.value
     return cause ? cause.message || t('loadError') : ''
