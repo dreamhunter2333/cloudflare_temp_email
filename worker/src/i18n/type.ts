@@ -1,4 +1,6 @@
 export type LocaleMessages = {
+    InvalidStatisticsRangeMsg: string;
+    InvalidStatisticsGranularityMsg: string;
     InvalidRequestBodyMsg: string
     InvalidWebhookFilterMsg: string
     WebhookFilterEvaluationFailedMsg: string

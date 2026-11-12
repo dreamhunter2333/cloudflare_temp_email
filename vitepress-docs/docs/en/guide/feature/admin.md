@@ -36,6 +36,12 @@ same role to that user in user management.
 
 ![admin](/feature/admin.png)
 
+## Statistics
+
+The Statistics page shows site-wide totals for received mail, mailboxes, users, and sent mail, plus active mailboxes and users over the last 7 and 30 days. Activity is based on each record's last update time.
+
+Use the date picker to view trends for received and sent mail, mailbox creation, and user registrations. Charts count retained records by UTC date, and custom ranges can span up to 30 days.
+
 ## Mailbox List Sorting
 
 **Admin Console → Mailbox Management → Mailboxes** supports column sorting. Click a column header to toggle ascending/descending order for:

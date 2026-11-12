@@ -1,8 +1,6 @@
 # Keep this version in sync with @playwright/test in package.json
 FROM mcr.microsoft.com/playwright:v1.64.1-noble
 
-RUN apt-get update && apt-get install -y curl netcat-openbsd && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app/e2e
 
 COPY e2e/package.json e2e/package-lock.json ./

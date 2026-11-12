@@ -11,6 +11,7 @@
 ### Features
 
 - feat: |Admin| Switch between single and batch creation, create batches of up to 100 random-name mailboxes, and export their auto-login links as spreadsheet-safe or lossless CSV
+- feat: |Admin Statistics| Add a dashboard with mail, mailbox, user and sent mail totals, 7- and 30-day mailbox and user activity, and site-wide trends by date
 - feat: |Mail Forwarding| Route forwarding rules internally by configured domain with independent receive processing, extraction and notifications, no second forwarding and only one auto-reply; optionally delete the original at the end and keep global forwarding external-only with its existing behavior
 - feat: |User System| Add `DISABLE_USER_SYSTEM` to block user APIs, disable user admin tokens, and hide user interfaces
 - feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and JWT lifetimes
@@ -24,6 +25,7 @@
 - fix: |Mail Reader| Reset inherited application defaults in Shadow mail and use browser-default system colors for a normal document while preserving sender colors
 - fix: |Telegram| Clean up the current push recipient's binding and push mapping before admin mailbox deletion, freeing a slot and preventing stale pushes on recreation; KV cleanup failures preserve the mailbox for retry, while database deletion failures may leave it unbound
 - fix: |CI| Fix WASM npm publishing paths so local tarballs are not interpreted as GitHub repositories
+- fix: |CI| Use the E2E image's built-in tools for service probes so its build does not need Ubuntu package mirrors
 - fix: |Mail Parser| Upgrade WASM parser dependencies and use raw values only for structured headers, preserving decoded text headers while fixing `header.From` webhook filters and sender loss after attachment removal
 - fix: |Mail Parser| Support postal-mime v4's first-header semantics: handle empty/missing From in fallback parsing and regenerate MIME type/encoding headers when removing attachments to preserve stored message bodies
 - fix: |Telegram| Store separate permanent internal binding tokens, preserve historical expired bindings, and issue mailbox credentials on access while rejecting internal tokens at mailbox APIs
