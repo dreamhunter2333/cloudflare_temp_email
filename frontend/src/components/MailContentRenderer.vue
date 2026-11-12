@@ -105,11 +105,6 @@ const processedMail = computed(() => {
   return { message: html, blocked };
 });
 
-const iframeMessage = computed(() => (props.mail.attachments ?? []).reduce(
-  (html, { url, inlineImageUrl }) => inlineImageUrl ? html.replaceAll(url, inlineImageUrl) : html,
-  processedMail.value.message,
-));
-
 const handleLoadRemoteImages = () => {
   showRemoteImages.value = true;
 };
@@ -277,7 +272,8 @@ const handleSaveToS3 = async (filename, blob) => {
     <!-- 邮件内容 -->
     <div class="mail-content" :class="{ 'dark-mode': isDark }">
       <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-      <iframe v-else-if="useIframeShowMail" :key="`iframe:${mail.id}`" sandbox="" :srcdoc="iframeMessage" class="mail-iframe"></iframe>
+      <iframe v-else-if="useIframeShowMail" :srcdoc="processedMail.message" class="mail-iframe" sandbox="allow-same-origin">
+      </iframe>
       <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
     </div>
   </div>
@@ -310,7 +306,8 @@ const handleSaveToS3 = async (filename, blob) => {
     <n-drawer-content :title="mail.subject" closable>
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-        <iframe v-else-if="useIframeShowMail" :key="`iframe:${mail.id}`" sandbox="" :srcdoc="iframeMessage" class="mail-iframe"></iframe>
+        <iframe v-else-if="useIframeShowMail" :srcdoc="processedMail.message" class="mail-iframe" sandbox="allow-same-origin">
+        </iframe>
         <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
       </div>
     </n-drawer-content>

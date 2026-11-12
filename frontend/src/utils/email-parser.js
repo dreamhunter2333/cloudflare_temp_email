@@ -5,32 +5,7 @@ function humanFileSize(size) {
     return parseFloat((size / Math.pow(1024, i)).toFixed(2)) + ' ' + ['B', 'KB', 'MB', 'GB', 'TB'][i];
 }
 
-async function processAttachment(item, { content, contentType, contentId, filename }, prepareInlineImages) {
-    const blob = new Blob([content], { type: contentType || 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const attachment = {
-        id: contentId || Math.random().toString(36).substring(2, 15),
-        filename: filename || contentId || '',
-        size: humanFileSize(content?.length || 0),
-        url,
-        blob,
-    };
-    if (!contentId) return attachment;
-
-    const exactCid = `cid:${contentId}`;
-    const cid = item.message.includes(exactCid)
-        ? exactCid
-        : `cid:${contentId.replace(/^<(.+)>$/, '$1')}`;
-    if (!item.message.includes(cid)) return attachment;
-
-    item.message = item.message.replace(cid, url);
-    if (prepareInlineImages) {
-        attachment.inlineImageUrl = await getInlineImageUrl(blob);
-    }
-    return attachment;
-}
-
-export async function processItem(item, { prepareInlineImages = false } = {}) {
+export async function processItem(item) {
     // Try to parse the email using mail-parser-wasm
     item.originalSource = item.source;
     try {
@@ -40,12 +15,23 @@ export async function processItem(item, { prepareInlineImages = false } = {}) {
         item.subject = parsedEmail.subject || '';
         item.message = parsedEmail.body_html || parsedEmail.text || '';
         item.text = parsedEmail.text || '';
-        item.attachments = await Promise.all(parsedEmail.attachments?.map((attachment) => processAttachment(item, {
-            content: attachment.content,
-            contentType: attachment.content_type,
-            contentId: attachment.content_id,
-            filename: attachment.filename,
-        }, prepareInlineImages)) ?? []);
+        item.attachments = parsedEmail.attachments?.map((a_item) => {
+            const blob = new Blob(
+                [a_item.content],
+                { type: a_item.content_type || 'application/octet-stream' }
+            );
+            const blob_url = URL.createObjectURL(blob);
+            if (a_item.content_id && a_item.content_id.length > 0) {
+                item.message = item.message.replace(`cid:${a_item.content_id}`, blob_url);
+            }
+            return {
+                id: a_item.content_id || Math.random().toString(36).substring(2, 15),
+                filename: a_item.filename || a_item.content_id || "",
+                size: humanFileSize(a_item.content?.length || 0),
+                url: blob_url,
+                blob: blob
+            }
+        }) || [];
     } catch (error) {
         console.log('Error parsing email with mail-parser-wasm');
         console.error(error);
@@ -63,12 +49,23 @@ export async function processItem(item, { prepareInlineImages = false } = {}) {
         item.subject = parsedEmail.subject || 'No Subject';
         item.message = parsedEmail.html || parsedEmail.text || item.raw;
         item.text = parsedEmail.text || '';
-        item.attachments = await Promise.all(parsedEmail.attachments?.map((attachment) => processAttachment(item, {
-            content: attachment.content,
-            contentType: attachment.mimeType,
-            contentId: attachment.contentId,
-            filename: attachment.filename,
-        }, prepareInlineImages)) ?? []);
+        item.attachments = parsedEmail.attachments?.map((a_item) => {
+            const blob = new Blob(
+                [a_item.content],
+                { type: a_item.mimeType || 'application/octet-stream' }
+            );
+            const blob_url = URL.createObjectURL(blob)
+            if (a_item.contentId && a_item.contentId.length > 0) {
+                item.message = item.message.replace(`cid:${a_item.contentId}`, blob_url);
+            }
+            return {
+                id: a_item.contentId || Math.random().toString(36).substring(2, 15),
+                filename: a_item.filename || a_item.contentId || "",
+                size: humanFileSize(a_item.content?.length || 0),
+                url: blob_url,
+                blob: blob
+            }
+        }) || [];
     } catch (error) {
         console.log('Error parsing email with PostalMime');
         console.error(error);
@@ -76,23 +73,6 @@ export async function processItem(item, { prepareInlineImages = false } = {}) {
         item.message = item.raw;
     }
     return item;
-}
-
-async function getInlineImageUrl(blob) {
-    const type = blob.type.split(';', 1)[0].trim();
-    const generic = type === 'application/octet-stream';
-    if (!generic && !/^image\/[a-z0-9.+-]+$/.test(type)) return null;
-
-    const dataUrl = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob.slice(0, blob.size, type));
-    });
-    if (!dataUrl || !generic) return dataUrl;
-
-    const image = new Image();
-    image.src = dataUrl;
-    return image.decode().then(() => dataUrl, () => null);
 }
 
 export function getDownloadEmlUrl(raw) {

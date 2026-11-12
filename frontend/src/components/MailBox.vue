@@ -214,7 +214,7 @@ const refresh = async () => {
     loading.value = true;
     rawData.value = await Promise.all(results.map(async (item) => {
       item.checked = false;
-      return await processItem(item, { prepareInlineImages: true });
+      return await processItem(item);
     }));
     if (totalCount > 0) {
       count.value = totalCount;

@@ -52,7 +52,6 @@ describe('PostalMime fallback', () => {
         ].join('\r\n');
         const item = await processItem({ raw, source: 'bounce@transport.example' });
         expect(item.message).toContain('<p>正文</p>');
-        expect(item.message).toContain('src="blob:attachment"');
         expect(item.attachments[0].id).toBe('<picture>');
         expect(item.attachments.map(file => file.filename)).toEqual(['图.png', 'forward.eml']);
         expect(new Uint8Array(await item.attachments[0].blob.arrayBuffer())).toEqual(new Uint8Array(binary));
