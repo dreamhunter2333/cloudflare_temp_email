@@ -1,10 +1,11 @@
 <script setup>
-import { ref, computed, watch, watchEffect, nextTick } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { useThemeVars } from 'naive-ui';
 import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound, ImageRound, AttachFileRound,
   MarkEmailReadRound, MarkEmailUnreadRound, MoreHorizRound, DeleteOutlineRound, TextSnippetRound, InfoOutlined } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
+import MailIframe from "./MailIframe.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
 import { getDownloadEmlUrl } from '../utils/email-parser';
 import { blockRemoteContent } from '../utils/remote-content-policy';
@@ -105,37 +106,7 @@ const processedMail = computed(() => {
   return { message: html, blocked };
 });
 
-const readInlineImage = (blob, type) => new Promise((resolve) => {
-  const reader = new FileReader();
-  reader.onloadend = () => resolve(reader.result);
-  reader.readAsDataURL(blob.slice(0, blob.size, type));
-});
-
-const iframeMessage = ref(null);
-watchEffect(async (onCleanup) => {
-  if (!useIframeShowMail.value || showTextMail.value) return;
-
-  const { message } = processedMail.value;
-  // An opaque-origin iframe cannot load Blob URLs created by the mailbox.
-  const inlineImages = (props.mail.attachments ?? [])
-    .filter(({ url }) => message.includes(url))
-    .map(({ url, blob }) => ({ url, blob, type: blob.type.split(';', 1)[0].trim() }))
-    .filter(({ type }) => /^image\/[a-z0-9.+-]+$/.test(type));
-  if (!inlineImages.length) {
-    iframeMessage.value = message;
-    return;
-  }
-
-  let current = true;
-  onCleanup(() => { current = false; });
-  iframeMessage.value = null;
-  const dataUrls = await Promise.all(inlineImages.map(({ blob, type }) => readInlineImage(blob, type)));
-  if (!current) return;
-  iframeMessage.value = inlineImages.reduce((html, { url }, index) => {
-    const dataUrl = dataUrls[index];
-    return dataUrl ? html.replaceAll(url, dataUrl) : html;
-  }, message);
-});
+const iframeKey = computed(() => props.mail.attachments?.[0]?.url ?? props.mail.id);
 
 const handleLoadRemoteImages = () => {
   showRemoteImages.value = true;
@@ -304,9 +275,8 @@ const handleSaveToS3 = async (filename, blob) => {
     <!-- 邮件内容 -->
     <div class="mail-content" :class="{ 'dark-mode': isDark }">
       <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-      <iframe v-else-if="useIframeShowMail && iframeMessage !== null" :srcdoc="iframeMessage" class="mail-iframe" sandbox="">
-      </iframe>
-      <ShadowHtmlComponent v-else-if="!useIframeShowMail" :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
+      <MailIframe v-else-if="useIframeShowMail" :key="iframeKey" :mail="mail" :html="processedMail.message" class="mail-iframe" />
+      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
     </div>
   </div>
 
@@ -338,9 +308,8 @@ const handleSaveToS3 = async (filename, blob) => {
     <n-drawer-content :title="mail.subject" closable>
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-        <iframe v-else-if="useIframeShowMail && iframeMessage !== null" :srcdoc="iframeMessage" class="mail-iframe" sandbox="">
-        </iframe>
-        <ShadowHtmlComponent v-else-if="!useIframeShowMail" :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
+        <MailIframe v-else-if="useIframeShowMail" :key="iframeKey" :mail="mail" :html="processedMail.message" class="mail-iframe" />
+        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
       </div>
     </n-drawer-content>
   </n-drawer>
