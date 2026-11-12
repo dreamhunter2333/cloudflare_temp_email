@@ -63,9 +63,7 @@ const deleteMail = async (c: Context<HonoCustomType>) => {
 };
 
 const getSettings = async (c: Context<HonoCustomType>) => {
-    const payload = c.get("jwtPayload");
-    const { address } = payload;
-    const renewedAddressToken = await renewAddressPasswordLoginToken(c, payload);
+    const { address } = c.get("jwtPayload")
 
     updateAddressUpdatedAt(c, address);
 
@@ -73,7 +71,7 @@ const getSettings = async (c: Context<HonoCustomType>) => {
     return c.json({
         address: address,
         send_balance: balance || 0,
-        new_address_token: renewedAddressToken,
+        new_address_token: await renewAddressPasswordLoginToken(c, c.get("jwtPayload")),
     });
 };
 

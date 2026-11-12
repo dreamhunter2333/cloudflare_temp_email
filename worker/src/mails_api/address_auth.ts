@@ -1,7 +1,8 @@
 import { Context } from 'hono';
 import i18n from '../i18n';
-import utils, { getBooleanValue, checkCfTurnstile } from '../utils';
-import { createAddressToken } from '../address_auth';
+import utils, { getBooleanValue, hashPassword, checkCfTurnstile } from '../utils';
+import { Jwt } from 'hono/utils/jwt';
+import { createAddressPasswordLoginToken } from '../address_auth';
 
 export default {
     // 修改地址密码
@@ -73,7 +74,12 @@ export default {
         }
 
         // 创建JWT
-        const jwt = await createAddressToken(c, address.name, address.id);
+        const jwt = getBooleanValue(c.env.ADDRESS_PASSWORD_LOGIN_ONLY)
+            ? await createAddressPasswordLoginToken(c, address.name, address.id)
+            : await Jwt.sign({
+                address: address.name,
+                address_id: address.id
+            }, c.env.JWT_SECRET, "HS256");
 
         return c.json({
             jwt: jwt,

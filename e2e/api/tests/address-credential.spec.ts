@@ -140,12 +140,17 @@ test('password login tokens renew below seven days; legacy credentials do not re
       { type: 'unknown' },
       { type: 'address_password_login' },
       { type: 'address_password_login', iat: now - 30 * day, exp: now - 1 },
+      { type: 'address_password_login', iat: now + 60, exp: now + 30 * day },
       { type: 'address_password_login', iat: now, exp: now + 31 * day },
     ]) {
       const response = await request.get(`${WORKER_URL}/api/settings`, {
         headers: { Authorization: `Bearer ${signToken({ ...identity, ...claims })}` },
       });
       expect(response.status(), JSON.stringify(claims)).toBe(401);
+      const login = await request.post(`${WORKER_URL}/open_api/credential_login`, {
+        data: { credential: signToken({ ...identity, ...claims }) },
+      });
+      expect(login.status(), JSON.stringify(claims)).toBe(401);
     }
   } finally {
     await deleteAddress(request, mailbox.jwt);
