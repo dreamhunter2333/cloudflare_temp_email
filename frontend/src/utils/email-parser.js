@@ -75,6 +75,32 @@ export async function processItem(item) {
     return item;
 }
 
+async function getInlineImageUrl(blob) {
+    const type = blob.type.split(';', 1)[0].trim();
+    const generic = type === 'application/octet-stream';
+    if (!generic && !/^image\/[a-z0-9.+-]+$/.test(type)) return null;
+
+    const dataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob.slice(0, blob.size, type));
+    });
+    if (!dataUrl || !generic) return dataUrl;
+
+    const image = new Image();
+    image.src = dataUrl;
+    return image.decode().then(() => dataUrl, () => null);
+}
+
+export async function getInlineImageUrls(mail) {
+    const referenced = (mail.attachments ?? []).filter(({ url }) => mail.message.includes(url));
+    const urls = await Promise.all(referenced.map(async ({ url, blob }) => {
+        const dataUrl = await getInlineImageUrl(blob);
+        return dataUrl ? { url, dataUrl } : null;
+    }));
+    return urls.filter(Boolean);
+}
+
 export function getDownloadEmlUrl(raw) {
     return URL.createObjectURL(
         new Blob([raw], { type: 'text/plain' }

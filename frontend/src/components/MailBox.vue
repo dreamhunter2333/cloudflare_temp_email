@@ -5,7 +5,7 @@ import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
 import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled, InboxRound } from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
-import { processItem } from '../utils/email-parser'
+import { getInlineImageUrls, processItem } from '../utils/email-parser'
 import { buildReplyModel, buildForwardModel } from '../utils/mail-actions'
 import MailContentRenderer from "./MailContentRenderer.vue";
 import MailSummary from "./MailSummary.vue";
@@ -102,8 +102,15 @@ const data = computed(() => {
   });
 })
 
-const openMail = (mail) => {
+const selectMail = async (mail) => {
   curMail.value = mail
+  if (!mail || mail.iframeImages !== undefined) return
+  mail.iframeImages = null
+  mail.iframeImages = await getInlineImageUrls(mail)
+}
+
+const openMail = (mail) => {
+  void selectMail(mail)
   if (mail?.is_unread !== 1 || !props.enableMailReadStatus) return
   mail.is_unread = 0
   void props.updateMailReadStatus(mail.id, false).catch(() => {
@@ -221,7 +228,7 @@ const refresh = async () => {
     }
     curMail.value = null;
     if (!isMobile.value && !mailListView.value && data.value.length > 0) {
-      curMail.value = data.value[0];
+      void selectMail(data.value[0]);
     }
   } catch (error) {
     message.error(error.message || "error");
@@ -239,7 +246,7 @@ const backFirstPageAndRefresh = async () => {
 const clickRow = (row) => {
   if (multiActionMode.value) {
     row.checked = !row.checked;
-    curMail.value = row;
+    void selectMail(row);
     return;
   }
   if (mailListView.value && curMail.value?.id === row.id) {

@@ -5,7 +5,6 @@ import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound, ImageRound, AttachFileRound,
   MarkEmailReadRound, MarkEmailUnreadRound, MoreHorizRound, DeleteOutlineRound, TextSnippetRound, InfoOutlined } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
-import MailIframe from "./MailIframe.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
 import { getDownloadEmlUrl } from '../utils/email-parser';
 import { blockRemoteContent } from '../utils/remote-content-policy';
@@ -106,7 +105,10 @@ const processedMail = computed(() => {
   return { message: html, blocked };
 });
 
-const iframeKey = computed(() => props.mail.attachments?.[0]?.url ?? props.mail.id);
+const iframeMessage = computed(() => props.mail.iframeImages?.reduce(
+  (html, { url, dataUrl }) => html.replaceAll(url, dataUrl),
+  processedMail.value.message,
+));
 
 const handleLoadRemoteImages = () => {
   showRemoteImages.value = true;
@@ -275,7 +277,9 @@ const handleSaveToS3 = async (filename, blob) => {
     <!-- 邮件内容 -->
     <div class="mail-content" :class="{ 'dark-mode': isDark }">
       <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-      <MailIframe v-else-if="useIframeShowMail" :key="iframeKey" :mail="mail" :html="processedMail.message" class="mail-iframe" />
+      <template v-else-if="useIframeShowMail">
+        <iframe v-if="iframeMessage !== undefined" :key="mail.id" sandbox="" :srcdoc="iframeMessage" class="mail-iframe"></iframe>
+      </template>
       <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
     </div>
   </div>
@@ -308,7 +312,9 @@ const handleSaveToS3 = async (filename, blob) => {
     <n-drawer-content :title="mail.subject" closable>
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-        <MailIframe v-else-if="useIframeShowMail" :key="iframeKey" :mail="mail" :html="processedMail.message" class="mail-iframe" />
+        <template v-else-if="useIframeShowMail">
+          <iframe v-if="iframeMessage !== undefined" :key="mail.id" sandbox="" :srcdoc="iframeMessage" class="mail-iframe"></iframe>
+        </template>
         <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
       </div>
     </n-drawer-content>
