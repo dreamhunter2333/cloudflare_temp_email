@@ -100,6 +100,13 @@ database_id = "xxx" # D1 database ID
 # service = "auth-inbox"
 ```
 
+> [!NOTE]
+> To keep passwords out of `wrangler.toml`, `ADMIN_PASSWORDS` and `PASSWORDS` can also be set as secrets. A secret is always a string, so enter the list as a JSON array, e.g. `["my-password"]`. A bare `my-password` fails to parse and is treated as an empty list, so the admin console becomes inaccessible, or the site is left without a password.
+>
+> ```bash
+> pnpm wrangler secret put ADMIN_PASSWORDS
+> ```
+
 ## Deploy Worker with Frontend (Optional)
 
 > [!NOTE]

@@ -100,6 +100,13 @@ database_id = "xxx" # D1 数据库 ID
 # service = "auth-inbox"
 ```
 
+> [!NOTE]
+> 如果不想把密码写在 `wrangler.toml` 中，`ADMIN_PASSWORDS` 和 `PASSWORDS` 也可以配置为 secret。secret 的值总是字符串，所以需要输入 JSON 数组，例如 `["my-password"]`。直接输入 `my-password` 会解析失败并被当作空列表，导致 admin 控制台无法访问，或网站不再需要密码即可访问。
+>
+> ```bash
+> pnpm wrangler secret put ADMIN_PASSWORDS
+> ```
+
 ## 部署带有前端页面的 worker(可选)
 
 > [!NOTE]
