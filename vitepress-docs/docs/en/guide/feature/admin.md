@@ -36,15 +36,11 @@ same role to that user in user management.
 
 ![admin](/feature/admin.png)
 
-## Statistics Dashboard
+## Statistics
 
-Eight cards show site-wide totals for retained mail, mailboxes, users, and sent mail, plus active mailboxes and users over the past 7 and 30 days. Activity uses each record's last update time. Registration and OAuth sign-in update user records. Password and passkey sign-in leave the user record timestamp unchanged.
+The Statistics page shows site-wide totals for received mail, mailboxes, users, and sent mail, plus active mailboxes and users over the last 7 and 30 days. Activity is based on each record's last update time.
 
-The **Statistics** page shows linked line charts for received mail, new mailboxes, sent mail, and new users. Use the time button to select today, the last 7 or 30 days, or a custom range of up to 30 days. Custom dates take effect after **Apply**. Charts show daily counts in UTC for retained records. ECharts loads lazily and supports linked tooltips and zooming.
-
-Refreshing requests totals and trends. Changing the dates requests only trends.
-
-The dashboard uses `GET /admin/statistics` with `granularity=day` and UTC midnight bounds in `from` and `to`, formatted as `YYYY-MM-DD 00:00:00`. The end bound is exclusive. Use `includeTotals=true` to include totals with the trends. Requests without parameters return the original totals fields.
+Use the date picker to view trends for received and sent mail, mailbox creation, and user registrations. Charts count retained records by UTC date, and custom ranges can span up to 30 days.
 
 ## Mailbox List Sorting
 
