@@ -19,6 +19,7 @@
 
 ### Bug Fixes
 
+- fix: |Mail Reader| Sanitize Shadow DOM email previews when remote images are allowed
 - fix: |Mail Reader| Sandbox regular and fullscreen iframe previews to block scripts in email bodies
 - fix: |Scheduled Cleanup| Catch errors for each built-in and custom SQL cleanup task, log failures, and continue with subsequent tasks
 - fix: |Header| Add horizontal spacing to the phone header

@@ -7,7 +7,7 @@ import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound, ImageR
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
 import { getDownloadEmlUrl } from '../utils/email-parser';
-import { blockRemoteContent } from '../utils/remote-content-policy';
+import { blockRemoteContent, sanitizeMailHtml } from '../utils/remote-content-policy';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
 
@@ -99,7 +99,8 @@ watch(() => props.mail.id, () => {
 
 const processedMail = computed(() => {
   if (autoLoadRemoteImages.value || showRemoteImages.value) {
-    return { message: props.mail.message, blocked: 0 };
+    const message = useIframeShowMail.value ? props.mail.message : sanitizeMailHtml(props.mail.message);
+    return { message, blocked: 0 };
   }
   const { html, blocked } = blockRemoteContent(props.mail.message);
   return { message: html, blocked };
