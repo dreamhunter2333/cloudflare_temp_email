@@ -82,6 +82,14 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
       await page.locator('.address-select').click();
       await expect(page.locator('.n-base-select-menu:visible')).not.toContainText('Credential Login');
       await page.keyboard.press('Escape');
+      await page.evaluate(() => localStorage.setItem('useSimpleIndex', 'true'));
+      await page.goto(`${FRONTEND_URL}/en/?jwt=${jwt}`);
+      await page.getByRole('button', { name: 'Mailbox Settings', exact: true }).click();
+      await page.getByRole('button', { name: 'View Session Token', exact: true }).click();
+      await expect(modal.getByTestId('address-credential-jwt')).toHaveText(jwt);
+      const payload = await verify(jwt, 'e2e-test-secret-key', 'HS256');
+      await expect(expiry).toHaveAttribute('datetime', new Date(Number(payload.exp) * 1000).toISOString());
+      await expect(modal.getByRole('heading', { name: 'Session Token', exact: true })).toBeVisible();
     } finally {
       if (jwt) await deleteAddress(request, jwt);
     }
