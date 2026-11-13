@@ -1,6 +1,14 @@
 
 # Configure Email Sending
 
+Receiving mail does not require a sending channel. To send mail from this project, configure at least one of the following methods. The methods can coexist; the system selects a channel for each request using the priority in the next section.
+
+| Method | Best for | Required configuration | Characteristics |
+|--------|----------|------------------------|-----------------|
+| Cloudflare `send_email` binding | Deployments already using Cloudflare Email Routing that want fewer third-party dependencies | `SEND_MAIL` binding and completed Email Routing onboarding | Direct Worker integration; subject to Cloudflare plan and sending rules |
+| Resend API | Quickly adopting a managed sending service | `RESEND_TOKEN` or a domain-specific `RESEND_TOKEN_<DOMAIN>`, plus a sending domain verified in Resend | Simple setup; quotas and restrictions depend on the Resend plan |
+| SMTP | Existing SMTP services or self-managed sending infrastructure | `SMTP_CONFIG` | Most customizable; you maintain the service, credentials, and connectivity |
+
 ::: tip Recommended
 Use Cloudflare `send_email` binding as the default send channel. Bind `SEND_MAIL` and finish Email Routing onboarding, then the Worker can send to any external address directly.
 

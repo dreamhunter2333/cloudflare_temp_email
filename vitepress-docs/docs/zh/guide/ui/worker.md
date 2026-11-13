@@ -12,12 +12,14 @@
     ![worker1](/ui_install/worker-1.png)
     ![worker2](/ui_install/worker-2.png)
 
-3. 回到 `Workers & Pages`，找到刚刚创建的 worker，点击 `Settings` -> `Runtime`, 修改 `Compatibility flags`, 手动输入增加 `nodejs_compat`, 兼容日期也需要大于图片中的日期。
+3. 回到 `Workers & Pages`，找到刚刚创建的 Worker，点击 `Settings` -> `Runtime`，确认兼容日期。
 
     ![worker-runtime](/ui_install/worker-runtime.png)
 
-    > [!IMPORTANT]
-    > `nodejs_compat` 必须添加成功后再部署 `worker.js`。如果缺少该兼容标记，常见错误是 `No such module "path"`、`No such module "node:stream"`，前端也可能只显示 `Network Error`。
+    > [!NOTE]
+    > 兼容日期为 `2026-08-04` 或更晚时，Cloudflare 默认启用 Node.js 兼容，无需手动添加 `nodejs_compat`。如果现有 Worker 使用更早的兼容日期，请在测试后更新兼容日期，或继续手动添加 `nodejs_compat`；已有配置无需专门删除该标记。
+    >
+    > 较早的兼容日期又没有该标记时，常见错误是 `No such module "path"`、`No such module "node:stream"`，前端也可能只显示 `Network Error`。参见 [Cloudflare Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)。
 
 4. 下载 [worker.js](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/worker.js)
 

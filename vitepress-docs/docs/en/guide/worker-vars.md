@@ -3,19 +3,25 @@
 > [!NOTE] Note
 > For CLI deployment syntax, please refer to `worker/wrangler.toml.template`
 
-## Required Variables
+## Defaults and Example Values
 
-| Variable Name              | Type        | Description                                                            | Example                              |
-| -------------------------- | ----------- | ---------------------------------------------------------------------- | ------------------------------------ |
-| `DOMAINS`                  | JSON        | All domains for temporary email, supports multiple domains             | `["awsl.uk", "dreamhunter2333.xyz"]` |
-| `JWT_SECRET`               | Text/Secret | Secret key for signing JWTs used in login and authentication. Use a random string, e.g. generated via `openssl rand -hex 32` | `a1b2c3d4...`                        |
-| `ADMIN_PASSWORDS`          | JSON        | Admin console passwords, console access disabled if not configured     | `["123", "456"]`                     |
-| `DISABLE_USER_SYSTEM` | Text/JSON | Block user system APIs and hide user interfaces; disabled by default | `true` |
-| `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | Whether to allow users to create mailboxes, disabled if not configured | `true`                               |
-| `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | Whether to allow users to delete emails, disabled if not configured    | `true`                               |
-| `ENABLE_MAIL_READ_STATUS` | Text/JSON | Enables read/unread mail state. Upgrade the database schema before enabling | `true` |
-| `ENABLE_REDEEM_CODE` | Text/JSON | Enables the redemption page, public redemption APIs, and Admin redemption management; disabled by default | `true` |
-| `REDEEM_CODE_URL` | Text | External URL for obtaining redemption codes; the link is hidden when unset | `https://example.com/redeem-codes` |
+Each table separates **Default / When unset** from **Example**. Variables marked **Required** must be configured for the deployment. Other defaults describe the Worker's actual runtime behavior when the variable is unset; they are not example settings from `wrangler.toml.template`.
+
+Unless an entry or its notes describe a different fallback, a `Text/JSON` boolean is enabled only by the boolean value `true` or the string `"true"`; an unset value is treated as `false`. Therefore, an unset `ENABLE_*` feature is disabled by default, while an unset `DISABLE_*` restriction does not apply. For strings, numbers, arrays, and objects, use the unset behavior documented by the individual entry.
+
+## Core Variables
+
+| Variable Name              | Type        | Description                                                            | Default / When unset | Example                              |
+| -------------------------- | ----------- | ---------------------------------------------------------------------- | -------------------- | ------------------------------------ |
+| `DOMAINS`                  | JSON        | All domains for temporary email, supports multiple domains             | **Required**         | `["awsl.uk", "dreamhunter2333.xyz"]` |
+| `JWT_SECRET`               | Text/Secret | Secret key for signing JWTs used in login and authentication. Use a random string, e.g. generated via `openssl rand -hex 32` | **Required** | `a1b2c3d4...` |
+| `ADMIN_PASSWORDS`          | JSON        | Admin console passwords; admin password login is disabled when unset   | `[]`                 | `["123", "456"]`                     |
+| `DISABLE_USER_SYSTEM`      | Text/JSON   | Block user system APIs and hide user interfaces                        | `false`              | `true` |
+| `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | Whether to allow users to create mailboxes                             | `false`              | `true` |
+| `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | Whether to allow users to delete emails                                | `false`              | `true` |
+| `ENABLE_MAIL_READ_STATUS`  | Text/JSON   | Enables read/unread mail state. Upgrade the database schema before enabling | `false` | `true` |
+| `ENABLE_REDEEM_CODE`       | Text/JSON   | Enables the redemption page, public redemption APIs, and Admin redemption management | `false` | `true` |
+| `REDEEM_CODE_URL`          | Text        | External URL for obtaining redemption codes                           | Empty; link hidden   | `https://example.com/redeem-codes` |
 
 > [!IMPORTANT] `DOMAINS` and `DEFAULT_DOMAINS` must already be set up in Cloudflare
 > Every domain you put here (including `DEFAULT_DOMAINS`, `USER_ROLES.domains`, `RANDOM_SUBDOMAIN_DOMAINS` further below) **must already have Cloudflare Email Routing enabled and its email DNS records provisioned**. After the Worker is deployed, bind the domain's Catch-all rule to that Worker; otherwise inbound mail will never reach the Worker.
@@ -23,38 +29,38 @@
 
 ## Console Related Variables
 
-| Variable Name                  | Type      | Description                                             | Example          |
-| ------------------------------ | --------- | ------------------------------------------------------- | ---------------- |
-| `PASSWORDS`                    | JSON      | Website private passwords, required after configuration | `["123", "456"]` |
-| `ADMIN_API_IP_WHITELIST`       | JSON      | Admin API IP whitelist; when configured, only listed IPs may access `/admin/*` | `["203.0.113.10"]` |
-| `DISABLE_ADMIN_PASSWORD_CHECK` | Text/JSON | Warning: Admin console without password or user check   | `false`          |
+| Variable Name                  | Type      | Description                                             | Default / When unset | Example          |
+| ------------------------------ | --------- | ------------------------------------------------------- | -------------------- | ---------------- |
+| `PASSWORDS`                    | JSON      | Website private passwords, required after configuration | `[]`; public access  | `["123", "456"]` |
+| `ADMIN_API_IP_WHITELIST`       | JSON      | Admin API IP whitelist; when configured, only listed IPs may access `/admin/*` | `[]`; no IP restriction | `["203.0.113.10"]` |
+| `DISABLE_ADMIN_PASSWORD_CHECK` | Text/JSON | Warning: skip Admin console password or user checks     | `false`              | `true`           |
 
 When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. Once configured, it applies to both admin-password and Admin user-token access, trusts only Cloudflare's `CF-Connecting-IP` header, and denies requests without that header.
 
 ## Email Related Variables
 
-| Variable Name                         | Type      | Description                                                                                                                                                                                                       | Example                                   |
-| ------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `PREFIX`                              | Text      | Default prefix for new `email address` names, can be left unconfigured if no prefix needed                                                                                                                        | `tmp`                                     |
-| `MIN_ADDRESS_LEN`                     | Number    | Minimum length of `email address` name                                                                                                                                                                            | `1`                                       |
-| `MAX_ADDRESS_LEN`                     | Number    | Maximum length of `email address` name                                                                                                                                                                            | `30`                                      |
-| `DISABLE_CUSTOM_ADDRESS_NAME`         | Text/JSON | Disable custom email address names, if set to true, users cannot enter custom names and they will be auto-generated                                                                                               | `true`                                    |
-| `DISABLE_ADDRESS_UPDATED_AT` | Text/JSON | Defaults to `false`. Set to `true` to stop individual and user-wide address activity keep-alive updates and disable built-in manual and scheduled inactive-address cleanup. Initial address timestamps, password operations, and other cleanup rules remain unchanged | `true` |
-| `ADDRESS_CHECK_REGEX`                 | Text      | Regular expression for `email address` name, used for validation only                                                                                                                                             | `^(?!.*admin).*`                          |
-| `ADDRESS_REGEX`                       | Text      | Regular expression to replace illegal symbols in `email address` name, symbols not in the regex will be replaced. Default is `[^a-z0-9]` if not set. Use with caution as some symbols may prevent email reception | `[^a-z0-9]`                               |
-| `DEFAULT_DOMAINS`                     | JSON      | Default domains available to users (not logged in or users without assigned roles)                                                                                                                                | `["awsl.uk", "dreamhunter2333.xyz"]`      |
-| `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` | Text/JSON | Whether to prioritize default domain when creating new addresses, if set to true, will use the first domain when no domain is specified, mainly for telegram bot scenarios                                        | `false`                                   |
-| `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` | Text/JSON | Whether to allow create-address APIs to use base-domain suffix matching. When enabled, if `example.com` is allowed, `/api/new_address` and `/admin/new_address` can also accept `foo.example.com` or `a.b.example.com` | `true` |
-| `RANDOM_SUBDOMAIN_DOMAINS`            | JSON      | Base domains that allow random or manual subdomains; random mode can turn `name@abc.com` into `name@<random>.abc.com`                                                                                              | `["abc.com"]`                             |
-| `RANDOM_SUBDOMAIN_LENGTH`             | Number    | Random subdomain length, default `8`, valid range `1-63`                                                                                                                                                           | `8`                                       |
-| `DOMAIN_LABELS`                       | JSON      | For Chinese domains, you can use DOMAIN_LABELS to display Chinese names                                                                                                                                           | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
-| `ENABLE_AUTO_REPLY`                   | Text/JSON | Allow automatic email replies. Sender filter (`source_prefix`) supports three modes: empty to match all senders, prefix for `startsWith` matching, or `/regex/` syntax for regex matching (e.g. `/@example\.com$/`) | `true`                                    |
-| `DEFAULT_SEND_BALANCE`                | Text/JSON | Default email sending balance. When greater than `0`, it is auto-initialized when users open the settings page or send mail for the first time. Defaults to `0` if unset                                                                                 | `1`                                       |
-| `ENABLE_ADDRESS_PASSWORD`             | Text/JSON | Enable address password feature, when enabled, passwords will be auto-generated for new addresses, supports password login and modification                                                                       | `true`                                    |
-| `ADDRESS_PASSWORD_LOGIN_ONLY` | Text/JSON | Default `false`; effective only with `ENABLE_ADDRESS_PASSWORD=true`. Shows only password login and issues renewable 30-day mailbox JWTs at creation, login, and authorized access. Legacy credentials, links, and API access remain compatible. See [mailbox sessions](./feature/mail-api#mailbox-password-jwt-validation-and-renewal) | `true` |
-| `ENABLE_AGENT_EMAIL_INFO`             | Text/JSON | Whether to show AI Agent access info in the frontend "Address Credentials & Connection Methods" dialog (Address JWT, parsed-mail APIs, skill link)                                      | `true`                                    |
-| `SMTP_IMAP_PROXY_CONFIG`              | JSON      | Show SMTP/IMAP proxy connection info in the frontend "Address Credentials & Connection Methods" dialog; display-only, does not start the proxy service, which must be deployed separately | See example below                         |
-| `SEND_MAIL_DOMAINS`                   | JSON      | Restrict which sender domains can use the `SEND_MAIL` binding; when unset or empty, all domains are allowed                                                                                                     | `["example.com", "mail.example.com"]`     |
+| Variable Name                         | Type      | Description                                                                                                                                                                                                       | Default / When unset | Example                                   |
+| ------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ----------------------------------------- |
+| `PREFIX`                              | Text      | Default prefix for new `email address` names                                                                                                                                                                      | Empty; no prefix     | `tmp`                                     |
+| `MIN_ADDRESS_LEN`                     | Number    | Minimum length of `email address` name                                                                                                                                                                            | `1`                  | `1`                                       |
+| `MAX_ADDRESS_LEN`                     | Number    | Maximum length of `email address` name                                                                                                                                                                            | `30`                 | `30`                                      |
+| `DISABLE_CUSTOM_ADDRESS_NAME`         | Text/JSON | Disable custom email address names; when enabled, users cannot enter custom names and they are generated automatically                                                                                            | `false`              | `true`                                    |
+| `DISABLE_ADDRESS_UPDATED_AT`          | Text/JSON | Stop individual and user-wide address activity keep-alive updates and disable built-in manual and scheduled inactive-address cleanup. Initial address timestamps, password operations, and other cleanup rules remain unchanged | `false` | `true` |
+| `ADDRESS_CHECK_REGEX`                 | Text      | Regular expression for `email address` name, used for validation only                                                                                                                                             | Empty; no check      | `^(?!.*admin).*`                          |
+| `ADDRESS_REGEX`                       | Text      | Regular expression used to replace illegal symbols in `email address` names. Use with caution because some symbols may prevent mail reception                                                                     | `[^a-z0-9]`          | `[^a-z0-9]`                               |
+| `DEFAULT_DOMAINS`                     | JSON      | Default domains available to users (not logged in or users without assigned roles)                                                                                                                                | Falls back to `DOMAINS` | `["awsl.uk", "dreamhunter2333.xyz"]`   |
+| `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` | Text/JSON | Prioritize the first default domain when creating an address without an explicit domain, mainly for Telegram Bot scenarios                                                                                        | `false`              | `true`                                    |
+| `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` | Text/JSON | Allow create-address APIs to use base-domain suffix matching. When enabled, if `example.com` is allowed, `/api/new_address` and `/admin/new_address` can also accept `foo.example.com` or `a.b.example.com` | `false` when no Admin override exists | `true` |
+| `RANDOM_SUBDOMAIN_DOMAINS`            | JSON      | Base domains that allow random or manual subdomains; random mode can turn `name@abc.com` into `name@<random>.abc.com`                                                                                              | `[]`; disabled       | `["abc.com"]`                            |
+| `RANDOM_SUBDOMAIN_LENGTH`             | Number    | Random subdomain length, valid range `1-63`                                                                                                                                                                       | `8`                  | `8`                                       |
+| `DOMAIN_LABELS`                       | JSON      | For Chinese domains, use DOMAIN_LABELS to display localized names                                                                                                                                                 | `[]`; original names | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
+| `ENABLE_AUTO_REPLY`                   | Text/JSON | Allow automatic email replies. Sender filter (`source_prefix`) supports three modes: empty to match all senders, prefix for `startsWith` matching, or `/regex/` syntax for regex matching (e.g. `/@example\.com$/`) | `false` | `true` |
+| `DEFAULT_SEND_BALANCE`                | Number/Text | Default email sending balance. When greater than `0`, it is auto-initialized when users open the settings page or send mail for the first time                                                                   | `0`                  | `1`                                       |
+| `ENABLE_ADDRESS_PASSWORD`             | Text/JSON | Enable address password support; passwords are generated for new addresses and can be used for login and modification                                                                                            | `false`              | `true`                                    |
+| `ADDRESS_PASSWORD_LOGIN_ONLY`         | Text/JSON | Effective only with `ENABLE_ADDRESS_PASSWORD=true`. Shows only password login and issues renewable 30-day mailbox JWTs at creation, login, and authorized access. Legacy credentials, links, and API access remain compatible. See [mailbox sessions](./feature/mail-api#mailbox-password-jwt-validation-and-renewal) | `false` | `true` |
+| `ENABLE_AGENT_EMAIL_INFO`             | Text/JSON | Show AI Agent access info in the frontend "Address Credentials & Connection Methods" dialog (Address JWT, parsed-mail APIs, skill link)                                                                           | `false`              | `true`                                    |
+| `SMTP_IMAP_PROXY_CONFIG`              | JSON      | Show SMTP/IMAP proxy connection info in the frontend "Address Credentials & Connection Methods" dialog; display-only, does not start the proxy service, which must be deployed separately                         | Empty; hidden        | See example below                         |
+| `SEND_MAIL_DOMAINS`                   | JSON      | Restrict which sender domains can use the `SEND_MAIL` binding                                                                                                                                                     | `[]`; all domains allowed | `["example.com", "mail.example.com"]` |
 
 > [!NOTE]
 > When `DEFAULT_DOMAINS` is unset or configured as an empty array, it falls back to `DOMAINS`.
@@ -101,17 +107,17 @@ When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. 
 
 ## Email Reception Related Variables
 
-| Variable Name                   | Type      | Description                                                                                                            | Example                    |
-| ------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `BLACK_LIST`                    | Text      | Comma-separated sender blacklist; case-sensitive substring matching against the SMTP envelope sender and every email address parsed from From, independently of body parsing. Any match rejects the mail. The admin sender blacklist follows the same rule; display names are not matched. | `gov.cn,edu.cn`            |
-| `ENABLE_CHECK_JUNK_MAIL`        | Text/JSON | Whether to enable junk mail checking, used with the following two lists                                                | `false`                    |
-| `JUNK_MAIL_CHECK_LIST`          | JSON      | Existence check; registered failure/error results are junk, while `none` and SPF/DKIM `neutral` are treated as absent  | `["spf", "dkim", "dmarc"]` |
-| `JUNK_MAIL_FORCE_PASS_LIST`     | JSON      | Strict pass check; every item must explicitly return `pass`, otherwise it is treated as junk                           | `["spf", "dkim", "dmarc"]` |
-| `FORWARD_ADDRESS_LIST`          | JSON      | Global external-only forwarding via Cloudflare; does not use internal mailbox delivery. Disabled if not configured | `["xxx@xxx.com"]`          |
-| `REMOVE_EXCEED_SIZE_ATTACHMENT` | Text/JSON | If attachment exceeds 2MB, remove it, email may lose some information due to parsing                                   | `true`                     |
-| `REMOVE_ALL_ATTACHMENT`         | Text/JSON | Remove all attachments, email may lose some information due to parsing                                                 | `true`                     |
-| `ENABLE_MAIL_GZIP`             | Text/JSON | When enabled, new emails are gzip-compressed and stored in `raw_blob` column to save D1 database space. Existing plaintext `raw` data is automatically compatible for reading. **Run database migration first (`Admin -> Quick Setup -> Database -> Migrate Database` or `POST /admin/db_migration`) to ensure the `raw_blob` column exists before enabling. This feature adds compression/decompression CPU overhead, so enabling it on a paid Cloudflare Worker plan is recommended.** | `true`                     |
-| `CLEANUP_BATCH_SIZE`           | Number    | Per-run limit for built-in mail, sent-mail, and address cleanup tasks. Defaults to `3000`, valid range `1-5000`. Smaller values reduce per-run D1 pressure; larger values clear backlogs faster | `3000` |
+| Variable Name                   | Type      | Description                                                                                                            | Default / When unset | Example                    |
+| ------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------- |
+| `BLACK_LIST`                    | Text      | Comma-separated sender blacklist; case-sensitive substring matching against the SMTP envelope sender and every email address parsed from From, independently of body parsing. Any match rejects the mail. The admin sender blacklist follows the same rule; display names are not matched. | Empty; no blocking | `gov.cn,edu.cn` |
+| `ENABLE_CHECK_JUNK_MAIL`        | Text/JSON | Whether to enable junk mail checking, used with the following two lists                                                | `false`              | `true`                     |
+| `JUNK_MAIL_CHECK_LIST`          | JSON      | Existence check; registered failure/error results are junk, while `none` and SPF/DKIM `neutral` are treated as absent  | `[]`                 | `["spf", "dkim", "dmarc"]` |
+| `JUNK_MAIL_FORCE_PASS_LIST`     | JSON      | Strict pass check; every item must explicitly return `pass`, otherwise it is treated as junk                           | `[]`                 | `["spf", "dkim", "dmarc"]` |
+| `FORWARD_ADDRESS_LIST`          | JSON      | Global external-only forwarding via Cloudflare; does not use internal mailbox delivery                                | `[]`; disabled       | `["xxx@xxx.com"]`          |
+| `REMOVE_EXCEED_SIZE_ATTACHMENT` | Text/JSON | If attachment exceeds 2MB, remove it; email may lose some information due to parsing                                   | `false`              | `true`                     |
+| `REMOVE_ALL_ATTACHMENT`         | Text/JSON | Remove all attachments; email may lose some information due to parsing                                                 | `false`              | `true`                     |
+| `ENABLE_MAIL_GZIP`              | Text/JSON | When enabled, new emails are gzip-compressed and stored in `raw_blob` column to save D1 database space. Existing plaintext `raw` data is automatically compatible for reading. **Run database migration first (`Admin -> Quick Setup -> Database -> Migrate Database` or `POST /admin/db_migration`) to ensure the `raw_blob` column exists before enabling. This feature adds compression/decompression CPU overhead, so enabling it on a paid Cloudflare Worker plan is recommended.** | `false` | `true` |
+| `CLEANUP_BATCH_SIZE`            | Number    | Per-run limit for built-in mail, sent-mail, and address cleanup tasks, valid range `1-5000`. Smaller values reduce per-run D1 pressure; larger values clear backlogs faster | `3000` | `3000` |
 
 > [!NOTE]
 > Authentication results follow their standards: SPF `none` means no usable domain or SPF record was found, and SPF `neutral` must be treated like `none`; DKIM `none` means the message was unsigned, and DKIM `neutral` is also treated as unsigned; DMARC `none` means no applicable DMARC policy was found. Unregistered results and unsupported method versions are ignored. `JUNK_MAIL_CHECK_LIST` treats these results as absent, while `JUNK_MAIL_FORCE_PASS_LIST` still requires an explicit supported `pass`
@@ -126,11 +132,11 @@ When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. 
 
 ## Webhook Related Variables
 
-| Variable Name    | Type      | Description                                       | Example            |
-| ---------------- | --------- | ------------------------------------------------- | ------------------ |
-| `ENABLE_WEBHOOK` | Text/JSON | Whether to enable webhook                         | `true`             |
-| `FRONTEND_URL`   | Text      | Frontend URL, used for sending webhook email URLs | `https://xxxx.xxx` |
-| `BACKEND_URL` | Text | Public backend base URL for signed attachment links; attachment URLs are empty when unset | `https://temp-email-api.example.com` |
+| Variable Name    | Type      | Description                                       | Default / When unset | Example            |
+| ---------------- | --------- | ------------------------------------------------- | -------------------- | ------------------ |
+| `ENABLE_WEBHOOK` | Text/JSON | Whether to enable webhook                         | `false`              | `true`             |
+| `FRONTEND_URL`   | Text      | Frontend URL, used for sending webhook email URLs | Empty                | `https://xxxx.xxx` |
+| `BACKEND_URL`    | Text      | Public backend base URL for signed attachment links | Empty; attachment URLs omitted | `https://temp-email-api.example.com` |
 
 > [!NOTE]
 > Webhook functionality requires email parsing, free tier CPU is limited, may cause large email parsing timeout
@@ -141,16 +147,17 @@ When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. 
 
 ## User Related Variables
 
-| Variable Name                         | Type      | Description                                                                                          | Example   |
-| ------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------- | --------- |
-| `USER_DEFAULT_ROLE`                   | Text      | Default role for new users, only effective when email verification is enabled                        | `vip`     |
-| `ADMIN_USER_ROLE`                     | Text      | Admin role configuration, if user role equals ADMIN_USER_ROLE, user can access admin console         | `admin`   |
-| `USER_ROLES`                          | JSON      | -                                                                                                    | See below |
-| `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` | Text/JSON | Disable anonymous user mailbox creation, if set to true, users can only create addresses after login | `true`    |
-| `NO_LIMIT_SEND_ROLE`                  | Text      | Roles that can send unlimited emails, multiple roles separated by comma `vip,admin`                  | `vip`     |
+| Variable Name                         | Type      | Description                                                                                          | Default / When unset | Example   |
+| ------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------- | -------------------- | --------- |
+| `USER_DEFAULT_ROLE`                   | Text      | Default role for new users, only effective when email verification is enabled                        | Empty; no role assigned | `vip`  |
+| `ADMIN_USER_ROLE`                     | Text      | Users whose role equals `ADMIN_USER_ROLE` can access the Admin Console                               | Empty; no role grants Admin access | `admin` |
+| `USER_ROLES`                          | JSON      | Custom user-role list; `role` is a custom name, while `vip` and `admin` are examples only             | `[]`                 | See below |
+| `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` | Text/JSON | Disable anonymous user mailbox creation; when enabled, users can create addresses only after login   | `false`              | `true`    |
+| `NO_LIMIT_SEND_ROLE`                  | Text      | Roles that can send unlimited emails, multiple roles separated by commas                             | Empty; all roles use balance checks | `vip,admin` |
 
 > [!NOTE] USER_ROLES User Role Configuration
 >
+> - Role names are defined by the deployer; `vip` and `admin` in the examples are not built-in roles. `USER_DEFAULT_ROLE`, `ADMIN_USER_ROLE`, and `NO_LIMIT_SEND_ROLE` refer to these configurations by the same role name
 > - If `domains` is empty, `DEFAULT_DOMAINS` will be used; if `DEFAULT_DOMAINS` is also empty, it falls back to `DOMAINS`
 > - If prefix is null, the default prefix will be used, if prefix is an empty string, no prefix will be used
 >
@@ -160,29 +167,29 @@ When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. 
 
 ## Web Related Variables
 
-| Variable Name              | Type        | Description                                                              | Example               |
-| -------------------------- | ----------- | ------------------------------------------------------------------------ | --------------------- |
-| `DEFAULT_LANG`             | Text        | Worker error message default language, zh/en                             | `zh`                  |
-| `TITLE`                    | Text        | Custom frontend page website title, supports html                        | `Custom Title`        |
-| `ANNOUNCEMENT`             | Text        | Custom frontend page announcement, supports html                         | `Custom Announcement` |
-| `ALWAYS_SHOW_ANNOUNCEMENT` | Text/JSON   | Whether to always show announcement (even if unchanged), default `false` | `true`                |
-| `COPYRIGHT`                | Text        | Custom frontend footer text, supports html                               | `Dream Hunter`        |
-| `ADMIN_CONTACT`            | Text        | Admin contact information, can be any string, hidden if not configured   | `xxx@gmail.com`       |
-| `DISABLE_SHOW_GITHUB`      | Text/JSON   | Globally hide the GitHub link                                            | `true`                |
-| `DISABLE_SHOW_GITHUB_FOR_USER` | Text/JSON | Hide the GitHub link for normal users while keeping it visible to admin users | `true`                |
-| `STATUS_URL`               | Text        | Status monitoring page URL, shows Status menu button when configured     | `https://status.example.com` |
-| `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
-| `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | `xxx`                 |
-| `ENABLE_GLOBAL_TURNSTILE_CHECK` | Text/JSON | Enable global Turnstile CAPTCHA for all login forms (admin login, user login, address password login), requires Turnstile keys above | `true` |
+| Variable Name              | Type        | Description                                                              | Default / When unset | Example               |
+| -------------------------- | ----------- | ------------------------------------------------------------------------ | -------------------- | --------------------- |
+| `DEFAULT_LANG`             | Text        | Worker error message default language, supports `zh`/`en`                | General APIs fall back to `en`; Telegram falls back to `zh` | `zh` |
+| `TITLE`                    | Text        | Custom frontend page website title, supports HTML                        | Built-in localized title | `Custom Title`    |
+| `ANNOUNCEMENT`             | Text        | Custom frontend page announcement, supports HTML                         | Empty; hidden        | `Custom Announcement` |
+| `ALWAYS_SHOW_ANNOUNCEMENT` | Text/JSON   | Whether to always show an announcement even when unchanged               | `false`              | `true`                |
+| `COPYRIGHT`                | Text        | Custom frontend footer text, supports HTML                               | `Dream Hunter`       | `Custom Copyright`    |
+| `ADMIN_CONTACT`            | Text        | Admin contact information, can be any string                             | Empty; hidden        | `xxx@gmail.com`       |
+| `DISABLE_SHOW_GITHUB`      | Text/JSON   | Globally hide the GitHub link                                            | `false`; visible     | `true`                |
+| `DISABLE_SHOW_GITHUB_FOR_USER` | Text/JSON | Hide the GitHub link for normal users while keeping it visible to Admin users | `false`; visible | `true` |
+| `STATUS_URL`               | Text        | Status monitoring page URL, shows Status menu button when configured     | Empty; hidden        | `https://status.example.com` |
+| `CF_TURNSTILE_SITE_KEY`    | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | Empty; related checks disabled | `xxx` |
+| `CF_TURNSTILE_SECRET_KEY`  | Text/Secret | Turnstile CAPTCHA configuration (for new address creation, registration code, etc.) | Empty; related checks disabled | `xxx` |
+| `ENABLE_GLOBAL_TURNSTILE_CHECK` | Text/JSON | Enable global Turnstile CAPTCHA for all login forms (Admin login, user login, address password login), requires Turnstile keys above | `false` | `true` |
 
 ## Telegram Bot Related Variables
 
-| Variable Name        | Type      | Description                                                                 | Example |
-| -------------------- | --------- | --------------------------------------------------------------------------- | ------- |
-| `TG_MAX_ADDRESS`     | Number    | Maximum number of mailboxes that can be bound to telegram bot               | `5`     |
-| `TG_BOT_INFO`        | Text      | Optional, telegram BOT_INFO, predefined BOT_INFO can reduce webhook latency | `{}`    |
-| `TG_ALLOW_USER_LANG` | Text/JSON | Allow users to switch language via `/lang` command, default `false`         | `true`  |
-| `ENABLE_TG_PUSH_ATTACHMENT` | Boolean | Enable sending email attachments via Telegram push, default `false`, 50MB per file limit | `true` |
+| Variable Name        | Type      | Description                                                                 | Default / When unset | Example |
+| -------------------- | --------- | --------------------------------------------------------------------------- | -------------------- | ------- |
+| `TG_MAX_ADDRESS`     | Number    | Maximum number of mailboxes that can be bound to the Telegram Bot           | `5`                  | `5`     |
+| `TG_BOT_INFO`        | Text      | Predefined Bot info can reduce webhook latency                              | Empty; queried at runtime | `{}` |
+| `TG_ALLOW_USER_LANG` | Text/JSON | Allow users to switch language via `/lang` command                          | `false`              | `true`  |
+| `ENABLE_TG_PUSH_ATTACHMENT` | Text/JSON | Enable sending email attachments via Telegram push, 50MB per file limit | `false` | `true` |
 
 > [!NOTE]
 > Telegram functionality requires email parsing, free tier CPU is limited, may cause large email parsing timeout
@@ -195,9 +202,9 @@ When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. 
 
 Admin or `SUBDOMAIN_FORWARD_ADDRESS_LIST` rules targeting addresses under domains listed in `DOMAINS` reuse receive processing for storage, extraction and notifications, but do not forward or auto-reply again. Unknown addresses follow the existing recipient-rejection setting. Originals are kept by default; enable “Delete original after forwarding” in a rule to delete the current original at the end of mail processing after successful delivery. `FORWARD_ADDRESS_LIST` only forwards to external addresses through Cloudflare and does not use internal mailbox delivery. No database migration is required.
 
-| Variable Name                     | Type | Description                                                                              | Example   |
-| --------------------------------- | ---- | ---------------------------------------------------------------------------------------- | --------- |
-| `SUBDOMAIN_FORWARD_ADDRESS_LIST`  | JSON | Subdomain/rule forwarding configuration, supports filtering by domain and source regex  | See below |
+| Variable Name                     | Type | Description                                                                              | Default / When unset | Example   |
+| --------------------------------- | ---- | ---------------------------------------------------------------------------------------- | -------------------- | --------- |
+| `SUBDOMAIN_FORWARD_ADDRESS_LIST`  | JSON | Subdomain/rule forwarding configuration, supports filtering by domain and source regex  | `[]`; disabled       | See below |
 
 > [!NOTE] SUBDOMAIN_FORWARD_ADDRESS_LIST Configuration
 >
@@ -223,10 +230,10 @@ Admin or `SUBDOMAIN_FORWARD_ADDRESS_LIST` rules targeting addresses under domain
 
 ## Other Variables
 
-| Variable Name           | Type      | Description                                                                                                                                                                                                                                                   | Example   |
-| ----------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| `ENABLE_ANOTHER_WORKER` | Text/JSON | Whether to enable other workers to process emails                                                                                                                                                                                                             | `false`   |
-| `ANOTHER_WORKER_LIST`   | JSON      | - Configuration for other workers to process emails, multiple workers can be configured <br/> - Filter by keywords, call the bound worker's method (default method name is rpcEmail)<br/> - keywords are required, otherwise the worker will not be triggered | See below |
+| Variable Name           | Type      | Description                                                                                                                                                                                                                                                   | Default / When unset | Example   |
+| ----------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | --------- |
+| `ENABLE_ANOTHER_WORKER` | Text/JSON | Whether to enable other Workers to process emails                                                                                                                                                                                                             | `false`              | `true`    |
+| `ANOTHER_WORKER_LIST`   | JSON      | - Configuration for other Workers to process emails; multiple Workers can be configured <br/> - Filter by keywords and call the bound Worker's method (default method name is `rpcEmail`)<br/> - `keywords` is required; otherwise the Worker is not triggered | `[]` | See below |
 
 > [!NOTE]
 > `ANOTHER_WORKER_LIST` configuration example
