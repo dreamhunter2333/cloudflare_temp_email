@@ -83,7 +83,7 @@ test('renewal updates the current JWT; expired cached sessions require login', a
     await testInfo.attach('Mailbox selector login-method tags', {
       body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
     });
-    await options.getByText(other.address, { exact: true }).click();
+    await options.locator('.n-base-select-option').filter({ hasText: other.address }).click();
     await expect.poll(readCache).toEqual([
       mailbox.jwt, passwordToken, other.jwt, expiredPasswordToken, renewedToken,
     ]);
