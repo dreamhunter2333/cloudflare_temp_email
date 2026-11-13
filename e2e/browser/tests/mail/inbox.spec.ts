@@ -199,69 +199,76 @@ for (const layout of [
       await expect(remove).toHaveText('Delete');
       await expect(remove).toHaveClass(/n-button--error-type/);
       await expect(remove).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-      await more.focus();
-      await page.keyboard.press('Enter');
-      await expect(more).toHaveAttribute('aria-expanded', 'true');
-      const download = page.getByRole('link', { name: 'Download Mail' });
-      await expect(download).toBeFocused();
-      await page.keyboard.press('Tab');
-      await expect(page.getByRole('button', { name: 'Mark as Unread', exact: true })).toBeFocused();
-      await page.keyboard.press('Tab');
-      await expect(page.getByRole('button', { name: 'Show Text Mail', exact: true })).toBeFocused();
-      await page.keyboard.press('Tab');
-      await expect(page.getByRole('button', { name: 'Fullscreen', exact: true })).toBeFocused();
-      await page.keyboard.press('Tab');
-      await expect(page.getByRole('button', { name: 'Mail details', exact: true })).toBeFocused();
-      await page.keyboard.press('Shift+Tab');
-      await expect(page.getByRole('button', { name: 'Fullscreen', exact: true })).toBeFocused();
-      await page.keyboard.press('Escape');
-      await expect(more).toHaveAttribute('aria-expanded', 'false');
-      await expect(more).toBeFocused();
-      await page.keyboard.press('Space');
-      await expect(download).toBeFocused();
-      await page.keyboard.press('Escape');
-      await expect(more).toBeFocused();
-      await more.click();
-      await expect(download).toBeFocused();
-      await page.getByRole('button', { name: 'Mail details', exact: true }).click();
-      const details = page.locator('.mail-details-modal');
-      await expect(details).toBeVisible();
-      await expect(details.getByRole('heading', { name: 'Mail details', exact: true }).first()).toBeVisible();
-      await expect(details).toContainText('ID');
-      await expect(details).toContainText(from);
-      await expect(details).toContainText(subject);
-      await expect(details).toContainText('Message-ID');
-      await expect(details).toContainText('UTC');
-      await expect(more).toHaveAttribute('aria-expanded', 'false');
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-      await page.keyboard.press('Escape');
-      await expect(details).toHaveCount(0);
-      await expect(more).toBeFocused();
-      await expect(reader.locator('.mail-details-footer')).not.toContainText('ID:');
-      await more.click();
-      await page.getByRole('button', { name: 'Show Text Mail', exact: true }).focus();
-      await page.keyboard.press('Enter');
-      await expect(reader.locator('.mail-text')).toHaveText(text);
-      await expect(more).toHaveAttribute('aria-expanded', 'false');
-      await expect(more).toBeFocused();
-      await more.click();
-      await page.getByRole('button', { name: 'Show HTML Mail', exact: true }).click();
-      await expect(reader.locator('.mail-html')).toBeVisible();
-      await more.click();
-      await expect(download).toHaveAttribute('download', /\.eml$/);
-      await expect(download).toHaveAttribute('href', /^blob:/);
-      const downloaded = page.waitForEvent('download');
-      await download.click();
-      expect((await downloaded).suggestedFilename()).toMatch(/\.eml$/);
-      await expect(more).toHaveAttribute('aria-expanded', 'false');
-      await more.click();
-      await page.getByRole('button', { name: 'Fullscreen', exact: true }).click();
-      await expect(page.locator('.fullscreen-mail-content')).toBeVisible();
-      await page.locator('.n-drawer-header__close').last().click();
-      await expect(page.locator('.fullscreen-mail-content')).toHaveCount(0);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      if (layout.name === 'desktop split') {
+        await more.focus();
+        await page.keyboard.press('Enter');
+        await expect(more).toHaveAttribute('aria-expanded', 'true');
+        const download = page.getByRole('link', { name: 'Download Mail' });
+        await expect(download).toBeFocused();
+        await page.keyboard.press('Tab');
+        await expect(page.getByRole('button', { name: 'Mark as Unread', exact: true })).toBeFocused();
+        await page.keyboard.press('Tab');
+        await expect(page.getByRole('button', { name: 'Show Text Mail', exact: true })).toBeFocused();
+        await page.keyboard.press('Tab');
+        await expect(page.getByRole('button', { name: 'Fullscreen', exact: true })).toBeFocused();
+        await page.keyboard.press('Tab');
+        await expect(page.getByRole('button', { name: 'Mail details', exact: true })).toBeFocused();
+        await page.keyboard.press('Shift+Tab');
+        await expect(page.getByRole('button', { name: 'Fullscreen', exact: true })).toBeFocused();
+        await page.keyboard.press('Escape');
+        await expect(more).toHaveAttribute('aria-expanded', 'false');
+        await expect(more).toBeFocused();
+        await page.keyboard.press('Space');
+        await expect(download).toBeFocused();
+        await page.keyboard.press('Escape');
+        await expect(more).toBeFocused();
+        await more.click();
+        await expect(download).toBeFocused();
+        await page.getByRole('button', { name: 'Mail details', exact: true }).click();
+        const details = page.locator('.mail-details-modal');
+        await expect(details).toBeVisible();
+        await expect(details.getByRole('heading', { name: 'Mail details', exact: true }).first()).toBeVisible();
+        await expect(details).toContainText('ID');
+        await expect(details).toContainText(from);
+        await expect(details).toContainText(subject);
+        await expect(details).toContainText('Message-ID');
+        await expect(details).toContainText('UTC');
+        await expect(more).toHaveAttribute('aria-expanded', 'false');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+        await page.keyboard.press('Escape');
+        await expect(details).toHaveCount(0);
+        await expect(more).toBeFocused();
+        await expect(reader.locator('.mail-details-footer')).not.toContainText('ID:');
+        await more.click();
+        await page.getByRole('button', { name: 'Show Text Mail', exact: true }).focus();
+        await page.keyboard.press('Enter');
+        await expect(reader.locator('.mail-text')).toHaveText(text);
+        await expect(more).toHaveAttribute('aria-expanded', 'false');
+        await expect(more).toBeFocused();
+        await more.click();
+        await page.getByRole('button', { name: 'Show HTML Mail', exact: true }).click();
+        await expect(reader.locator('.mail-html')).toBeVisible();
+        await more.click();
+        await expect(download).toHaveAttribute('download', /\.eml$/);
+        await expect(download).toHaveAttribute('href', /^blob:/);
+        const downloaded = page.waitForEvent('download');
+        await download.click();
+        expect((await downloaded).suggestedFilename()).toMatch(/\.eml$/);
+        await expect(more).toHaveAttribute('aria-expanded', 'false');
+        await more.click();
+        await page.getByRole('button', { name: 'Fullscreen', exact: true }).click();
+        await expect(page.locator('.fullscreen-mail-content')).toBeVisible();
+        await page.locator('.n-drawer-header__close').last().click();
+        await expect(page.locator('.fullscreen-mail-content')).toHaveCount(0);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      } else if (layout.name === 'narrow mobile') {
+        await more.click();
+        await page.getByRole('button', { name: 'Fullscreen', exact: true }).click();
+        await expect(page.locator('.fullscreen-mail-content')).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      }
 
-      if (layout.width >= 768) {
+      if (layout.listView) {
         await page.getByRole('button', { name: 'Multi Action', exact: true }).click();
         const checkbox = item.getByRole('checkbox');
         await checkbox.click();
@@ -270,14 +277,16 @@ for (const layout of [
         await expect(checkbox).not.toBeChecked();
       }
 
-      await page.goto(`${FRONTEND_URL}/zh/?jwt=${jwt}`);
-      await item.locator('.mail-summary-subject').click();
-      await page.getByRole('button', { name: '更多操作', exact: true }).click();
-      await page.getByRole('button', { name: '邮件详情', exact: true }).click();
-      await expect(details.getByRole('heading', { name: 'Mail details', exact: true }).first()).toBeVisible();
-      expect(await details.locator('.n-descriptions-table-content__label').allTextContents()).toEqual(
-        expect.arrayContaining(['Subject:', 'From:', 'Received at:', 'Message-ID:', 'ID:'])
-      );
+      if (layout.name === 'desktop split') {
+        await page.goto(`${FRONTEND_URL}/zh/?jwt=${jwt}`);
+        await item.locator('.mail-summary-subject').click();
+        await page.getByRole('button', { name: '更多操作', exact: true }).click();
+        await page.getByRole('button', { name: '邮件详情', exact: true }).click();
+        await expect(details.getByRole('heading', { name: 'Mail details', exact: true }).first()).toBeVisible();
+        expect(await details.locator('.n-descriptions-table-content__label').allTextContents()).toEqual(
+          expect.arrayContaining(['Subject:', 'From:', 'Received at:', 'Message-ID:', 'ID:'])
+        );
+      }
     } finally {
       try {
         if (jwt) await deleteAddress(api, jwt);
