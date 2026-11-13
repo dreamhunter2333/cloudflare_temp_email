@@ -199,6 +199,7 @@ for (const layout of [
       await expect(remove).toHaveText('Delete');
       await expect(remove).toHaveClass(/n-button--error-type/);
       await expect(remove).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      const details = page.locator('.mail-details-modal');
       if (layout.name === 'desktop split') {
         await more.focus();
         await page.keyboard.press('Enter');
@@ -225,7 +226,6 @@ for (const layout of [
         await more.click();
         await expect(download).toBeFocused();
         await page.getByRole('button', { name: 'Mail details', exact: true }).click();
-        const details = page.locator('.mail-details-modal');
         await expect(details).toBeVisible();
         await expect(details.getByRole('heading', { name: 'Mail details', exact: true }).first()).toBeVisible();
         await expect(details).toContainText('ID');
