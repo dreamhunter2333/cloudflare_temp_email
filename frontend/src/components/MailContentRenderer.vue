@@ -97,14 +97,19 @@ watch(() => props.mail.id, () => {
   showMailDetails.value = false;
 });
 
+const allowRemoteImages = computed(() => autoLoadRemoteImages.value || showRemoteImages.value);
+
 const processedMail = computed(() => {
-  if (autoLoadRemoteImages.value || showRemoteImages.value) {
-    const message = useIframeShowMail.value ? props.mail.message : sanitizeMailHtml(props.mail.message);
-    return { message, blocked: 0 };
+  if (allowRemoteImages.value) {
+    return { message: props.mail.message, blocked: 0 };
   }
   const { html, blocked } = blockRemoteContent(props.mail.message);
   return { message: html, blocked };
 });
+
+const shadowMailHtml = computed(() => allowRemoteImages.value
+  ? sanitizeMailHtml(processedMail.value.message)
+  : processedMail.value.message);
 
 const handleLoadRemoteImages = () => {
   showRemoteImages.value = true;
@@ -275,7 +280,7 @@ const handleSaveToS3 = async (filename, blob) => {
       <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
       <iframe v-else-if="useIframeShowMail" :srcdoc="processedMail.message" class="mail-iframe" sandbox="allow-same-origin allow-popups">
       </iframe>
-      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
+      <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="shadowMailHtml" :isDark="isDark" class="mail-html" />
     </div>
   </div>
 
@@ -309,7 +314,7 @@ const handleSaveToS3 = async (filename, blob) => {
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
         <iframe v-else-if="useIframeShowMail" :srcdoc="processedMail.message" class="mail-iframe" sandbox="allow-same-origin allow-popups">
         </iframe>
-        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="processedMail.message" :isDark="isDark" class="mail-html" />
+        <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="shadowMailHtml" :isDark="isDark" class="mail-html" />
       </div>
     </n-drawer-content>
   </n-drawer>
