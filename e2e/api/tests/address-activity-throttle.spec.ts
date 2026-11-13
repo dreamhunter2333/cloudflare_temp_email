@@ -3,6 +3,8 @@ import {
   WORKER_URL,
   WORKER_URL_ENV_OFF,
   onMailpitMessage,
+  createTestAddress,
+  deleteAddress,
   hashPassword,
 } from '../../fixtures/test-helpers';
 
@@ -10,6 +12,78 @@ const OLD = '2020-01-01 00:00:00';
 const RECENT = new Date(Date.now() - 3_600_000).toISOString().replace('T', ' ').slice(0, 19);
 type Mailbox = { address: string; address_id: number; jwt: string; password: string };
 type User = { id: number; email: string; jwt: string };
+
+test.describe('Address activity throttling', () => {
+  test('does not rewrite recently active addresses from user settings', async ({ request }) => {
+    const email = `activity-throttle-${Date.now()}@test.example.com`;
+    const password = hashPassword('test-password-123');
+    const address = await createTestAddress(request, 'activity-throttle');
+    let userId: number | undefined;
+
+    try {
+      const settingsRes = await request.post(`${WORKER_URL}/admin/user_settings`, {
+        data: { enable: true, enableMailVerify: false },
+      });
+      expect(settingsRes.ok()).toBe(true);
+
+      const registerRes = await request.post(`${WORKER_URL}/user_api/register`, {
+        data: { email, password },
+      });
+      expect(registerRes.ok()).toBe(true);
+
+      const loginRes = await request.post(`${WORKER_URL}/user_api/login`, {
+        data: { email, password },
+      });
+      expect(loginRes.ok()).toBe(true);
+      const { jwt: userJwt } = await loginRes.json();
+      const payload = JSON.parse(Buffer.from(userJwt.split('.')[1], 'base64url').toString('utf8'));
+      userId = payload.user_id;
+
+      const bindRes = await request.post(`${WORKER_URL}/user_api/bind_address`, {
+        headers: {
+          Authorization: `Bearer ${address.jwt}`,
+          'x-user-token': userJwt,
+        },
+      });
+      expect(bindRes.ok()).toBe(true);
+
+      const beforeRes = await request.get(`${WORKER_URL}/user_api/bind_address`, {
+        headers: { 'x-user-token': userJwt },
+      });
+      expect(beforeRes.ok()).toBe(true);
+      const before = await beforeRes.json();
+      const initialUpdatedAt = before.results.find(
+        (row: { name: string }) => row.name === address.address,
+      )?.updated_at;
+      expect(initialUpdatedAt).toBeTruthy();
+
+      const seeded = await request.post(`${WORKER_URL}/__test/seed_mail`, {
+        data: { address: address.address, raw: 'Activity test', address_updated_at: RECENT },
+      });
+      expect(seeded.ok()).toBe(true);
+      const userSettingsRes = await request.get(`${WORKER_URL}/user_api/settings`, {
+        headers: { 'x-user-token': userJwt, 'x-test-await-background': '1' },
+      });
+      expect(userSettingsRes.ok()).toBe(true);
+
+      const afterRes = await request.get(`${WORKER_URL}/user_api/bind_address`, {
+        headers: { 'x-user-token': userJwt },
+      });
+      expect(afterRes.ok()).toBe(true);
+      const after = await afterRes.json();
+      const updatedAt = after.results.find(
+        (row: { name: string }) => row.name === address.address,
+      )?.updated_at;
+      expect(updatedAt).toBe(RECENT);
+    } finally {
+      await deleteAddress(request, address.jwt);
+      if (userId) {
+        const deleteUserRes = await request.delete(`${WORKER_URL}/admin/users/${userId}`);
+        expect(deleteUserRes.ok()).toBe(true);
+      }
+    }
+  });
+});
 
 for (const { base, disabled } of [
   { base: WORKER_URL, disabled: false },
@@ -223,7 +297,7 @@ for (const { base, disabled } of [
       expect((await list(request, '/admin/sendbox', { address: mailbox.address })).count).toBe(2);
     });
 
-    if (disabled) test('password generation, password changes and admin resets keep working', async ({ request }) => {
+    test('password generation, password changes and admin resets keep working', async ({ request }) => {
       const mailbox = await newMailbox(request);
       expect(mailbox.password).toBeTruthy();
       expect((await addressRow(request, mailbox)).updated_at).toBeTruthy();
@@ -241,7 +315,7 @@ for (const { base, disabled } of [
       }
     });
 
-    if (disabled) test('address transfer still initializes its timestamp and changes ownership', async ({ request }) => {
+    test('address transfer still initializes its timestamp and changes ownership', async ({ request }) => {
       const mailbox = await newMailbox(request);
       const user = await newUser(request);
       const target = await newUser(request);
@@ -290,7 +364,7 @@ for (const { base, disabled } of [
       }
     });
 
-    if (disabled) for (const cleanType of ['addressCreated', 'unboundAddress', 'emptyAddress', 'mails', 'mails_unknow', 'sendbox']) {
+    for (const cleanType of ['addressCreated', 'unboundAddress', 'emptyAddress', 'mails', 'mails_unknow', 'sendbox']) {
       test(`${cleanType} cleanup remains available`, async ({ request }) => {
         const mailbox = await newMailbox(request);
         await seed(request, mailbox, RECENT, OLD);
@@ -320,7 +394,7 @@ for (const { base, disabled } of [
       });
     }
 
-    if (disabled) test('invalid cleanup requests keep their original error details', async ({ request }) => {
+    test('invalid cleanup requests keep their original error details', async ({ request }) => {
       for (const { data, message } of [
         { data: { cleanType: 'invalid', cleanDays: 1 }, message: 'Operation failed: Invalid cleanType' },
         { data: { cleanType: 'mails', cleanDays: -1 }, message: 'Operation failed: Invalid cleanType or cleanDays' },
