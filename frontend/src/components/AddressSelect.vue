@@ -49,7 +49,16 @@ const formatAddressLabel = (address) => {
 
 const renderLabel = (option) => {
     if (!option.loginMethod) return option.label;
-    return h('span', [option.label, ' ', h(NTag, { size: 'small', bordered: false }, () => option.loginMethod)]);
+    return h('span', {
+        style: { display: 'inline-flex', alignItems: 'center', gap: '8px', maxWidth: '100%' },
+    }, [
+        h('span', {
+            style: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+        }, option.label),
+        h(NTag, {
+            size: 'small', bordered: false, style: { flexShrink: 0 },
+        }, () => option.loginMethod),
+    ]);
 }
 
 const getOptionValue = (key, scope, payload, address) => {

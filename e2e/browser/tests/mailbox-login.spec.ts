@@ -79,7 +79,7 @@ test('renewal updates the current JWT; expired cached sessions require login', a
     const options = page.locator('.n-base-select-menu:visible');
     await expect(options).toContainText('Credential Login');
     await expect(options).toContainText('Password Login');
-    await expect(options.locator('.n-tag').getByText('Password Login', { exact: true }).first()).toBeVisible();
+    await expect(options.locator('.n-tag').filter({ hasText: 'Password Login' }).first()).toBeInViewport({ ratio: 1 });
     await testInfo.attach('Mailbox selector login-method tags', {
       body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
     });
