@@ -17,19 +17,6 @@ it('sanitizes mail while preserving remote and inline images and styles', () => 
     expect(host.querySelector('style')?.textContent).toContain('color: red');
 });
 
-it('preserves new-tab links with opener isolation', () => {
-    const host = document.createElement('div');
-    host.innerHTML = sanitizeMailHtml(
-        `<a href="${T}" target="_blank" rel="opener">New tab</a>
-        <a href="${T}" target="_top">Current tab</a>`
-    );
-    const [newTab, currentTab] = host.querySelectorAll('a');
-
-    expect(newTab.getAttribute('target')).toBe('_blank');
-    expect(newTab.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(currentTab.hasAttribute('target')).toBe(false);
-});
-
 function leaks(html) {
     const host = document.createElement('div');
     host.innerHTML = html;

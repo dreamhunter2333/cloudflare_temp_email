@@ -35,21 +35,7 @@ const MAIL_HTML_CONFIG = {
 };
 
 export function sanitizeMailHtml(html) {
-    const body = DOMPurify.sanitize(typeof html === 'string' ? html : '', {
-        ...MAIL_HTML_CONFIG,
-        ADD_ATTR: (attr, tag) => attr === 'target' && NAVIGATION_HREF_ELEMENTS.has(tag.toUpperCase()),
-        RETURN_DOM: true,
-    });
-    if (!body?.querySelectorAll) return '';
-
-    for (const link of body.querySelectorAll('a[target], area[target]')) {
-        if (link.getAttribute('target').toLowerCase() !== '_blank') {
-            link.removeAttribute('target');
-            continue;
-        }
-        link.setAttribute('rel', 'noopener noreferrer');
-    }
-    return body.innerHTML;
+    return DOMPurify.sanitize(typeof html === 'string' ? html : '', MAIL_HTML_CONFIG);
 }
 
 // CSS constructs that can load a resource. @import is listed because it also
