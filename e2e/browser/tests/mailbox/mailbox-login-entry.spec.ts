@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../../fixtures/test-helpers';
 
 for (const mode of ['default', 'password-only', 'password-disabled']) {
   test(`mailbox login page: ${mode}`, async ({ page, request }, testInfo) => {

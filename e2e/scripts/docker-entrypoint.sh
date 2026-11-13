@@ -175,8 +175,4 @@ echo "==> Running Playwright tests"
 if [ "${RUN_UNIT_TESTS:-true}" = true ]; then
   npm run test:unit
 fi
-case "${BROWSER_TEST_LIST:-}" in
-  include) set -- "$@" --test-list browser/ci-test-list.txt ;;
-  exclude) set -- "$@" --test-list-invert browser/ci-test-list.txt ;;
-esac
 exec npx playwright test "$@"

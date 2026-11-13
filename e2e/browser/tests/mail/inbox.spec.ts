@@ -5,7 +5,7 @@ import {
   createTestAddress,
   seedTestMail,
   deleteAddress,
-} from '../../fixtures/test-helpers';
+} from '../../../fixtures/test-helpers';
 import { request as apiRequest } from '@playwright/test';
 
 const textContrast = (locator: Locator) => locator.evaluate(element => {

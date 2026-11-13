@@ -1,5 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import WebSocket from 'ws';
 
 export const WORKER_URL = process.env.WORKER_URL!;
@@ -22,7 +22,7 @@ export function hashPassword(password: string): string {
 
 /**
  * Create a new email address via the worker API.
- * Appends a timestamp suffix to avoid UNIQUE constraint collisions
+ * Appends a random suffix to avoid UNIQUE constraint collisions
  * with persistent D1 data from previous test runs.
  * Returns the JWT and full address string.
  */
@@ -32,7 +32,7 @@ export async function createTestAddress(
   domain: string = TEST_DOMAIN,
   workerUrl: string = WORKER_URL,
 ): Promise<{ jwt: string; address: string; address_id: number }> {
-  const uniqueName = `${name}${Date.now()}`;
+  const uniqueName = `${name}${randomBytes(6).toString('hex')}`;
   const res = await ctx.post(`${workerUrl}/api/new_address`, {
     data: { name: uniqueName, domain },
   });

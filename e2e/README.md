@@ -26,7 +26,7 @@ npm run test:down
 
 The exit code reflects the test result.
 
-GitHub Actions runs API, Browser, Webhook UI and SMTP/IMAP groups on separate runners, each with its own Compose stack and report. The Browser group runs in two jobs. The first runs the specs in [ci-test-list.txt](browser/ci-test-list.txt) and the second runs the rest. Use the per-file durations in Playwright reports to rebalance the list when needed. Tests inside each runner remain serial. Compose profiles start only the services needed by each group:
+GitHub Actions runs API, Browser, Webhook UI and SMTP/IMAP groups on separate runners, each with its own Compose stack and report. CI runs Browser and Webhook UI tests in parallel within their respective stacks. Browser specs are grouped under `admin/`, `account/`, `mailbox/` and `mail/`. Use Playwright locks for tests that write shared settings. API and SMTP/IMAP run serially. Local runs default to one Playwright worker and accept `PLAYWRIGHT_WORKERS` to adjust browser concurrency. Compose profiles start only the services needed by each group:
 
 | Profile | Services, excluding the test runner |
 | --- | --- |

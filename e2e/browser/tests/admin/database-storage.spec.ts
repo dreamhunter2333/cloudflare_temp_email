@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { FRONTEND_URL, WORKER_URL } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL } from '../../../fixtures/test-helpers';
 
 const ADMIN_HEADERS = { 'x-admin-auth': 'e2e-admin-pass' };
 

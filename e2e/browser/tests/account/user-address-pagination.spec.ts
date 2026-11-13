@@ -1,13 +1,15 @@
 import { expect, request as apiRequest, test } from '@playwright/test';
 import type { APIRequestContext } from '@playwright/test';
 
+test.describe.configure({ lock: 'user-settings' });
+
 import {
   FRONTEND_URL,
   WORKER_URL,
   createTestAddress,
   deleteAddress,
   hashPassword,
-} from '../../fixtures/test-helpers';
+} from '../../../fixtures/test-helpers';
 
 async function saveUserSettings(request: APIRequestContext, settings: Record<string, unknown>) {
   const response = await request.post(`${WORKER_URL}/admin/user_settings`, { data: settings });

@@ -17,6 +17,9 @@ sed -e 's@main = .*@main = "../e2e/wasm/fixtures/worker.ts"@' \
     e2e/fixtures/wrangler.toml.e2e > "$test_dir/worker/wrangler.toml"
 printf '\n"mail-parser-wasm-worker" = "%s/mail-parser-wasm/target/test-packages/worker/package/index.js"\n' "$repo_dir" >> "$test_dir/worker/wrangler.toml"
 
+telegraf_entry=$(node -p 'require.resolve("telegraf", { paths: ["./worker"] })')
+printf '"telegraf" = "%s"\n' "$telegraf_entry" >> "$test_dir/worker/wrangler.toml"
+
 export WRANGLER_SEND_METRICS=false
 exec worker/node_modules/.bin/wrangler dev --config "$test_dir/worker/wrangler.toml" \
     --local --ip 127.0.0.1 --port "$1" --inspector-port 0 \

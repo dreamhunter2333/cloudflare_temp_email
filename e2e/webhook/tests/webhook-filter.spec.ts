@@ -23,7 +23,7 @@ async function openAdminWebhook(page: Page, locale = 'zh') {
   await page.getByText(webhook, { exact: true }).click();
 }
 
-test('Webhook configures the generic editor with server-supported fields and operators', async ({ page, request }) => {
+test('Webhook configures the generic editor with server-supported fields and operators', { lock: 'webhook-settings' }, async ({ page, request }) => {
   test.setTimeout(60_000);
   const endpoint = `${WORKER_URL}/admin/mail_webhook/settings`;
   const previous = await (await request.get(endpoint)).json();
@@ -369,7 +369,7 @@ test('Nested visual edits and failed saves never mutate the last saved filter', 
 });
 
 for (const [mode, original] of [['regex', expression], ['json', null]] as const) {
-  test(`Invalid ${mode} draft can disable webhook with real API: ${original ? 'existing rule' : 'no rule'}`, async ({ page, request }) => {
+  test(`Invalid ${mode} draft can disable webhook with real API: ${original ? 'existing rule' : 'no rule'}`, { lock: 'webhook-settings' }, async ({ page, request }) => {
     const endpoint = `${WORKER_URL}/admin/mail_webhook/settings`;
     const previous = await (await request.get(endpoint)).json();
     try {
@@ -428,7 +428,7 @@ for (const [mode, original] of [['regex', expression], ['json', null]] as const)
 }
 
 for (const scope of ['admin', 'mailbox']) {
-  test(`Backend regex errors are shown without losing the draft or saved settings: ${scope}`, async ({ page, request }) => {
+  test(`Backend regex errors are shown without losing the draft or saved settings: ${scope}`, { lock: 'webhook-settings' }, async ({ page, request }) => {
     test.setTimeout(60_000);
     const adminEndpoint = `${WORKER_URL}/admin/mail_webhook/settings`;
     const previous = await (await request.get(adminEndpoint)).json();

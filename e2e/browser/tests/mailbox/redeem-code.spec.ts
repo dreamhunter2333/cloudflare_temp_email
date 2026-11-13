@@ -6,7 +6,7 @@ import {
   FRONTEND_URL,
   FRONTEND_URL_ENV_OFF,
   WORKER_URL,
-} from '../../fixtures/test-helpers';
+} from '../../../fixtures/test-helpers';
 
 const ADMIN_HEADERS = { 'x-admin-auth': 'e2e-admin-pass' };
 

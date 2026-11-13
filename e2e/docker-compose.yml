@@ -181,7 +181,7 @@ services:
     environment:
       RUN_UNIT_TESTS: ${RUN_UNIT_TESTS:-true}
       PLAYWRIGHT_PROJECT: ${PLAYWRIGHT_PROJECT:-*}
-      BROWSER_TEST_LIST: ${BROWSER_TEST_LIST:-}
+      PLAYWRIGHT_WORKERS: ${PLAYWRIGHT_WORKERS:-}
       WORKER_URL: http://worker:8787
       WORKER_URL_SUBDOMAIN: http://worker-subdomain:8789
       WORKER_URL_ENV_OFF: http://worker-env-off:8790
