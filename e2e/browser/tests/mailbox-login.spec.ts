@@ -110,6 +110,59 @@ test('renewal updates the current JWT; expired cached sessions require login', a
   }
 });
 
+test('login method hints hide when either token type is alone', async ({ page, request }, testInfo) => {
+  const mailbox = await createTestAddress(request, 'method-visibility');
+  const now = Math.floor(Date.now() / 1000);
+  const passwordToken = await sign({
+    address: mailbox.address, address_id: mailbox.address_id, type: 'address_password_login',
+    iat: now, exp: now + 30 * 86400,
+  }, 'e2e-test-secret-key', 'HS256');
+  try {
+    await page.goto(`${FRONTEND_URL}/en/`);
+    await page.evaluate(({ credential, password }) => {
+      localStorage.setItem('jwt', password);
+      localStorage.setItem('LocalAddressCache', JSON.stringify([credential, password]));
+    }, { credential: mailbox.jwt, password: passwordToken });
+    await page.reload();
+    await expect(page.locator('.address-select')).toContainText('Password Login');
+    await page.locator('.address-select').click();
+    const options = page.locator('.n-base-select-menu:visible');
+    await expect(options.locator('.n-tag')).toHaveCount(2);
+    await page.keyboard.press('Escape');
+    await page.locator('.address-manage').click();
+    const modal = page.locator('.n-modal');
+    const methodColumn = modal.getByRole('columnheader', { name: 'Login Method', exact: true });
+    await expect(methodColumn).toBeVisible();
+    await modal.locator('.n-data-table-tr').filter({ hasText: 'Credential Login' })
+      .getByRole('button', { name: 'Unbind Mail Address credential', exact: true }).click();
+    await page.getByRole('button', { name: 'Confirm', exact: true }).click();
+    await expect(methodColumn).toHaveCount(0);
+    await testInfo.attach('Single token type hides the login method column', {
+      body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
+    });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.address-select .n-tag')).toHaveCount(0);
+    await page.locator('.address-select').click();
+    await expect(options.locator('.n-base-select-option')).toHaveCount(1);
+    await expect(options.locator('.n-tag')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await page.evaluate(token => {
+      localStorage.setItem('jwt', token);
+      localStorage.setItem('LocalAddressCache', JSON.stringify([token]));
+    }, mailbox.jwt);
+    await page.reload();
+    await expect(page.locator('.address-select')).toContainText(mailbox.address);
+    await expect(page.locator('.address-select .n-tag')).toHaveCount(0);
+    await page.locator('.address-select').click();
+    await expect(options.locator('.n-tag')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await page.locator('.address-manage').click();
+    await expect(methodColumn).toHaveCount(0);
+  } finally {
+    await deleteAddress(request, mailbox.jwt);
+  }
+});
+
 test('failed mailbox settings preserve the current token and historical cache', async ({ page, request }) => {
   const mailbox = await createTestAddress(request, 'cached-failure');
   const cache = JSON.stringify([

@@ -1,5 +1,5 @@
 <script setup>
-import { h, onMounted, ref, watch } from 'vue'
+import { computed, h, onMounted, ref, watch } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 import { useScopedI18n } from '@/i18n/app'
 import { NTag, useMessage } from 'naive-ui'
@@ -32,6 +32,10 @@ const { t } = useScopedI18n('components.AddressSelect')
 const { t: loginT } = useScopedI18n('views.common.Login')
 
 const addressOptions = ref([])
+const showLoginMethods = computed(() => new Set(
+    addressOptions.value.flatMap(option => option.children || [option])
+        .map(option => option.loginMethod).filter(Boolean)
+).size > 1)
 const addressValue = ref(null)
 const addressLoading = ref(false)
 const localAddressCache = useLocalStorage("LocalAddressCache", [])
@@ -48,7 +52,7 @@ const formatAddressLabel = (address) => {
 }
 
 const renderLabel = (option) => {
-    if (!option.loginMethod) return option.label;
+    if (!showLoginMethods.value || !option.loginMethod) return option.label;
     return h('span', {
         style: { display: 'inline-flex', alignItems: 'center', gap: '8px', maxWidth: '100%' },
     }, [
@@ -57,7 +61,7 @@ const renderLabel = (option) => {
         }, option.label),
         h(NTag, {
             size: 'small', bordered: false, style: { flexShrink: 0 },
-        }, () => option.loginMethod),
+        }, () => loginT(option.loginMethod)),
     ]);
 }
 
@@ -84,7 +88,7 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
             const address = payload?.address;
             if (!address) return null;
             if (excludeAddresses.has(address)) return null;
-            const loginMethod = loginT(payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin');
+            const loginMethod = payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin';
             const label = formatAddressLabel(address);
             const key = `local:${curJwt}`;
             const option = { label, value: getOptionValue(key, 'local', curJwt, address), address, loginMethod };

@@ -31,7 +31,7 @@ const data = computed(() => {
         return {
             valid: true,
             address: payload.address,
-            loginMethod: loginT(payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin'),
+            loginMethod: payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin',
             jwt: curJwt
         }
     })
@@ -60,7 +60,7 @@ const columns = [
         title: t('loginMethod'),
         key: 'loginMethod',
         render: (row: any) => row.loginMethod
-            ? h(NTag, { size: 'small', bordered: false }, () => row.loginMethod)
+            ? h(NTag, { size: 'small', bordered: false }, () => loginT(row.loginMethod))
             : null,
     },
     {
@@ -113,6 +113,10 @@ const columns = [
         }
     }
 ]
+const visibleColumns = computed(() => {
+    const methods = new Set(data.value.filter(row => row.valid).map(row => row.loginMethod));
+    return methods.size > 1 ? columns : columns.filter(column => column.key !== 'loginMethod');
+})
 </script>
 
 <template>
@@ -123,7 +127,7 @@ const columns = [
         <n-tabs type="segment" v-model:value="tabValue">
             <n-tab-pane name="address" :tab="t('address')">
                 <div class="address-table-scroll">
-                    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                    <n-data-table :columns="visibleColumns" :data="data" :bordered="false" embedded />
                 </div>
             </n-tab-pane>
             <n-tab-pane name="create_or_bind" :tab="t('create_or_bind')">
