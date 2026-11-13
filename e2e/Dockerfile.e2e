@@ -11,6 +11,7 @@ COPY worker/src/ /app/worker/src/
 COPY worker/package.json /app/worker/package.json
 RUN ln -s /app/e2e/node_modules /app/worker/node_modules
 COPY frontend/src/utils/filter.ts frontend/src/utils/local-address-cache.ts /app/frontend/src/utils/
+COPY frontend/src/i18n/locales/source/ /app/frontend/src/i18n/locales/source/
 RUN ln -s /app/e2e/node_modules /app/frontend/node_modules
 
 ENTRYPOINT ["/app/e2e/scripts/docker-entrypoint.sh"]
