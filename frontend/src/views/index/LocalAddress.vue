@@ -2,7 +2,7 @@
 import { ref, h, computed } from 'vue';
 import { useLocalStorage } from '@vueuse/core';
 import { useScopedI18n } from '@/i18n/app'
-import { NPopconfirm, NButton } from 'naive-ui'
+import { NPopconfirm, NButton, NTag } from 'naive-ui'
 import { decodeAddressToken } from '../../utils/local-address-cache'
 
 // @ts-ignore
@@ -18,19 +18,21 @@ const { t } = useScopedI18n('views.index.LocalAddress')
 const { t: loginT } = useScopedI18n('views.common.Login')
 
 const tabValue = ref('address')
-const localAddressCache = useLocalStorage<string[]>("LocalAddressCache", []);
+const localAddressCache = useLocalStorage("LocalAddressCache", []);
 const data = computed(() => {
+    // @ts-ignore
     if (!localAddressCache.value.includes(jwt.value)) {
+        // @ts-ignore
         localAddressCache.value.push(jwt.value)
     }
-    return localAddressCache.value.map((token) => {
-        const payload = decodeAddressToken(token);
-        if (!payload) return { valid: false, address: `invalid jwt [${token}]`, jwt: token };
-        const isPasswordLogin = payload.type === 'address_password_login';
+    return localAddressCache.value.map((curJwt: string) => {
+        const payload = decodeAddressToken(curJwt);
+        if (!payload) return { valid: false, address: `invalid jwt [${curJwt}]`, jwt: curJwt };
         return {
             valid: true,
-            address: `${payload.address} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`,
-            jwt: token
+            address: payload.address,
+            loginMethod: loginT(payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin'),
+            jwt: curJwt
         }
     })
 })
@@ -53,6 +55,13 @@ const columns = [
     {
         title: t('address'),
         key: "address"
+    },
+    {
+        title: t('loginMethod'),
+        key: 'loginMethod',
+        render: (row: any) => row.loginMethod
+            ? h(NTag, { size: 'small', bordered: false }, () => row.loginMethod)
+            : null,
     },
     {
         title: t('actions'),
@@ -84,7 +93,7 @@ const columns = [
                                 return;
                             }
                             localAddressCache.value = localAddressCache.value.filter(
-                                token => token !== row.jwt
+                                (curJwt: string) => curJwt !== row.jwt
                             );
                         }
                     },

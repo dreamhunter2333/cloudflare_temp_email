@@ -118,6 +118,7 @@ export const ptBRMessages = {
   "views.user.AddressManagement.address": "Endereço",
   "views.index.TelegramAddress.address": "Endereço",
   "views.admin.SenderAccess.address": "Endereço",
+  "views.index.LocalAddress.loginMethod": "Método de login",
   "views.index.LocalAddress.address": "Endereço",
   "views.admin.CreateAccount.address": "Endereço",
   "views.admin.AiExtractSettings.allowList": "Lista branca de endereços (digite o endereço e pressione Enter; suporta curingas)",

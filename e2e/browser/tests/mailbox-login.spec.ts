@@ -41,7 +41,10 @@ test('renewal updates the current JWT; expired cached sessions require login', a
       }
     });
     await page.locator('.address-select').click();
-    await page.locator('.n-base-select-menu:visible').getByText(`${mailbox.address} (Password Login)`, { exact: true }).first().click();
+    const passwordOptions = page.locator('.n-base-select-menu:visible .n-base-select-option')
+      .filter({ hasText: mailbox.address })
+      .filter({ has: page.locator('.n-tag').getByText('Password Login', { exact: true }) });
+    await passwordOptions.first().click();
     await expect.poll(() => page.evaluate(() => localStorage.getItem('jwt'))).not.toBe(passwordToken);
     await expect.poll(readCache).toEqual([
       mailbox.jwt, passwordToken, other.jwt, expiredPasswordToken, expect.any(String),
@@ -60,9 +63,13 @@ test('renewal updates the current JWT; expired cached sessions require login', a
     await page.locator('.address-manage').click();
     const rows = page.locator('.n-modal .n-data-table-tbody .n-data-table-tr');
     await expect(rows).toHaveCount(5);
-    await expect(rows.nth(0)).toContainText(`${mailbox.address} (Credential Login)`);
-    await expect(rows.nth(1)).toContainText(`${mailbox.address} (Password Login)`);
-    await expect(rows.nth(2)).toContainText(`${other.address} (Credential Login)`);
+    await expect(page.locator('.n-modal').getByRole('columnheader', { name: 'Login Method', exact: true })).toBeVisible();
+    await expect(rows.nth(0).getByRole('cell').nth(0)).toHaveText(mailbox.address);
+    await expect(rows.nth(0).getByRole('cell').nth(1)).toHaveText('Credential Login');
+    await expect(rows.nth(1).getByRole('cell').nth(0)).toHaveText(mailbox.address);
+    await expect(rows.nth(1).getByRole('cell').nth(1)).toHaveText('Password Login');
+    await expect(rows.nth(2).getByRole('cell').nth(0)).toHaveText(other.address);
+    await expect(rows.nth(2).getByRole('cell').nth(1)).toHaveText('Credential Login');
     expect(settingsTokens).toEqual([`Bearer ${passwordToken}`]);
     await testInfo.attach('Mailbox cache login methods', {
       body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
@@ -72,14 +79,20 @@ test('renewal updates the current JWT; expired cached sessions require login', a
     const options = page.locator('.n-base-select-menu:visible');
     await expect(options).toContainText('Credential Login');
     await expect(options).toContainText('Password Login');
-    await options.getByText(`${other.address} (Credential Login)`, { exact: true }).click();
+    await expect(options.locator('.n-tag').getByText('Password Login', { exact: true }).first()).toBeVisible();
+    await testInfo.attach('Mailbox selector login-method tags', {
+      body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
+    });
+    await options.getByText(other.address, { exact: true }).click();
     await expect.poll(readCache).toEqual([
       mailbox.jwt, passwordToken, other.jwt, expiredPasswordToken, renewedToken,
     ]);
 
     await page.locator('.address-select').click();
-    const expiredSettings = page.waitForResponse(response => new URL(response.url()).pathname === '/api/settings');
-    await options.getByText(`${mailbox.address} (Password Login)`, { exact: true }).nth(1).click();
+    const expiredSettings = page.waitForResponse(response =>
+      new URL(response.url()).pathname === '/api/settings'
+      && response.request().headers().authorization === `Bearer ${expiredPasswordToken}`);
+    await passwordOptions.nth(1).click();
     expect((await expiredSettings).status()).toBe(401);
     await expect(page.getByText('Mail address credential is invalid or account not exist, it may be network connection issue, please try again later.', { exact: true })).toBeVisible();
     expect(await page.evaluate(() => localStorage.getItem('jwt'))).toBe(expiredPasswordToken);

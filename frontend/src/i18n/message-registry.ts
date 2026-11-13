@@ -2012,6 +2012,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.index.LocalAddress": {
+    "loginMethod": {
+      "en": "Login Method",
+      "zh": "登录方式"
+    },
     "actions": {
       "en": "Actions",
       "zh": "操作"

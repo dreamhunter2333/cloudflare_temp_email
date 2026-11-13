@@ -1,8 +1,8 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { h, onMounted, ref, watch } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 import { useScopedI18n } from '@/i18n/app'
-import { useMessage } from 'naive-ui'
+import { NTag, useMessage } from 'naive-ui'
 import useClipboard from 'vue-clipboard3'
 import { Copy } from '@vicons/fa'
 
@@ -47,6 +47,11 @@ const formatAddressLabel = (address) => {
     return address.replace('@' + domain, `@${domainLabel}`);
 }
 
+const renderLabel = (option) => {
+    if (!option.loginMethod) return option.label;
+    return h('span', [option.label, ' ', h(NTag, { size: 'small', bordered: false }, () => option.loginMethod)]);
+}
+
 const getOptionValue = (key, scope, payload, address) => {
     if (optionValueMap.has(key)) {
         const cached = optionValueMap.get(key)
@@ -65,15 +70,16 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
         localAddressCache.value.push(jwt.value)
     }
     const children = localAddressCache.value
-        .map((token) => {
-            const payload = decodeAddressToken(token);
-            if (!payload || excludeAddresses.has(payload.address)) return null;
-            const { address, type } = payload;
-            const isPasswordLogin = type === 'address_password_login';
-            const label = `${formatAddressLabel(address)} (${loginT(isPasswordLogin ? 'passwordLogin' : 'credentialLogin')})`;
-            const key = `local:${token}`;
-            const option = { label, value: getOptionValue(key, 'local', token, address), address };
-            if (token === jwt.value) {
+        .map((curJwt) => {
+            const payload = decodeAddressToken(curJwt);
+            const address = payload?.address;
+            if (!address) return null;
+            if (excludeAddresses.has(address)) return null;
+            const loginMethod = loginT(payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin');
+            const label = formatAddressLabel(address);
+            const key = `local:${curJwt}`;
+            const option = { label, value: getOptionValue(key, 'local', curJwt, address), address, loginMethod };
+            if (curJwt === jwt.value) {
                 addressValue.value = option.value;
             }
             return option;
@@ -202,7 +208,7 @@ watch([userJwt, isTelegram, showUserMailboxes, jwt, localAddressCache, () => set
 
 <template>
     <n-flex class="address-row" align="center" justify="center" :wrap="true">
-        <n-select v-model:value="addressValue" :options="addressOptions" :size="size" filterable
+        <n-select v-model:value="addressValue" :options="addressOptions" :size="size" :render-label="renderLabel" filterable
             :loading="addressLoading" :placeholder="t('selectMailbox')" @update:value="onAddressChange"
             class="address-select" />
         <slot name="actions" />

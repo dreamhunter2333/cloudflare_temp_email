@@ -118,6 +118,7 @@ export const deMessages = {
   "views.user.AddressManagement.address": "Adresse",
   "views.index.TelegramAddress.address": "Adresse",
   "views.admin.SenderAccess.address": "Adresse",
+  "views.index.LocalAddress.loginMethod": "Anmeldemethode",
   "views.index.LocalAddress.address": "Adresse",
   "views.admin.CreateAccount.address": "Adresse",
   "views.admin.AiExtractSettings.allowList": "Adressfreigabeliste (Adresse eingeben und Enter drücken; Wildcards werden unterstützt)",
