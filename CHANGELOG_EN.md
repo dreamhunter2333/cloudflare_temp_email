@@ -42,7 +42,7 @@
 
 ### Improvements
 
-- perf: |CI| Reuse E2E images, mount frontend dependencies in CI, schedule browser tests in parallel, trim duplicate scenarios and fixed waits, and speed up WASM tool installation
+- perf: |CI| Reuse E2E images, schedule browser tests in parallel, trim duplicate scenarios and fixed waits, and speed up WASM tool installation
 - perf: |Database| Upgrade the schema to `v0.0.10` with a covering index for unknown-mail cleanup and an expression-based composite index for domain cleanup; compare major, minor, and patch versions numerically to avoid two-digit version errors and version-marker downgrades
 - docs: |User| Document mailbox binding, bound mailbox credential retrieval, and unbinding APIs with dual authentication requirements and request examples
 

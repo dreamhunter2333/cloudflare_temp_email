@@ -44,28 +44,10 @@ jobs:
     env:
       COMPOSE_PROFILES: ${{ matrix.project }}
       PLAYWRIGHT_PROJECT: ${{ matrix.project }}
-      COMPOSE_FILE: ${{ (matrix.project == 'browser' || matrix.project == 'webhook') && 'docker-compose.yml:compose.ci.yml' || 'docker-compose.yml' }}
       PLAYWRIGHT_WORKERS: ${{ (matrix.project == 'browser' || matrix.project == 'webhook') && '75%' || '1' }}
       RUN_UNIT_TESTS: 'false'
     steps:
       - uses: actions/checkout@v6
-
-      - uses: pnpm/action-setup@v5
-        if: matrix.project == 'browser' || matrix.project == 'webhook'
-        with:
-          package_json_file: frontend/package.json
-
-      - uses: actions/setup-node@v6
-        if: matrix.project == 'browser' || matrix.project == 'webhook'
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install frontend dependencies
-        if: matrix.project == 'browser' || matrix.project == 'webhook'
-        working-directory: frontend
-        run: pnpm install --frozen-lockfile
 
       - name: Build E2E images
         working-directory: e2e
