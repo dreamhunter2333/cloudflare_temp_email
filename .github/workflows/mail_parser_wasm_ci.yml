@@ -6,6 +6,8 @@ on:
     paths:
       - 'mail-parser-wasm/**'
       - 'e2e/wasm/**'
+      - 'e2e/package-lock.json'
+      - 'e2e/package.json'
       - '.github/workflows/mail_parser_wasm*.yml'
   workflow_call:
 
@@ -32,7 +34,14 @@ jobs:
           version: 10
 
       - name: Install wasm-pack
-        run: cargo install wasm-pack --version 0.14.0 --locked
+        run: |
+          archive=wasm-pack-v0.14.0-x86_64-unknown-linux-musl
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://github.com/wasm-bindgen/wasm-pack/releases/download/v0.14.0/$archive.tar.gz" \
+            -o "$RUNNER_TEMP/$archive.tar.gz"
+          echo "278a8d668085821f4d1a637bd864f1713f872b0ae3a118c77562a308c0abfe8d  $RUNNER_TEMP/$archive.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/$archive.tar.gz" -C "$RUNNER_TEMP" "$archive/wasm-pack"
+          echo "$RUNNER_TEMP/$archive" >> "$GITHUB_PATH"
 
       - name: Build npm packages
         run: bash e2e/wasm/scripts/build.sh

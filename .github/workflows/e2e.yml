@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit:
     name: Unit tests
@@ -12,6 +16,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          package_json_file: frontend/package.json
       - uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -20,33 +27,46 @@ jobs:
         run: |
           npm ci
           npm run test:unit
+      - name: Run frontend unit tests
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test
 
   e2e-groups:
-    name: E2E ${{ matrix.project }}
+    name: E2E ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        project: [api, browser, webhook, smtp-proxy]
+        include:
+          - { name: api, project: api }
+          - { name: browser-1, project: browser, browser-test-list: include }
+          - { name: browser-2, project: browser, browser-test-list: exclude }
+          - { name: webhook, project: webhook }
+          - { name: smtp-proxy, project: smtp-proxy }
     env:
       COMPOSE_PROFILES: ${{ matrix.project }}
       PLAYWRIGHT_PROJECT: ${{ matrix.project }}
+      BROWSER_TEST_LIST: ${{ matrix.browser-test-list }}
       RUN_UNIT_TESTS: 'false'
     steps:
       - uses: actions/checkout@v6
 
+      - name: Build E2E images
+        working-directory: e2e
+        run: docker compose build
+
       - name: Run E2E tests
-        run: |
-          cd e2e
-          docker compose config --services
-          docker compose up --build --abort-on-container-exit --exit-code-from e2e-runner
+        working-directory: e2e
+        run: docker compose up --no-build --abort-on-container-exit --exit-code-from e2e-runner
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-report-${{ matrix.project }}
+          name: playwright-report-${{ matrix.name }}
           path: |
             e2e/test-results/
             e2e/playwright-report/

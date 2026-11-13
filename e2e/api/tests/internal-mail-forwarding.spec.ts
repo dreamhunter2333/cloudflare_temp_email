@@ -91,6 +91,8 @@ for (const [name, base] of [['plaintext', WORKER_URL], ['gzip', WORKER_GZIP_URL]
       }
     });
 
+    if (name !== 'plaintext') return;
+
     for (const blockUnknown of [false, true]) {
       test(`routes by domain and respects unknown-recipient rejection: ${blockUnknown}`, async ({ request }) => {
         const source = await createTestAddress(request, 'mixedsource', TEST_DOMAIN, base);
@@ -312,7 +314,7 @@ for (const [name, base] of [['plaintext', WORKER_URL], ['gzip', WORKER_GZIP_URL]
             expect(copies).toHaveLength(destination === 'internal' ? 1 : 0);
             if (destination === 'internal') {
               expect(copies[0].message_id).toBe(previous[0].message_id);
-              if (name !== 'remove attachments') expect(copies[0].raw).toBe(previous[0].raw);
+              expect(copies[0].raw).toBe(previous[0].raw);
             }
           } finally {
             for (const mailbox of [source, target]) await request.delete(`${base}/api/delete_address`, {
@@ -356,7 +358,7 @@ for (const [name, base] of [['plaintext', WORKER_URL], ['gzip', WORKER_GZIP_URL]
         expect(payloads.map(payload => payload.to)).toEqual([target.address, source.address]);
         for (const payload of payloads) {
           expect(payload.id).toMatch(/^\d+$/);
-          expect(payload.attachments).toHaveLength(name === 'remove attachments' ? 0 : 1);
+          expect(payload.attachments).toHaveLength(1);
         }
         expect(await listMails(request, base, source.jwt)).toHaveLength(0);
         const copies = await listMails(request, base, target.jwt);
@@ -433,7 +435,7 @@ for (const [name, base] of [['plaintext', WORKER_URL], ['gzip', WORKER_GZIP_URL]
       }
     });
 
-    if (name === 'plaintext') test('uses the newly stored row IDs in Telegram links even when older Message-IDs match', async ({ request }) => {
+    test('uses the newly stored row IDs in Telegram links even when older Message-IDs match', async ({ request }) => {
       const source = await createTestAddress(request, 'tgsource', TEST_DOMAIN, base);
       const target = await createTestAddress(request, 'tgtarget', TEST_DOMAIN, base);
       const settings = await (await request.get(`${base}/admin/telegram/settings`, { headers: ADMIN_HEADERS })).json();

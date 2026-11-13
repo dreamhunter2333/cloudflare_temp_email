@@ -95,7 +95,6 @@ test.describe('Passkey Browser Flow', () => {
       await logoutModal.getByRole('button', { name: 'Logout' }).click();
 
       // Wait for logout to complete and navigate to user page
-      await page.waitForTimeout(2000);
       await page.goto(`${FRONTEND_URL}/en/user`);
 
       // === Step 6: Login with passkey ===

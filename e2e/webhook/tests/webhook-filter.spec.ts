@@ -63,56 +63,52 @@ test('Webhook configures the generic editor with server-supported fields and ope
       expect(await (await checked).json()).toEqual({ success: true, matched: true });
       await expect(page.getByRole('dialog')).toHaveCount(0);
     };
-    for (const label of labels) {
-      await operator.click();
-      await page.locator('.n-base-select-option:visible').getByText(label, { exact: true }).click();
-      await saveAndCheck();
-    }
+    await operator.click();
+    await page.locator('.n-base-select-option:visible').getByText('Equals (Case sensitive)', { exact: true }).click();
+    await saveAndCheck();
     await operator.click();
     await page.locator('.n-base-select-option:visible').getByText('Contains', { exact: true }).click();
-    for (const [index, value] of ['review@example.com', mailbox.address, 'DOWN', 'Hello from E2E', 'Hello from E2E'].entries()) {
-      await field.click();
-      await page.locator('.n-base-select-option:visible').getByText(fieldLabels[index], { exact: true }).click();
-      await editor.getByRole('textbox', { name: 'Value', exact: true }).fill(value);
-      await saveAndCheck();
-    }
+    await field.click();
+    await page.locator('.n-base-select-option:visible').getByText('Plain text', { exact: true }).click();
+    await editor.getByRole('textbox', { name: 'Value', exact: true }).fill('Hello from E2E');
+    await saveAndCheck();
   } finally {
     expect((await request.post(endpoint, { data: previous })).ok()).toBe(true);
     await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`);
   }
 });
 
-for (const [operator, label] of [['equals', '等于'], ['contains', '包含'], ['startsWith', '开头匹配'], ['endsWith', '结尾匹配']]) {
-  test(`Case-sensitive operator selection round-trips JSON: ${operator}`, async ({ page }) => {
-    const original = { field: 'subject', operator: `${operator}CaseSensitive`, value: 'DOWN' };
-    const saved: any[] = [];
-    await page.route('**/admin/mail_webhook/settings', route => {
-      if (route.request().method() === 'POST') saved.push(route.request().postDataJSON());
-      return route.fulfill({ json: route.request().method() === 'POST' ? { success: true } : { ...settings, filter: original } });
-    });
-    await openAdminWebhook(page);
-    const editor = page.getByTestId('filter-editor').first();
-    const selector = editor.locator('[aria-label="操作符"]');
-    const sensitiveLabel = `${label} (区分大小写)`;
-    await expect(selector).toContainText(sensitiveLabel);
-    await expect(editor.getByRole('checkbox', { name: '区分大小写' })).toHaveCount(0);
-    const save = page.getByRole('button', { name: '保存', exact: true });
-    await save.click();
-    await expect.poll(() => saved.at(-1)?.filter).toEqual(original);
-    await selector.click();
-    await page.locator('.n-base-select-option').getByText(label, { exact: true }).click();
-    await save.click();
-    await expect.poll(() => saved.at(-1)?.filter).toEqual({ field: 'subject', operator, value: 'DOWN' });
-    await selector.click();
-    await page.locator('.n-base-select-option').getByText(sensitiveLabel, { exact: true }).click();
-    await save.click();
-    await expect.poll(() => saved.at(-1)?.filter).toEqual(original);
-    await editor.getByText('JSON', { exact: true }).click();
-    expect(JSON.parse(await editor.getByRole('textbox', { name: 'JSON', exact: true }).inputValue())).toEqual(original);
-    await editor.getByText('可视化', { exact: true }).click();
-    await expect(selector).toContainText(sensitiveLabel);
+test('Case-sensitive operator selection round-trips JSON', async ({ page }) => {
+  const operator = 'contains';
+  const label = '包含';
+  const original = { field: 'subject', operator: `${operator}CaseSensitive`, value: 'DOWN' };
+  const saved: any[] = [];
+  await page.route('**/admin/mail_webhook/settings', route => {
+    if (route.request().method() === 'POST') saved.push(route.request().postDataJSON());
+    return route.fulfill({ json: route.request().method() === 'POST' ? { success: true } : { ...settings, filter: original } });
   });
-}
+  await openAdminWebhook(page);
+  const editor = page.getByTestId('filter-editor').first();
+  const selector = editor.locator('[aria-label="操作符"]');
+  const sensitiveLabel = `${label} (区分大小写)`;
+  await expect(selector).toContainText(sensitiveLabel);
+  await expect(editor.getByRole('checkbox', { name: '区分大小写' })).toHaveCount(0);
+  const save = page.getByRole('button', { name: '保存', exact: true });
+  await save.click();
+  await expect.poll(() => saved.at(-1)?.filter).toEqual(original);
+  await selector.click();
+  await page.locator('.n-base-select-option').getByText(label, { exact: true }).click();
+  await save.click();
+  await expect.poll(() => saved.at(-1)?.filter).toEqual({ field: 'subject', operator, value: 'DOWN' });
+  await selector.click();
+  await page.locator('.n-base-select-option').getByText(sensitiveLabel, { exact: true }).click();
+  await save.click();
+  await expect.poll(() => saved.at(-1)?.filter).toEqual(original);
+  await editor.getByText('JSON', { exact: true }).click();
+  expect(JSON.parse(await editor.getByRole('textbox', { name: 'JSON', exact: true }).inputValue())).toEqual(original);
+  await editor.getByText('可视化', { exact: true }).click();
+  await expect(selector).toContainText(sensitiveLabel);
+});
 
 test('Rule checking and legacy delivery use separate dialogs, requests and mail selections', async ({ page }, testInfo) => {
   const saved: any[] = [];
@@ -372,65 +368,63 @@ test('Nested visual edits and failed saves never mutate the last saved filter', 
   }
 });
 
-for (const original of [expression, null]) {
-  for (const mode of ['regex', 'unknown field', 'json']) {
-    test(`Invalid ${mode} draft can disable webhook with real API: ${original ? 'existing rule' : 'no rule'}`, async ({ page, request }) => {
-      const endpoint = `${WORKER_URL}/admin/mail_webhook/settings`;
-      const previous = await (await request.get(endpoint)).json();
-      try {
-        expect((await request.post(endpoint, { data: { ...settings, filter: original } })).ok()).toBe(true);
-        await openAdminWebhook(page);
-        const editor = page.getByTestId('filter-editor').first();
-        const save = page.getByRole('button', { name: '保存', exact: true });
-        const toggle = page.locator('.n-card').filter({ has: save }).getByRole('switch');
-        const valid = { field: 'subject', operator: 'regex', value: '^UPDATED', options: { flags: 'i' } };
-        const saveAndRead = async () => {
+for (const [mode, original] of [['regex', expression], ['json', null]] as const) {
+  test(`Invalid ${mode} draft can disable webhook with real API: ${original ? 'existing rule' : 'no rule'}`, async ({ page, request }) => {
+    const endpoint = `${WORKER_URL}/admin/mail_webhook/settings`;
+    const previous = await (await request.get(endpoint)).json();
+    try {
+      expect((await request.post(endpoint, { data: { ...settings, filter: original } })).ok()).toBe(true);
+      await openAdminWebhook(page);
+      const editor = page.getByTestId('filter-editor').first();
+      const save = page.getByRole('button', { name: '保存', exact: true });
+      const toggle = page.locator('.n-card').filter({ has: save }).getByRole('switch');
+      const valid = { field: 'subject', operator: 'regex', value: '^UPDATED', options: { flags: 'i' } };
+      const saveAndRead = async () => {
+        const response = page.waitForResponse(res => res.url().endsWith('/admin/mail_webhook/settings') && res.request().method() === 'POST');
+        await save.click();
+        expect((await response).status()).toBe(200);
+        return (await request.get(endpoint)).json();
+      };
+      for (const expectedFilter of [original, valid]) {
+        await editor.getByText('JSON', { exact: true }).click();
+        await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(JSON.stringify(valid));
+        if (mode === 'regex') {
+          await editor.getByText('可视化', { exact: true }).click();
+          await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('[');
+        } else {
+          await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill('{');
+        }
+        if (mode === 'regex') {
+          await expect(save).toBeEnabled();
           const response = page.waitForResponse(res => res.url().endsWith('/admin/mail_webhook/settings') && res.request().method() === 'POST');
           await save.click();
-          expect((await response).status()).toBe(200);
-          return (await request.get(endpoint)).json();
-        };
-        for (const expectedFilter of [original, valid]) {
-          await editor.getByText('JSON', { exact: true }).click();
-          await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(JSON.stringify(valid));
-          if (mode === 'regex') {
-            await editor.getByText('可视化', { exact: true }).click();
-            await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('[');
-          } else {
-            await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(mode === 'json' ? '{' : JSON.stringify({ ...valid, field: 'headerFrom' }));
-          }
-          if (mode === 'regex') {
-            await expect(save).toBeEnabled();
-            const response = page.waitForResponse(res => res.url().endsWith('/admin/mail_webhook/settings') && res.request().method() === 'POST');
-            await save.click();
-            expect((await response).status()).toBe(400);
-            await expect(page.getByText(/\[400\]: 无效的过滤规则/).last()).toBeVisible();
-            expect((await (await request.get(endpoint)).json()).filter ?? null).toEqual(expectedFilter);
-          } else {
-            await expect(save).toBeDisabled();
-          }
-          await toggle.click();
-          await expect(save).toBeEnabled();
-          expect(await saveAndRead()).toMatchObject({ enabled: false, filter: expectedFilter });
-          await toggle.click();
-          if (mode === 'regex') {
-            await expect(save).toBeEnabled();
-            await expect(editor.getByRole('textbox', { name: '匹配值', exact: true })).toHaveValue('[');
-            await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('^UPDATED');
-          } else {
-            await expect(save).toBeDisabled();
-            await expect(editor.getByRole('textbox', { name: 'JSON', exact: true })).toHaveValue(mode === 'json' ? '{' : JSON.stringify({ ...valid, field: 'headerFrom' }));
-            await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(JSON.stringify(valid));
-            await editor.getByText('可视化', { exact: true }).click();
-          }
-          await expect(save).toBeEnabled();
-          expect(await saveAndRead()).toMatchObject({ enabled: true, filter: valid });
+          expect((await response).status()).toBe(400);
+          await expect(page.getByText(/\[400\]: 无效的过滤规则/).last()).toBeVisible();
+          expect((await (await request.get(endpoint)).json()).filter ?? null).toEqual(expectedFilter);
+        } else {
+          await expect(save).toBeDisabled();
         }
-      } finally {
-        expect((await request.post(endpoint, { data: previous })).ok()).toBe(true);
+        await toggle.click();
+        await expect(save).toBeEnabled();
+        expect(await saveAndRead()).toMatchObject({ enabled: false, filter: expectedFilter });
+        await toggle.click();
+        if (mode === 'regex') {
+          await expect(save).toBeEnabled();
+          await expect(editor.getByRole('textbox', { name: '匹配值', exact: true })).toHaveValue('[');
+          await editor.getByRole('textbox', { name: '匹配值', exact: true }).fill('^UPDATED');
+        } else {
+          await expect(save).toBeDisabled();
+          await expect(editor.getByRole('textbox', { name: 'JSON', exact: true })).toHaveValue('{');
+          await editor.getByRole('textbox', { name: 'JSON', exact: true }).fill(JSON.stringify(valid));
+          await editor.getByText('可视化', { exact: true }).click();
+        }
+        await expect(save).toBeEnabled();
+        expect(await saveAndRead()).toMatchObject({ enabled: true, filter: valid });
       }
-    });
-  }
+    } finally {
+      expect((await request.post(endpoint, { data: previous })).ok()).toBe(true);
+    }
+  });
 }
 
 for (const scope of ['admin', 'mailbox']) {

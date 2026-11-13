@@ -6,6 +6,7 @@ services:
       - "8025:8025"
 
   worker:
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-worker
     build:
       context: ..
       dockerfile: e2e/Dockerfile.worker
@@ -22,9 +23,8 @@ services:
 
   worker-subdomain:
     profiles: [api]
-    build:
-      context: ..
-      dockerfile: e2e/Dockerfile.worker
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-worker
+    pull_policy: never
     ports:
       - "8789:8789"
     command: ["pnpm", "exec", "wrangler", "dev", "--port", "8789", "--ip", "0.0.0.0"]
@@ -39,9 +39,8 @@ services:
 
   worker-env-off:
     profiles: [api, browser]
-    build:
-      context: ..
-      dockerfile: e2e/Dockerfile.worker
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-worker
+    pull_policy: never
     ports:
       - "8790:8790"
     command: ["pnpm", "exec", "wrangler", "dev", "--port", "8790", "--ip", "0.0.0.0", "--test-scheduled"]
@@ -58,14 +57,13 @@ services:
 
   worker-gzip:
     profiles: [api]
-    build:
-      context: ..
-      dockerfile: e2e/Dockerfile.worker
-      args:
-        WRANGLER_TOML: e2e/fixtures/wrangler.toml.e2e.gzip
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-worker
+    pull_policy: never
     ports:
       - "8788:8788"
     command: ["pnpm", "exec", "wrangler", "dev", "--port", "8788", "--ip", "0.0.0.0"]
+    volumes:
+      - ./fixtures/wrangler.toml.e2e.gzip:/app/worker/wrangler.toml:ro
     depends_on:
       - mailpit
     healthcheck:
@@ -77,14 +75,13 @@ services:
 
   worker-send-mail-domain:
     profiles: [api]
-    build:
-      context: ..
-      dockerfile: e2e/Dockerfile.worker
-      args:
-        WRANGLER_TOML: e2e/fixtures/wrangler.toml.e2e.send-mail-domain
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-worker
+    pull_policy: never
     ports:
       - "8791:8791"
     command: ["pnpm", "exec", "wrangler", "dev", "--port", "8791", "--ip", "0.0.0.0"]
+    volumes:
+      - ./fixtures/wrangler.toml.e2e.send-mail-domain:/app/worker/wrangler.toml:ro
     depends_on:
       - mailpit
     healthcheck:
@@ -96,14 +93,13 @@ services:
 
   worker-site-password:
     profiles: [api]
-    build:
-      context: ..
-      dockerfile: e2e/Dockerfile.worker
-      args:
-        WRANGLER_TOML: e2e/fixtures/wrangler.toml.e2e.site-password
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-worker
+    pull_policy: never
     ports:
       - "8792:8792"
     command: ["pnpm", "exec", "wrangler", "dev", "--port", "8792", "--ip", "0.0.0.0"]
+    volumes:
+      - ./fixtures/wrangler.toml.e2e.site-password:/app/worker/wrangler.toml:ro
     depends_on:
       - mailpit
     healthcheck:
@@ -114,6 +110,7 @@ services:
       retries: 20
 
   frontend:
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-frontend
     profiles: [browser, webhook]
     build:
       context: ..
@@ -126,9 +123,8 @@ services:
 
   frontend-env-off:
     profiles: [browser]
-    build:
-      context: ..
-      dockerfile: e2e/Dockerfile.frontend
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-frontend
+    pull_policy: never
     ports:
       - "5174:5174"
     command: ["pnpm", "exec", "vite", "--port", "5174", "--host", "0.0.0.0"]
@@ -139,6 +135,7 @@ services:
         condition: service_healthy
 
   smtp-proxy:
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-smtp-proxy
     profiles: [smtp-proxy]
     build:
       context: ../smtp_proxy_server
@@ -156,9 +153,8 @@ services:
 
   smtp-proxy-tls:
     profiles: [smtp-proxy]
-    build:
-      context: ../smtp_proxy_server
-      dockerfile: dockerfile
+    image: ${COMPOSE_PROJECT_NAME:-e2e}-smtp-proxy
+    pull_policy: never
     ports:
       - "11026:8026"
       - "11144:11144"
@@ -185,6 +181,7 @@ services:
     environment:
       RUN_UNIT_TESTS: ${RUN_UNIT_TESTS:-true}
       PLAYWRIGHT_PROJECT: ${PLAYWRIGHT_PROJECT:-*}
+      BROWSER_TEST_LIST: ${BROWSER_TEST_LIST:-}
       WORKER_URL: http://worker:8787
       WORKER_URL_SUBDOMAIN: http://worker-subdomain:8789
       WORKER_URL_ENV_OFF: http://worker-env-off:8790
