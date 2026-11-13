@@ -11,7 +11,7 @@ import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 import Login from '../common/Login.vue';
 
-const { jwt, loading } = useGlobalState()
+const { jwt, openSettings, loading } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
 
@@ -185,7 +185,7 @@ const columns = [
                         type: "primary",
                         onClick: () => showCredential(row)
                     },
-                    { default: () => credentialT('addressCredential') }
+                    { default: () => credentialT(openSettings.value.addressPasswordLoginOnly ? 'sessionToken' : 'addressCredential') }
                 ),
                 h(NPopconfirm,
                     {
@@ -226,7 +226,7 @@ const columns = [
                             },
                             { default: () => t('unbindAddress') }
                         ),
-                        default: () => t('unbindAddressTip')
+                        default: () => t(openSettings.value.addressPasswordLoginOnly ? 'unbindPasswordTip' : 'unbindAddressTip')
                     }
                 ),
             ])

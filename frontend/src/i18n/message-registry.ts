@@ -356,6 +356,22 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "components.AddressCredentialModal": {
+    "passwordOnlyTip": {
+      "en": "Sign in with the mailbox password to view a session token.",
+      "zh": "请使用邮箱密码登录后查看当前会话 Token。"
+    },
+    "sessionToken": {
+      "en": "Session Token",
+      "zh": "会话 Token"
+    },
+    "expiresAt": {
+      "en": "Expires at",
+      "zh": "到期时间"
+    },
+    "sessionTokenTip": {
+      "en": "This token expires at the time shown above. Sign in again after expiry. Auto-login links and QR codes use the same token and expire with it.",
+      "zh": "此 Token 在上述时间到期，过期后请重新登录。自动登录链接和二维码使用同一个 Token，并在同一时间失效。"
+    },
     "addressCredential": {
       "en": "Address Credential",
       "zh": "地址凭证"
@@ -1102,6 +1118,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.user.AddressManagement": {
+    "unbindPasswordTip": {
+      "en": "Save the mailbox password before unlinking so you can log in again.",
+      "zh": "解绑前请保存邮箱密码，以便之后重新登录。"
+    },
     "actions": {
       "en": "Actions",
       "zh": "操作"
@@ -1227,6 +1247,10 @@ export const MESSAGE_REGISTRY = {
     "showAddressCredential": {
       "en": "Credentials & Connection Methods",
       "zh": "地址凭证与连接方式"
+    },
+    "showSessionToken": {
+      "en": "View Session Token",
+      "zh": "查看当前会话 Token"
     },
     "success": {
       "en": "Success",

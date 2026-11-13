@@ -89,6 +89,7 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
             if (!address) return null;
             if (excludeAddresses.has(address)) return null;
             const loginMethod = payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin';
+            if (openSettings.value.addressPasswordLoginOnly && loginMethod !== 'passwordLogin') return null;
             const label = formatAddressLabel(address);
             const key = `local:${curJwt}`;
             const option = { label, value: getOptionValue(key, 'local', curJwt, address), address, loginMethod };
@@ -222,7 +223,7 @@ watch([userJwt, isTelegram, showUserMailboxes, jwt, localAddressCache, () => set
 <template>
     <n-flex class="address-row" align="center" justify="center" :wrap="true">
         <n-select v-model:value="addressValue" :options="addressOptions" :size="size" :render-label="renderLabel" filterable
-            :loading="addressLoading" :placeholder="t('selectMailbox')" @update:value="onAddressChange"
+            :loading="addressLoading" :placeholder="formatAddressLabel(settings.address) || t('selectMailbox')" @update:value="onAddressChange"
             class="address-select" />
         <slot name="actions" />
         <n-button v-if="showCopy" class="address-copy" @click="copy" :size="size" tertiary type="primary">
