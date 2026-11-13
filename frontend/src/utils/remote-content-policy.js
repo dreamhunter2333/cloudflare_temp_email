@@ -124,7 +124,34 @@ function blockCssUrls(cssText, onBlocked) {
 }
 
 let purifier = null;
+let previewPurifier = null;
 let blockedCount = 0;
+
+function getPreviewPurifier() {
+    if (previewPurifier) return previewPurifier;
+    previewPurifier = DOMPurify(window);
+
+    previewPurifier.addHook('beforeSanitizeElements', (node) => {
+        if (node.namespaceURI !== 'http://www.w3.org/1999/xhtml' || node.localName !== 'style') return;
+        const legacyCss = /^\s*<!--([\s\S]*?)-->\s*$/.exec(node.textContent);
+        if (legacyCss) node.textContent = legacyCss[1];
+    });
+
+    previewPurifier.addHook('afterSanitizeAttributes', (node) => {
+        if (!node.hasAttribute?.('target')) return;
+        if (node.namespaceURI !== 'http://www.w3.org/1999/xhtml' ||
+            !NAVIGATION_HREF_ELEMENTS.has(node.tagName) || !node.hasAttribute('href') ||
+            node.getAttribute('target').toLowerCase() !== '_blank') {
+            node.removeAttribute('target');
+            return;
+        }
+        const rel = [...node.relList].filter(token => token.toLowerCase() !== 'opener');
+        if (!rel.some(token => token.toLowerCase() === 'noopener')) rel.push('noopener');
+        node.setAttribute('rel', rel.join(' '));
+    });
+
+    return previewPurifier;
+}
 
 /**
  * An isolated DOMPurify instance. The hooks below must not reach the shared
@@ -184,8 +211,7 @@ function getPurifier() {
 }
 
 /**
- * Strips everything in an email body that would make the browser fetch from a
- * third party, so opening the mail cannot be used to confirm it was read.
+ * Sanitizes the email body and blocks remote resources by default.
  *
  * Sanitising is delegated to DOMPurify rather than hand-rolled: the hard part
  * is not enumerating attributes but surviving the parser, and mutation-XSS is
@@ -196,21 +222,24 @@ function getPurifier() {
  * cleaner never saw.
  *
  * @param {string} html
+ * @param {{ allowRemoteImages?: boolean }} [options]
  * @returns {{ html: string, blocked: number }} blocked counts the references removed
  */
-export function blockRemoteContent(html) {
+export function blockRemoteContent(html, { allowRemoteImages = false } = {}) {
     if (!html || typeof html !== 'string') {
         return { html: html || '', blocked: 0 };
     }
 
     blockedCount = 0;
-    const sanitised = getPurifier().sanitize(html, {
+    const mailPurifier = allowRemoteImages ? getPreviewPurifier() : getPurifier();
+    const sanitised = mailPurifier.sanitize(html, {
         FORBID_TAGS: FORBIDDEN,
         // Mail layout leans on <style> blocks, so they are kept and their
         // url() references filtered instead of dropping the tag wholesale.
         // FORCE_BODY is what makes a leading <style> survive: without it the
         // parser hoists it into <head> and DOMPurify discards it.
         ADD_TAGS: ['style'],
+        ...(allowRemoteImages ? { ADD_ATTR: ['target'] } : {}),
         FORCE_BODY: true,
         ALLOWED_URI_REGEXP,
         ALLOW_DATA_ATTR: true,
