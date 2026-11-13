@@ -5,6 +5,7 @@ import { useScopedI18n } from '@/i18n/app'
 import { APP_CONFIG } from '@/config'
 
 import { useGlobalState } from '../store'
+import { decodeAddressToken } from '../utils/local-address-cache'
 
 const props = defineProps({
   address: {
@@ -24,6 +25,16 @@ const props = defineProps({
 const { openSettings, auth } = useGlobalState()
 const { locale, t } = useScopedI18n('components.AddressCredentialModal')
 const message = useMessage()
+
+const tokenPayload = computed(() => decodeAddressToken(props.jwt))
+const showToken = computed(() => !openSettings.value.addressPasswordLoginOnly
+  || tokenPayload.value?.type === 'address_password_login')
+const expiresAt = computed(() => {
+  const exp = tokenPayload.value?.exp
+  if (typeof exp !== 'number') return null
+  const date = new Date(exp * 1000)
+  return Number.isNaN(date.getTime()) ? null : date
+})
 
 const configuredApiBaseUrl = APP_CONFIG.API_BASE || ''
 const frontendBaseUrl = computed(() => window.location.origin)
@@ -98,10 +109,10 @@ const copyText = async (text) => {
 <template>
   <div class="credential-content">
     <n-alert type="info" :show-icon="false" :bordered="false">
-      {{ t(openSettings.addressPasswordLoginOnly ? 'passwordOnlyTip' : 'tip') }}
+      {{ t(showToken ? 'tip' : 'passwordOnlyTip') }}
     </n-alert>
     <section class="credential-panel">
-      <h3 class="credential-title">{{ t(openSettings.addressPasswordLoginOnly ? 'addressPassword' : 'addressCredential') }}</h3>
+      <h3 class="credential-title">{{ t(showToken && expiresAt ? 'sessionToken' : 'addressCredential') }}</h3>
       <div class="credential-section">
         <div v-if="address" class="credential-field">
           <span class="credential-label">{{ t('currentAddress') }}</span>
@@ -112,14 +123,21 @@ const copyText = async (text) => {
             </n-button>
           </div>
         </div>
-        <div v-if="!openSettings.addressPasswordLoginOnly" class="credential-field">
-          <span class="credential-label">{{ t('addressCredentialLabel') }}</span>
+        <div v-if="showToken" class="credential-field">
+          <span class="credential-label">{{ t(expiresAt ? 'sessionToken' : 'addressCredentialLabel') }}</span>
           <div class="credential-copy-row">
             <code data-testid="address-credential-jwt" class="credential-code">{{ jwt }}</code>
             <n-button size="tiny" tertiary type="primary" @click="copyText(jwt)">
               {{ t('copySection') }}
             </n-button>
           </div>
+        </div>
+        <div v-if="showToken && expiresAt" class="credential-field">
+          <span class="credential-label">{{ t('expiresAt') }}</span>
+          <time data-testid="address-token-expires-at" class="credential-code" :datetime="expiresAt.toISOString()">
+            {{ expiresAt.toLocaleString(locale) }}
+          </time>
+          <p class="credential-tip">{{ t('sessionTokenTip') }}</p>
         </div>
         <div v-if="addressPassword" class="credential-field">
           <span class="credential-label">{{ t('addressPassword') }}</span>
@@ -128,7 +146,7 @@ const copyText = async (text) => {
       </div>
     </section>
 
-    <n-collapse v-if="!openSettings.addressPasswordLoginOnly" accordion class="credential-collapse">
+    <n-collapse v-if="showToken" accordion class="credential-collapse">
       <n-collapse-item v-if="showAgent" name="agent" :title="t('agentAccess')">
         <template #header-extra>
           <n-button size="tiny" tertiary type="primary" @click.stop="copyText(agentText)">

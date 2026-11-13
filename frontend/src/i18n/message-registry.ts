@@ -357,8 +357,20 @@ export const MESSAGE_REGISTRY = {
   },
   "components.AddressCredentialModal": {
     "passwordOnlyTip": {
-      "en": "Save your mailbox password. This interface shows password login only. Bound mailboxes can also be opened from the user center.",
-      "zh": "请保存邮箱密码。当前界面仅展示密码登录方式；已绑定邮箱仍可从用户中心进入。"
+      "en": "Sign in with the mailbox password to view a session token.",
+      "zh": "请使用邮箱密码登录后查看当前会话 Token。"
+    },
+    "sessionToken": {
+      "en": "Session Token",
+      "zh": "会话 Token"
+    },
+    "expiresAt": {
+      "en": "Expires at",
+      "zh": "到期时间"
+    },
+    "sessionTokenTip": {
+      "en": "This token expires at the time shown above. Sign in again after expiry. Auto-login links and QR codes use the same token and expire with it.",
+      "zh": "此 Token 在上述时间到期，过期后请重新登录。自动登录链接和二维码使用同一个 Token，并在同一时间失效。"
     },
     "addressCredential": {
       "en": "Address Credential",
@@ -1235,6 +1247,10 @@ export const MESSAGE_REGISTRY = {
     "showAddressCredential": {
       "en": "Credentials & Connection Methods",
       "zh": "地址凭证与连接方式"
+    },
+    "showSessionToken": {
+      "en": "View Session Token",
+      "zh": "查看当前会话 Token"
     },
     "success": {
       "en": "Success",

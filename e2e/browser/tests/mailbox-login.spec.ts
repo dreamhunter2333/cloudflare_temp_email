@@ -4,7 +4,7 @@ import { sign, verify } from 'hono/jwt';
 import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../fixtures/test-helpers';
 
 for (const mode of ['default', 'password-only', 'password-disabled']) {
-  test(`mailbox creation and password controls: ${mode}`, async ({ page, request }) => {
+  test(`mailbox creation and password controls: ${mode}`, async ({ page, request }, testInfo) => {
     const headers = mode === 'default' ? {} : { 'x-test-address-password-mode': mode };
     const passwordOnly = mode === 'password-only';
     let jwt = '';
@@ -29,11 +29,35 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
         expect(mailbox.password).not.toBe('');
         await expect(modal.getByTestId('address-credential-password')).toHaveText(mailbox.password);
       }
-      await expect(modal.getByTestId('address-credential-jwt')).toHaveCount(passwordOnly ? 0 : 1);
-      await expect(modal.locator('.credential-collapse')).toHaveCount(passwordOnly ? 0 : 1);
+      await expect(modal.getByTestId('address-credential-jwt')).toHaveText(jwt);
+      await expect(modal.locator('.credential-collapse')).toHaveCount(1);
+      const expiry = modal.getByTestId('address-token-expires-at');
+      if (passwordOnly) {
+        const payload = await verify(jwt, 'e2e-test-secret-key', 'HS256');
+        await expect(modal.getByRole('heading', { name: 'Session Token', exact: true })).toBeVisible();
+        await expect(expiry).toHaveAttribute('datetime', new Date(Number(payload.exp) * 1000).toISOString());
+        await expect(expiry).toHaveText(/\d/);
+        await expect(modal.getByText('This token expires at the time shown above.', { exact: false })).toBeVisible();
+        await testInfo.attach('Session token expiry', {
+          body: await page.screenshot({
+            animations: 'disabled', mask: [modal.getByTestId('address-credential-jwt'), modal.getByTestId('address-credential-password')],
+          }), contentType: 'image/png',
+        });
+      } else {
+        await expect(expiry).toHaveCount(0);
+      }
       await page.keyboard.press('Escape');
       await page.locator('.n-tabs-tab').getByText('Mailbox Settings', { exact: true }).click();
-      await expect(page.getByRole('button', { name: 'Credentials & Connection Methods', exact: true })).toHaveCount(passwordOnly ? 0 : 1);
+      const showToken = page.getByRole('button', {
+        name: passwordOnly ? 'View Session Token' : 'Credentials & Connection Methods', exact: true,
+      });
+      await expect(showToken).toBeVisible();
+      if (passwordOnly) {
+        await showToken.click();
+        await expect(modal.getByTestId('address-credential-jwt')).toHaveText(jwt);
+        await expect(expiry).toBeVisible();
+        await page.keyboard.press('Escape');
+      }
       const changePassword = page.getByRole('button', { name: 'Change Mailbox Password', exact: true });
       if (mode === 'password-disabled') {
         await expect(changePassword).toHaveCount(0);

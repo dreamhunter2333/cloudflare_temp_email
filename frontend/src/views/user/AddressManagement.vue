@@ -179,14 +179,14 @@ const columns = [
         key: 'actions',
         render(row) {
             return h('div', [
-                !openSettings.value.addressPasswordLoginOnly ? h(NButton,
+                h(NButton,
                     {
                         tertiary: true,
                         type: "primary",
                         onClick: () => showCredential(row)
                     },
-                    { default: () => credentialT('addressCredential') }
-                ) : null,
+                    { default: () => credentialT(openSettings.value.addressPasswordLoginOnly ? 'sessionToken' : 'addressCredential') }
+                ),
                 h(NPopconfirm,
                     {
                         onPositiveClick: () => changeMailAddress(row.id)

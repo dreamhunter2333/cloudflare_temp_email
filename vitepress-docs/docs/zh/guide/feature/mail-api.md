@@ -8,9 +8,11 @@
 - `GET /api/settings` 仅返回 `address`、`send_balance` 和 `new_address_token`。有效密码登录 JWT 剩余不足 7 天时返回新的 30 天 token，否则为 `null`；原有凭据不会续期，已过期 JWT 必须重新登录。
 - 仅当 `new_address_token` 非 `null` 时，客户端才应保存它并替换当前 token；为 `null` 时继续使用当前 token。
 
-网页通过一次成功的 settings 请求仅更新当前使用的 JWT。本地缓存继续保存 token 字符串，沿用原来的追加和绑定逻辑，不替换或去重历史 token；切换到已过期的缓存会话后，需要重新登录。JWT 解码仅用于显示邮箱和登录方式，权限由后端校验。
+网页通过一次成功的 settings 请求仅更新当前使用的 JWT。本地缓存继续保存 token 字符串，沿用原来的追加和绑定逻辑，不替换或去重历史 token；切换到已过期的缓存会话后，需要重新登录。JWT 解码仅用于显示邮箱、登录方式和 Token 到期时间，权限由后端校验。
 
 同时启用 `ENABLE_ADDRESS_PASSWORD=true` 和 `ADDRESS_PASSWORD_LOGIN_ONLY=true` 后，密码登录、创建邮箱以及用户、管理员和 Telegram 授权入口签发 30 天密码登录 JWT，可直接用于邮箱 API，并通过 settings 在剩余不足 7 天时续期。关闭 `ENABLE_ADDRESS_PASSWORD` 后，密码登录接口返回 403。邮箱密码功能开启且 `ADDRESS_PASSWORD_LOGIN_ONLY` 关闭时，密码登录继续签发原有凭据。两项配置未同时启用时，创建及其他授权入口继续签发原有凭据。已签发的有效密码会话仍可使用和续期。旧凭据、凭据登录链接与直接 API 访问继续兼容。API 客户端仅在 `new_address_token` 非 `null` 时替换当前 token。修改邮箱密码不会撤销已签发的 JWT，持续在到期前续期的会话没有固定的结束时间。
+
+网页保留会话 Token 查看入口，显示 Token 的实际到期时间。该 Token 生成的自动登录链接和二维码也在同一时间失效。密码模式隐藏旧凭据内容、连接信息和本地旧凭据切换选项。管理列表保留旧缓存条目供手动删除，并隐藏其切换操作。当前已知邮箱仍显示在选择器中。关闭开关后可恢复旧缓存切换。
 
 Telegram 继续使用独立的永久内部绑定 token。仅对验证 Telegram 身份后读取的历史绑定忽略过期时间，并继续验证签名及邮箱身份。新绑定仍须通过正常邮箱鉴权。
 

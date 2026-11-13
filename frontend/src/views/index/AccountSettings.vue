@@ -93,8 +93,8 @@ const changePassword = async () => {
 <template>
     <div class="center" v-if="settings.address">
         <n-card :bordered="false" embedded class="account-card">
-            <n-button v-if="!openSettings.addressPasswordLoginOnly" @click="showAddressCredential = true" type="primary" secondary block strong>
-                {{ t('showAddressCredential') }}
+            <n-button @click="showAddressCredential = true" type="primary" secondary block strong>
+                {{ t(openSettings.addressPasswordLoginOnly ? 'showSessionToken' : 'showAddressCredential') }}
             </n-button>
             <n-button v-if="openSettings?.enableAddressPassword" @click="showChangePassword = true" type="info" secondary block strong>
                 {{ t('changePassword') }}
