@@ -52,6 +52,7 @@ for (const [name, base] of [['plaintext', WORKER_URL], ['gzip', WORKER_GZIP_URL]
       try {
         await setRules(request, base, { emailForwardingList: [{
           domains: [TEST_DOMAIN.toUpperCase()], sourcePatterns: ['^sender@outside\\.example$'],
+          recipientPatterns: ['internalsource'],
           forward: target.address.replace(/@(.+)$/, (_, domain: string) => `@${domain.toUpperCase()}`),
           deleteOriginal: false,
         }] });
@@ -131,6 +132,54 @@ for (const [name, base] of [['plaintext', WORKER_URL], ['gzip', WORKER_GZIP_URL]
       });
     }
 
+    for (const route of ['admin', 'environment']) {
+      test(`${route} recipient regex preserves filtering, internal delivery and original deletion`, async ({ request }) => {
+        test.setTimeout(60_000);
+        const source = await createTestAddress(request, 'adminalias', TEST_DOMAIN, base);
+        const target = await createTestAddress(request, 'regextarget', TEST_DOMAIN, base);
+        const external = 'recipient@outside.example';
+        const cases = [
+          { title: 'legacy rule', filter: {}, matches: true },
+          { title: 'empty patterns', filter: { recipientPatterns: [] }, matches: true },
+          { title: 'default any', filter: { recipientPatterns: ['^nobody@', 'adminalias'] }, matches: true },
+          { title: 'case-insensitive any', filter: { recipientPatterns: ['^nobody@', 'ADMINALIAS'], recipientMatchMode: 'any' }, matches: true },
+          { title: 'all', filter: { recipientPatterns: ['adminalias', '@test\\.example\\.com$'], recipientMatchMode: 'all' }, matches: true },
+          { title: 'all requires every pattern', filter: { recipientPatterns: ['adminalias', '^nobody@'], recipientMatchMode: 'all' }, matches: false },
+          { title: 'recipient mismatch', filter: { recipientPatterns: ['^nobody@'] }, matches: false },
+          { title: 'invalid regex', filter: { recipientPatterns: ['['] }, matches: false },
+          { title: 'overlong regex', filter: { recipientPatterns: ['a'.repeat(201)] }, matches: false },
+          { title: 'sender must also match', filter: { recipientPatterns: ['adminalias'], sourcePatterns: ['^nobody@'] }, matches: false },
+          { title: 'domain must also match', filter: { recipientPatterns: ['adminalias'], domains: ['outside.example'] }, matches: false },
+          { title: 'MIME To is not the envelope recipient', filter: { recipientPatterns: ['^headeronly@'] }, matches: false },
+        ];
+        const totals = { originals: 0, copies: 0 };
+        try {
+          for (const scenario of cases) await test.step(scenario.title, async () => {
+            const rules = [target.address, external].map(forward => ({
+              domains: [TEST_DOMAIN.toUpperCase()], sourcePatterns: ['^sender@outside\\.example$'],
+              ...scenario.filter, forward, deleteOriginal: true,
+            }));
+            await setRules(request, base, { emailForwardingList: route === 'admin' ? rules : [] });
+            const response = await request.post(`${base}/__test/receive_mail`, {
+              data: {
+                from: 'sender@outside.example', to: source.address, raw: makeRaw('headeronly@outside.example'),
+                ...(route === 'environment' ? { subdomain_forward_address_list: rules } : {}),
+              },
+            });
+            expect(await response.json()).toMatchObject({ success: true, forwardedTo: scenario.matches ? [external] : [] });
+            if (scenario.matches) totals.copies++;
+            else totals.originals++;
+            expect(await listMails(request, base, source.jwt)).toHaveLength(totals.originals);
+            expect(await listMails(request, base, target.jwt)).toHaveLength(totals.copies);
+          });
+        } finally {
+          for (const mailbox of [source, target]) await request.delete(`${base}/api/delete_address`, {
+            headers: { Authorization: `Bearer ${mailbox.jwt}` },
+          });
+        }
+      });
+    }
+
     test('does not duplicate self-forwards or recursively apply cyclic rules', async ({ request }) => {
       const source = await createTestAddress(request, 'cyclesource', TEST_DOMAIN, base);
       const target = await createTestAddress(request, 'cycletarget', TEST_DOMAIN, base);
@@ -175,18 +224,21 @@ for (const [name, base] of [['plaintext', WORKER_URL], ['gzip', WORKER_GZIP_URL]
       }
     });
 
-    test('does not bypass unknown-recipient rejection', async ({ request }) => {
+    for (const blockUnknown of [true, false]) test(`recipient regex respects unknown-recipient rejection: ${blockUnknown}`, async ({ request }) => {
       const target = await createTestAddress(request, 'rejectedtarget', TEST_DOMAIN, base);
       const unknown = `unknown${crypto.randomUUID().replaceAll('-', '')}@${TEST_DOMAIN}`;
       try {
         await setRules(request, base, {
-          blockReceiveUnknowAddressEmail: true, emailForwardingList: [{ forward: target.address }],
+          blockReceiveUnknowAddressEmail: blockUnknown,
+          emailForwardingList: [{ forward: target.address, recipientPatterns: ['^unknown'], deleteOriginal: true }],
         });
         const response = await request.post(`${base}/__test/receive_mail`, {
           data: { from: 'sender@outside.example', to: unknown, raw: makeRaw(unknown) },
         });
-        expect(await response.json()).toMatchObject({ success: false, rejected: 'Unknown address', forwardedTo: [] });
-        expect(await listMails(request, base, target.jwt)).toHaveLength(0);
+        expect(await response.json()).toMatchObject(blockUnknown
+          ? { success: false, rejected: 'Unknown address', forwardedTo: [] }
+          : { success: true, forwardedTo: [] });
+        expect(await listMails(request, base, target.jwt)).toHaveLength(blockUnknown ? 0 : 1);
       } finally {
         await request.delete(`${base}/api/delete_address`, { headers: { Authorization: `Bearer ${target.jwt}` } });
       }
