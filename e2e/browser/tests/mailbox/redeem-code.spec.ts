@@ -8,6 +8,8 @@ import {
   WORKER_URL,
 } from '../../../fixtures/test-helpers';
 
+test.describe.configure({ lock: 'user-settings' });
+
 const ADMIN_HEADERS = { 'x-admin-auth': 'e2e-admin-pass' };
 
 const uniqueValue = (label: string) => (

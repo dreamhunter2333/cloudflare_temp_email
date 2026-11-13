@@ -145,13 +145,12 @@ for (const layout of [
       await seedTestMail(api, mailbox.address, { subject, text, from });
 
       await page.setViewportSize({ width: layout.width, height: 900 });
-      await page.goto(`${FRONTEND_URL}/en/`);
-      await page.evaluate(({ listView }) => {
+      await page.addInitScript((listView) => {
         localStorage.setItem('mailListView', String(listView));
         localStorage.setItem('mailListPreviewLineClamp', '1');
         localStorage.setItem('useUTCDate', 'true');
         localStorage.setItem('mailboxSplitSize', '0.25');
-      }, layout);
+      }, layout.listView);
       await page.goto(`${FRONTEND_URL}/en/?jwt=${jwt}`);
 
       const item = page.getByRole('listitem').filter({ hasText: subject });
