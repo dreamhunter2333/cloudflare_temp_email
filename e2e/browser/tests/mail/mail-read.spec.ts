@@ -6,7 +6,7 @@ import {
   createTestAddress,
   deleteAddress,
   seedTestMail,
-} from '../../fixtures/test-helpers';
+} from '../../../fixtures/test-helpers';
 
 test('keeps refresh unread and supports automatic and manual state changes', async ({ page }) => {
   const request = await apiRequest.newContext();

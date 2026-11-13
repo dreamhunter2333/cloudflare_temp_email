@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test:unit": "node --experimental-strip-types --test unit/tests/*.test.mjs",
-    "test": "docker compose --profile \"*\" up --build --abort-on-container-exit --exit-code-from e2e-runner",
+    "test": "docker compose --profile \"*\" build && docker compose --profile \"*\" run --rm --no-deps frontend pnpm test && docker compose --profile \"*\" up --no-build --abort-on-container-exit --exit-code-from e2e-runner",
     "test:down": "docker compose --profile \"*\" down -v"
   },
   "devDependencies": {

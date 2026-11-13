@@ -8,7 +8,10 @@ import {
   hashPassword,
 } from '../../fixtures/test-helpers';
 
-const waitForNextTimestamp = () => new Promise((resolve) => setTimeout(resolve, 1_100));
+const OLD = '2020-01-01 00:00:00';
+const RECENT = new Date(Date.now() - 3_600_000).toISOString().replace('T', ' ').slice(0, 19);
+type Mailbox = { address: string; address_id: number; jwt: string; password: string };
+type User = { id: number; email: string; jwt: string };
 
 test.describe('Address activity throttling', () => {
   test('does not rewrite recently active addresses from user settings', async ({ request }) => {
@@ -54,12 +57,14 @@ test.describe('Address activity throttling', () => {
       )?.updated_at;
       expect(initialUpdatedAt).toBeTruthy();
 
-      await waitForNextTimestamp();
+      const seeded = await request.post(`${WORKER_URL}/__test/seed_mail`, {
+        data: { address: address.address, raw: 'Activity test', address_updated_at: RECENT },
+      });
+      expect(seeded.ok()).toBe(true);
       const userSettingsRes = await request.get(`${WORKER_URL}/user_api/settings`, {
-        headers: { 'x-user-token': userJwt },
+        headers: { 'x-user-token': userJwt, 'x-test-await-background': '1' },
       });
       expect(userSettingsRes.ok()).toBe(true);
-      await waitForNextTimestamp();
 
       const afterRes = await request.get(`${WORKER_URL}/user_api/bind_address`, {
         headers: { 'x-user-token': userJwt },
@@ -69,7 +74,7 @@ test.describe('Address activity throttling', () => {
       const updatedAt = after.results.find(
         (row: { name: string }) => row.name === address.address,
       )?.updated_at;
-      expect(updatedAt).toBe(initialUpdatedAt);
+      expect(updatedAt).toBe(RECENT);
     } finally {
       await deleteAddress(request, address.jwt);
       if (userId) {
@@ -79,11 +84,6 @@ test.describe('Address activity throttling', () => {
     }
   });
 });
-
-const OLD = '2020-01-01 00:00:00';
-const RECENT = new Date(Date.now() - 3_600_000).toISOString().replace('T', ' ').slice(0, 19);
-type Mailbox = { address: string; address_id: number; jwt: string; password: string };
-type User = { id: number; email: string; jwt: string };
 
 for (const { base, disabled } of [
   { base: WORKER_URL, disabled: false },
@@ -97,7 +97,10 @@ for (const { base, disabled } of [
 
     async function call(request: APIRequestContext, path: string,
       options: Parameters<APIRequestContext['fetch']>[1] = {}, status = 200) {
-      const response = await request.fetch(`${base}${path}`, options);
+      const response = await request.fetch(`${base}${path}`, {
+        ...options,
+        headers: { 'x-test-await-background': '1', ...options.headers },
+      });
       expect(response.status(), await response.text()).toBe(status);
       return response;
     }
@@ -144,13 +147,13 @@ for (const { base, disabled } of [
       expect((await addressRow(request, mailbox)).updated_at).toBe(updatedAt);
     }
     async function expectActivity(request: APIRequestContext, mailbox: Mailbox, previous: string | null) {
+      const { updated_at: updatedAt } = await addressRow(request, mailbox);
       if (disabled || previous === RECENT) {
-        await waitForNextTimestamp();
-        expect((await addressRow(request, mailbox)).updated_at).toBe(previous);
+        expect(updatedAt).toBe(previous);
         return;
       }
-      await expect.poll(async () => (await addressRow(request, mailbox)).updated_at).not.toBe(previous);
-      expect((await addressRow(request, mailbox)).updated_at).toBeTruthy();
+      expect(updatedAt).toBeTruthy();
+      expect(updatedAt).not.toBe(previous);
     }
     async function send(request: APIRequestContext, mailbox: Mailbox, user?: User) {
       const subject = `Activity ${disabled} ${Date.now()}`;
@@ -242,9 +245,11 @@ for (const { base, disabled } of [
       expect(after.map(row => row.updated_at).slice(2)).toEqual([RECENT, OLD, OLD]);
       if (disabled) expect(after[1].updated_at).toBeNull();
       else expect(after[1].updated_at).toBeTruthy();
+      const recent = new Date(Date.now() - 30 * 60_000).toISOString().replace('T', ' ').slice(0, 19);
+      await seed(request, mailboxes[0], recent);
       await call(request, '/user_api/settings', { headers: userAuth(user) });
-      await waitForNextTimestamp();
-      expect(await Promise.all(mailboxes.map(mailbox => addressRow(request, mailbox)))).toEqual(after);
+      const afterRepeat = await Promise.all(mailboxes.map(mailbox => addressRow(request, mailbox)));
+      expect(afterRepeat.map(row => row.updated_at)).toEqual([recent, ...after.slice(1).map(row => row.updated_at)]);
     });
 
     for (const path of ['/api/settings', '/api/mails?limit=20&offset=0', '/api/parsed_mails?limit=20&offset=0']) {
@@ -267,7 +272,6 @@ for (const { base, disabled } of [
       for (const path of ['/api/mails?limit=20&offset=20', '/api/parsed_mails?limit=20&offset=20']) {
         await call(request, path, { headers: addressAuth(mailbox) });
       }
-      await waitForNextTimestamp();
       expect((await addressRow(request, mailbox)).updated_at).toBe(OLD);
     });
 
@@ -375,7 +379,7 @@ for (const { base, disabled } of [
         }
         if (cleanType === 'sendbox') {
           await send(request, mailbox);
-          await waitForNextTimestamp();
+          await new Promise(resolve => setTimeout(resolve, 1_100));
         }
         await call(request, '/admin/cleanup', {
           method: 'POST', data: { cleanType, cleanDays: cleanType === 'sendbox' ? 0 : 1 },

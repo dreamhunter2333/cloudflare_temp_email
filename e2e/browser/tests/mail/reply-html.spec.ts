@@ -4,9 +4,8 @@ import {
   createTestAddress,
   seedTestMail,
   deleteAddress,
-  deleteAllMailpitMessages,
   requestSendAccess,
-} from '../../fixtures/test-helpers';
+} from '../../../fixtures/test-helpers';
 import { request as apiRequest } from '@playwright/test';
 
 test.describe('Reply HTML & XSS Sanitization', () => {
@@ -15,8 +14,6 @@ test.describe('Reply HTML & XSS Sanitization', () => {
     let jwt: string | undefined;
 
     try {
-      await deleteAllMailpitMessages(api);
-
       const created = await createTestAddress(api, 'reply-xss');
       jwt = created.jwt;
       const address = created.address;

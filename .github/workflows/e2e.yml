@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit:
     name: Unit tests
@@ -12,6 +16,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v5
+        with:
+          package_json_file: frontend/package.json
       - uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -20,6 +27,11 @@ jobs:
         run: |
           npm ci
           npm run test:unit
+      - name: Run frontend unit tests
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test
 
   e2e-groups:
     name: E2E ${{ matrix.project }}
@@ -32,15 +44,18 @@ jobs:
     env:
       COMPOSE_PROFILES: ${{ matrix.project }}
       PLAYWRIGHT_PROJECT: ${{ matrix.project }}
+      PLAYWRIGHT_WORKERS: ${{ (matrix.project == 'browser' || matrix.project == 'webhook') && '75%' || '1' }}
       RUN_UNIT_TESTS: 'false'
     steps:
       - uses: actions/checkout@v6
 
+      - name: Build E2E images
+        working-directory: e2e
+        run: docker compose build
+
       - name: Run E2E tests
-        run: |
-          cd e2e
-          docker compose config --services
-          docker compose up --build --abort-on-container-exit --exit-code-from e2e-runner
+        working-directory: e2e
+        run: docker compose up --no-build --abort-on-container-exit --exit-code-from e2e-runner
 
       - name: Upload test results
         if: always()

@@ -18,7 +18,7 @@ npm test
 npm run test:down
 ```
 
-`npm test` enables all Compose profiles and runs `docker compose up --build`, which:
+`npm test` enables all Compose profiles, builds the shared images, runs the frontend unit tests, then starts the test stack:
 1. Starts **Mailpit** (SMTP on :1025, HTTP API on :8025)
 2. Builds and starts the **Worker** (wrangler dev on :8787)
 3. Builds and starts the **Frontend** (vite dev on :5173)
@@ -26,7 +26,7 @@ npm run test:down
 
 The exit code reflects the test result.
 
-GitHub Actions runs API, browser, Webhook UI and SMTP/IMAP groups on separate runners, each with its own Compose stack and report. The Webhook group contains the 34 Webhook browser tests; the other 70 browser tests remain in one browser job. API-side Webhook coverage stays in the API group. Tests inside each runner remain serial. Compose profiles start only the services needed by each group:
+GitHub Actions runs API, Browser, Webhook UI and SMTP/IMAP groups on separate runners, each with its own Compose stack and report. CI runs Browser and Webhook UI tests in parallel within their respective stacks. Browser specs are grouped under `admin/`, `account/`, `mailbox/` and `mail/`. Use Playwright locks for tests that write shared settings. API and SMTP/IMAP run serially. Local runs default to one Playwright worker and accept `PLAYWRIGHT_WORKERS` as a count or percentage to adjust browser concurrency. Compose profiles start only the services needed by each group:
 
 | Profile | Services, excluding the test runner |
 | --- | --- |
@@ -35,12 +35,13 @@ GitHub Actions runs API, browser, Webhook UI and SMTP/IMAP groups on separate ru
 | `webhook` | Mailpit, default Worker and its frontend |
 | `smtp-proxy` | Mailpit, default Worker and plain/TLS SMTP/IMAP proxies |
 
-Unit tests run once in a separate Node.js job. The `e2e` check requires every group and unit test job to succeed.
+Node.js and frontend unit tests run once in a separate job. The `e2e` check requires every group and unit test job to succeed.
 
 Local `npm test` still runs all Compose-backed suites and unit tests by default. To run one suite with only its services, use the matching profile and project, for example:
 
 ```bash
-COMPOSE_PROFILES=api PLAYWRIGHT_PROJECT=api docker compose up --build --abort-on-container-exit --exit-code-from e2e-runner
+docker compose --profile api build
+COMPOSE_PROFILES=api PLAYWRIGHT_PROJECT=api docker compose up --no-build --abort-on-container-exit --exit-code-from e2e-runner
 ```
 
 CI uses `RUN_UNIT_TESTS=false` in Compose because its separate unit job already runs those tests. `npm run test:down` cleans up services from all profiles.

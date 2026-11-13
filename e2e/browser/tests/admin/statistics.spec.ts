@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { FRONTEND_URL } from '../../fixtures/test-helpers';
+import { FRONTEND_URL } from '../../../fixtures/test-helpers';
 
 async function mockStatistics(page: Page, initialFails = false) {
   const userTotals = { userCount: 83, activeUserCount7days: 12, activeUserCount30days: 21 };

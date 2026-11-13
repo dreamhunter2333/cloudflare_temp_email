@@ -1,7 +1,20 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { sign, verify } from 'hono/jwt';
 
-import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../../fixtures/test-helpers';
+
+async function openPasswordOnlyMailbox(page: Page, token: string) {
+  // Load the Worker settings before the selector reads the local credential cache.
+  await page.route('**/api/settings', async route => {
+    await page.waitForFunction(async () => {
+      const storeModule = '/src/store/index.js';
+      const { useGlobalState } = await import(storeModule);
+      return useGlobalState().openSettings.value.addressPasswordLoginOnly;
+    });
+    await route.continue();
+  }, { times: 1 });
+  await page.goto(`${FRONTEND_URL}/en/?jwt=${token}`);
+}
 
 for (const mode of ['default', 'password-only', 'password-disabled']) {
   test(`mailbox creation and password controls: ${mode}`, async ({ page, request }, testInfo) => {
@@ -77,7 +90,7 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
       });
       expect(login.ok()).toBe(true);
       const legacyToken = await sign({ address: mailbox.address, address_id: mailbox.address_id }, 'e2e-test-secret-key', 'HS256');
-      await page.goto(`${FRONTEND_URL}/en/?jwt=${legacyToken}`);
+      await openPasswordOnlyMailbox(page, legacyToken);
       await expect(page.locator('.address-select')).toContainText(mailbox.address);
       await page.locator('.address-select').click();
       await expect(page.locator('.n-base-select-menu:visible')).not.toContainText('Credential Login');
@@ -115,11 +128,11 @@ test('renewal updates the current JWT; expired cached sessions require login', a
       headers: { Authorization: `Bearer ${mailbox.jwt}` }, data: { new_password: hashPassword(password) },
     });
     expect(changed.ok()).toBe(true);
-    await page.goto(`${FRONTEND_URL}/en/`);
-    await page.evaluate(cache => localStorage.setItem('LocalAddressCache', JSON.stringify(cache)), [
-      mailbox.jwt, passwordToken, other.jwt,
-      expiredPasswordToken,
-    ]);
+    await page.addInitScript(cache => {
+      if (localStorage.getItem('LocalAddressCache') === null) {
+        localStorage.setItem('LocalAddressCache', JSON.stringify(cache));
+      }
+    }, [mailbox.jwt, passwordToken, other.jwt, expiredPasswordToken]);
     await page.goto(`${FRONTEND_URL}/en/?jwt=${mailbox.jwt}`);
     await expect(page.locator('.address-select')).toContainText(mailbox.address);
     await expect.poll(readCache).toEqual([
@@ -199,7 +212,7 @@ test('renewal updates the current JWT; expired cached sessions require login', a
 
     const historicalCache = await readCache();
     await page.setExtraHTTPHeaders({ 'x-test-address-password-mode': 'password-only' });
-    await page.goto(`${FRONTEND_URL}/en/?jwt=${renewedToken}`);
+    await openPasswordOnlyMailbox(page, renewedToken);
     await expect(page.locator('.address-select')).toContainText(mailbox.address);
     await expect(page.locator('.address-select .n-tag')).toHaveCount(0);
     await page.locator('.address-select').click();

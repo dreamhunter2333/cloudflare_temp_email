@@ -6,7 +6,7 @@ import {
   FRONTEND_URL,
   FRONTEND_URL_ENV_OFF,
   WORKER_URL,
-} from '../../fixtures/test-helpers';
+} from '../../../fixtures/test-helpers';
 
 const ADMIN_HEADERS = { 'x-admin-auth': 'e2e-admin-pass' };
 
@@ -85,7 +85,7 @@ async function deleteUser(request: APIRequestContext, userId: number) {
   await request.delete(`${WORKER_URL}/admin/users/${userId}`, { headers: ADMIN_HEADERS });
 }
 
-test('the mailbox entry opens the pure redemption page and completes role redemption', async ({ page, request }) => {
+test('the mailbox entry opens the pure redemption page and completes role redemption', { lock: 'user-settings' }, async ({ page, request }) => {
   const user = await createUser(request);
   const code = await createCode(request, 'role', 'case-role');
   try {
@@ -209,7 +209,7 @@ test('the special-address page shows and retrieves the same full credentials', a
   }
 });
 
-test('Admin can batch-create, search, export, and display a redemption result', async ({ page, request }) => {
+test('Admin can batch-create, search, export, and display a redemption result', { lock: 'user-settings' }, async ({ page, request }) => {
   let code = '';
   const user = await createUser(request);
   try {

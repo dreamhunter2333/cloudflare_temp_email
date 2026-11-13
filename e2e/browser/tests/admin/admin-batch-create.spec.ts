@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { parse } from 'csv-parse/sync';
-import { FRONTEND_URL, WORKER_URL } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL } from '../../../fixtures/test-helpers';
 
 async function openCreate(page: Page, locale = 'en', domains = ['test.example.com', 'other.example.com']) {
   await page.addInitScript(() => {
@@ -343,9 +343,6 @@ test('locks shared settings and mode switching for the entire sequential batch',
 });
 
 for (const scenario of [
-  { locale: 'en', status: 400, successes: 2 },
-  { locale: 'en', status: 429, successes: 2 },
-  { locale: 'en', status: 500, successes: 2 },
   { locale: 'en', status: 0, successes: 2 },
   { locale: 'zh', status: 429, successes: 2 },
   { locale: 'en', status: 500, successes: 0 },

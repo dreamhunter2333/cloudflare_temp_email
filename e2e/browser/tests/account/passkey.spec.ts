@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { request as apiRequest } from '@playwright/test';
 import { createHash } from 'crypto';
-import { WORKER_URL, FRONTEND_URL } from '../../fixtures/test-helpers';
+import { WORKER_URL, FRONTEND_URL } from '../../../fixtures/test-helpers';
+
+test.describe.configure({ lock: 'user-settings' });
 
 const TEST_USER_EMAIL = `passkey-browser-${Date.now()}@test.example.com`;
 const TEST_USER_PASSWORD = 'browser-test-pwd-123';
@@ -95,7 +97,6 @@ test.describe('Passkey Browser Flow', () => {
       await logoutModal.getByRole('button', { name: 'Logout' }).click();
 
       // Wait for logout to complete and navigate to user page
-      await page.waitForTimeout(2000);
       await page.goto(`${FRONTEND_URL}/en/user`);
 
       // === Step 6: Login with passkey ===

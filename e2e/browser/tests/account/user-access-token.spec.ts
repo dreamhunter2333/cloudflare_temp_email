@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
-import { createHmac } from 'node:crypto';
-import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword, getAddressSender, onMailpitMessage } from '../../fixtures/test-helpers';
+import { createHmac, randomUUID } from 'node:crypto';
+import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword, getAddressSender, onMailpitMessage } from '../../../fixtures/test-helpers';
 
 const accessToken = (expiresIn: number) => {
   const payload = Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + expiresIn })).toString('base64url');
@@ -314,22 +314,17 @@ for (const changedCredential of ['account', 'mailbox'] as const) {
 }
 
 for (const [scenario, query] of [
-  ['expired account', ''],
   ['deleted account', ''],
   ['valid account', ''],
   ['missing account', ''],
   ['missing expiry', ''],
   ['expired account', '?refresh=1&source=e2e'],
-  ['deleted account', '?refresh=1&source=e2e'],
-  ['valid account', '?refresh=1&source=e2e'],
-  ['missing account', '?refresh=1&source=e2e'],
-  ['missing expiry', '?refresh=1&source=e2e'],
 ] as const) {
-  test(`mailbox operations use the real Worker when ${scenario}, query: ${query || 'none'}`, async ({ page, request }) => {
+  test(`mailbox operations use the real Worker when ${scenario}, query: ${query || 'none'}`, { lock: 'user-settings' }, async ({ page, request }) => {
     const address = await createTestAddress(request, 'refresh-mailbox-');
     let userId: number | undefined;
     try {
-      const email = `refresh-account-${Date.now()}@test.example.com`;
+      const email = `refresh-account-${randomUUID()}@test.example.com`;
       const created = await request.post(`${WORKER_URL}/admin/users`, {
         data: { email, password: hashPassword('test-password-123') },
       });

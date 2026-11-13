@@ -28,14 +28,6 @@ test.describe('Webhook Presets', () => {
       const presetsBtn = page.getByRole('button', { name: 'Presets' });
       await expect(presetsBtn).toBeVisible({ timeout: 5000 });
 
-      // Helper to get form field value by label text
-      const getFieldValue = async (label: string): Promise<string> => {
-        // Find the label, then get the sibling textbox in the same form row
-        const row = page.locator('div', { hasText: new RegExp(`^${label}$`) }).locator('..');
-        const textbox = row.getByRole('textbox');
-        return textbox.inputValue();
-      };
-
       // Define expected presets and their key fields
       const expectedPresets = [
         {
@@ -63,7 +55,6 @@ test.describe('Webhook Presets', () => {
         await option.click();
         // Wait for dropdown to close, then for URL field to contain preset pattern
         await expect(option).toBeHidden({ timeout: 5_000 });
-        await page.waitForTimeout(500);
 
         const allTextboxes = page.getByRole('textbox');
         const count = await allTextboxes.count();

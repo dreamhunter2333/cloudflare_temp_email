@@ -1,5 +1,5 @@
 import { test, expect, request as apiRequest, type Locator } from '@playwright/test';
-import { FRONTEND_URL, createTestAddress, seedTestMail, deleteAddress } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, createTestAddress, seedTestMail, deleteAddress } from '../../../fixtures/test-helpers';
 
 const textContrast = (locator: Locator) => locator.evaluate(element => {
   const canvas = document.createElement('canvas');

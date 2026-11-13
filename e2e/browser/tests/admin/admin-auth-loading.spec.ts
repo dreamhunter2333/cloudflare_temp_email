@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { FRONTEND_URL } from '../../fixtures/test-helpers';
+import { FRONTEND_URL } from '../../../fixtures/test-helpers';
 
 test('waits for access settings before showing the Admin password dialog', async ({ page }) => {
   await page.addInitScript(() => {
