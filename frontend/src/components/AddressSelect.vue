@@ -1,13 +1,14 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { computed, h, onMounted, ref, watch } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 import { useScopedI18n } from '@/i18n/app'
-import { useMessage } from 'naive-ui'
+import { NTag, useMessage } from 'naive-ui'
 import useClipboard from 'vue-clipboard3'
 import { Copy } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
+import { decodeAddressToken } from '../utils/local-address-cache'
 
 const props = defineProps({
     showCopy: {
@@ -28,8 +29,13 @@ const {
 } = useGlobalState()
 
 const { t } = useScopedI18n('components.AddressSelect')
+const { t: loginT } = useScopedI18n('views.common.Login')
 
 const addressOptions = ref([])
+const showLoginMethods = computed(() => new Set(
+    addressOptions.value.flatMap(option => option.children || [option])
+        .map(option => option.loginMethod).filter(Boolean)
+).size > 1)
 const addressValue = ref(null)
 const addressLoading = ref(false)
 const localAddressCache = useLocalStorage("LocalAddressCache", [])
@@ -45,19 +51,18 @@ const formatAddressLabel = (address) => {
     return address.replace('@' + domain, `@${domainLabel}`);
 }
 
-const parseJwtAddress = (curJwt) => {
-    try {
-        const payload = JSON.parse(
-            decodeURIComponent(
-                atob(curJwt.split(".")[1]
-                    .replace(/-/g, "+").replace(/_/g, "/")
-                )
-            )
-        );
-        return payload.address;
-    } catch (e) {
-        return null;
-    }
+const renderLabel = (option) => {
+    if (!showLoginMethods.value || !option.loginMethod) return option.label;
+    return h('span', {
+        style: { display: 'inline-flex', alignItems: 'center', gap: '8px', maxWidth: '100%' },
+    }, [
+        h('span', {
+            style: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+        }, option.label),
+        h(NTag, {
+            size: 'small', bordered: false, style: { flexShrink: 0 },
+        }, () => loginT(option.loginMethod)),
+    ]);
 }
 
 const getOptionValue = (key, scope, payload, address) => {
@@ -79,13 +84,15 @@ const buildLocalOptions = (excludeAddresses = new Set()) => {
     }
     const children = localAddressCache.value
         .map((curJwt) => {
-            const address = parseJwtAddress(curJwt);
+            const payload = decodeAddressToken(curJwt);
+            const address = payload?.address;
             if (!address) return null;
             if (excludeAddresses.has(address)) return null;
+            const loginMethod = payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin';
             const label = formatAddressLabel(address);
             const key = `local:${curJwt}`;
-            const option = { label, value: getOptionValue(key, 'local', curJwt, address), address };
-            if (settings.value.address && address === settings.value.address) {
+            const option = { label, value: getOptionValue(key, 'local', curJwt, address), address, loginMethod };
+            if (curJwt === jwt.value) {
                 addressValue.value = option.value;
             }
             return option;
@@ -207,14 +214,14 @@ onMounted(async () => {
     await refreshAddressOptions();
 });
 
-watch([userJwt, isTelegram, showUserMailboxes, () => settings.value.address], async () => {
+watch([userJwt, isTelegram, showUserMailboxes, jwt, localAddressCache, () => settings.value.address], async () => {
     await refreshAddressOptions();
 });
 </script>
 
 <template>
     <n-flex class="address-row" align="center" justify="center" :wrap="true">
-        <n-select v-model:value="addressValue" :options="addressOptions" :size="size" filterable
+        <n-select v-model:value="addressValue" :options="addressOptions" :size="size" :render-label="renderLabel" filterable
             :loading="addressLoading" :placeholder="t('selectMailbox')" @update:value="onAddressChange"
             class="address-select" />
         <slot name="actions" />

@@ -118,6 +118,7 @@ export const esMessages = {
   "views.user.AddressManagement.address": "Dirección",
   "views.index.TelegramAddress.address": "Dirección",
   "views.admin.SenderAccess.address": "Dirección",
+  "views.index.LocalAddress.loginMethod": "Método de inicio de sesión",
   "views.index.LocalAddress.address": "Dirección",
   "views.admin.CreateAccount.address": "Dirección",
   "views.admin.AiExtractSettings.allowList": "Lista blanca de direcciones (introduce una dirección y pulsa Enter; admite comodines)",

@@ -2,7 +2,8 @@
 import { ref, h, computed } from 'vue';
 import { useLocalStorage } from '@vueuse/core';
 import { useScopedI18n } from '@/i18n/app'
-import { NPopconfirm, NButton } from 'naive-ui'
+import { NPopconfirm, NButton, NTag } from 'naive-ui'
+import { decodeAddressToken } from '../../utils/local-address-cache'
 
 // @ts-ignore
 import { useGlobalState } from '../../store'
@@ -14,6 +15,7 @@ const { jwt } = useGlobalState()
 const message = useMessage()
 
 const { t } = useScopedI18n('views.index.LocalAddress')
+const { t: loginT } = useScopedI18n('views.common.Login')
 
 const tabValue = ref('address')
 const localAddressCache = useLocalStorage("LocalAddressCache", []);
@@ -24,28 +26,15 @@ const data = computed(() => {
         localAddressCache.value.push(jwt.value)
     }
     return localAddressCache.value.map((curJwt: string) => {
-        try {
-            const payload = JSON.parse(
-                decodeURIComponent(
-                    atob(curJwt.split(".")[1]
-                        .replace(/-/g, "+").replace(/_/g, "/")
-                    )
-                )
-            );
-            return {
-                valid: true,
-                address: payload.address,
-                jwt: curJwt
-            }
-        } catch (e) {
-            return {
-                valid: false,
-                address: `invalid jwt [${curJwt}]`,
-                jwt: curJwt
-            }
+        const payload = decodeAddressToken(curJwt);
+        if (!payload) return { valid: false, address: `invalid jwt [${curJwt}]`, jwt: curJwt };
+        return {
+            valid: true,
+            address: payload.address,
+            loginMethod: payload.type === 'address_password_login' ? 'passwordLogin' : 'credentialLogin',
+            jwt: curJwt
         }
     })
-
 })
 
 const bindAddress = async () => {
@@ -66,6 +55,13 @@ const columns = [
     {
         title: t('address'),
         key: "address"
+    },
+    {
+        title: t('loginMethod'),
+        key: 'loginMethod',
+        render: (row: any) => row.loginMethod
+            ? h(NTag, { size: 'small', bordered: false }, () => loginT(row.loginMethod))
+            : null,
     },
     {
         title: t('actions'),
@@ -117,6 +113,10 @@ const columns = [
         }
     }
 ]
+const visibleColumns = computed(() => {
+    const methods = new Set(data.value.filter(row => row.valid).map(row => row.loginMethod));
+    return methods.size > 1 ? columns : columns.filter(column => column.key !== 'loginMethod');
+})
 </script>
 
 <template>
@@ -127,7 +127,7 @@ const columns = [
         <n-tabs type="segment" v-model:value="tabValue">
             <n-tab-pane name="address" :tab="t('address')">
                 <div class="address-table-scroll">
-                    <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
+                    <n-data-table :columns="visibleColumns" :data="data" :bordered="false" embedded />
                 </div>
             </n-tab-pane>
             <n-tab-pane name="create_or_bind" :tab="t('create_or_bind')">

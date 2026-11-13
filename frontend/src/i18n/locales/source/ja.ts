@@ -118,6 +118,7 @@ export const jaMessages = {
   "views.user.AddressManagement.address": "アドレス",
   "views.index.TelegramAddress.address": "アドレス",
   "views.admin.SenderAccess.address": "アドレス",
+  "views.index.LocalAddress.loginMethod": "ログイン方法",
   "views.index.LocalAddress.address": "アドレス",
   "views.admin.CreateAccount.address": "アドレス",
   "views.admin.AiExtractSettings.allowList": "アドレス許可リスト (アドレスを入力して Enter。ワイルドカード対応)",
