@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { verify } from 'hono/jwt';
 import { WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../fixtures/test-helpers';
 
 test.describe('Address Password Login', () => {
@@ -30,6 +31,12 @@ test.describe('Address Password Login', () => {
         headers: { Authorization: `Bearer ${loginBody.jwt}` },
       });
       expect(settingsRes.ok()).toBe(true);
+      const settings = await settingsRes.json();
+      const payload = await verify(loginBody.jwt, 'e2e-test-secret-key', 'HS256');
+      expect(payload).not.toHaveProperty('type');
+      expect(payload).not.toHaveProperty('iat');
+      expect(payload).not.toHaveProperty('exp');
+      expect(settings.new_address_token).toBeNull();
     } finally {
       await deleteAddress(request, jwt);
     }
