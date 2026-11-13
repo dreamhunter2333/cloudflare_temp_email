@@ -7,7 +7,7 @@ const T = 'https://tracker.example/p.png';
 it('sanitizes mail while preserving remote and inline images and styles', () => {
     const inline = 'blob:https://app.example/8f2c';
     const host = document.createElement('div');
-    const html = `<style>.mail { color: red }</style><script type="text/plain">fixture</script>
+    const html = `<style><!-- .mail { color: red } --></style><script type="text/plain">fixture</script>
         <img src="${T}" onload=""><img src="${inline}">`;
     expect(blockRemoteContent(html).blocked).toBe(1);
     const allowed = blockRemoteContent(html, { allowRemoteImages: true });
@@ -17,7 +17,20 @@ it('sanitizes mail while preserving remote and inline images and styles', () => 
     expect(host.querySelector('script, [onload]')).toBeNull();
     expect([...host.querySelectorAll('img')].map(img => img.getAttribute('src'))).toEqual([T, inline]);
     expect(host.querySelector('style')?.textContent).toContain('color: red');
+    expect(host.querySelector('style')?.textContent).not.toContain('<!--');
     expect(blockRemoteContent(html).blocked).toBe(1);
+});
+
+it('preserves new-tab mail links without giving the new tab an opener', () => {
+    const host = document.createElement('div');
+    const html = `<a href="${T}" target="_blank" rel="opener nofollow">New tab</a>
+        <a href="${T}" target="_top">Current tab</a>`;
+    host.innerHTML = blockRemoteContent(html, { allowRemoteImages: true }).html;
+    const [newTab, currentTab] = host.querySelectorAll('a');
+
+    expect(newTab.getAttribute('target')).toBe('_blank');
+    expect(newTab.getAttribute('rel')).toBe('nofollow noopener');
+    expect(currentTab.hasAttribute('target')).toBe(false);
 });
 
 function leaks(html) {
