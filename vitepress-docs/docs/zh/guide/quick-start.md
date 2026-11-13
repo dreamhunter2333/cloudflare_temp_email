@@ -19,6 +19,18 @@
 
 - [【教程】小白也能看懂的自建Cloudflare临时邮箱教程（域名邮箱）](https://linux.do/t/topic/316819/1)
 
+## 了解登录入口
+
+前端的三个入口对应不同对象，使用的凭据也不同：
+
+| 入口 | 用途 | 登录凭据 |
+|------|------|----------|
+| `/`（或 `/:lang/`） | 打开单个邮箱，查看收件箱、发件箱和邮箱设置 | 邮箱会话 Token（Address JWT）或邮箱密码 |
+| `/user`（或 `/:lang/user`） | 登录用户中心，管理一个用户账号下绑定的多个邮箱 | 用户账号邮箱与密码、Passkey 或已配置的 OAuth2 |
+| `/admin`（或 `/:lang/admin`） | 进入管理后台 | `ADMIN_PASSWORDS`，或具有 `ADMIN_USER_ROLE` 的用户账号 |
+
+用户账号的登录邮箱不等于收发邮件的邮箱地址。登录用户中心后，需要从邮箱列表选择“进入邮箱”才能打开对应收件箱；只登录某个邮箱也不会自动登录用户中心。
+
 ## 升级流程
 
 首先确认当前的版本，然后访问 [Release 页面](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/) 和 [CHANGELOG 页面](https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/CHANGELOG.md) 中找到当前的版本
