@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { parse } from 'csv-parse/sync';
-import { FRONTEND_URL, WORKER_URL } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL } from '../../../fixtures/test-helpers';
 
 async function openCreate(page: Page, locale = 'en', domains = ['test.example.com', 'other.example.com']) {
   await page.addInitScript(() => {

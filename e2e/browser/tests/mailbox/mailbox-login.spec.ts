@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { sign, verify } from 'hono/jwt';
 
-import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL, createTestAddress, deleteAddress, hashPassword } from '../../../fixtures/test-helpers';
 
 for (const mode of ['default', 'password-only', 'password-disabled']) {
   test(`mailbox creation and password controls: ${mode}`, async ({ page, request }, testInfo) => {

@@ -4,7 +4,7 @@ import {
   createTestAddress,
   deleteAddress,
   requestSendAccess,
-} from '../../fixtures/test-helpers';
+} from '../../../fixtures/test-helpers';
 
 const expectEditorOriginsToAlign = async (page: Page) => {
   const editorOriginDelta = await page.locator('.compose-textarea').evaluate((editor) => {

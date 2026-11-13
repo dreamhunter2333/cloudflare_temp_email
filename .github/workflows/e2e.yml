@@ -34,22 +34,17 @@ jobs:
           pnpm test
 
   e2e-groups:
-    name: E2E ${{ matrix.name }}
+    name: E2E ${{ matrix.project }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { name: api, project: api }
-          - { name: browser-1, project: browser, browser-test-list: include }
-          - { name: browser-2, project: browser, browser-test-list: exclude }
-          - { name: webhook, project: webhook }
-          - { name: smtp-proxy, project: smtp-proxy }
+        project: [api, browser, webhook, smtp-proxy]
     env:
       COMPOSE_PROFILES: ${{ matrix.project }}
       PLAYWRIGHT_PROJECT: ${{ matrix.project }}
-      BROWSER_TEST_LIST: ${{ matrix.browser-test-list }}
+      PLAYWRIGHT_WORKERS: ${{ (matrix.project == 'browser' || matrix.project == 'webhook') && '75%' || '1' }}
       RUN_UNIT_TESTS: 'false'
     steps:
       - uses: actions/checkout@v6
@@ -66,7 +61,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-report-${{ matrix.name }}
+          name: playwright-report-${{ matrix.project }}
           path: |
             e2e/test-results/
             e2e/playwright-report/

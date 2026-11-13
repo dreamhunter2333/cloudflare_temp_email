@@ -1,5 +1,5 @@
 import { expect, test as base } from '@playwright/test';
-import { FRONTEND_URL, WORKER_URL } from '../../fixtures/test-helpers';
+import { FRONTEND_URL, WORKER_URL } from '../../../fixtures/test-helpers';
 
 const ADMIN_HEADERS = { 'x-admin-auth': 'e2e-admin-pass' };
 
@@ -14,6 +14,8 @@ const test = base.extend<{ originalSettings: Record<string, unknown> }>({
     })).ok()).toBe(true);
   },
 });
+
+test.describe.configure({ lock: '-exclusive-' });
 
 for (const locale of ['en', 'zh']) {
   const labels = locale === 'en'

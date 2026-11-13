@@ -6,7 +6,9 @@ import {
   createTestAddress,
   deleteAddress,
   hashPassword,
-} from '../../fixtures/test-helpers';
+} from '../../../fixtures/test-helpers';
+
+test.describe.configure({ lock: 'user-settings' });
 
 async function createUser(request: APIRequestContext) {
   const email = `user-send-browser-${Date.now()}@test.example.com`;

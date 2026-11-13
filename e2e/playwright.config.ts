@@ -6,11 +6,12 @@ const FRONTEND_BASE = process.env.FRONTEND_URL!;
 export default defineConfig({
   timeout: 30_000,
   retries: 0,
-  workers: 1,
+  workers: process.env.PLAYWRIGHT_WORKERS || 1,
   reporter: [['html', { open: 'never' }]],
   projects: [
     {
       name: 'api',
+      workers: 1,
       testDir: './api/tests',
       use: {
         baseURL: WORKER_BASE,
@@ -18,6 +19,7 @@ export default defineConfig({
     },
     {
       name: 'smtp-proxy',
+      workers: 1,
       testDir: './smtp-proxy/tests',
       use: {
         baseURL: WORKER_BASE,
@@ -25,6 +27,7 @@ export default defineConfig({
     },
     {
       name: 'browser',
+      fullyParallel: true,
       testDir: './browser/tests',
       use: {
         baseURL: FRONTEND_BASE,
@@ -35,6 +38,7 @@ export default defineConfig({
     },
     {
       name: 'webhook',
+      fullyParallel: true,
       testDir: './webhook/tests',
       use: {
         baseURL: FRONTEND_BASE,

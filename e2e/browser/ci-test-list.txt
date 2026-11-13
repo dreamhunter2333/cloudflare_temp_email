@@ -1,5 +1,0 @@
-# Unlisted specs run in browser-2. Keep both jobs balanced by report duration.
-browser/tests/admin-batch-create.spec.ts
-browser/tests/email-forwarding.spec.ts
-browser/tests/mailbox-login.spec.ts
-browser/tests/user-access-token.spec.ts
