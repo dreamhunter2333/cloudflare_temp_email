@@ -12,12 +12,14 @@
     ![worker1](/ui_install/worker-1.png)
     ![worker2](/ui_install/worker-2.png)
 
-3. Go back to `Workers & Pages`, find the worker you just created, click `Settings` -> `Runtime`, modify `Compatibility flags`, manually add `nodejs_compat`, and the compatibility date also needs to be later than the date shown in the image.
+3. Go back to `Workers & Pages`, find the Worker you just created, click `Settings` -> `Runtime`, and check its compatibility date.
 
     ![worker-runtime](/ui_install/worker-runtime.png)
 
-    > [!IMPORTANT]
-    > Add `nodejs_compat` before deploying `worker.js`. Without this compatibility flag, common errors include `No such module "path"` and `No such module "node:stream"`, and the frontend may only show `Network Error`.
+    > [!NOTE]
+    > For a compatibility date of `2026-08-04` or later, Cloudflare enables Node.js compatibility by default, so you do not need to add `nodejs_compat` manually. If an existing Worker uses an earlier compatibility date, update the date after testing or keep adding `nodejs_compat` manually. Existing configurations do not need to remove the flag.
+    >
+    > With an earlier compatibility date and no flag, common errors include `No such module "path"` and `No such module "node:stream"`, and the frontend may only show `Network Error`. See [Cloudflare Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/).
 
 4. Download [worker.js](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/worker.js)
 

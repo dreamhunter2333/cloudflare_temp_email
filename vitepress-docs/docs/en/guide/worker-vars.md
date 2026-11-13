@@ -3,6 +3,12 @@
 > [!NOTE] Note
 > For CLI deployment syntax, please refer to `worker/wrangler.toml.template`
 
+## Defaults and Example Values
+
+The last column in each table contains **example values, not defaults**. Variables marked as required must be configured for the deployment unless stated otherwise.
+
+Unless an entry or its notes describe a different fallback, a `Text/JSON` boolean is enabled only by the boolean value `true` or the string `"true"`; an unset value is treated as `false`. Therefore, an unset `ENABLE_*` feature is disabled by default, while an unset `DISABLE_*` restriction does not apply. For strings, numbers, arrays, and objects, use the unset behavior documented by the individual entry.
+
 ## Required Variables
 
 | Variable Name              | Type        | Description                                                            | Example                              |
@@ -145,12 +151,13 @@ When `ADMIN_API_IP_WHITELIST` is unset or empty, source IPs are not restricted. 
 | ------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------- | --------- |
 | `USER_DEFAULT_ROLE`                   | Text      | Default role for new users, only effective when email verification is enabled                        | `vip`     |
 | `ADMIN_USER_ROLE`                     | Text      | Admin role configuration, if user role equals ADMIN_USER_ROLE, user can access admin console         | `admin`   |
-| `USER_ROLES`                          | JSON      | -                                                                                                    | See below |
+| `USER_ROLES`                          | JSON      | Custom user-role list; `role` is a custom name, while `vip` and `admin` are examples only             | See below |
 | `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` | Text/JSON | Disable anonymous user mailbox creation, if set to true, users can only create addresses after login | `true`    |
 | `NO_LIMIT_SEND_ROLE`                  | Text      | Roles that can send unlimited emails, multiple roles separated by comma `vip,admin`                  | `vip`     |
 
 > [!NOTE] USER_ROLES User Role Configuration
 >
+> - Role names are defined by the deployer; `vip` and `admin` in the examples are not built-in roles. `USER_DEFAULT_ROLE`, `ADMIN_USER_ROLE`, and `NO_LIMIT_SEND_ROLE` refer to these configurations by the same role name
 > - If `domains` is empty, `DEFAULT_DOMAINS` will be used; if `DEFAULT_DOMAINS` is also empty, it falls back to `DOMAINS`
 > - If prefix is null, the default prefix will be used, if prefix is an empty string, no prefix will be used
 >

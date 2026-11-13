@@ -3,6 +3,12 @@
 > [!NOTE] 注意
 > 通过 CLI 部署时的写法请参考 `worker/wrangler.toml.template`
 
+## 默认值与示例值
+
+表格最后一列是**示例值，不是默认值**。标记为必填且没有另行说明的变量，必须按部署环境配置。
+
+除非对应条目或补充说明明确写了其他回退行为，`文本/JSON` 类型的布尔变量只有布尔值 `true` 或字符串 `"true"` 才会启用；不填写时按 `false` 处理。因此，未配置的 `ENABLE_*` 功能默认关闭，未配置的 `DISABLE_*` 限制默认不生效。字符串、数字、数组和对象的未配置行为以各条目说明为准。
+
 ## 必填变量
 
 | 变量名                     | 类型        | 说明                                       | 示例                                 |
@@ -140,12 +146,13 @@
 | ------------------------------------- | --------- | ------------------------------------------------------------------------ | ------- |
 | `USER_DEFAULT_ROLE`                   | 文本      | 新用户默认角色, 仅在启用邮件验证时有效                                   | `vip`   |
 | `ADMIN_USER_ROLE`                     | 文本      | admin 角色配置, 如果用户角色等于 ADMIN_USER_ROLE 则可以访问 admin 控制台 | `admin` |
-| `USER_ROLES`                          | JSON      | -                                                                        | 见下方  |
+| `USER_ROLES`                          | JSON      | 自定义用户角色列表；`role` 是自定义名称，`vip` 和 `admin` 仅为示例       | 见下方  |
 | `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` | 文本/JSON | 禁用匿名用户创建邮箱，如果设置为 true，则用户只能在登录后创建邮箱地址    | `true`  |
 | `NO_LIMIT_SEND_ROLE`                  | 文本      | 可以无限发送邮件的角色, 多个角色使用逗号分割 `vip,admin`                 | `vip`   |
 
 > [!NOTE] USER_ROLES 用户角色配置说明
 >
+> - `role` 名称由部署者自定义；示例中的 `vip`、`admin` 不是固定角色。`USER_DEFAULT_ROLE`、`ADMIN_USER_ROLE` 和 `NO_LIMIT_SEND_ROLE` 通过相同的角色名称引用这里的配置
 > - 如果 `domains` 为空将使用 `DEFAULT_DOMAINS`；如果 `DEFAULT_DOMAINS` 也为空，则继续回退到 `DOMAINS`
 > - 如果 prefix 为 null 将使用默认前缀, 如果 prefix 为空字符串将不使用前缀
 >
