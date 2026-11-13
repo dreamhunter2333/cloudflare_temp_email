@@ -6,7 +6,7 @@
 | 方式 | 适合场景 | 必要配置 | 特点 |
 |------|----------|----------|------|
 | Cloudflare `send_email` binding | 已使用 Cloudflare Email Routing，希望减少第三方依赖 | `SEND_MAIL` binding，并完成 Email Routing onboarding | 与 Worker 集成最直接；受 Cloudflare 套餐和发信规则约束 |
-| Resend API | 希望快速接入托管发信服务 | `RESEND_TOKEN`，并在 Resend 验证发信域名 | 配置简单；额度和限制由 Resend 套餐决定 |
+| Resend API | 希望快速接入托管发信服务 | `RESEND_TOKEN` 或域名专用的 `RESEND_TOKEN_<DOMAIN>`，并在 Resend 验证发信域名 | 配置简单；额度和限制由 Resend 套餐决定 |
 | SMTP | 已有 SMTP 服务，或需要自行控制发信基础设施 | `SMTP_CONFIG` | 自定义能力最强；需要自行维护服务、凭据和连通性 |
 
 ::: tip 推荐方案

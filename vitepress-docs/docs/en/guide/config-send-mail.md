@@ -6,7 +6,7 @@ Receiving mail does not require a sending channel. To send mail from this projec
 | Method | Best for | Required configuration | Characteristics |
 |--------|----------|------------------------|-----------------|
 | Cloudflare `send_email` binding | Deployments already using Cloudflare Email Routing that want fewer third-party dependencies | `SEND_MAIL` binding and completed Email Routing onboarding | Direct Worker integration; subject to Cloudflare plan and sending rules |
-| Resend API | Quickly adopting a managed sending service | `RESEND_TOKEN` and a sending domain verified in Resend | Simple setup; quotas and restrictions depend on the Resend plan |
+| Resend API | Quickly adopting a managed sending service | `RESEND_TOKEN` or a domain-specific `RESEND_TOKEN_<DOMAIN>`, plus a sending domain verified in Resend | Simple setup; quotas and restrictions depend on the Resend plan |
 | SMTP | Existing SMTP services or self-managed sending infrastructure | `SMTP_CONFIG` | Most customizable; you maintain the service, credentials, and connectivity |
 
 ::: tip Recommended
