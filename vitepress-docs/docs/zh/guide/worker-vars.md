@@ -5,23 +5,23 @@
 
 ## 默认值与示例值
 
-表格最后一列是**示例值，不是默认值**。标记为必填且没有另行说明的变量，必须按部署环境配置。
+表格分别列出“默认值/未配置时”和“示例”。标记为“必填”的变量必须按部署环境配置；其他变量的默认值表示 Worker 运行时在未配置该变量时的实际行为，不代表 `wrangler.toml.template` 中的示例配置。
 
 除非对应条目或补充说明明确写了其他回退行为，`文本/JSON` 类型的布尔变量只有布尔值 `true` 或字符串 `"true"` 才会启用；不填写时按 `false` 处理。因此，未配置的 `ENABLE_*` 功能默认关闭，未配置的 `DISABLE_*` 限制默认不生效。字符串、数字、数组和对象的未配置行为以各条目说明为准。
 
-## 必填变量
+## 基础变量
 
-| 变量名                     | 类型        | 说明                                       | 示例                                 |
-| -------------------------- | ----------- | ------------------------------------------ | ------------------------------------ |
-| `DOMAINS`                  | JSON        | 用于临时邮箱的所有域名, 支持多个域名       | `["awsl.uk", "dreamhunter2333.xyz"]` |
-| `JWT_SECRET`               | 文本/Secret | 用于签名 JWT 的密钥，JWT 用于登录鉴权。请使用随机字符串，例如通过 `openssl rand -hex 32` 生成  | `a1b2c3d4...`                        |
-| `ADMIN_PASSWORDS`          | JSON        | admin 控制台密码, 不配置则不允许访问控制台 | `["123", "456"]`                     |
-| `DISABLE_USER_SYSTEM` | 文本/JSON | 拦截用户系统接口，隐藏前端用户界面；默认关闭 | `true` |
-| `ENABLE_USER_CREATE_EMAIL` | 文本/JSON   | 是否允许用户创建邮箱, 不配置则不允许       | `true`                               |
-| `ENABLE_USER_DELETE_EMAIL` | 文本/JSON   | 是否允许用户删除邮件, 不配置则不允许       | `true`                               |
-| `ENABLE_MAIL_READ_STATUS` | 文本/JSON | 启用邮件已读/未读状态。启用前需要升级数据库 Schema | `true` |
-| `ENABLE_REDEEM_CODE` | 文本/JSON | 启用兑换码页面、用户兑换 API 和管理端兑换码功能；默认关闭 | `true` |
-| `REDEEM_CODE_URL` | 文本 | 获取兑换码的外部平台链接；不配置则不展示入口 | `https://example.com/redeem-codes` |
+| 变量名                     | 类型        | 说明                                       | 默认值/未配置时 | 示例                                 |
+| -------------------------- | ----------- | ------------------------------------------ | --------------- | ------------------------------------ |
+| `DOMAINS`                  | JSON        | 用于临时邮箱的所有域名，支持多个域名       | **必填**        | `["awsl.uk", "dreamhunter2333.xyz"]` |
+| `JWT_SECRET`               | 文本/Secret | 用于签名 JWT 的密钥，JWT 用于登录鉴权。请使用随机字符串，例如通过 `openssl rand -hex 32` 生成 | **必填** | `a1b2c3d4...` |
+| `ADMIN_PASSWORDS`          | JSON        | 管理后台密码；不配置时禁用管理员密码登录   | `[]`            | `["123", "456"]`                     |
+| `DISABLE_USER_SYSTEM`      | 文本/JSON   | 拦截用户系统接口，隐藏前端用户界面         | `false`         | `true` |
+| `ENABLE_USER_CREATE_EMAIL` | 文本/JSON   | 是否允许用户创建邮箱                       | `false`         | `true` |
+| `ENABLE_USER_DELETE_EMAIL` | 文本/JSON   | 是否允许用户删除邮件                       | `false`         | `true` |
+| `ENABLE_MAIL_READ_STATUS`  | 文本/JSON   | 启用邮件已读/未读状态。启用前需要升级数据库 Schema | `false` | `true` |
+| `ENABLE_REDEEM_CODE`       | 文本/JSON   | 启用兑换码页面、用户兑换 API 和管理端兑换码功能 | `false` | `true` |
+| `REDEEM_CODE_URL`          | 文本        | 获取兑换码的外部平台链接                   | 空，不展示入口  | `https://example.com/redeem-codes` |
 
 > [!IMPORTANT] DOMAINS 与 DEFAULT_DOMAINS 必须先在 Cloudflare 配置好
 > 这里填写的所有域名（包括下文「邮箱相关变量」里的 `DEFAULT_DOMAINS`、`USER_ROLES.domains`、`RANDOM_SUBDOMAIN_DOMAINS` 等）必须是你**已经在 Cloudflare Email Routing 中启用并完成邮件 DNS 记录下发**的域名。Worker 部署完成后，还需要把该域名的 Catch-all 规则绑定到这个 Worker，否则邮件无法投递到 Worker。
@@ -29,38 +29,38 @@
 
 ## 后台相关变量
 
-| 变量名                         | 类型      | 说明                                 | 示例             |
-| ------------------------------ | --------- | ------------------------------------ | ---------------- |
-| `PASSWORDS`                    | JSON      | 网站私有密码, 配置后需要密码才能访问 | `["123", "456"]` |
-| `ADMIN_API_IP_WHITELIST`       | JSON      | Admin API IP 白名单，配置后所有 `/admin/*` 请求仅允许列表中的 IP | `["203.0.113.10"]` |
-| `DISABLE_ADMIN_PASSWORD_CHECK` | 文本/JSON | 警告: 管理员控制台没有密码或用户检查 | `false`          |
+| 变量名                         | 类型      | 说明                                 | 默认值/未配置时 | 示例             |
+| ------------------------------ | --------- | ------------------------------------ | --------------- | ---------------- |
+| `PASSWORDS`                    | JSON      | 网站私有密码，配置后需要密码才能访问 | `[]`，公开访问  | `["123", "456"]` |
+| `ADMIN_API_IP_WHITELIST`       | JSON      | Admin API IP 白名单，配置后所有 `/admin/*` 请求仅允许列表中的 IP | `[]`，不限制来源 IP | `["203.0.113.10"]` |
+| `DISABLE_ADMIN_PASSWORD_CHECK` | 文本/JSON | 警告：跳过管理后台的密码或用户检查   | `false`         | `true`           |
 
 `ADMIN_API_IP_WHITELIST` 未配置或为空数组时不限制来源 IP。配置后，它会同时限制管理员密码和 Admin 用户令牌访问，只信任 Cloudflare 提供的 `CF-Connecting-IP`，缺少该请求头也会拒绝访问。
 
 ## 邮箱相关变量
 
-| 变量名                                | 类型      | 说明                                                                                                                              | 示例                                      |
-| ------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| `PREFIX`                              | 文本      | 新建 `邮箱名称` 的默认前缀，不需要前缀可不配置                                                                                    | `tmp`                                     |
-| `MIN_ADDRESS_LEN`                     | 数字      | `邮箱名称` 的最小长度                                                                                                             | `1`                                       |
-| `MAX_ADDRESS_LEN`                     | 数字      | `邮箱名称` 的最大长度                                                                                                             | `30`                                      |
-| `DISABLE_CUSTOM_ADDRESS_NAME`         | 文本/JSON | 禁用自定义邮箱地址名称，如果设置为 true，则用户无法输入自定义邮箱名称，将由后台自动生成                                           | `true`                                    |
-| `DISABLE_ADDRESS_UPDATED_AT` | 文本/JSON | 默认 `false`。设为 `true` 时停止单地址及用户批量的主动保活刷新，并禁用内置手动和定时不活跃地址清理。地址初始时间、密码操作及其他清理规则不变 | `true` |
-| `ADDRESS_CHECK_REGEX`                 | 文本      | `邮箱名称` 的正则表达式, 只用于检查                                                                                               | `^(?!.*admin).*`                          |
-| `ADDRESS_REGEX`                       | 文本      | `邮箱名称` 替换非法符号的正则表达式, 不在其中的符号将被替换，如果不设置，默认为 `[^a-z0-9]`, 需谨慎使用, 有些符号可能导致无法收件 | `[^a-z0-9]`                               |
-| `DEFAULT_DOMAINS`                     | JSON      | 默认用户可用的域名(未登录或未分配角色的用户)                                                                                      | `["awsl.uk", "dreamhunter2333.xyz"]`      |
-| `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` | 文本/JSON | 创建新地址时是否优先使用默认域名，如果设置为 true，当未指定域名时将使用第一个域名, 主要用于 telegram bot 场景                     | `false`                                   |
-| `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` | 文本/JSON | 是否允许创建邮箱 API 使用“基础域名后缀匹配”。开启后，如果允许域名里有 `example.com`，则 `/api/new_address` 与 `/admin/new_address` 可以接受 `foo.example.com`、`a.b.example.com` 这类子域名 | `true` |
-| `RANDOM_SUBDOMAIN_DOMAINS`            | JSON      | 允许使用随机或手动子域名的基础域名列表，随机模式可把 `name@abc.com` 创建成 `name@随机串.abc.com`                              | `["abc.com"]`                             |
-| `RANDOM_SUBDOMAIN_LENGTH`             | 数字      | 随机子域名长度，默认 `8`，范围 `1-63`                                                                                            | `8`                                       |
-| `DOMAIN_LABELS`                       | JSON      | 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称                                                                       | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
-| `ENABLE_AUTO_REPLY`                   | 文本/JSON | 允许自动回复邮件。发件人过滤（`source_prefix`）支持三种模式：留空匹配所有发件人、填写前缀进行 `startsWith` 匹配、使用 `/regex/` 语法进行正则匹配（如 `/@example\.com$/`） | `true`                                    |
-| `DEFAULT_SEND_BALANCE`                | 文本/JSON | 默认发送邮件余额；当值大于 `0` 时，用户打开前端设置页或首次发送邮件时会自动初始化该额度。如果不设置，将为 `0`                                                                                              | `1`                                       |
-| `ENABLE_ADDRESS_PASSWORD`             | 文本/JSON | 启用邮箱地址密码功能，启用后创建新地址时会自动生成密码，并支持密码登录和修改                                                      | `true`                                    |
-| `ADDRESS_PASSWORD_LOGIN_ONLY` | 文本/JSON | 默认 `false`，仅在 `ENABLE_ADDRESS_PASSWORD=true` 时生效；登录页仅显示密码登录，各创建、登录及授权入口签发可续期的 30 天邮箱 JWT。旧凭据、登录链接和 API 访问仍兼容。见[邮箱会话](./feature/mail-api#邮箱密码登录-jwt-的鉴权与续期) | `true` |
-| `ENABLE_AGENT_EMAIL_INFO`             | 文本/JSON | 是否在前端“地址凭证与连接方式”弹窗中展示 AI Agent 接入信息（Address JWT、parsed-mail API、skill 链接）                         | `true`                                    |
-| `SMTP_IMAP_PROXY_CONFIG`              | JSON      | 在前端“地址凭证与连接方式”弹窗中展示 SMTP/IMAP 代理连接信息；仅用于展示给用户，不会启动代理服务，代理服务仍需单独部署           | 见下方示例                                |
-| `SEND_MAIL_DOMAINS`                   | JSON      | 限制 `SEND_MAIL` binding 可用于哪些发件域名；留空或不配置时允许所有域名                                                            | `["example.com", "mail.example.com"]`     |
+| 变量名                                | 类型      | 说明                                                                                                                              | 默认值/未配置时 | 示例                                      |
+| ------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------- |
+| `PREFIX`                              | 文本      | 新建 `邮箱名称` 的默认前缀                                                                                                        | 空，不加前缀    | `tmp`                                     |
+| `MIN_ADDRESS_LEN`                     | 数字      | `邮箱名称` 的最小长度                                                                                                             | `1`             | `1`                                       |
+| `MAX_ADDRESS_LEN`                     | 数字      | `邮箱名称` 的最大长度                                                                                                             | `30`            | `30`                                      |
+| `DISABLE_CUSTOM_ADDRESS_NAME`         | 文本/JSON | 禁用自定义邮箱地址名称，如果设置为 true，则用户无法输入自定义邮箱名称，将由后台自动生成                                           | `false`         | `true`                                    |
+| `DISABLE_ADDRESS_UPDATED_AT`          | 文本/JSON | 设为 `true` 时停止单地址及用户批量的主动保活刷新，并禁用内置手动和定时不活跃地址清理。地址初始时间、密码操作及其他清理规则不变     | `false`         | `true` |
+| `ADDRESS_CHECK_REGEX`                 | 文本      | `邮箱名称` 的正则表达式，只用于检查                                                                                                | 空，不检查      | `^(?!.*admin).*`                          |
+| `ADDRESS_REGEX`                       | 文本      | `邮箱名称` 替换非法符号的正则表达式，不在其中的符号将被替换；需谨慎使用，有些符号可能导致无法收件                                 | `[^a-z0-9]`     | `[^a-z0-9]`                               |
+| `DEFAULT_DOMAINS`                     | JSON      | 默认用户可用的域名（未登录或未分配角色的用户）                                                                                    | 回退到 `DOMAINS` | `["awsl.uk", "dreamhunter2333.xyz"]`     |
+| `CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST` | 文本/JSON | 创建新地址时是否优先使用默认域名；开启后，未指定域名时使用第一个域名，主要用于 Telegram Bot 场景                                  | `false`         | `true`                                    |
+| `ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH` | 文本/JSON | 是否允许创建邮箱 API 使用“基础域名后缀匹配”。开启后，如果允许域名里有 `example.com`，则 `/api/new_address` 与 `/admin/new_address` 可以接受 `foo.example.com`、`a.b.example.com` 这类子域名 | `false`（后台也未设置时） | `true` |
+| `RANDOM_SUBDOMAIN_DOMAINS`            | JSON      | 允许使用随机或手动子域名的基础域名列表，随机模式可把 `name@abc.com` 创建成 `name@随机串.abc.com`                                  | `[]`，禁用      | `["abc.com"]`                            |
+| `RANDOM_SUBDOMAIN_LENGTH`             | 数字      | 随机子域名长度，范围 `1-63`                                                                                                       | `8`             | `8`                                       |
+| `DOMAIN_LABELS`                       | JSON      | 对于中文域名，可以使用 DOMAIN_LABELS 显示域名的中文展示名称                                                                       | `[]`，显示原域名 | `["中文.awsl.uk", "dreamhunter2333.xyz"]` |
+| `ENABLE_AUTO_REPLY`                   | 文本/JSON | 允许自动回复邮件。发件人过滤（`source_prefix`）支持三种模式：留空匹配所有发件人、填写前缀进行 `startsWith` 匹配、使用 `/regex/` 语法进行正则匹配（如 `/@example\.com$/`） | `false` | `true` |
+| `DEFAULT_SEND_BALANCE`                | 数字/文本 | 默认发送邮件余额；当值大于 `0` 时，用户打开前端设置页或首次发送邮件时会自动初始化该额度                                            | `0`             | `1`                                       |
+| `ENABLE_ADDRESS_PASSWORD`             | 文本/JSON | 启用邮箱地址密码功能，启用后创建新地址时会自动生成密码，并支持密码登录和修改                                                      | `false`         | `true`                                    |
+| `ADDRESS_PASSWORD_LOGIN_ONLY`         | 文本/JSON | 仅在 `ENABLE_ADDRESS_PASSWORD=true` 时生效；登录页仅显示密码登录，各创建、登录及授权入口签发可续期的 30 天邮箱 JWT。旧凭据、登录链接和 API 访问仍兼容。见[邮箱会话](./feature/mail-api#邮箱密码登录-jwt-的鉴权与续期) | `false` | `true` |
+| `ENABLE_AGENT_EMAIL_INFO`             | 文本/JSON | 是否在前端“地址凭证与连接方式”弹窗中展示 AI Agent 接入信息（Address JWT、parsed-mail API、skill 链接）                             | `false`         | `true`                                    |
+| `SMTP_IMAP_PROXY_CONFIG`              | JSON      | 在前端“地址凭证与连接方式”弹窗中展示 SMTP/IMAP 代理连接信息；仅用于展示给用户，不会启动代理服务，代理服务仍需单独部署               | 空，不展示      | 见下方示例                                |
+| `SEND_MAIL_DOMAINS`                   | JSON      | 限制 `SEND_MAIL` binding 可用于哪些发件域名                                                                                        | `[]`，允许所有域名 | `["example.com", "mail.example.com"]`   |
 
 > [!NOTE]
 > `DEFAULT_DOMAINS` 未配置或配置为空数组时，会回退使用 `DOMAINS`。
@@ -102,17 +102,17 @@
 
 ## 接受邮件相关变量
 
-| 变量名                          | 类型      | 说明                                                                       | 示例                       |
-| ------------------------------- | --------- | -------------------------------------------------------------------------- | -------------------------- |
-| `BLACK_LIST`                    | 文本      | 发件人黑名单，逗号分隔；对 SMTP 信封发件人与邮件头 From 中解析出的全部邮箱地址进行区分大小写的子串匹配，任意一个命中即拒收。地址解析独立于正文解析；后台发件人黑名单规则相同，不匹配显示名称 | `gov.cn,edu.cn`            |
-| `ENABLE_CHECK_JUNK_MAIL`        | 文本/JSON | 是否启用垃圾邮件检查，配合下列两个列表使用                                 | `false`                    |
-| `JUNK_MAIL_CHECK_LIST`          | JSON      | 存在性检查；已注册的失败/错误结果判定为垃圾邮件，`none` 和 SPF/DKIM `neutral` 按不存在处理 | `["spf", "dkim", "dmarc"]` |
-| `JUNK_MAIL_FORCE_PASS_LIST`     | JSON      | 强制通过检查；每一项都必须明确返回 `pass`，否则判定为垃圾邮件              | `["spf", "dkim", "dmarc"]` |
-| `FORWARD_ADDRESS_LIST`          | JSON      | 全局转发地址列表，仅支持外部地址，通过 Cloudflare 转发，不走站内收件流程；不配置则不启用 | `["xxx@xxx.com"]`          |
-| `REMOVE_EXCEED_SIZE_ATTACHMENT` | 文本/JSON | 如果附件大小超过 2MB，则删除附件，邮件可能由于解析而丢失一些信息           | `true`                     |
-| `REMOVE_ALL_ATTACHMENT`         | 文本/JSON | 移除所有附件，邮件可能由于解析而丢失一些信息                               | `true`                     |
-| `ENABLE_MAIL_GZIP`             | 文本/JSON | 启用后新邮件将 Gzip 压缩存储到 `raw_blob` 字段，可节省 D1 数据库空间。已有明文 `raw` 数据自动兼容读取。**启用前请先执行数据库迁移（`Admin -> 快速设置 -> 数据库 -> 升级数据库 Schema` 或 `POST /admin/db_migration`），确保 `raw_blob` 列已创建。该功能会增加压缩/解压 CPU 开销，建议使用 Cloudflare Worker 付费 Plan 再开启。** | `true`                     |
-| `CLEANUP_BATCH_SIZE`           | 数字      | 内置邮件、发件箱及地址清理任务的单次处理上限，默认 `3000`，有效范围 `1-5000`。较小值可降低单次 D1 压力，较大值可加快积压数据清理 | `3000` |
+| 变量名                          | 类型      | 说明                                                                       | 默认值/未配置时 | 示例                       |
+| ------------------------------- | --------- | -------------------------------------------------------------------------- | --------------- | -------------------------- |
+| `BLACK_LIST`                    | 文本      | 发件人黑名单，逗号分隔；对 SMTP 信封发件人与邮件头 From 中解析出的全部邮箱地址进行区分大小写的子串匹配，任意一个命中即拒收。地址解析独立于正文解析；后台发件人黑名单规则相同，不匹配显示名称 | 空，不拦截 | `gov.cn,edu.cn` |
+| `ENABLE_CHECK_JUNK_MAIL`        | 文本/JSON | 是否启用垃圾邮件检查，配合下列两个列表使用                                 | `false`         | `true`                     |
+| `JUNK_MAIL_CHECK_LIST`          | JSON      | 存在性检查；已注册的失败/错误结果判定为垃圾邮件，`none` 和 SPF/DKIM `neutral` 按不存在处理 | `[]` | `["spf", "dkim", "dmarc"]` |
+| `JUNK_MAIL_FORCE_PASS_LIST`     | JSON      | 强制通过检查；每一项都必须明确返回 `pass`，否则判定为垃圾邮件              | `[]`            | `["spf", "dkim", "dmarc"]` |
+| `FORWARD_ADDRESS_LIST`          | JSON      | 全局转发地址列表，仅支持外部地址，通过 Cloudflare 转发，不走站内收件流程   | `[]`，不转发    | `["xxx@xxx.com"]`          |
+| `REMOVE_EXCEED_SIZE_ATTACHMENT` | 文本/JSON | 如果附件大小超过 2MB，则删除附件，邮件可能由于解析而丢失一些信息           | `false`         | `true`                     |
+| `REMOVE_ALL_ATTACHMENT`         | 文本/JSON | 移除所有附件，邮件可能由于解析而丢失一些信息                               | `false`         | `true`                     |
+| `ENABLE_MAIL_GZIP`              | 文本/JSON | 启用后新邮件将 Gzip 压缩存储到 `raw_blob` 字段，可节省 D1 数据库空间。已有明文 `raw` 数据自动兼容读取。**启用前请先执行数据库迁移（`Admin -> 快速设置 -> 数据库 -> 升级数据库 Schema` 或 `POST /admin/db_migration`），确保 `raw_blob` 列已创建。该功能会增加压缩/解压 CPU 开销，建议使用 Cloudflare Worker 付费 Plan 再开启。** | `false` | `true` |
+| `CLEANUP_BATCH_SIZE`            | 数字      | 内置邮件、发件箱及地址清理任务的单次处理上限，有效范围 `1-5000`。较小值可降低单次 D1 压力，较大值可加快积压数据清理 | `3000` | `3000` |
 
 > [!NOTE]
 > 认证结果遵循各自规范：SPF `none` 表示没有可检查的域名或 SPF 记录，SPF `neutral` 必须与 `none` 相同处理；DKIM `none` 表示邮件未签名，DKIM `neutral` 同样按未签名处理；DMARC `none` 表示没有适用的 DMARC 策略。未注册结果和不支持的方法版本也会被忽略。`JUNK_MAIL_CHECK_LIST` 将这些结果视为认证方法不存在，`JUNK_MAIL_FORCE_PASS_LIST` 仍只接受明确且受支持的 `pass`
@@ -127,11 +127,11 @@
 
 ## webhook 相关变量
 
-| 变量名           | 类型      | 说明                                  | 示例               |
-| ---------------- | --------- | ------------------------------------- | ------------------ |
-| `ENABLE_WEBHOOK` | 文本/JSON | 是否启用 webhook                      | `true`             |
-| `FRONTEND_URL`   | 文本      | 前端地址，用于发送 webhook 的邮件 url | `https://xxxx.xxx` |
-| `BACKEND_URL` | 文本 | 后端公网根地址，用于附件签名链接；未配置时附件 URL 为空 | `https://temp-email-api.example.com` |
+| 变量名           | 类型      | 说明                                  | 默认值/未配置时 | 示例               |
+| ---------------- | --------- | ------------------------------------- | --------------- | ------------------ |
+| `ENABLE_WEBHOOK` | 文本/JSON | 是否启用 webhook                      | `false`         | `true`             |
+| `FRONTEND_URL`   | 文本      | 前端地址，用于发送 webhook 的邮件 URL | 空              | `https://xxxx.xxx` |
+| `BACKEND_URL`    | 文本      | 后端公网根地址，用于附件签名链接      | 空，附件 URL 为空 | `https://temp-email-api.example.com` |
 
 > [!NOTE]
 > webhook 功能需要解析邮件，免费版 CPU 有限，可能会导致大邮件解析超时
@@ -142,13 +142,13 @@
 
 ## 用户相关变量
 
-| 变量名                                | 类型      | 说明                                                                     | 示例    |
-| ------------------------------------- | --------- | ------------------------------------------------------------------------ | ------- |
-| `USER_DEFAULT_ROLE`                   | 文本      | 新用户默认角色, 仅在启用邮件验证时有效                                   | `vip`   |
-| `ADMIN_USER_ROLE`                     | 文本      | admin 角色配置, 如果用户角色等于 ADMIN_USER_ROLE 则可以访问 admin 控制台 | `admin` |
-| `USER_ROLES`                          | JSON      | 自定义用户角色列表；`role` 是自定义名称，`vip` 和 `admin` 仅为示例       | 见下方  |
-| `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` | 文本/JSON | 禁用匿名用户创建邮箱，如果设置为 true，则用户只能在登录后创建邮箱地址    | `true`  |
-| `NO_LIMIT_SEND_ROLE`                  | 文本      | 可以无限发送邮件的角色, 多个角色使用逗号分割 `vip,admin`                 | `vip`   |
+| 变量名                                | 类型      | 说明                                                                     | 默认值/未配置时 | 示例    |
+| ------------------------------------- | --------- | ------------------------------------------------------------------------ | --------------- | ------- |
+| `USER_DEFAULT_ROLE`                   | 文本      | 新用户默认角色，仅在启用邮件验证时有效                                   | 空，不分配角色  | `vip`   |
+| `ADMIN_USER_ROLE`                     | 文本      | 管理员角色配置；用户角色等于 `ADMIN_USER_ROLE` 时可访问管理后台          | 空，不授予角色管理权限 | `admin` |
+| `USER_ROLES`                          | JSON      | 自定义用户角色列表；`role` 是自定义名称，`vip` 和 `admin` 仅为示例       | `[]`            | 见下方  |
+| `DISABLE_ANONYMOUS_USER_CREATE_EMAIL` | 文本/JSON | 禁用匿名用户创建邮箱；开启后，用户只能在登录后创建邮箱地址               | `false`         | `true`  |
+| `NO_LIMIT_SEND_ROLE`                  | 文本      | 可以无限发送邮件的角色，多个角色使用逗号分隔 `vip,admin`                 | 空，所有角色均检查额度 | `vip` |
 
 > [!NOTE] USER_ROLES 用户角色配置说明
 >
@@ -162,29 +162,29 @@
 
 ## 网页相关变量
 
-| 变量名                     | 类型        | 说明                                             | 示例                  |
-| -------------------------- | ----------- | ------------------------------------------------ | --------------------- |
-| `DEFAULT_LANG`             | 文本        | Worker 错误信息默认语言, zh/en                   | `zh`                  |
-| `TITLE`                    | 文本        | 自定义前端页面网站标题，支持 html                | `Custom Title`        |
-| `ANNOUNCEMENT`             | 文本        | 自定义前端页面公告，支持 html                    | `Custom Announcement` |
-| `ALWAYS_SHOW_ANNOUNCEMENT` | 文本/JSON   | 是否总是显示公告(即使无更改), 默认 `false`       | `true`                |
-| `COPYRIGHT`                | 文本        | 自定义前端界面页脚文本，支持 html                | `Dream Hunter`        |
-| `ADMIN_CONTACT`            | 文本        | admin 联系方式，可配置任意字符串, 不配置则不显示 | `xxx@gmail.com`       |
-| `DISABLE_SHOW_GITHUB`      | 文本/JSON   | 是否全局隐藏 GitHub 链接                         | `true`                |
-| `DISABLE_SHOW_GITHUB_FOR_USER` | 文本/JSON | 是否仅对普通用户隐藏 GitHub 链接，admin 仍显示   | `true`                |
-| `STATUS_URL`               | 文本        | 状态监控页面 URL，配置后显示 Status 菜单按钮     | `https://status.example.com` |
-| `CF_TURNSTILE_SITE_KEY`    | 文本/Secret | Turnstile 人机验证配置（用于新建邮箱、注册验证码等） | `xxx`                 |
-| `CF_TURNSTILE_SECRET_KEY`  | 文本/Secret | Turnstile 人机验证配置（用于新建邮箱、注册验证码等） | `xxx`                 |
-| `ENABLE_GLOBAL_TURNSTILE_CHECK` | 文本/JSON | 启用全局登录表单的 Turnstile 人机验证（管理员登录、用户登录、邮箱密码登录），需同时配置上述 Turnstile 密钥 | `true` |
+| 变量名                     | 类型        | 说明                                             | 默认值/未配置时 | 示例                  |
+| -------------------------- | ----------- | ------------------------------------------------ | --------------- | --------------------- |
+| `DEFAULT_LANG`             | 文本        | Worker 错误信息默认语言，支持 `zh`/`en`          | 通用接口回退 `en`；Telegram 回退 `zh` | `zh` |
+| `TITLE`                    | 文本        | 自定义前端页面网站标题，支持 HTML                | 使用内置多语言标题 | `Custom Title`      |
+| `ANNOUNCEMENT`             | 文本        | 自定义前端页面公告，支持 HTML                    | 空，不显示      | `Custom Announcement` |
+| `ALWAYS_SHOW_ANNOUNCEMENT` | 文本/JSON   | 是否总是显示公告（即使无更改）                   | `false`         | `true`                |
+| `COPYRIGHT`                | 文本        | 自定义前端界面页脚文本，支持 HTML                | `Dream Hunter`  | `Custom Copyright`    |
+| `ADMIN_CONTACT`            | 文本        | 管理员联系方式，可配置任意字符串                 | 空，不显示      | `xxx@gmail.com`       |
+| `DISABLE_SHOW_GITHUB`      | 文本/JSON   | 是否全局隐藏 GitHub 链接                         | `false`，显示   | `true`                |
+| `DISABLE_SHOW_GITHUB_FOR_USER` | 文本/JSON | 是否仅对普通用户隐藏 GitHub 链接，管理员仍显示   | `false`，显示   | `true`                |
+| `STATUS_URL`               | 文本        | 状态监控页面 URL，配置后显示 Status 菜单按钮     | 空，不显示      | `https://status.example.com` |
+| `CF_TURNSTILE_SITE_KEY`    | 文本/Secret | Turnstile 人机验证配置（用于新建邮箱、注册验证码等） | 空，关闭相关验证 | `xxx`              |
+| `CF_TURNSTILE_SECRET_KEY`  | 文本/Secret | Turnstile 人机验证配置（用于新建邮箱、注册验证码等） | 空，关闭相关验证 | `xxx`              |
+| `ENABLE_GLOBAL_TURNSTILE_CHECK` | 文本/JSON | 启用全局登录表单的 Turnstile 人机验证（管理员登录、用户登录、邮箱密码登录），需同时配置上述 Turnstile 密钥 | `false` | `true` |
 
 ## Telegram Bot 相关变量
 
-| 变量名              | 类型      | 说明                                                                   | 示例  |
-| ------------------- | --------- | ---------------------------------------------------------------------- | ----- |
-| `TG_MAX_ADDRESS`    | 数字      | telegram bot 最多绑定邮箱数量                                          | `5`   |
-| `TG_BOT_INFO`       | 文本      | 可不配置，telegram BOT_INFO，预定义的 BOT_INFO 可以降低 webhook 的延迟 | `{}`  |
-| `TG_ALLOW_USER_LANG`| 文本/JSON | 是否允许用户通过 `/lang` 命令切换语言，默认 `false`                    | `true`|
-| `ENABLE_TG_PUSH_ATTACHMENT`| 布尔值 | 是否启用 Telegram 推送邮件附件，默认 `false`，单文件限制 50MB           | `true`|
+| 变量名              | 类型      | 说明                                                                   | 默认值/未配置时 | 示例  |
+| ------------------- | --------- | ---------------------------------------------------------------------- | --------------- | ----- |
+| `TG_MAX_ADDRESS`    | 数字      | Telegram Bot 最多绑定邮箱数量                                          | `5`             | `5`   |
+| `TG_BOT_INFO`       | 文本      | 预定义的 Bot 信息可以降低 webhook 延迟                                 | 空，运行时查询  | `{}`  |
+| `TG_ALLOW_USER_LANG`| 文本/JSON | 是否允许用户通过 `/lang` 命令切换语言                                 | `false`         | `true`|
+| `ENABLE_TG_PUSH_ATTACHMENT`| 文本/JSON | 是否启用 Telegram 推送邮件附件，单文件限制 50MB                       | `false`         | `true`|
 
 > [!NOTE]
 > Telegram 功能需要解析邮件，免费版 CPU 有限，可能会导致大邮件解析超时
@@ -197,9 +197,9 @@
 
 Admin 或 `SUBDOMAIN_FORWARD_ADDRESS_LIST` 规则将转发目标设为 `DOMAINS` 中域名下的地址，即可复用收件流程入库并独立提取和推送，但不再转发或自动回复；未知地址仍按原收件配置决定是否拒收。默认保留原邮件；规则可开启“转发成功后删除原邮件”，在收件流程最后删除本次原件。`FORWARD_ADDRESS_LIST` 仅支持通过 Cloudflare 转发到外部地址，不走站内收件流程。无需数据库迁移。
 
-| 变量名                            | 类型 | 说明                                                                                                       | 示例   |
-| --------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------- | ------ |
-| `SUBDOMAIN_FORWARD_ADDRESS_LIST`  | JSON | 子域名/规则转发配置，支持按域名和来源地址正则过滤转发                                                       | 见下方 |
+| 变量名                            | 类型 | 说明                                                                                                       | 默认值/未配置时 | 示例   |
+| --------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------- | --------------- | ------ |
+| `SUBDOMAIN_FORWARD_ADDRESS_LIST`  | JSON | 子域名/规则转发配置，支持按域名和来源地址正则过滤转发                                                       | `[]`，不转发    | 见下方 |
 
 > [!NOTE] SUBDOMAIN_FORWARD_ADDRESS_LIST 配置说明
 >
@@ -225,10 +225,10 @@ Admin 或 `SUBDOMAIN_FORWARD_ADDRESS_LIST` 规则将转发目标设为 `DOMAINS`
 
 ## 其他变量
 
-| 变量名                  | 类型      | 说明                                                                                                                                                                              | 示例    |
-| ----------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `ENABLE_ANOTHER_WORKER` | 文本/JSON | 是否开启其他 worker 处理邮件                                                                                                                                                      | `false` |
-| `ANOTHER_WORKER_LIST`   | JSON      | - 其他 worker 处理邮件的配置，可以配置多个其他 worker <br/> - 通过关键词筛选，调用对应绑定的 worker 的方法（默认方法名为 rpcEmail）<br/> - keywords必填，否则 worker 将不会被触发 | 见下方  |
+| 变量名                  | 类型      | 说明                                                                                                                                                                              | 默认值/未配置时 | 示例    |
+| ----------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------- |
+| `ENABLE_ANOTHER_WORKER` | 文本/JSON | 是否开启其他 Worker 处理邮件                                                                                                                                                      | `false`         | `true`  |
+| `ANOTHER_WORKER_LIST`   | JSON      | - 其他 Worker 处理邮件的配置，可以配置多个其他 Worker <br/> - 通过关键词筛选，调用对应绑定的 Worker 方法（默认方法名为 `rpcEmail`）<br/> - `keywords` 必填，否则 Worker 不会被触发 | `[]` | 见下方 |
 
 > [!NOTE]
 > `ANOTHER_WORKER_LIST` 的配置示例
