@@ -320,7 +320,7 @@ for (const [scenario, query] of [
   ['missing expiry', ''],
   ['expired account', '?refresh=1&source=e2e'],
 ] as const) {
-  test(`mailbox operations use the real Worker when ${scenario}, query: ${query || 'none'}`, async ({ page, request }) => {
+  test(`mailbox operations use the real Worker when ${scenario}, query: ${query || 'none'}`, { lock: 'user-settings' }, async ({ page, request }) => {
     const address = await createTestAddress(request, 'refresh-mailbox-');
     let userId: number | undefined;
     try {

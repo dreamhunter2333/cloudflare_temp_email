@@ -15,7 +15,7 @@ const test = base.extend<{ originalSettings: Record<string, unknown> }>({
   },
 });
 
-test.describe.configure({ lock: '-exclusive-' });
+test.describe.configure({ lock: 'forwarding-settings' });
 
 for (const locale of ['en', 'zh']) {
   const labels = locale === 'en'
@@ -27,7 +27,7 @@ for (const locale of ['en', 'zh']) {
       headers: ADMIN_HEADERS,
       data: {
         ...settings,
-        emailRuleSettings: { emailForwardingList: [{ domains: [], forward: 'target@test.example.com' }] },
+        emailRuleSettings: { emailForwardingList: [{ domains: ['forwarding.example.invalid'], forward: 'target@test.example.com' }] },
       },
     })).ok()).toBe(true);
     await page.addInitScript(() => {
@@ -78,7 +78,7 @@ for (const locale of ['en', 'zh']) {
         ...settings,
         emailRuleSettings: {
           blockReceiveUnknowAddressEmail: false,
-          emailForwardingList: [{ domains: [], forward: 'target@test.example.com', deleteOriginal: initialEnabled }],
+          emailForwardingList: [{ domains: ['forwarding.example.invalid'], forward: 'target@test.example.com', deleteOriginal: initialEnabled }],
         },
       },
     })).ok()).toBe(true);

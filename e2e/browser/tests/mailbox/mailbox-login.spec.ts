@@ -199,6 +199,15 @@ test('renewal updates the current JWT; expired cached sessions require login', a
 
     const historicalCache = await readCache();
     await page.setExtraHTTPHeaders({ 'x-test-address-password-mode': 'password-only' });
+    // Let the app apply the password-only settings before rendering the mailbox selector.
+    await page.route('**/api/settings', async route => {
+      await page.waitForFunction(async () => {
+        const storeModule = '/src/store/index.js';
+        const { useGlobalState } = await import(storeModule);
+        return useGlobalState().openSettings.value.addressPasswordLoginOnly;
+      });
+      await route.continue();
+    }, { times: 1 });
     await page.goto(`${FRONTEND_URL}/en/?jwt=${renewedToken}`);
     await expect(page.locator('.address-select')).toContainText(mailbox.address);
     await expect(page.locator('.address-select .n-tag')).toHaveCount(0);
