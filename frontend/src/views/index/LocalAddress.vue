@@ -68,7 +68,7 @@ const columns = [
         key: 'actions',
         render(row: any) {
             return h('div', [
-                h(NPopconfirm,
+                (!openSettings.value.addressPasswordLoginOnly || row.loginMethod === 'passwordLogin') ? h(NPopconfirm,
                     {
                         onPositiveClick: () => {
                             jwt.value = row.jwt
@@ -85,7 +85,7 @@ const columns = [
                         ),
                         default: () => `${t('changeMailAddress')}?`
                     }
-                ),
+                ) : null,
                 h(NPopconfirm,
                     {
                         onPositiveClick: () => {

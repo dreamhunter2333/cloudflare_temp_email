@@ -76,6 +76,12 @@ for (const mode of ['default', 'password-only', 'password-disabled']) {
         headers, data: { email: mailbox.address, password: hashPassword(password) },
       });
       expect(login.ok()).toBe(true);
+      const legacyToken = await sign({ address: mailbox.address, address_id: mailbox.address_id }, 'e2e-test-secret-key', 'HS256');
+      await page.goto(`${FRONTEND_URL}/en/?jwt=${legacyToken}`);
+      await expect(page.locator('.address-select')).toContainText(mailbox.address);
+      await page.locator('.address-select').click();
+      await expect(page.locator('.n-base-select-menu:visible')).not.toContainText('Credential Login');
+      await page.keyboard.press('Escape');
     } finally {
       if (jwt) await deleteAddress(request, jwt);
     }
@@ -193,12 +199,18 @@ test('renewal updates the current JWT; expired cached sessions require login', a
     await expect(passwordOptions).not.toContainText('Credential Login');
     await page.keyboard.press('Escape');
     await page.locator('.address-manage').click();
-    await expect(rows).toHaveCount(historicalCache.length - 2);
-    await expect(rows.first()).toContainText('Password Login');
+    await expect(rows).toHaveCount(historicalCache.length);
+    const legacyRows = rows.filter({ hasText: 'Credential Login' });
+    await expect(legacyRows).toHaveCount(2);
+    await expect(legacyRows.getByRole('button', { name: 'Change Mail Address', exact: true })).toHaveCount(0);
+    await expect(rows.filter({ hasText: 'Password Login' }).first()).toContainText(mailbox.address);
     await testInfo.attach('Password-only mailbox cache', {
       body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png',
     });
     expect(await readCache()).toEqual(historicalCache);
+    await legacyRows.filter({ hasText: other.address }).getByRole('button', { name: 'Unbind Mail Address credential', exact: true }).click();
+    await page.getByRole('button', { name: 'Confirm', exact: true }).click();
+    await expect.poll(readCache).toEqual(historicalCache.filter(token => token !== other.jwt));
     await page.keyboard.press('Escape');
     await page.evaluate(() => localStorage.setItem('jwt', ''));
     await page.reload();
