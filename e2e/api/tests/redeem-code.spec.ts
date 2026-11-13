@@ -44,6 +44,12 @@ async function createCode(
   return body.codes[0] as string;
 }
 
+async function expireCode(request: APIRequestContext, code: string) {
+  const response = await request.post(`${WORKER_URL}/__test/expire_redeem_code`, { data: { code } });
+  expect(response.ok()).toBe(true);
+  expect(await response.json()).toEqual({ updated: 1 });
+}
+
 async function listCode(request: APIRequestContext, type: RedeemType, code: string) {
   const response = await request.get(
     `${WORKER_URL}/admin/redeem_codes?redeem_type=${type}`
@@ -149,11 +155,9 @@ test.describe('Redemption code query and guards', () => {
 
   test('rejects missing, malformed, unknown, and disabled codes, but reports expired codes', async ({ request }) => {
     const disabledCode = await createCode(request, 'role', 'case-role', { enabled: false });
-    const expiredCode = await createCode(request, 'role', 'case-role', {
-      expiresAt: new Date(Date.now() + 5_000).toISOString(),
-    });
+    const expiredCode = await createCode(request, 'role', 'case-role');
     try {
-      await new Promise((resolve) => setTimeout(resolve, 5_500));
+      await expireCode(request, expiredCode);
       for (const code of [undefined, null, '', 'x'.repeat(257), uniqueValue('missing')]) {
         expect((await queryCode(request, code)).status()).toBe(400);
       }
@@ -605,15 +609,13 @@ test.describe('Special-address redemption', () => {
   });
 
   test('expiry stops retrieval of an existing result', async ({ request }) => {
-    const expiredCode = await createCode(request, 'address_prefix_once', 'exp', {
-      expiresAt: new Date(Date.now() + 5_000).toISOString(),
-    });
+    const expiredCode = await createCode(request, 'address_prefix_once', 'exp');
     let expiredResult: AddressRedeemResult | undefined;
     try {
       expiredResult = await (await request.post(`${WORKER_URL}/redeem_api/redeem`, {
         data: { code: expiredCode, name: 'mail', domain: 'test.example.com' },
       })).json();
-      await new Promise((resolve) => setTimeout(resolve, 5_500));
+      await expireCode(request, expiredCode);
 
       expect((await request.post(`${WORKER_URL}/redeem_api/redeem`, {
         data: { code: expiredCode },

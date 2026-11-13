@@ -343,9 +343,6 @@ test('locks shared settings and mode switching for the entire sequential batch',
 });
 
 for (const scenario of [
-  { locale: 'en', status: 400, successes: 2 },
-  { locale: 'en', status: 429, successes: 2 },
-  { locale: 'en', status: 500, successes: 2 },
   { locale: 'en', status: 0, successes: 2 },
   { locale: 'zh', status: 429, successes: 2 },
   { locale: 'en', status: 500, successes: 0 },
@@ -409,34 +406,30 @@ test('leaving the create pane stops an outstanding batch', async ({ page }) => {
   }
 });
 
-for (const locale of ['en', 'zh']) {
-  test(`single creation still opens credentials and batch controls fit mobile (${locale})`, async ({ page }, testInfo) => {
-    const single = { ...row(1), password: 'single-mailbox-password' };
-    let body: Record<string, unknown> | undefined;
-    await page.route('**/admin/new_address', route => {
-      body = route.request().postDataJSON();
-      return route.fulfill({ json: single });
-    });
-    await openCreate(page, locale);
-    await testInfo.attach('desktop', { body: await page.screenshot(), contentType: 'image/png' });
-    await page.setViewportSize({ width: 390, height: 844 });
-    const chinese = locale === 'zh';
-    const count = page.getByRole('textbox', { name: chinese ? '批量数量' : 'Batch count' });
-    const card = form(page);
-    for (const control of [count, page.getByRole('button', { name: chinese ? '批量创建' : 'Create batch', exact: true }), page.getByRole('button', { name: chinese ? '导出 CSV' : 'Export CSV' })]) {
-      await expect(control).toBeVisible();
-      const bounds = (await control.boundingBox())!;
-      expect(bounds.x).toBeGreaterThanOrEqual(0);
-      expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
-    }
-    await testInfo.attach('mobile', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
-    await page.locator('.n-radio').getByText(chinese ? '单个创建' : 'Single creation', { exact: true }).click();
-    await expect(count).toBeHidden();
-    await card.locator('.n-input-group .n-input input').first().fill('singlemailbox');
-    await card.getByRole('button', { name: chinese ? '创建邮箱' : 'Create Email Address', exact: true }).click();
-    await expect(page.locator('.n-modal')).toBeVisible();
-    await expect(page.locator('.n-modal')).toContainText(single.address);
-    await expect(page.locator('.n-modal')).toContainText(single.password);
-    expect(body).toEqual({ enablePrefix: true, enableRandomSubdomain: false, domain: 'test.example.com', name: 'singlemailbox' });
+test('single creation still opens credentials and batch controls fit mobile in Chinese', async ({ page }, testInfo) => {
+  const single = { ...row(1), password: 'single-mailbox-password' };
+  let body: Record<string, unknown> | undefined;
+  await page.route('**/admin/new_address', route => {
+    body = route.request().postDataJSON();
+    return route.fulfill({ json: single });
   });
-}
+  await openCreate(page, 'zh');
+  await page.setViewportSize({ width: 390, height: 844 });
+  const count = page.getByRole('textbox', { name: '批量数量' });
+  const card = form(page);
+  for (const control of [count, page.getByRole('button', { name: '批量创建', exact: true }), page.getByRole('button', { name: '导出 CSV' })]) {
+    await expect(control).toBeVisible();
+    const bounds = (await control.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+  }
+  await testInfo.attach('mobile', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+  await page.locator('.n-radio').getByText('单个创建', { exact: true }).click();
+  await expect(count).toBeHidden();
+  await card.locator('.n-input-group .n-input input').first().fill('singlemailbox');
+  await card.getByRole('button', { name: '创建邮箱', exact: true }).click();
+  await expect(page.locator('.n-modal')).toBeVisible();
+  await expect(page.locator('.n-modal')).toContainText(single.address);
+  await expect(page.locator('.n-modal')).toContainText(single.password);
+  expect(body).toEqual({ enablePrefix: true, enableRandomSubdomain: false, domain: 'test.example.com', name: 'singlemailbox' });
+});

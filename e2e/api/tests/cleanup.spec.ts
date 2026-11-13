@@ -25,15 +25,15 @@ test.describe('Bounded cleanup', () => {
         data: {
           address,
           raw: 'old cleanup mail',
+          created_at: '2020-01-01 00:00:00',
           message_id: `<cleanup-old-${Date.now()}-${index}@test>`,
         },
       })
     ));
     expect(seedResponses.every((response) => response.ok())).toBe(true);
-    await new Promise((resolve) => setTimeout(resolve, 1100));
 
     const firstCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
-      data: { cleanType: 'mails', cleanDays: 0 },
+      data: { cleanType: 'mails', cleanDays: 1 },
     });
     expect(firstCleanup.ok()).toBe(true);
 
@@ -41,7 +41,7 @@ test.describe('Bounded cleanup', () => {
     expect(afterFirstCleanup.count).toBe(1);
 
     const secondCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
-      data: { cleanType: 'mails', cleanDays: 0 },
+      data: { cleanType: 'mails', cleanDays: 1 },
     });
     expect(secondCleanup.ok()).toBe(true);
 
@@ -161,14 +161,14 @@ test.describe('Bounded cleanup', () => {
       data: {
         address: oldAddress.address,
         raw: 'address cleanup mail',
+        address_created_at: '2020-01-01 00:00:00',
         message_id: `<cleanup-address-${Date.now()}@test>`,
       },
     });
     expect(seedResponse.ok()).toBe(true);
-    await new Promise((resolve) => setTimeout(resolve, 1100));
 
     const cleanupResponse = await request.post(`${WORKER_URL}/admin/cleanup`, {
-      data: { cleanType: 'addressCreated', cleanDays: 0 },
+      data: { cleanType: 'addressCreated', cleanDays: 1 },
     });
     expect(cleanupResponse.ok()).toBe(true);
 
