@@ -25,19 +25,6 @@ const FORBIDDEN = [
 const ALLOWED_URI_REGEXP =
     /^(?:(?:https?|mailto|tel|callto|sms|cid|xmpp|blob|data):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i;
 
-const MAIL_HTML_CONFIG = {
-    FORBID_TAGS: FORBIDDEN,
-    // FORCE_BODY keeps leading style blocks that the parser would move into the head.
-    ADD_TAGS: ['style'],
-    FORCE_BODY: true,
-    ALLOWED_URI_REGEXP,
-    ALLOW_DATA_ATTR: true,
-};
-
-export function sanitizeMailHtml(html) {
-    return DOMPurify.sanitize(typeof html === 'string' ? html : '', MAIL_HTML_CONFIG);
-}
-
 // CSS constructs that can load a resource. @import is listed because it also
 // accepts a bare string -- `@import "https://..."` fetches without any url().
 const CSS_FETCHES = /url\(|image-set|image\(|cross-fade|element\(|@import/i;
@@ -197,8 +184,7 @@ function getPurifier() {
 }
 
 /**
- * Strips everything in an email body that would make the browser fetch from a
- * third party, so opening the mail cannot be used to confirm it was read.
+ * Sanitizes the email body and blocks remote resources by default.
  *
  * Sanitising is delegated to DOMPurify rather than hand-rolled: the hard part
  * is not enumerating attributes but surviving the parser, and mutation-XSS is
@@ -209,15 +195,27 @@ function getPurifier() {
  * cleaner never saw.
  *
  * @param {string} html
+ * @param {{ allowRemoteImages?: boolean }} [options]
  * @returns {{ html: string, blocked: number }} blocked counts the references removed
  */
-export function blockRemoteContent(html) {
+export function blockRemoteContent(html, { allowRemoteImages = false } = {}) {
     if (!html || typeof html !== 'string') {
         return { html: html || '', blocked: 0 };
     }
 
     blockedCount = 0;
-    const sanitised = getPurifier().sanitize(html, MAIL_HTML_CONFIG);
+    const mailPurifier = allowRemoteImages ? DOMPurify : getPurifier();
+    const sanitised = mailPurifier.sanitize(html, {
+        FORBID_TAGS: FORBIDDEN,
+        // Mail layout leans on <style> blocks, so they are kept and their
+        // url() references filtered instead of dropping the tag wholesale.
+        // FORCE_BODY is what makes a leading <style> survive: without it the
+        // parser hoists it into <head> and DOMPurify discards it.
+        ADD_TAGS: ['style'],
+        FORCE_BODY: true,
+        ALLOWED_URI_REGEXP,
+        ALLOW_DATA_ATTR: true,
+    });
 
     return { html: sanitised, blocked: blockedCount };
 }

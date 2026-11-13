@@ -1,20 +1,23 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { blockRemoteContent, sanitizeMailHtml } from '../remote-content-policy';
+import { blockRemoteContent } from '../remote-content-policy';
 
 const T = 'https://tracker.example/p.png';
 
 it('sanitizes mail while preserving remote and inline images and styles', () => {
     const inline = 'blob:https://app.example/8f2c';
     const host = document.createElement('div');
-    host.innerHTML = sanitizeMailHtml(
-        `<style>.mail { color: red }</style><script type="text/plain">fixture</script>
-        <img src="${T}" onload=""><img src="${inline}">`
-    );
+    const html = `<style>.mail { color: red }</style><script type="text/plain">fixture</script>
+        <img src="${T}" onload=""><img src="${inline}">`;
+    expect(blockRemoteContent(html).blocked).toBe(1);
+    const allowed = blockRemoteContent(html, { allowRemoteImages: true });
+    host.innerHTML = allowed.html;
 
+    expect(allowed.blocked).toBe(0);
     expect(host.querySelector('script, [onload]')).toBeNull();
     expect([...host.querySelectorAll('img')].map(img => img.getAttribute('src'))).toEqual([T, inline]);
     expect(host.querySelector('style')?.textContent).toContain('color: red');
+    expect(blockRemoteContent(html).blocked).toBe(1);
 });
 
 function leaks(html) {
