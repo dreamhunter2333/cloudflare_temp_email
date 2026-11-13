@@ -208,6 +208,9 @@ Admin or `SUBDOMAIN_FORWARD_ADDRESS_LIST` rules targeting addresses under domain
 > - `deleteOriginal`: Delete the original at the end of mail processing after this rule succeeds (optional, default `false`; self-forwards and failures do not delete it; original mail and attachment links stop working after deletion)
 > - `sourcePatterns`: Source address regex list (optional)
 > - `sourceMatchMode`: Match mode, `any` (match any, default) or `all` (match all)
+> - `recipientPatterns`, `recipientMatchMode`: Optional recipient regex list and `any` (default) / `all` matching mode, using the same behavior as sender filters
+>
+> Domain, sender and recipient filters must all match; empty filters are ignored. Regex matching is case-insensitive against the full envelope address, not MIME headers. For example, `{"domains":["example.com"],"forward":"admin@example.com","recipientPatterns":["^[^@]*admin[^@]*@"]}` routes recipients containing `admin` to the internal admin mailbox. Disable “Block receive unknown address email” if the original recipient is not a registered mailbox. Existing rejection, forwarding and deletion behavior is unchanged; no database migration is required.
 >
 > Regex pattern max length is 200 characters to prevent ReDoS attacks
 >

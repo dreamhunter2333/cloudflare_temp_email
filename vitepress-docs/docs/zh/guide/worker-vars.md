@@ -203,6 +203,9 @@ Admin 或 `SUBDOMAIN_FORWARD_ADDRESS_LIST` 规则将转发目标设为 `DOMAINS`
 > - `deleteOriginal`: 该规则转发成功后，在收件流程最后删除原邮件（可选，默认 `false`；自转发或失败不删除，删除后原邮件及其附件链接失效）
 > - `sourcePatterns`: 来源地址正则表达式列表（可选）
 > - `sourceMatchMode`: 匹配模式，`any`(任一匹配，默认) 或 `all`(全部匹配)
+> - `recipientPatterns`、`recipientMatchMode`: 可选的收件人正则列表和 `any`（默认）/ `all` 匹配模式，沿用来源正则的行为
+>
+> 域名、发件人和收件人条件需同时满足，空条件不限制。正则不区分大小写，匹配完整信封地址，而非 MIME 邮件头。例如 `{"domains":["example.com"],"forward":"admin@example.com","recipientPatterns":["^[^@]*admin[^@]*@"]}` 可将收件地址包含 `admin` 的邮件转发至站内管理员邮箱；原收件地址未注册时，需关闭“禁止接收未知地址邮件”。既有拒收、转发和删除行为不变，无需数据库迁移。
 >
 > 正则表达式最大长度 200 字符，防止 ReDoS 攻击
 >

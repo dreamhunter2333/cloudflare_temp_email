@@ -2881,9 +2881,17 @@ export const MESSAGE_REGISTRY = {
       "en": "e.g. gmail.com",
       "zh": "例如: gmail.com"
     },
+    "recipient_patterns": {
+      "en": "Recipient Address Regex (Optional)",
+      "zh": "收件人地址正则（可选）"
+    },
+    "recipient_patterns_placeholder": {
+      "en": "e.g. admin",
+      "zh": "例如: admin"
+    },
     "source_patterns_tip": {
-      "en": "Domain list filters by recipient address, source regex filters by sender address. Both conditions must match for forwarding (AND logic). Leave either empty to skip that filter.",
-      "zh": "域名列表按收件地址过滤，来源正则按发件地址过滤，两者均为可选。同时配置时需同时满足（AND 逻辑），留空则跳过该条件。"
+      "en": "Domain, sender regex and recipient regex filters must all match. Empty filters are ignored. Regex matching is case-insensitive and uses the full envelope address, not the message headers.",
+      "zh": "域名、来源正则和收件人正则需同时满足，留空则跳过该条件。正则不区分大小写，匹配完整的信封地址，而非邮件头。"
     },
     "successTip": {
       "en": "Save Success",

@@ -94,7 +94,8 @@ const emailForwardingColumns = [
                     multiple: true,
                     filterable: true,
                     tag: true,
-                    placeholder: t('source_patterns_placeholder')
+                    placeholder: t('source_patterns_placeholder'),
+                    'aria-label': t('source_patterns')
                 }, {
                     empty: () => h('span', { style: 'color: #999; font-size: 12px;' }, t('manualInputPrompt'))
                 }),
@@ -102,6 +103,40 @@ const emailForwardingColumns = [
                     value: row.sourceMatchMode || 'any',
                     onUpdateValue: (val) => {
                         emailForwardingList.value[index].sourceMatchMode = val
+                    },
+                    size: 'small',
+                    style: 'margin-top: 4px;'
+                }, {
+                    default: () => [
+                        h(NRadio, { value: 'any' }, { default: () => t('match_any') }),
+                        h(NRadio, { value: 'all' }, { default: () => t('match_all') })
+                    ]
+                })
+            ])
+        }
+    },
+    {
+        title: t('recipient_patterns'),
+        key: 'recipientPatterns',
+        render: (row, index) => {
+            return h('div', { style: 'display: flex; flex-direction: column; gap: 4px;' }, [
+                h(NSelect, {
+                    value: Array.isArray(row.recipientPatterns) ? row.recipientPatterns : [],
+                    onUpdateValue: (val) => {
+                        emailForwardingList.value[index].recipientPatterns = val
+                    },
+                    multiple: true,
+                    filterable: true,
+                    tag: true,
+                    placeholder: t('recipient_patterns_placeholder'),
+                    'aria-label': t('recipient_patterns')
+                }, {
+                    empty: () => h('span', { style: 'color: #999; font-size: 12px;' }, t('manualInputPrompt'))
+                }),
+                h(NRadioGroup, {
+                    value: row.recipientMatchMode || 'any',
+                    onUpdateValue: (val) => {
+                        emailForwardingList.value[index].recipientMatchMode = val
                     },
                     size: 'small',
                     style: 'margin-top: 4px;'
@@ -166,7 +201,7 @@ const emailForwardingColumns = [
 const openEmailForwardingModal = () => {
     // 从 emailRuleSettings 转换出列表数据
     emailForwardingList.value = emailRuleSettings.value.emailForwardingList ?
-        [...emailRuleSettings.value.emailForwardingList] : []
+        emailRuleSettings.value.emailForwardingList.map(rule => ({ ...rule })) : []
     showEmailForwardingModal.value = true
 }
 
@@ -177,7 +212,9 @@ const addNewEmailForwardingItem = () => {
             domains: [],
             forward: '',
             sourcePatterns: [],
-            sourceMatchMode: 'any'
+            sourceMatchMode: 'any',
+            recipientPatterns: [],
+            recipientMatchMode: 'any'
         }
     ]
 }
@@ -195,8 +232,8 @@ const validateForwardingRules = () => {
         }
 
         // 验证正则表达式
-        if (rule.sourcePatterns && rule.sourcePatterns.length > 0) {
-            for (const pattern of rule.sourcePatterns) {
+        for (const patterns of [rule.sourcePatterns, rule.recipientPatterns]) {
+            for (const pattern of patterns || []) {
                 // 检查长度
                 if (pattern.length > MAX_REGEX_LENGTH) {
                     message.error(`${t('regex_too_long')}: ${pattern.substring(0, 30)}...`)
@@ -476,7 +513,7 @@ onMounted(async () => {
 
     <!-- 邮件转发配置弹窗 -->
     <n-modal v-model:show="showEmailForwardingModal" preset="card" :title="t('email_forwarding_config')"
-        style="max-width: 1000px;">
+        style="max-width: 1200px;">
         <n-space vertical>
             <n-alert :show-icon="false" :bordered="false" type="warning">
                 <span>{{ t('forwarding_rule_warning') }}</span>
@@ -486,7 +523,7 @@ onMounted(async () => {
             <n-space justify="end">
                 <n-button @click="addNewEmailForwardingItem">{{ t('add') }}</n-button>
             </n-space>
-            <n-data-table :columns="emailForwardingColumns" :data="emailForwardingList" :bordered="false" striped />
+            <n-data-table :columns="emailForwardingColumns" :data="emailForwardingList" :bordered="false" :scroll-x="1100" striped />
             <n-space justify="end">
                 <n-button @click="saveEmailForwardingConfig" type="primary">{{ t('save') }}</n-button>
             </n-space>
