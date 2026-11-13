@@ -21,6 +21,7 @@
 
 - fix: |Mail Reader| Sanitize Shadow DOM email previews when remote images are allowed
 - fix: |Health Check| Return `OK` from `/health_check` when the Worker has an `ASSETS` binding instead of the frontend page, so uptime monitors can use it
+- fix: |Create Address| Lowercase generated names before filtering characters, so the default `[^a-z0-9]` rule no longer drops the first letter of each name part and leaves names mangled or too short
 - fix: |Mail Reader| Sandbox regular and fullscreen iframe previews to block scripts in email bodies
 - fix: |Scheduled Cleanup| Catch errors for each built-in and custom SQL cleanup task, log failures, and continue with subsequent tasks
 - fix: |Header| Add horizontal spacing to the phone header
