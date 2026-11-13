@@ -34,7 +34,7 @@ for (const locale of ['en', 'zh']) {
       localStorage.setItem('adminAuth', 'e2e-admin-pass');
       sessionStorage.setItem('adminTab', 'qucickSetup');
     });
-    const openConfig = async () => {
+    const loadSettings = async () => {
       const loaded = page.waitForResponse(response => (
         new URL(response.url()).pathname === '/admin/account_settings'
         && response.request().method() === 'GET'
@@ -42,9 +42,10 @@ for (const locale of ['en', 'zh']) {
       await page.goto(`${FRONTEND_URL}/${locale}/admin`);
       await page.getByText(labels.tab, { exact: true }).click();
       expect((await loaded).ok()).toBe(true);
-      await page.getByRole('button', { name: labels.config, exact: true }).click();
     };
-    await openConfig();
+    const configButton = page.getByRole('button', { name: labels.config, exact: true });
+    await loadSettings();
+    await configButton.click();
     const modal = page.getByRole('dialog');
     const toggle = modal.getByRole('switch', { name: labels.deleteOriginal });
     await expect(toggle).not.toBeChecked();
@@ -65,73 +66,75 @@ for (const locale of ['en', 'zh']) {
       expect((await saved).ok()).toBe(true);
       const persisted = await request.get(`${WORKER_URL}/admin/account_settings`, { headers: ADMIN_HEADERS });
       expect((await persisted.json()).emailRuleSettings.emailForwardingList[0].deleteOriginal).toBe(enabled);
-      await openConfig();
+      if (!enabled) await loadSettings();
+      await configButton.click();
       await expect(toggle).toBeChecked({ checked: enabled });
     }
   });
 
-  const initialEnabled = locale === 'zh';
-  test(`discards an unconfirmed delete-original toggle (${locale}, initially ${initialEnabled})`, async ({ page, request, originalSettings: settings }) => {
-    expect((await request.post(`${WORKER_URL}/admin/account_settings`, {
-      headers: ADMIN_HEADERS,
-      data: {
-        ...settings,
-        emailRuleSettings: {
-          blockReceiveUnknowAddressEmail: false,
-          emailForwardingList: [{ domains: ['forwarding.example.invalid'], forward: 'target@test.example.com', deleteOriginal: initialEnabled }],
+  for (const initialEnabled of [false, true]) {
+    test(`discards an unconfirmed delete-original toggle (${locale}, initially ${initialEnabled})`, async ({ page, request, originalSettings: settings }) => {
+      expect((await request.post(`${WORKER_URL}/admin/account_settings`, {
+        headers: ADMIN_HEADERS,
+        data: {
+          ...settings,
+          emailRuleSettings: {
+            blockReceiveUnknowAddressEmail: false,
+            emailForwardingList: [{ domains: ['forwarding.example.invalid'], forward: 'target@test.example.com', deleteOriginal: initialEnabled }],
+          },
         },
-      },
-    })).ok()).toBe(true);
-    await page.addInitScript(() => {
-      localStorage.setItem('adminAuth', 'e2e-admin-pass');
-      sessionStorage.setItem('adminTab', 'qucickSetup');
-    });
-    const openConfig = async () => {
-      const loaded = page.waitForResponse(response => (
+      })).ok()).toBe(true);
+      await page.addInitScript(() => {
+        localStorage.setItem('adminAuth', 'e2e-admin-pass');
+        sessionStorage.setItem('adminTab', 'qucickSetup');
+      });
+      const openConfig = async () => {
+        const loaded = page.waitForResponse(response => (
+          new URL(response.url()).pathname === '/admin/account_settings'
+          && response.request().method() === 'GET'
+        ));
+        await page.goto(`${FRONTEND_URL}/${locale}/admin`);
+        await page.getByText(labels.tab, { exact: true }).click();
+        expect((await loaded).ok()).toBe(true);
+        await page.getByRole('button', { name: labels.config, exact: true }).click();
+      };
+      await openConfig();
+      const modal = page.getByRole('dialog');
+      const toggle = modal.getByRole('switch', { name: labels.deleteOriginal });
+      await expect(toggle).toBeChecked({ checked: initialEnabled });
+      await toggle.click();
+      await expect(toggle).toBeChecked({ checked: !initialEnabled });
+      if (initialEnabled) await page.keyboard.press('Escape');
+      else await modal.locator('.n-card-header__close').click();
+      await expect(modal).toBeHidden();
+
+      const otherSetting = page.locator('.n-form-item').filter({ hasText: labels.blockUnknown }).getByRole('switch');
+      await expect(otherSetting).not.toBeChecked();
+      await otherSetting.click();
+      await expect(otherSetting).toBeChecked();
+      const saved = page.waitForResponse(response => (
+        new URL(response.url()).pathname === '/admin/account_settings'
+        && response.request().method() === 'POST'
+      ));
+      const refreshed = page.waitForResponse(response => (
         new URL(response.url()).pathname === '/admin/account_settings'
         && response.request().method() === 'GET'
       ));
-      await page.goto(`${FRONTEND_URL}/${locale}/admin`);
-      await page.getByText(labels.tab, { exact: true }).click();
-      expect((await loaded).ok()).toBe(true);
-      await page.getByRole('button', { name: labels.config, exact: true }).click();
-    };
-    await openConfig();
-    const modal = page.getByRole('dialog');
-    const toggle = modal.getByRole('switch', { name: labels.deleteOriginal });
-    await expect(toggle).toBeChecked({ checked: initialEnabled });
-    await toggle.click();
-    await expect(toggle).toBeChecked({ checked: !initialEnabled });
-    if (initialEnabled) await page.keyboard.press('Escape');
-    else await modal.locator('.n-card-header__close').click();
-    await expect(modal).toBeHidden();
+      await page.getByRole('button', { name: labels.save, exact: true }).click();
+      const response = await saved;
+      expect(response.ok()).toBe(true);
+      const submitted = response.request().postDataJSON().emailRuleSettings;
+      expect(submitted.blockReceiveUnknowAddressEmail).toBe(true);
+      expect(submitted.emailForwardingList[0].deleteOriginal).toBe(initialEnabled);
+      expect((await refreshed).ok()).toBe(true);
 
-    const otherSetting = page.locator('.n-form-item').filter({ hasText: labels.blockUnknown }).getByRole('switch');
-    await expect(otherSetting).not.toBeChecked();
-    await otherSetting.click();
-    await expect(otherSetting).toBeChecked();
-    const saved = page.waitForResponse(response => (
-      new URL(response.url()).pathname === '/admin/account_settings'
-      && response.request().method() === 'POST'
-    ));
-    const refreshed = page.waitForResponse(response => (
-      new URL(response.url()).pathname === '/admin/account_settings'
-      && response.request().method() === 'GET'
-    ));
-    await page.getByRole('button', { name: labels.save, exact: true }).click();
-    const response = await saved;
-    expect(response.ok()).toBe(true);
-    const submitted = response.request().postDataJSON().emailRuleSettings;
-    expect(submitted.blockReceiveUnknowAddressEmail).toBe(true);
-    expect(submitted.emailForwardingList[0].deleteOriginal).toBe(initialEnabled);
-    expect((await refreshed).ok()).toBe(true);
-
-    const persisted = await request.get(`${WORKER_URL}/admin/account_settings`, { headers: ADMIN_HEADERS });
-    expect(persisted.ok()).toBe(true);
-    const rules = (await persisted.json()).emailRuleSettings;
-    expect(rules.blockReceiveUnknowAddressEmail).toBe(true);
-    expect(rules.emailForwardingList[0].deleteOriginal).toBe(initialEnabled);
-    await openConfig();
-    await expect(toggle).toBeChecked({ checked: initialEnabled });
-  });
+      const persisted = await request.get(`${WORKER_URL}/admin/account_settings`, { headers: ADMIN_HEADERS });
+      expect(persisted.ok()).toBe(true);
+      const rules = (await persisted.json()).emailRuleSettings;
+      expect(rules.blockReceiveUnknowAddressEmail).toBe(true);
+      expect(rules.emailForwardingList[0].deleteOriginal).toBe(initialEnabled);
+      await openConfig();
+      await expect(toggle).toBeChecked({ checked: initialEnabled });
+    });
+  }
 }

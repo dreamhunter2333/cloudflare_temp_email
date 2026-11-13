@@ -115,11 +115,11 @@ test('renewal updates the current JWT; expired cached sessions require login', a
       headers: { Authorization: `Bearer ${mailbox.jwt}` }, data: { new_password: hashPassword(password) },
     });
     expect(changed.ok()).toBe(true);
-    await page.goto(`${FRONTEND_URL}/en/`);
-    await page.evaluate(cache => localStorage.setItem('LocalAddressCache', JSON.stringify(cache)), [
-      mailbox.jwt, passwordToken, other.jwt,
-      expiredPasswordToken,
-    ]);
+    await page.addInitScript(cache => {
+      if (localStorage.getItem('LocalAddressCache') === null) {
+        localStorage.setItem('LocalAddressCache', JSON.stringify(cache));
+      }
+    }, [mailbox.jwt, passwordToken, other.jwt, expiredPasswordToken]);
     await page.goto(`${FRONTEND_URL}/en/?jwt=${mailbox.jwt}`);
     await expect(page.locator('.address-select')).toContainText(mailbox.address);
     await expect.poll(readCache).toEqual([
