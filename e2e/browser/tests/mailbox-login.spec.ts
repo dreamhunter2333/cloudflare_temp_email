@@ -135,6 +135,47 @@ test('failed mailbox settings preserve the current token and historical cache', 
   }
 });
 
+for (const sessionChange of ['cleared', 'changed']) {
+  test(`pending renewal preserves a ${sessionChange} active session`, async ({ page, request }) => {
+    const mailbox = await createTestAddress(request, 'pending-renewal');
+    const other = await createTestAddress(request, 'new-session');
+    const now = Math.floor(Date.now() / 1000);
+    const token = await sign({
+      address: mailbox.address, address_id: mailbox.address_id, type: 'address_password_login',
+      iat: now - 24 * 86400, exp: now + 6 * 86400,
+    }, 'e2e-test-secret-key', 'HS256');
+    let releaseSettings: () => void;
+    const pendingSettings = new Promise<void>(resolve => { releaseSettings = resolve; });
+    try {
+      await page.route('**/api/settings', async route => {
+        const response = await route.fetch();
+        await pendingSettings;
+        await route.fulfill({ response });
+      });
+      const settingsRequest = page.waitForRequest(request =>
+        new URL(request.url()).pathname === '/api/settings'
+        && request.headers().authorization === `Bearer ${token}`);
+      await page.goto(`${FRONTEND_URL}/en/?jwt=${token}`);
+      await settingsRequest;
+      const nextToken = sessionChange === 'cleared' ? '' : other.jwt;
+      await page.evaluate(nextToken => {
+        const oldValue = localStorage.getItem('jwt');
+        localStorage.setItem('jwt', nextToken);
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'jwt', oldValue, newValue: nextToken, storageArea: localStorage,
+        }));
+      }, nextToken);
+      releaseSettings();
+      await expect(page.locator('.address-select')).toBeVisible();
+      expect(await page.evaluate(() => localStorage.getItem('jwt'))).toBe(nextToken);
+    } finally {
+      releaseSettings();
+      await deleteAddress(request, mailbox.jwt);
+      await deleteAddress(request, other.jwt);
+    }
+  });
+}
+
 test('the original local mailbox list saves the current token when settings fail', async ({ page, request }) => {
   const mailbox = await createTestAddress(request, 'cached-current');
   const other = await createTestAddress(request, 'uncached-current');

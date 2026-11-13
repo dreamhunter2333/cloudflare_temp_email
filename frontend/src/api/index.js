@@ -160,8 +160,9 @@ const getSettings = async () => {
         if (typeof jwt.value != 'string' || jwt.value.trim() === '' || jwt.value === 'undefined') {
             return "";
         }
+        const requestJwt = jwt.value;
         const res = await apiFetch("/api/settings");;
-        if (res.new_address_token) {
+        if (res.new_address_token && jwt.value === requestJwt) {
             jwt.value = res.new_address_token;
         }
         settings.value = {
