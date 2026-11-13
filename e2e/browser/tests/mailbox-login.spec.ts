@@ -200,11 +200,13 @@ test('renewal updates the current JWT; expired cached sessions require login', a
     const historicalCache = await readCache();
     await page.setExtraHTTPHeaders({ 'x-test-address-password-mode': 'password-only' });
     await page.goto(`${FRONTEND_URL}/en/?jwt=${renewedToken}`);
-    await expect(page.locator('.address-select')).toContainText('Password Login');
+    await expect(page.locator('.address-select')).toContainText(mailbox.address);
+    await expect(page.locator('.address-select .n-tag')).toHaveCount(0);
     await page.locator('.address-select').click();
-    const passwordOptions = page.locator('.n-base-select-menu:visible');
-    await expect(passwordOptions).toContainText('Password Login');
-    await expect(passwordOptions).not.toContainText('Credential Login');
+    const passwordOnlyOptions = page.locator('.n-base-select-menu:visible');
+    await expect(passwordOnlyOptions.locator('.n-base-select-option')).toHaveCount(historicalCache.length - 2);
+    await expect(passwordOnlyOptions.locator('.n-tag')).toHaveCount(0);
+    await expect(passwordOnlyOptions).not.toContainText('Credential Login');
     await page.keyboard.press('Escape');
     await page.locator('.address-manage').click();
     await expect(rows).toHaveCount(historicalCache.length);
