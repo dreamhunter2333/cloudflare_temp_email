@@ -2,11 +2,12 @@ import { defineConfig, devices } from '@playwright/test';
 
 const WORKER_BASE = process.env.WORKER_URL!;
 const FRONTEND_BASE = process.env.FRONTEND_URL!;
+const workerCount = process.env.PLAYWRIGHT_WORKERS || '1';
 
 export default defineConfig({
   timeout: 30_000,
   retries: 0,
-  workers: process.env.PLAYWRIGHT_WORKERS || 1,
+  workers: workerCount.endsWith('%') ? workerCount : Number(workerCount),
   reporter: [['html', { open: 'never' }]],
   projects: [
     {
