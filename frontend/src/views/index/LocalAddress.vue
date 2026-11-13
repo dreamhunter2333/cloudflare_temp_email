@@ -10,7 +10,7 @@ import { useGlobalState } from '../../store'
 // @ts-ignore
 import Login from '../common/Login.vue';
 
-const { jwt } = useGlobalState()
+const { jwt, openSettings } = useGlobalState()
 // @ts-ignore
 const message = useMessage()
 
