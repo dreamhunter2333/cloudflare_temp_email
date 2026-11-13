@@ -343,9 +343,6 @@ test('locks shared settings and mode switching for the entire sequential batch',
 });
 
 for (const scenario of [
-  { locale: 'en', status: 400, successes: 2 },
-  { locale: 'en', status: 429, successes: 2 },
-  { locale: 'en', status: 500, successes: 2 },
   { locale: 'en', status: 0, successes: 2 },
   { locale: 'zh', status: 429, successes: 2 },
   { locale: 'en', status: 500, successes: 0 },

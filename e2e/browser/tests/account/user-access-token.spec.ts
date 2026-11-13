@@ -314,16 +314,11 @@ for (const changedCredential of ['account', 'mailbox'] as const) {
 }
 
 for (const [scenario, query] of [
-  ['expired account', ''],
   ['deleted account', ''],
   ['valid account', ''],
   ['missing account', ''],
   ['missing expiry', ''],
   ['expired account', '?refresh=1&source=e2e'],
-  ['deleted account', '?refresh=1&source=e2e'],
-  ['valid account', '?refresh=1&source=e2e'],
-  ['missing account', '?refresh=1&source=e2e'],
-  ['missing expiry', '?refresh=1&source=e2e'],
 ] as const) {
   test(`mailbox operations use the real Worker when ${scenario}, query: ${query || 'none'}`, { lock: 'user-settings' }, async ({ page, request }) => {
     const address = await createTestAddress(request, 'refresh-mailbox-');

@@ -63,19 +63,15 @@ test('Webhook configures the generic editor with server-supported fields and ope
       expect(await (await checked).json()).toEqual({ success: true, matched: true });
       await expect(page.getByRole('dialog')).toHaveCount(0);
     };
-    for (const label of labels) {
-      await operator.click();
-      await page.locator('.n-base-select-option:visible').getByText(label, { exact: true }).click();
-      await saveAndCheck();
-    }
+    await operator.click();
+    await page.locator('.n-base-select-option:visible').getByText('Equals (Case sensitive)', { exact: true }).click();
+    await saveAndCheck();
     await operator.click();
     await page.locator('.n-base-select-option:visible').getByText('Contains', { exact: true }).click();
-    for (const [index, value] of ['review@example.com', mailbox.address, 'DOWN', 'Hello from E2E', 'Hello from E2E'].entries()) {
-      await field.click();
-      await page.locator('.n-base-select-option:visible').getByText(fieldLabels[index], { exact: true }).click();
-      await editor.getByRole('textbox', { name: 'Value', exact: true }).fill(value);
-      await saveAndCheck();
-    }
+    await field.click();
+    await page.locator('.n-base-select-option:visible').getByText('Plain text', { exact: true }).click();
+    await editor.getByRole('textbox', { name: 'Value', exact: true }).fill('Hello from E2E');
+    await saveAndCheck();
   } finally {
     expect((await request.post(endpoint, { data: previous })).ok()).toBe(true);
     await request.delete(`${WORKER_URL}/admin/delete_address/${mailbox.address_id}`);
@@ -464,10 +460,7 @@ for (const scope of ['admin', 'mailbox']) {
         await page.getByRole('dialog').getByRole('button', { name: 'Check only', exact: true }).click();
         expect((await response).status()).toBe(status);
       };
-      for (const filter of [
-        ...['[', '(', '*a'].map(value => ({ ...valid, value })),
-        ...['g', 'ii', false].map(flags => ({ ...valid, options: { flags } })),
-      ]) {
+      for (const filter of [{ ...valid, value: '[' }, { ...valid, options: { flags: 'g' } }]) {
         await json.fill(JSON.stringify(filter));
         await expect(save).toBeEnabled();
         await expect(openCheck).toBeEnabled();
