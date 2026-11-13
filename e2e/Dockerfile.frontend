@@ -6,7 +6,8 @@ RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
 WORKDIR /app/frontend
 
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile || (echo "WARN: frozen-lockfile failed, falling back to pnpm install" && pnpm install)
+ARG INSTALL_FRONTEND_DEPS=true
+RUN if [ "$INSTALL_FRONTEND_DEPS" = true ]; then pnpm install --frozen-lockfile; fi
 
 COPY frontend/ .
 
@@ -21,6 +22,7 @@ RUN mv vite.config.js vite.config.original.js && \
     echo 'import config from "./vite.config.original.js";\
 import fs from "fs";\
 const workerTarget = process.env.VITE_WORKER_URL || "http://worker:8787";\
+config.cacheDir = "/tmp/vite-cache";\
 config.server = {\
   ...config.server,\
   allowedHosts: true,\
