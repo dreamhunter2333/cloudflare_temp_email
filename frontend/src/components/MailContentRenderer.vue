@@ -77,6 +77,8 @@ const readStatusUpdating = ref(false);
 const showFullscreen = ref(false);
 const showMoreActions = ref(false);
 const showMailDetails = ref(false);
+const renderer = ref(null);
+const drawerOverlayTarget = computed(() => renderer.value?.closest('.n-drawer') || undefined);
 const moreActionsButton = ref(null);
 const downloadMailButton = ref(null);
 const downloadUrl = ref(null);
@@ -152,6 +154,13 @@ const closeMoreActions = () => {
   moreActionsButton.value?.$el.focus();
 };
 
+const closeActionsOnEscape = (event) => {
+  if (!showMoreActions.value) return
+  event.stopPropagation()
+  event.preventDefault()
+  closeMoreActions()
+}
+
 const toggleTextMail = () => {
   showTextMail.value = !showTextMail.value;
   closeMoreActions();
@@ -190,7 +199,7 @@ const handleSaveToS3 = async (filename, blob) => {
 </script>
 
 <template>
-  <div class="mail-content-renderer">
+  <div ref="renderer" class="mail-content-renderer">
     <div class="mail-details">
       <div class="mail-address">
         <n-text depth="3" class="mail-address-label">{{ t('from') }}</n-text>
@@ -225,10 +234,10 @@ const handleSaveToS3 = async (filename, blob) => {
       </n-space>
       <div class="mail-secondary-actions">
         <n-space align="center" :wrap="false" :size="4">
-          <n-popover v-model:show="showMoreActions" trigger="click" placement="bottom-end" :show-arrow="false">
+          <n-popover v-model:show="showMoreActions" :to="drawerOverlayTarget" trigger="click" placement="bottom-end" :show-arrow="false">
             <template #trigger>
               <n-button ref="moreActionsButton" size="small" quaternary :color="neutralActionColor" :title="t('moreActions')" :aria-label="t('moreActions')"
-                :aria-expanded="showMoreActions" @keydown.esc.stop.prevent="closeMoreActions">
+                :aria-expanded="showMoreActions" @keydown.esc="closeActionsOnEscape">
                 <template #icon><n-icon :component="MoreHorizRound" /></template>
                 {{ t('more') }}
               </n-button>
@@ -260,7 +269,7 @@ const handleSaveToS3 = async (filename, blob) => {
               </n-button>
             </div>
           </n-popover>
-          <n-popconfirm v-if="enableUserDeleteEmail" @positive-click="handleDelete">
+          <n-popconfirm v-if="enableUserDeleteEmail" :to="drawerOverlayTarget" @positive-click="handleDelete">
             <template #trigger>
               <n-button size="small" quaternary type="error" :color="deleteColor" :title="t('delete')" :aria-label="t('delete')">
                 <template #icon><n-icon :component="DeleteOutlineRound" /></template>
@@ -322,7 +331,7 @@ const handleSaveToS3 = async (filename, blob) => {
     </n-descriptions>
   </n-modal>
 
-  <n-drawer v-model:show="showFullscreen" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
+  <n-drawer v-model:show="showFullscreen" :aria-label="mail.subject || t('fullscreen')" width="100%" placement="bottom"
     style="height: 100vh;">
     <n-drawer-content :title="mail.subject" closable>
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
