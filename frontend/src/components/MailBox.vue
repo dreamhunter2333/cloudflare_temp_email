@@ -189,11 +189,11 @@ const setupAutoRefresh = async (autoRefresh) => {
       const elapsed = Math.floor((now - lastTick) / 1000)
       if (elapsed <= 0) return
       lastTick += elapsed * 1000
-      if (loading.value) return
+      if (loading.value || activeRefresh || page.value !== 1 || multiActionMode.value) return
       autoRefreshInterval.value -= elapsed
       if (autoRefreshInterval.value <= 0) {
         autoRefreshInterval.value = configAutoRefreshInterval.value;
-        await backFirstPageAndRefresh();
+        await refresh({ background: true });
       }
     }, 1000)
   } else {
@@ -213,18 +213,22 @@ watch([page, pageSize], async ([page, pageSize]) => {
 })
 let activeRefresh = null
 let loadedPage = { page: page.value, pageSize: pageSize.value }
-const refresh = () => {
+
+const refresh = ({ background = false } = {}) => {
   const limit = pageSize.value
   const offset = (page.value - 1) * limit
-  if (activeRefresh?.limit === limit && activeRefresh.offset === offset) return activeRefresh.promise
-  activeRefresh = { limit, offset }
-  return activeRefresh.promise = fetchPage(activeRefresh)
+  if (activeRefresh?.limit === limit && activeRefresh.offset === offset    && (!activeRefresh.background || background)) return activeRefresh.promise
+
+  const request = { limit, offset, background }
+  activeRefresh = request
+  request.promise = fetchPage(request)
+  return request.promise
 }
 
 const fetchPage = async (request) => {
   try {
     const { results, count: totalCount } = await props.fetchMailData(
-      request.limit, request.offset
+      request.limit, request.offset, { showLoading: !request.background }
     );
     if (request !== activeRefresh) return
     const previousMails = new Map(rawData.value.map(mail => [mail.id, mail]))
@@ -237,7 +241,7 @@ const fetchPage = async (request) => {
       const { source, originalSource, subject, message, text, attachments } = previous
       return { ...item, source, originalSource, subject, message, text, attachments }
     }));
-    if (request !== activeRefresh) {
+    if (request !== activeRefresh || (request.background      && (!autoRefresh.value || page.value !== 1 || request.limit !== pageSize.value || multiActionMode.value))) {
       const reused = new Set([...previousMails.values()].flatMap(mail => mail.attachments || []).map(attachment => attachment.url))
       for (const { url } of mails.flatMap(mail => mail.attachments || [])) {
         if (!reused.has(url)) URL.revokeObjectURL(url)
@@ -248,6 +252,10 @@ const fetchPage = async (request) => {
     rawData.value = mails
     if (totalCount > 0) {
       count.value = totalCount;
+    }
+    if (request.background && curMail.value) {
+      curMail.value = mails.find(mail => mail.id === curMail.value.id) || curMail.value
+      return
     }
     curMail.value = null;
     if (!isMobile.value && !mailListView.value && data.value.length > 0) {
