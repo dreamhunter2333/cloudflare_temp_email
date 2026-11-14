@@ -44,7 +44,9 @@ const receivedAt = computed(() => new Date(`${props.mail.created_at} UTC`));
       </n-ellipsis>
     </div>
     <div class="mail-summary-subject" :title="`ID: ${mail.id}\n${mail.subject || ''}`">
-      <n-ellipsis><n-text strong depth="1">{{ mail.subject || '—' }}</n-text></n-ellipsis>
+      <button type="button" class="mail-summary-open">
+        <n-ellipsis><n-text strong depth="1">{{ mail.subject || '—' }}</n-text></n-ellipsis>
+      </button>
     </div>
     <div v-if="mail.text && previewLineClamp > 0" class="mail-summary-preview">
       <n-ellipsis :line-clamp="previewLineClamp" :tooltip="false"><n-text depth="3" class="mail-summary-muted">{{ mail.text }}</n-text></n-ellipsis>
@@ -88,6 +90,18 @@ const receivedAt = computed(() => new Date(`${props.mail.created_at} UTC`));
 .mail-summary-subject {
   font-size: 15px;
   margin-top: 4px;
+}
+
+.mail-summary-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
 }
 
 .mail-summary-muted {
