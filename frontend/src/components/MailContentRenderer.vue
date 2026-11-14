@@ -72,7 +72,6 @@ const props = defineProps({
 
 const showTextMail = ref(preferShowTextMail.value);
 const showAttachments = ref(false);
-const curAttachments = ref([]);
 const attachmentLoding = ref(false);
 const readStatusUpdating = ref(false);
 const showFullscreen = ref(false);
@@ -132,8 +131,11 @@ const handleDelete = () => {
   props.onDelete();
 };
 
+watch(() => props.mail.id, () => {
+  showAttachments.value = false
+});
+
 const handleViewAttachments = () => {
-  curAttachments.value = props.mail.attachments;
   showAttachments.value = true;
 };
 
@@ -339,7 +341,7 @@ const handleSaveToS3 = async (filename, blob) => {
     </template>
     <n-spin v-model:show="attachmentLoding">
       <n-list hoverable clickable>
-        <n-list-item v-for="row in curAttachments" v-bind:key="row.id">
+        <n-list-item v-for="row in mail.attachments" v-bind:key="row.id">
           <n-thing class="center" :title="row.filename">
             <template #description>
               <n-space>
