@@ -222,7 +222,7 @@ const refresh = async () => {
       return await processItem(item);
     }));
     loadedPage = pagination
-    if (totalCount > 0) {
+    if (pagination.page === 1) {
       count.value = totalCount;
     }
     curMail.value = null;

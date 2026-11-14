@@ -47,8 +47,9 @@ const copyAddress = async () => {
 const fetchMails = async () => {
     if (!settings.value.address) return
     try {
-        const { results, count } = await api.fetch(`/api/mails?limit=1&offset=${currentPage.value - 1}`)
-        totalCount.value = count > 0 ? count : totalCount.value;
+        const offset = currentPage.value - 1
+        const { results, count } = await api.fetch(`/api/mails?limit=1&offset=${offset}`)
+        if (offset === 0) totalCount.value = count
         const rawMail = results && results.length > 0 ? results[0] : null
         currentMail.value = rawMail ? await processItem(rawMail) : null
     } catch (error) {
