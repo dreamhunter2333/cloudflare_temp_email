@@ -115,6 +115,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Multi Action",
       "zh": "多选"
     },
+    "noFilterMatches": {
+      "en": "No mail matches the filter on this page",
+      "zh": "当前页没有符合筛选条件的邮件"
+    },
     "nextMail": {
       "en": "Next",
       "zh": "下一封"
