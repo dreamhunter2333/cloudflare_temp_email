@@ -1,6 +1,7 @@
 <script setup>
 import { watch, onMounted, ref, onBeforeUnmount, computed, nextTick } from "vue";
 import { useMessage, useThemeVars } from 'naive-ui'
+import { useElementSize } from '@vueuse/core'
 import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
 import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled, InboxRound } from '@vicons/material'
@@ -13,6 +14,12 @@ import MailSummary from "./MailSummary.vue";
 const message = useMessage()
 const themeVars = useThemeVars()
 const isMobile = useIsMobile()
+const mailbox = ref(null)
+const { width: mailboxWidth } = useElementSize(mailbox)
+const stackedDesktop = computed(() => mailboxWidth.value > 0 && mailboxWidth.value < 700)
+const readerControls = ref(null)
+const minSplit = computed(() => mailboxWidth.value ? 220 / mailboxWidth.value : 0)
+const maxSplit = computed(() => mailboxWidth.value ? Math.min(0.75, 1 - 368 / mailboxWidth.value) : 0.75)
 
 const props = defineProps({
   enableUserDeleteEmail: {
@@ -326,6 +333,8 @@ const clickRow = async (row, event) => {
   if (event?.detail === 0 && !isMobile.value && mailListView.value) {
     await nextTick()
     backToListButton.value?.$el.focus()
+  } else if (!isMobile.value && stackedDesktop.value) {
+    void nextTick(() => readerControls.value?.scrollIntoView({ block: 'nearest' }))
   }
 };
 
@@ -459,7 +468,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div>
+  <div ref="mailbox">
     <div v-if="!isMobile" class="left">
       <div style="margin-bottom: 10px;">
         <n-space v-if="multiActionMode" align="center">
@@ -507,8 +516,9 @@ onBeforeUnmount(() => {
             clearable />
         </n-space>
       </div>
-      <n-split class="left" direction="horizontal" :max="0.75" :min="0" :resize-trigger-size="8"
-        :default-size="mailboxSplitSize" :on-update:size="onSpiltSizeChange" v-if="!mailListView || curMail">
+      <n-split class="left" :class="{ 'mail-split-stacked': stackedDesktop }" :disabled="stackedDesktop"
+        direction="horizontal" :max="maxSplit" :min="minSplit" :resize-trigger-size="8"
+        :size="Math.min(maxSplit, Math.max(minSplit, mailboxSplitSize))" :on-update:size="onSpiltSizeChange" v-if="!mailListView || curMail">
         <template #resize-trigger>
           <div class="split-handle">
             <div class="split-handle__grip" />
@@ -532,7 +542,7 @@ onBeforeUnmount(() => {
           </div>
         </template>
         <template #2>
-          <div v-if="curMail" style="margin: 8px;">
+          <div v-if="curMail" ref="readerControls" style="margin: 8px;">
             <n-flex justify="space-between" align="center">
               <n-space :wrap="false" align="center">
                 <n-button v-if="mailListView" ref="backToListButton" @click="closeListMail" text size="small">
@@ -724,6 +734,19 @@ onBeforeUnmount(() => {
 pre {
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.mail-split-stacked {
+  flex-direction: column;
+}
+
+.mail-split-stacked :deep(.n-split-pane-1) {
+  flex: 0 0 auto !important;
+}
+
+.mail-split-stacked .mail-list-scroll {
+  min-height: 0;
+  max-height: 40vh;
 }
 
 .split-handle {
