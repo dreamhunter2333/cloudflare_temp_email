@@ -24,6 +24,7 @@
 
 ### Bug Fixes
 
+- fix: |Inbox| Keep the current message and restore the page and page size when pagination fails
 - fix: |Inbox| Show simple inbox refresh success only after a successful fetch
 - fix: |Mail Reader| Sanitize Shadow DOM email previews when remote images are allowed
 - fix: |Health Check| Return `OK` from `/health_check` when the Worker has an `ASSETS` binding instead of the frontend page, so uptime monitors can use it
