@@ -145,8 +145,8 @@ const prevMail = async () => {
     openMail(data.value[currentIndex - 1])
   } else if (page.value > 1) {
     page.value--
-    await refresh()
-    if (data.value.length > 0) {
+    const refreshed = await refresh()
+    if (refreshed && data.value.length > 0) {
       openMail(data.value[data.value.length - 1])
     }
   }
@@ -160,8 +160,8 @@ const nextMail = async () => {
     openMail(data.value[currentIndex + 1])
   } else if (count.value > page.value * pageSize.value) {
     page.value++
-    await refresh()
-    if (data.value.length > 0) {
+    const refreshed = await refresh()
+    if (refreshed && data.value.length > 0) {
       openMail(data.value[0])
     }
   }
@@ -200,22 +200,28 @@ watch(autoRefresh, async (autoRefresh, old) => {
   setupAutoRefresh(autoRefresh)
 }, { immediate: true })
 
-watch([page, pageSize], async ([page, pageSize], [oldPage, oldPageSize]) => {
-  if (page !== oldPage || pageSize !== oldPageSize) {
+let loadedPage = { page: page.value, pageSize: pageSize.value }
+let requestedPage = null
+watch([page, pageSize], async ([page, pageSize]) => {
+  if (requestedPage?.page === page && requestedPage.pageSize === pageSize) return
+  if (loadedPage.page !== page || loadedPage.pageSize !== pageSize) {
     await refresh();
   }
 })
 
 const refresh = async () => {
+  const pagination = { page: page.value, pageSize: pageSize.value }
+  requestedPage = pagination
   try {
     const { results, count: totalCount } = await props.fetchMailData(
-      pageSize.value, (page.value - 1) * pageSize.value
+      pagination.pageSize, (pagination.page - 1) * pagination.pageSize
     );
     loading.value = true;
     rawData.value = await Promise.all(results.map(async (item) => {
       item.checked = false;
       return await processItem(item);
     }));
+    loadedPage = pagination
     if (totalCount > 0) {
       count.value = totalCount;
     }
@@ -223,10 +229,16 @@ const refresh = async () => {
     if (!isMobile.value && !mailListView.value && data.value.length > 0) {
       curMail.value = data.value[0];
     }
+    return true
   } catch (error) {
     message.error(error.message || "error");
     console.error(error);
+    if (requestedPage === pagination && page.value === pagination.page && pageSize.value === pagination.pageSize) {
+      page.value = loadedPage.page
+      pageSize.value = loadedPage.pageSize
+    }
   } finally {
+    if (requestedPage === pagination) requestedPage = null
     loading.value = false;
   }
 };
