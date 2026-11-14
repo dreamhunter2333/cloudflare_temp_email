@@ -5,7 +5,7 @@ Receiving mail does not require a sending channel. To send mail from this projec
 
 | Method | Best for | Required configuration | Characteristics |
 |--------|----------|------------------------|-----------------|
-| Cloudflare `send_email` binding | Deployments already using Cloudflare Email Service that want fewer third-party dependencies | `SEND_MAIL` binding and a sender domain onboarded to Email Service; when `SEND_MAIL_DOMAINS` is set, the sender domain must also be listed | Direct Worker integration; arbitrary-recipient sending requires Workers Paid |
+| Cloudflare `send_email` binding | Deployments already using Cloudflare Email Service that want fewer third-party dependencies | `SEND_MAIL` binding and a sender domain onboarded to Email Service; a non-empty `SEND_MAIL_DOMAINS` restricts the sender domains for the fallback channel only | Direct Worker integration; arbitrary-recipient sending requires Workers Paid |
 | Resend API | Quickly adopting a managed sending service | `RESEND_TOKEN` or a domain-specific `RESEND_TOKEN_<DOMAIN>`, plus a sending domain verified in Resend | Simple setup; quotas and restrictions depend on the Resend plan |
 | SMTP | Existing SMTP services or self-managed sending infrastructure | `SMTP_CONFIG` | Most customizable; you maintain the service, credentials, and connectivity |
 
@@ -24,7 +24,7 @@ Each `/api/send_mail` request matches channels in order; **the first hit sends**
 | 1 | `SEND_MAIL` bound **AND** recipient in `verifiedAddressList` | Cloudflare binding (compat mode) | No |
 | 2 | `RESEND_TOKEN` or `RESEND_TOKEN_<DOMAIN>` set | Resend API | Yes |
 | 3 | `SMTP_CONFIG` has entry for current domain | worker-mailer SMTP | Yes |
-| 4 | `SEND_MAIL` bound and sender domain allowed by `SEND_MAIL_DOMAINS` (none of the above) | **Cloudflare binding (recommended primary)** | Yes |
+| 4 | `SEND_MAIL` bound and sender domain allowed by `SEND_MAIL_DOMAINS`, or the list is unset/empty (none of the above) | **Cloudflare binding (recommended primary)** | Yes |
 | — | None of the above | Throws | — |
 
 > [!NOTE]
@@ -50,7 +50,7 @@ After the following steps, you can send to any external address directly:
 2. Add the `send_email` binding shown above to `wrangler.toml`
 3. Deploy the Worker
 
-No additional env var is required by default. If `SEND_MAIL_DOMAINS` is set, only listed sender domains can use this fallback channel; leaving it unset or empty allows all domains.
+No additional env var is required by default. To restrict the fallback channel, set `SEND_MAIL_DOMAINS` to a valid JSON array such as `["example.com"]`. A non-empty array allows only the listed sender domains; leaving it unset or empty allows all domains. An invalid JSON value is parsed as an empty list and therefore also allows all domains, so do not use a bare value such as `example.com`.
 
 ## Send Emails Using Resend
 
