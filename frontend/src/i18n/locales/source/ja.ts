@@ -424,6 +424,7 @@ export const jaMessages = {
   "views.admin.Maintenance.sqlName": "名前",
   "views.index.AccountSettings.newPassword": "新しいパスワード",
   "views.admin.Account.newPassword": "新しいパスワード",
+  "components.MailBox.noFilterMatches": "このページに条件に一致するメールはありません",
   "components.MailBox.nextMail": "次へ",
   "views.index.SimpleIndex.nextPage": "次へ",
   "views.admin.AccountSettings.noLimitSendAddressList": "残高無制限の送信アドレス一覧",

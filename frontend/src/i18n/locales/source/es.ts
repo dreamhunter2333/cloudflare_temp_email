@@ -424,6 +424,7 @@ export const esMessages = {
   "views.admin.Maintenance.sqlName": "Nombre",
   "views.index.AccountSettings.newPassword": "Nueva contraseña",
   "views.admin.Account.newPassword": "Nueva contraseña",
+  "components.MailBox.noFilterMatches": "Ningún correo de esta página coincide con el filtro",
   "components.MailBox.nextMail": "Siguiente",
   "views.index.SimpleIndex.nextPage": "Siguiente",
   "views.admin.AccountSettings.noLimitSendAddressList": "Lista de direcciones sin límite de saldo",

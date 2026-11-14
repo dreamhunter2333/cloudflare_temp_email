@@ -102,6 +102,8 @@ const data = computed(() => {
   });
 })
 
+const hasNoFilterMatches = computed(() => Boolean(localFilterKeyword.value.trim()) && rawData.value.length > 0 && data.value.length === 0)
+
 const openMail = (mail) => {
   curMail.value = mail
   if (mail?.is_unread !== 1 || !props.enableMailReadStatus) return
@@ -501,7 +503,7 @@ onBeforeUnmount(() => {
             {{ t('refresh') }}
           </n-button>
           <n-input v-if="showFilterInput" v-model:value="localFilterKeyword"
-            :placeholder="t('keywordQueryTip')" style="width: 200px; display: flex; align-items: center;"
+            :placeholder="t('keywordQueryTip')" :input-props="{ 'aria-label': t('keywordQueryTip') }" style="width: 200px; display: flex; align-items: center;"
             clearable />
         </n-space>
       </div>
@@ -514,7 +516,10 @@ onBeforeUnmount(() => {
         </template>
         <template #1>
           <div class="mail-list-scroll mail-list-compact">
-            <n-list hoverable clickable>
+            <div role="status">
+              <n-empty v-if="hasNoFilterMatches" :description="t('noFilterMatches')" />
+            </div>
+            <n-list v-if="!hasNoFilterMatches" hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="clickRow(row, $event)"
                 :class="[mailItemClass(row), { 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }]">
                 <template #prefix v-if="multiActionMode">
@@ -574,7 +579,10 @@ onBeforeUnmount(() => {
         </template>
       </n-split>
       <div v-else ref="mailList" class="mail-list-scroll mail-list-compact">
-        <n-list hoverable clickable>
+        <div role="status">
+          <n-empty v-if="hasNoFilterMatches" :description="t('noFilterMatches')" />
+        </div>
+        <n-list v-if="!hasNoFilterMatches" hoverable clickable>
           <n-list-item v-for="row in data" v-bind:key="row.id" :data-mail-id="row.id" @click="clickRow(row, $event)"
             :class="[mailItemClass(row), { 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }]">
             <template #prefix v-if="multiActionMode">
@@ -603,10 +611,13 @@ onBeforeUnmount(() => {
       </n-space>
       <div v-if="showFilterInput" style="padding: 0 10px; margin-top: 8px; margin-bottom: 10px;">
         <n-input v-model:value="localFilterKeyword"
-          :placeholder="t('keywordQueryTip')" size="small" clearable />
+          :placeholder="t('keywordQueryTip')" :input-props="{ 'aria-label': t('keywordQueryTip') }" size="small" clearable />
       </div>
       <div class="mail-list-scroll mail-list-compact">
-        <n-list hoverable clickable>
+        <div role="status">
+          <n-empty v-if="hasNoFilterMatches" :description="t('noFilterMatches')" />
+        </div>
+        <n-list v-if="!hasNoFilterMatches" hoverable clickable>
           <n-list-item v-for="row in data" v-bind:key="row.id" tabindex="-1" @click="openMobileMail(row, $event)"
             :class="{ 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }">
             <MailSummary :mail="row" :showEMailTo="showEMailTo" :enableMailReadStatus="enableMailReadStatus"
