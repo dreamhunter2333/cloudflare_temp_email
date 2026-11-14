@@ -236,6 +236,10 @@ const fetchPage = async (request) => {
   try {
     const { results, count: totalCount } = await props.fetchMailData(request.limit, request.offset, { showLoading: !request.background });
     if (request !== activeRefresh) return
+    if (request.offset > 0 && !results.length) {
+      page.value = 1
+      return
+    }
     const previousMails = new Map(rawData.value.map(mail => [mail.id, mail]))
     const mails = await Promise.all(results.map(async (item) => {
       item.checked = false;
@@ -257,7 +261,7 @@ const fetchPage = async (request) => {
     rawData.value = mails
     void nextTick(() => releaseAttachments([...previousRows, previousReader].filter(Boolean),
       [...rawData.value, curMail.value].filter(Boolean)))
-    if (totalCount > 0) {
+    if (request.offset === 0) {
       count.value = totalCount;
     }
     if (request.background && curMail.value) {
