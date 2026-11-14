@@ -58,7 +58,7 @@ test.describe('Bounded cleanup', () => {
     expect(recentMailResponse.ok()).toBe(true);
 
     const recentCleanup = await request.post(`${WORKER_URL}/admin/cleanup`, {
-      data: { cleanType: 'mails', cleanDays: 0 },
+      data: { cleanType: 'mails', cleanDays: 1 },
     });
     expect(recentCleanup.ok()).toBe(true);
 
