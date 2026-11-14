@@ -220,12 +220,22 @@ const refresh = ({ force = false } = {}) => {
 const fetchPage = async (request) => {
   try {
     const { results, count: totalCount } = await props.fetchMailData(request.limit, request.offset);
+    if (request !== activeRefresh) return
+    const previousMails = new Map(rawData.value.map(mail => [mail.id, mail]))
     const mails = await Promise.all(results.map(async (item) => {
       item.checked = false;
-      return await processItem(item);
+      const previous = previousMails.get(item.id)
+      if (!previous || previous.raw !== item.raw || previous.originalSource !== item.source) {
+        return await processItem(item);
+      }
+      const { source, originalSource, subject, message, text, attachments } = previous
+      return { ...item, source, originalSource, subject, message, text, attachments }
     }));
     if (request !== activeRefresh) {
-      for (const { url } of mails.flatMap(mail => mail.attachments || [])) URL.revokeObjectURL(url)
+      const reused = new Set([...previousMails.values()].flatMap(mail => mail.attachments || []).map(attachment => attachment.url))
+      for (const { url } of mails.flatMap(mail => mail.attachments || [])) {
+        if (!reused.has(url)) URL.revokeObjectURL(url)
+      }
       return
     }
     loadedPage = request.offset / request.limit + 1
