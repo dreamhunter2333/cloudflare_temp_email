@@ -145,8 +145,7 @@ const prevMail = async () => {
     openMail(data.value[currentIndex - 1])
   } else if (page.value > 1) {
     page.value--
-    await refresh()
-    if (data.value.length > 0) {
+    if (await refresh() && data.value.length > 0) {
       openMail(data.value[data.value.length - 1])
     }
   }
@@ -160,8 +159,7 @@ const nextMail = async () => {
     openMail(data.value[currentIndex + 1])
   } else if (count.value > page.value * pageSize.value) {
     page.value++
-    await refresh()
-    if (data.value.length > 0) {
+    if (await refresh() && data.value.length > 0) {
       openMail(data.value[0])
     }
   }
@@ -200,22 +198,32 @@ watch(autoRefresh, async (autoRefresh, old) => {
   setupAutoRefresh(autoRefresh)
 }, { immediate: true })
 
-watch([page, pageSize], async ([page, pageSize], [oldPage, oldPageSize]) => {
-  if (page !== oldPage || pageSize !== oldPageSize) {
-    await refresh();
-  }
+watch([page, pageSize], async ([page, pageSize], [, oldPageSize]) => {
+  if (activeRefresh || page !== loadedPage || pageSize !== oldPageSize) await refresh()
 })
+let activeRefresh = null
+let loadedPage = 1
+const refresh = ({ force = false } = {}) => {
+  const limit = pageSize.value
+  const offset = (page.value - 1) * limit
+  if (!force && activeRefresh?.limit === limit && activeRefresh.offset === offset) return activeRefresh.promise
+  activeRefresh = { limit, offset }
+  return activeRefresh.promise = fetchPage(activeRefresh)
+}
 
-const refresh = async () => {
+const fetchPage = async (request) => {
   try {
-    const { results, count: totalCount } = await props.fetchMailData(
-      pageSize.value, (page.value - 1) * pageSize.value
-    );
-    loading.value = true;
-    rawData.value = await Promise.all(results.map(async (item) => {
+    const { results, count: totalCount } = await props.fetchMailData(request.limit, request.offset);
+    const mails = await Promise.all(results.map(async (item) => {
       item.checked = false;
       return await processItem(item);
     }));
+    if (request !== activeRefresh) {
+      for (const { url } of mails.flatMap(mail => mail.attachments || [])) URL.revokeObjectURL(url)
+      return
+    }
+    loadedPage = request.offset / request.limit + 1
+    rawData.value = mails
     if (totalCount > 0) {
       count.value = totalCount;
     }
@@ -223,11 +231,13 @@ const refresh = async () => {
     if (!isMobile.value && !mailListView.value && data.value.length > 0) {
       curMail.value = data.value[0];
     }
+    return true
   } catch (error) {
+    if (request !== activeRefresh) return
     message.error(error.message || "error");
-    console.error(error);
+    page.value = loadedPage
   } finally {
-    loading.value = false;
+    if (request === activeRefresh) activeRefresh = null
   }
 };
 
@@ -259,7 +269,7 @@ const deleteMail = async () => {
     await props.deleteMail(curMail.value.id);
     message.success(t("success"));
     curMail.value = null;
-    await refresh();
+    await refresh({ force: true });
   } catch (error) {
     message.error(error.message || "error");
   }
@@ -324,7 +334,7 @@ const multiActionDeleteMail = async () => {
       };
     }
     message.success(t("success"));
-    await refresh();
+    await refresh({ force: true });
   } catch (error) {
     message.error(error.message || "error");
   } finally {
@@ -364,6 +374,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  activeRefresh = null
   clearInterval(timer.value)
 })
 </script>
