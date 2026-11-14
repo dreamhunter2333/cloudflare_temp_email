@@ -180,9 +180,15 @@ const setupAutoRefresh = async (autoRefresh) => {
   autoRefreshInterval.value = configAutoRefreshInterval.value;
   if (autoRefresh) {
     clearInterval(timer.value);
+    let lastTick = Date.now()
     timer.value = setInterval(async () => {
-      if (loading.value) return;
-      autoRefreshInterval.value--;
+      if (document.hidden) return
+      const now = Date.now()
+      const elapsed = Math.floor((now - lastTick) / 1000)
+      if (elapsed <= 0) return
+      lastTick += elapsed * 1000
+      if (loading.value) return
+      autoRefreshInterval.value -= elapsed
       if (autoRefreshInterval.value <= 0) {
         autoRefreshInterval.value = configAutoRefreshInterval.value;
         await backFirstPageAndRefresh();
