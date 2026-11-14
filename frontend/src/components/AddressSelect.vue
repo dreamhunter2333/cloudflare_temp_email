@@ -215,7 +215,7 @@ onMounted(async () => {
     await refreshAddressOptions();
 });
 
-watch([userJwt, isTelegram, showUserMailboxes, jwt, localAddressCache, () => settings.value.address], async () => {
+watch([userJwt, isTelegram, showUserMailboxes, jwt, localAddressCache, () => settings.value.address, () => openSettings.value.addressPasswordLoginOnly], async () => {
     await refreshAddressOptions();
 });
 </script>
