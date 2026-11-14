@@ -51,6 +51,7 @@ const fetchMails = async () => {
         totalCount.value = count > 0 ? count : totalCount.value;
         const rawMail = results && results.length > 0 ? results[0] : null
         currentMail.value = rawMail ? await processItem(rawMail) : null
+        return true
     } catch (error) {
         console.error('Failed to fetch mails:', error)
         message.error('获取邮件失败')
@@ -95,7 +96,7 @@ const refreshMails = async () => {
     currentPage.value = 1
     showAccountSettingsCard.value = false
     currentAutoRefreshInterval.value = 60
-    await fetchMails()
+    if (!(await fetchMails())) return
     message.success(t('refreshSuccess'))
 }
 
