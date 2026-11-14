@@ -379,6 +379,13 @@ const handleSaveToS3 = async (filename, blob) => {
 </template>
 
 <style scoped>
+@media (pointer: coarse) {
+  .mail-actions :deep(.n-button) {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+
 .mail-content-renderer {
   display: flex;
   flex-direction: column;

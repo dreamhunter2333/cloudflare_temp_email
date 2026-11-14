@@ -48,6 +48,7 @@
 - fix: |CI| Use the E2E image's built-in tools for service probes so its build does not need Ubuntu package mirrors
 - fix: |CI| Prevent intermittent failures in the recent-mail cleanup test when it crosses a second boundary
 - fix: |CI| Wait for the forwarding settings refresh after saving so browser tests do not intermittently submit stale settings
+- fix: |Mail Reader| Enlarge mail action targets for touch input
 - fix: |Mail Parser| Upgrade WASM parser dependencies and use raw values only for structured headers, preserving decoded text headers while fixing `header.From` webhook filters and sender loss after attachment removal
 - perf: |Inbox| Reuse parsed mail when its raw content and original sender are unchanged
 - fix: |Mail Parser| Support postal-mime v4's first-header semantics: handle empty/missing From in fallback parsing and regenerate MIME type/encoding headers when removing attachments to preserve stored message bodies
