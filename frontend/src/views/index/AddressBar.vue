@@ -43,7 +43,7 @@ onMounted(async () => {
             <n-alert type="info" :show-icon="false" :bordered="false">
                 <AddressSelect>
                     <template #actions>
-                        <n-button class="address-manage" size="small" tertiary type="primary"
+                        <n-button class="address-manage" size="small" quaternary
                             @click="showAddressManage = true">
                             <n-icon :component="ExchangeAlt" />
                             {{ t('addressManage') }}
@@ -103,6 +103,13 @@ onMounted(async () => {
     place-items: center;
     justify-content: center;
     margin: 20px;
+}
+
+@media (max-width: 480px) {
+    :deep(.address-select) {
+        flex-basis: 100%;
+        min-inline-size: 0;
+    }
 }
 
 .address-manage {
