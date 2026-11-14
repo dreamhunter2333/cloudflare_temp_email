@@ -5,12 +5,12 @@
 
 | 方式 | 适合场景 | 必要配置 | 特点 |
 |------|----------|----------|------|
-| Cloudflare `send_email` binding | 已使用 Cloudflare Email Routing，希望减少第三方依赖 | `SEND_MAIL` binding，并完成 Email Routing onboarding | 与 Worker 集成最直接；受 Cloudflare 套餐和发信规则约束 |
+| Cloudflare `send_email` binding | 已使用 Cloudflare Email Service，希望减少第三方依赖 | `SEND_MAIL` binding，并在 Email Service 接入发信域名；配置 `SEND_MAIL_DOMAINS` 时，发信域名还必须在列表中 | 与 Worker 集成最直接；任意收件人发信要求 Workers Paid |
 | Resend API | 希望快速接入托管发信服务 | `RESEND_TOKEN` 或域名专用的 `RESEND_TOKEN_<DOMAIN>`，并在 Resend 验证发信域名 | 配置简单；额度和限制由 Resend 套餐决定 |
 | SMTP | 已有 SMTP 服务，或需要自行控制发信基础设施 | `SMTP_CONFIG` | 自定义能力最强；需要自行维护服务、凭据和连通性 |
 
 ::: tip 推荐方案
-推荐使用 Cloudflare `send_email` binding 作为默认发信通道。绑定 `SEND_MAIL` 并完成 Email Routing onboarding 后，即可直接向任意外部地址发信。
+推荐使用 Cloudflare `send_email` binding 作为默认发信通道。Workers Paid 用户绑定 `SEND_MAIL` 并在 Email Service 完成发信域名接入后，允许的发信域名即可向任意外部地址发信。仅使用 Email Routing 时，只能免费发往账户中已验证的目标地址。
 
 Workers Paid 每月含 3,000 封，超出部分 $0.35 / 1000 封。
 :::
@@ -24,7 +24,7 @@ Workers Paid 每月含 3,000 封，超出部分 $0.35 / 1000 封。
 | 1 | `SEND_MAIL` 已绑定 **且** 收件人在 `verifiedAddressList` | Cloudflare binding（兼容模式） | 否 |
 | 2 | `RESEND_TOKEN` 或 `RESEND_TOKEN_<DOMAIN>` 已配置 | Resend API | 是 |
 | 3 | `SMTP_CONFIG` 含当前域名配置 | worker-mailer SMTP | 是 |
-| 4 | `SEND_MAIL` 已绑定（以上均未命中） | **Cloudflare binding（推荐主通道）** | 是 |
+| 4 | `SEND_MAIL` 已绑定、发信域名通过 `SEND_MAIL_DOMAINS` 限制（以上均未命中） | **Cloudflare binding（推荐主通道）** | 是 |
 | — | 以上均未命中 | 抛错 | — |
 
 > [!NOTE]
@@ -46,11 +46,11 @@ send_email = [
 
 完成下列步骤后即可直接向任意外部地址发信：
 
-1. 在 Cloudflare Dashboard 给对应域名开启 Email Routing 并完成 onboarding
+1. 在 Cloudflare Dashboard 的 Email Service 中接入对应发信域名（任意收件人发信要求 Workers Paid）
 2. `wrangler.toml` 添加上述 `send_email` 绑定
 3. 部署 Worker
 
-无需配置任何额外的 env var。
+默认无需配置额外的 env var。如果设置了 `SEND_MAIL_DOMAINS`，只有列表中的发信域名可以使用此兜底通道；不设置或配置为空数组时允许所有域名。
 
 ## 使用 Resend 发送邮件
 

@@ -5,12 +5,12 @@ Receiving mail does not require a sending channel. To send mail from this projec
 
 | Method | Best for | Required configuration | Characteristics |
 |--------|----------|------------------------|-----------------|
-| Cloudflare `send_email` binding | Deployments already using Cloudflare Email Routing that want fewer third-party dependencies | `SEND_MAIL` binding and completed Email Routing onboarding | Direct Worker integration; subject to Cloudflare plan and sending rules |
+| Cloudflare `send_email` binding | Deployments already using Cloudflare Email Service that want fewer third-party dependencies | `SEND_MAIL` binding and a sender domain onboarded to Email Service; when `SEND_MAIL_DOMAINS` is set, the sender domain must also be listed | Direct Worker integration; arbitrary-recipient sending requires Workers Paid |
 | Resend API | Quickly adopting a managed sending service | `RESEND_TOKEN` or a domain-specific `RESEND_TOKEN_<DOMAIN>`, plus a sending domain verified in Resend | Simple setup; quotas and restrictions depend on the Resend plan |
 | SMTP | Existing SMTP services or self-managed sending infrastructure | `SMTP_CONFIG` | Most customizable; you maintain the service, credentials, and connectivity |
 
 ::: tip Recommended
-Use Cloudflare `send_email` binding as the default send channel. Bind `SEND_MAIL` and finish Email Routing onboarding, then the Worker can send to any external address directly.
+Use Cloudflare `send_email` binding as the default send channel. On Workers Paid, bind `SEND_MAIL` and onboard the sender domain to Email Service, then allowed sender domains can send to any external address directly. With Email Routing only, you can send free of charge only to verified destination addresses in the account.
 
 Workers Paid includes 3,000 messages/month, then $0.35 per 1,000 messages.
 :::
@@ -24,7 +24,7 @@ Each `/api/send_mail` request matches channels in order; **the first hit sends**
 | 1 | `SEND_MAIL` bound **AND** recipient in `verifiedAddressList` | Cloudflare binding (compat mode) | No |
 | 2 | `RESEND_TOKEN` or `RESEND_TOKEN_<DOMAIN>` set | Resend API | Yes |
 | 3 | `SMTP_CONFIG` has entry for current domain | worker-mailer SMTP | Yes |
-| 4 | `SEND_MAIL` bound (none of the above) | **Cloudflare binding (recommended primary)** | Yes |
+| 4 | `SEND_MAIL` bound and sender domain allowed by `SEND_MAIL_DOMAINS` (none of the above) | **Cloudflare binding (recommended primary)** | Yes |
 | — | None of the above | Throws | — |
 
 > [!NOTE]
@@ -46,11 +46,11 @@ send_email = [
 
 After the following steps, you can send to any external address directly:
 
-1. Enable Email Routing on the domain in the Cloudflare Dashboard and complete onboarding
+1. Onboard the sender domain in Email Service in the Cloudflare Dashboard (arbitrary-recipient sending requires Workers Paid)
 2. Add the `send_email` binding shown above to `wrangler.toml`
 3. Deploy the Worker
 
-No additional env var is required.
+No additional env var is required by default. If `SEND_MAIL_DOMAINS` is set, only listed sender domains can use this fallback channel; leaving it unset or empty allows all domains.
 
 ## Send Emails Using Resend
 
