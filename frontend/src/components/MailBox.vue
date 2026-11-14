@@ -287,6 +287,19 @@ const backFirstPageAndRefresh = async () => {
   await refresh();
 }
 
+let mobileReaderTrigger = null
+
+const openMobileMail = (row, event) => {
+  const item = event.currentTarget
+  mobileReaderTrigger = item.contains(document.activeElement) ? document.activeElement : item
+  clickRow(row, event)
+}
+
+const restoreMobileReaderFocus = () => {
+  mobileReaderTrigger?.focus({ preventScroll: true })
+  mobileReaderTrigger = null
+}
+
 const mailList = ref(null)
 const backToListButton = ref(null)
 
@@ -587,17 +600,18 @@ onBeforeUnmount(() => {
       </div>
       <div class="mail-list-scroll mail-list-compact">
         <n-list hoverable clickable>
-          <n-list-item v-for="row in data" v-bind:key="row.id" @click="clickRow(row, $event)"
+          <n-list-item v-for="row in data" v-bind:key="row.id" tabindex="-1" @click="openMobileMail(row, $event)"
             :class="{ 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }">
             <MailSummary :mail="row" :showEMailTo="showEMailTo" :enableMailReadStatus="enableMailReadStatus"
               :previewLineClamp="mailListPreviewLineClampValue" />
           </n-list-item>
         </n-list>
       </div>
-      <n-drawer v-model:show="curMail" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
+      <n-drawer :show="Boolean(curMail)" :aria-label="curMail?.subject" width="100%" placement="bottom"
+        @update:show="show => { if (!show) curMail = null }" @after-leave="restoreMobileReaderFocus"
         style="height: 80vh;">
         <n-drawer-content :title="curMail ? curMail.subject : ''" closable>
-          <div class="mail-mobile-reader">
+          <div v-if="curMail" class="mail-mobile-reader">
             <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
               :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
               :enableMailReadStatus="enableMailReadStatus" :onUpdateMailReadStatus="toggleCurrentMailUnread"
