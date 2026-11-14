@@ -31,6 +31,7 @@
 - fix: |Create Address| Lowercase generated names before filtering characters, so the default `[^a-z0-9]` rule no longer drops the first letter of each name part and leaves names mangled or too short
 - fix: |Inbox| Clear pagination totals when the first page reports an empty mailbox
 - fix: |Mail Reader| Sandbox regular and fullscreen iframe previews to block scripts in email bodies
+- fix: |Inbox| Make mail subjects keyboard-operable in every inbox layout
 - fix: |Scheduled Cleanup| Catch errors for each built-in and custom SQL cleanup task, log failures, and continue with subsequent tasks
 - fix: |Header| Add horizontal spacing to the phone header
 - fix: |Mail Processing| Use the newly stored row ID for metadata updates and Telegram links, avoiding wrong-row updates or links when Message-ID is repeated or missing
