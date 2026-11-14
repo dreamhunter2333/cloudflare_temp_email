@@ -128,13 +128,20 @@ onMounted(async () => {
     await fetchMails()
 
     // 启动自动刷新
+    let lastTick = Date.now()
     timer.value = setInterval(async () => {
+        if (document.hidden) return
+        const now = Date.now()
+        const elapsed = Math.floor((now - lastTick) / 1000)
+        if (elapsed <= 0) return
+        lastTick += elapsed * 1000
         if (!isFirstPage.value) {
             currentAutoRefreshInterval.value = 60
             return
         }
 
-        if (--currentAutoRefreshInterval.value <= 0) {
+        currentAutoRefreshInterval.value -= elapsed
+        if (currentAutoRefreshInterval.value <= 0) {
             await refreshMails()
         }
     }, 1000)
