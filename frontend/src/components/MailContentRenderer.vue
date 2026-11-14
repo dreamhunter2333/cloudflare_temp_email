@@ -13,6 +13,8 @@ import { useGlobalState } from '../store';
 
 const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark, autoLoadRemoteImages } = useGlobalState();
 
+const drawerHeight = globalThis.CSS?.supports('height', '100dvh') ? '100dvh' : '100vh'
+
 const { t } = useScopedI18n('components.MailContentRenderer')
 const themeVars = useThemeVars();
 const replyColor = computed(() => isDark.value ? themeVars.value.infoColor : themeVars.value.infoColorPressed);
@@ -332,7 +334,7 @@ const handleSaveToS3 = async (filename, blob) => {
   </n-modal>
 
   <n-drawer v-model:show="showFullscreen" :aria-label="mail.subject || t('fullscreen')" width="100%" placement="bottom"
-    style="height: 100vh;">
+    :height="drawerHeight">
     <n-drawer-content :title="mail.subject" closable>
       <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
         <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
@@ -483,10 +485,12 @@ const handleSaveToS3 = async (filename, blob) => {
 
 .fullscreen-mail-content {
   height: calc(100vh - 120px);
+  height: calc(100dvh - 120px);
   overflow: auto;
 }
 
 .fullscreen-mail-content .mail-iframe {
   min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
 }
 </style>
