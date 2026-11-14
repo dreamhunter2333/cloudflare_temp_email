@@ -382,6 +382,7 @@ const multiActionSelectAll = (checked) => {
 }
 
 const multiActionDeleteMail = async () => {
+  const deletedIds = new Set()
   try {
     loading.value = true;
     const selectedMails = data.value.filter((item) => item.checked);
@@ -393,21 +394,27 @@ const multiActionDeleteMail = async () => {
       percentage: 0,
       tip: `0/${selectedMails.length}`
     };
+    showMultiActionDelete.value = true
     for (const [index, mail] of selectedMails.entries()) {
       await props.deleteMail(mail.id);
-      showMultiActionDelete.value = true;
+      deletedIds.add(mail.id)
       multiActionDeleteProgress.value = {
         percentage: Math.floor((index + 1) / selectedMails.length * 100),
         tip: `${index + 1}/${selectedMails.length}`
       };
     }
-    message.success(t("success"));
-    await refresh({ force: true });
   } catch (error) {
+    showMultiActionDelete.value = false
     message.error(error.message || "error");
   } finally {
+    rawData.value = rawData.value.filter(mail => !deletedIds.has(mail.id))
+    count.value = Math.max(0, count.value - deletedIds.size)
+    if (deletedIds.has(curMail.value?.id)) curMail.value = null
     loading.value = false;
-    showMultiActionDelete.value = true;
+  }
+  if (multiActionDeleteProgress.value.percentage === 100) {
+    message.success(t("success"));
+    await refresh({ force: true });
   }
 }
 
@@ -465,7 +472,7 @@ onBeforeUnmount(() => {
           </n-button>
           <n-popconfirm v-if="enableUserDeleteEmail" @positive-click="multiActionDeleteMail">
             <template #trigger>
-              <n-button tertiary type="error">{{ t('delete') }}</n-button>
+              <n-button tertiary type="error" :disabled="!data.some(mail => mail.checked)">{{ t('delete') }}</n-button>
             </template>
             {{ t('deleteMailTip') }}
           </n-popconfirm>
@@ -631,8 +638,12 @@ onBeforeUnmount(() => {
         {{ t('downloadMail') + " zip" }}
       </n-button>
     </n-modal>
-    <n-modal v-model:show="showMultiActionDelete" preset="dialog" :title="t('delete') + t('success')"
-      negative-text="OK">
+    <n-modal v-model:show="showMultiActionDelete" preset="dialog"
+      :title="multiActionDeleteProgress.percentage === 100 ? t('delete') + t('success') : t('delete')"
+      :closable="multiActionDeleteProgress.percentage === 100"
+      :mask-closable="multiActionDeleteProgress.percentage === 100"
+      :close-on-esc="multiActionDeleteProgress.percentage === 100"
+      :negative-text="multiActionDeleteProgress.percentage === 100 ? 'OK' : undefined">
       <n-space justify="center">
         <n-progress type="circle" status="error" :percentage="multiActionDeleteProgress.percentage">
           <span style="text-align: center">
