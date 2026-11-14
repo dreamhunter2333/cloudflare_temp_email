@@ -182,6 +182,8 @@ const showMultiActionDelete = ref(false)
 const multiActionDownloadZip = ref({})
 const multiActionDeleteProgress = ref({ percentage: 0, tip: '0/0' })
 
+const drawerHeight = globalThis.CSS?.supports('height', '100dvh') ? '80dvh' : '80vh'
+
 const { t } = useScopedI18n('components.MailBox')
 
 const setupAutoRefresh = async (autoRefresh) => {
@@ -637,7 +639,7 @@ onBeforeUnmount(() => {
       </div>
       <n-drawer :show="Boolean(curMail)" :aria-label="curMail?.subject" width="100%" placement="bottom"
         @update:show="show => { if (!show) curMail = null }" @after-leave="restoreMobileReaderFocus"
-        style="height: 80vh;">
+        :height="drawerHeight">
         <n-drawer-content :title="curMail ? curMail.subject : ''" closable>
           <div v-if="curMail" class="mail-mobile-reader">
             <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"

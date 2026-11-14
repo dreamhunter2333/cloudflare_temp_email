@@ -43,6 +43,7 @@
 - fix: |Telegram| Clean up the current push recipient's binding and push mapping before admin mailbox deletion, freeing a slot and preventing stale pushes on recreation; KV cleanup failures preserve the mailbox for retry, while database deletion failures may leave it unbound
 - fix: |Inbox| Switch to the compact inbox when the available content width cannot fit two panes
 - fix: |CI| Fix WASM npm publishing paths so local tarballs are not interpreted as GitHub repositories
+- fix: |Mail Reader| Size mobile and fullscreen drawers to the dynamic viewport
 - fix: |CI| Use the E2E image's built-in tools for service probes so its build does not need Ubuntu package mirrors
 - fix: |Mail Parser| Upgrade WASM parser dependencies and use raw values only for structured headers, preserving decoded text headers while fixing `header.From` webhook filters and sender loss after attachment removal
 - perf: |Inbox| Reuse parsed mail when its raw content and original sender are unchanged
