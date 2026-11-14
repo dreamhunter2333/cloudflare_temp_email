@@ -43,20 +43,42 @@ const copyAddress = async () => {
     }
 }
 
+let pendingPage
+
 // 获取邮件数据
-const fetchMails = async () => {
+const fetchMails = () => {
+    const page = currentPage.value
+    if (pendingPage?.page === page) return pendingPage.promise
+    const request = { page }
+    pendingPage = request
+    request.promise = loadMails(request).finally(() => {
+        if (pendingPage === request) pendingPage = undefined
+    })
+    return request.promise
+}
+
+const loadMails = async (request) => {
+    const { page } = request
     if (!settings.value.address) return
     try {
-        const offset = currentPage.value - 1
+        const offset = page - 1
         const { results, count } = await api.fetch(`/api/mails?limit=1&offset=${offset}`)
+        if (pendingPage !== request || currentPage.value !== page) return
         if (offset === 0) totalCount.value = count
         const rawMail = results?.[0]
         if (!rawMail && offset > 0) {
-            if (currentPage.value - 1 === offset) currentPage.value = 1
+            currentPage.value = 1
             return
         }
-        currentMail.value = rawMail ? await processItem(rawMail) : null
+        const mail = rawMail ? await processItem(rawMail) : null
+        if (pendingPage !== request || currentPage.value !== page) {
+            mail?.attachments?.forEach(({ url }) => URL.revokeObjectURL(url))
+            return
+        }
+        currentMail.value = mail
+        return true
     } catch (error) {
+        if (pendingPage !== request || currentPage.value !== page) return
         console.error('Failed to fetch mails:', error)
         message.error('获取邮件失败')
     }
@@ -87,7 +109,7 @@ const deleteMail = async () => {
         await api.fetch(`/api/mails/${currentMail.value.id}`, { method: 'DELETE' });
         message.success(t('deleteSuccess'));
         currentMail.value = null;
-        await refreshMails();
+        await refreshMails(false);
     } catch (error) {
         console.error('Failed to delete mail:', error);
         message.error('删除邮件失败');
@@ -95,13 +117,11 @@ const deleteMail = async () => {
 }
 
 // 刷新邮件
-const refreshMails = async () => {
+const refreshMails = async (announceSuccess = true) => {
     if (loading.value) return
     currentPage.value = 1
-    showAccountSettingsCard.value = false
     currentAutoRefreshInterval.value = 60
-    await fetchMails()
-    message.success(t('refreshSuccess'))
+    if (await fetchMails() && announceSuccess) message.success(t('refreshSuccess'))
 }
 
 // 分页控制
@@ -147,7 +167,7 @@ onMounted(async () => {
 
         currentAutoRefreshInterval.value -= elapsed
         if (currentAutoRefreshInterval.value <= 0) {
-            await refreshMails()
+            await refreshMails(false)
         }
     }, 1000)
 })
@@ -171,7 +191,7 @@ onBeforeUnmount(() => {
                     <AddressSelect :showCopy="false" size="small" />
                 </div>
                 <n-flex justify="center">
-                    <n-button @click="refreshMails" :loading="loading" type="primary" tertiary size="small">
+                    <n-button @click="refreshMails()" :loading="loading" type="primary" tertiary size="small">
                         <template #icon>
                             <n-icon>
                                 <RefreshFilled />
