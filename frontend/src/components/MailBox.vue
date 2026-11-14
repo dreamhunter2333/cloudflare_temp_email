@@ -294,17 +294,31 @@ const backFirstPageAndRefresh = async () => {
   await refresh();
 }
 
-const clickRow = (row) => {
+const mailList = ref(null)
+const backToListButton = ref(null)
+
+const closeListMail = async () => {
+  const id = curMail.value.id
+  curMail.value = null
+  await nextTick()
+  mailList.value?.querySelector(`[data-mail-id="${id}"] .mail-summary-open`)?.focus()
+}
+
+const clickRow = async (row, event) => {
   if (multiActionMode.value) {
     row.checked = !row.checked;
     curMail.value = row;
     return;
   }
   if (mailListView.value && curMail.value?.id === row.id) {
-    curMail.value = null;
+    await closeListMail()
     return;
   }
   openMail(row);
+  if (event?.detail === 0 && !isMobile.value && mailListView.value) {
+    await nextTick()
+    backToListButton.value?.$el.focus()
+  }
 };
 
 
@@ -490,7 +504,7 @@ onBeforeUnmount(() => {
         <template #1>
           <div class="mail-list-scroll mail-list-compact">
             <n-list hoverable clickable>
-              <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
+              <n-list-item v-for="row in data" v-bind:key="row.id" @click="clickRow(row, $event)"
                 :class="[mailItemClass(row), { 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }]">
                 <template #prefix v-if="multiActionMode">
                   <n-checkbox v-model:checked="row.checked" @click.stop />
@@ -505,7 +519,7 @@ onBeforeUnmount(() => {
           <div v-if="curMail" style="margin: 8px;">
             <n-flex justify="space-between" align="center">
               <n-space :wrap="false" align="center">
-                <n-button v-if="mailListView" @click="curMail = null" text size="small">
+                <n-button v-if="mailListView" ref="backToListButton" @click="closeListMail" text size="small">
                   <template #icon>
                     <n-icon>
                       <ArrowBackIosNewFilled />
@@ -548,9 +562,9 @@ onBeforeUnmount(() => {
           </n-card>
         </template>
       </n-split>
-      <div v-else class="mail-list-scroll mail-list-compact">
+      <div v-else ref="mailList" class="mail-list-scroll mail-list-compact">
         <n-list hoverable clickable>
-          <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
+          <n-list-item v-for="row in data" v-bind:key="row.id" :data-mail-id="row.id" @click="clickRow(row, $event)"
             :class="[mailItemClass(row), { 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }]">
             <template #prefix v-if="multiActionMode">
               <n-checkbox v-model:checked="row.checked" @click.stop />
@@ -582,7 +596,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="mail-list-scroll mail-list-compact">
         <n-list hoverable clickable>
-          <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
+          <n-list-item v-for="row in data" v-bind:key="row.id" @click="clickRow(row, $event)"
             :class="{ 'mail-list-unread': enableMailReadStatus && row.is_unread === 1 }">
             <MailSummary :mail="row" :showEMailTo="showEMailTo" :enableMailReadStatus="enableMailReadStatus"
               :previewLineClamp="mailListPreviewLineClampValue" />
