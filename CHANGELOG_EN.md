@@ -47,6 +47,7 @@
 
 ### Improvements
 
+- fix: |Inbox| Release unused attachment blob URLs after list updates or unmounting
 - perf: |Database| Upgrade the schema to `v0.0.10` with a covering index for unknown-mail cleanup and an expression-based composite index for domain cleanup; compare major, minor, and patch versions numerically to avoid two-digit version errors and version-marker downgrades
 - docs: |User| Document mailbox binding, bound mailbox credential retrieval, and unbinding APIs with dual authentication requirements and request examples
 

@@ -1,5 +1,5 @@
 <script setup>
-import { watch, onMounted, ref, onBeforeUnmount, computed } from "vue";
+import { watch, onMounted, ref, onBeforeUnmount, computed, nextTick } from "vue";
 import { useMessage, useThemeVars } from 'naive-ui'
 import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
@@ -207,13 +207,24 @@ watch(autoRefresh, async (autoRefresh, old) => {
 watch([page, pageSize], async ([page, pageSize], [, oldPageSize]) => {
   if (activeRefresh || page !== loadedPage || pageSize !== oldPageSize) await refresh()
 })
+
+const releaseAttachments = (mails, retained = []) => {
+  const inUse = new Set(retained.flatMap(mail => (mail.attachments || []).map(attachment => attachment.url)))
+  for (const mail of mails) {
+    for (const { url } of mail.attachments || []) {
+      if (!inUse.has(url)) URL.revokeObjectURL(url)
+    }
+  }
+}
+
 let activeRefresh = null
 let loadedPage = 1
 
 const refresh = ({ force = false, background = false } = {}) => {
   const limit = pageSize.value
   const offset = (page.value - 1) * limit
-  if (!force && activeRefresh?.limit === limit && activeRefresh.offset === offset    && (!activeRefresh.background || background)) return activeRefresh.promise
+  if (!force && activeRefresh?.limit === limit && activeRefresh.offset === offset
+    && (!activeRefresh.background || background)) return activeRefresh.promise
 
   const request = { limit, offset, background }
   activeRefresh = request
@@ -235,15 +246,17 @@ const fetchPage = async (request) => {
       const { source, originalSource, subject, message, text, attachments } = previous
       return { ...item, source, originalSource, subject, message, text, attachments }
     }));
-    if (request !== activeRefresh || (request.background      && (!autoRefresh.value || page.value !== 1 || request.limit !== pageSize.value || multiActionMode.value))) {
-      const reused = new Set([...previousMails.values()].flatMap(mail => mail.attachments || []).map(attachment => attachment.url))
-      for (const { url } of mails.flatMap(mail => mail.attachments || [])) {
-        if (!reused.has(url)) URL.revokeObjectURL(url)
-      }
+    if (request !== activeRefresh || (request.background
+      && (!autoRefresh.value || page.value !== 1 || request.limit !== pageSize.value || multiActionMode.value))) {
+      releaseAttachments(mails, [...rawData.value, ...previousMails.values(), curMail.value].filter(Boolean))
       return
     }
+    const previousRows = rawData.value
+    const previousReader = curMail.value
     loadedPage = request.offset / request.limit + 1
     rawData.value = mails
+    void nextTick(() => releaseAttachments([...previousRows, previousReader].filter(Boolean),
+      [...rawData.value, curMail.value].filter(Boolean)))
     if (totalCount > 0) {
       count.value = totalCount;
     }
@@ -399,6 +412,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   activeRefresh = null
+  const mails = [...rawData.value, curMail.value].filter(Boolean)
+  void nextTick(() => releaseAttachments(mails))
   clearInterval(timer.value)
 })
 </script>
