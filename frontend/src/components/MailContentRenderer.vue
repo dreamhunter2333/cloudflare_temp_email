@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, nextTick } from "vue";
+import { ref, computed, watch, nextTick, onUnmounted } from "vue";
 import { useThemeVars } from 'naive-ui';
 import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound, ImageRound, AttachFileRound,
@@ -80,9 +80,22 @@ const showMoreActions = ref(false);
 const showMailDetails = ref(false);
 const moreActionsButton = ref(null);
 const downloadMailButton = ref(null);
+const downloadUrl = ref(null);
+
+const releaseDownloadUrl = () => {
+  if (downloadUrl.value) URL.revokeObjectURL(downloadUrl.value)
+  downloadUrl.value = null
+}
+
+watch([() => props.mail.id, () => props.mail.raw], ([id, raw], [previousId]) => {
+  releaseDownloadUrl()
+  if (id === previousId && showMoreActions.value) downloadUrl.value = getDownloadEmlUrl(raw)
+})
+onUnmounted(releaseDownloadUrl)
 
 watch(showMoreActions, async (show) => {
   if (!show) return;
+  downloadUrl.value ||= getDownloadEmlUrl(props.mail.raw)
   await nextTick();
   if (showMoreActions.value) downloadMailButton.value?.$el.focus();
 });
@@ -220,7 +233,7 @@ const handleSaveToS3 = async (filename, blob) => {
             </template>
             <div class="mail-more-actions" @keydown.esc.stop.prevent="closeMoreActions">
               <n-button ref="downloadMailButton" tag="a" target="_blank" block quaternary size="small" :download="mail.id + '.eml'"
-                :href="getDownloadEmlUrl(mail.raw)" @click="closeMoreActions">
+                :href="downloadUrl" @click="closeMoreActions">
                 <template #icon><n-icon :component="CloudDownloadRound" /></template>
                 {{ t('downloadMail') }}
               </n-button>
