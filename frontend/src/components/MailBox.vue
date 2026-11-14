@@ -607,8 +607,13 @@ onBeforeUnmount(() => {
       </div>
     </div>
     <div class="left" v-else>
-      <n-space justify="space-between" align="center" :size="[8, 8]">
+      <n-flex class="mail-mobile-toolbar" justify="space-between" align="center" :size="8">
         <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
+        <n-button @click="backFirstPageAndRefresh" tertiary size="small" type="primary">
+          {{ t('refresh') }}
+        </n-button>
+      </n-flex>
+      <n-flex class="mail-mobile-toolbar" align="center" :size="8">
         <n-switch v-model:value="autoRefresh" size="small" :round="false">
           <template #checked>
             {{ t('refreshAfter', { msg: autoRefreshInterval }) }}
@@ -617,14 +622,9 @@ onBeforeUnmount(() => {
             {{ t('autoRefresh') }}
           </template>
         </n-switch>
-        <n-button @click="backFirstPageAndRefresh" tertiary size="small" type="primary">
-          {{ t('refresh') }}
-        </n-button>
-      </n-space>
-      <div v-if="showFilterInput" style="padding: 0 10px; margin-top: 8px; margin-bottom: 10px;">
-        <n-input v-model:value="localFilterKeyword"
+        <n-input v-if="showFilterInput" v-model:value="localFilterKeyword" class="mail-mobile-filter"
           :placeholder="t('keywordQueryTip')" :input-props="{ 'aria-label': t('keywordQueryTip') }" size="small" clearable />
-      </div>
+      </n-flex>
       <div class="mail-list-scroll mail-list-compact">
         <div role="status">
           <n-empty v-if="hasNoFilterMatches" :description="t('noFilterMatches')" />
@@ -707,6 +707,14 @@ onBeforeUnmount(() => {
 
 :deep(.mail-item .n-card-header__main) {
   overflow-wrap: anywhere;
+}
+
+.mail-mobile-toolbar {
+  margin: 0 10px 8px;
+}
+
+.mail-mobile-filter {
+  flex: 1 1 10rem;
 }
 
 .mail-mobile-reader {
