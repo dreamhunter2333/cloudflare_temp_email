@@ -225,10 +225,10 @@ watch([userJwt, isTelegram, showUserMailboxes, jwt, localAddressCache, () => set
         <n-select v-model:value="addressValue" :options="addressOptions" :size="size" :render-label="renderLabel" filterable
             :loading="addressLoading" :placeholder="formatAddressLabel(settings.address) || t('selectMailbox')" @update:value="onAddressChange"
             class="address-select" />
-        <slot name="actions" />
         <n-button v-if="showCopy" class="address-copy" @click="copy" :size="size" tertiary type="primary">
             <n-icon :component="Copy" /> {{ t('copy') }}
         </n-button>
+        <slot name="actions" />
     </n-flex>
 </template>
 
