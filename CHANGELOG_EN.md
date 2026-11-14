@@ -51,6 +51,7 @@
 - fix: |Mail Parser| Support postal-mime v4's first-header semantics: handle empty/missing From in fallback parsing and regenerate MIME type/encoding headers when removing attachments to preserve stored message bodies
 - fix: |Mail Reader| Reuse and release original-message download URLs
 - fix: |Telegram| Store separate permanent internal binding tokens, preserve historical expired bindings, and issue mailbox credentials on access while rejecting internal tokens at mailbox APIs
+- fix: |Inbox| Show simple inbox refresh success only after a successful fetch
 - fix: |Worker| Process unknown-mail, unbound-address, and empty-address cleanup in bounded batches to avoid D1 timeouts on large backlogs
 - fix: |User| Bind the mailbox transfer confirmation button to the existing request loading state, fixing the undefined loading variable
 
