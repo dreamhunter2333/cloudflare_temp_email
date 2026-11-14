@@ -59,6 +59,7 @@
 
 - fix: |Inbox| Release unused attachment blob URLs after list updates or unmounting
 - perf: |Database| Upgrade the schema to `v0.0.10` with a covering index for unknown-mail cleanup and an expression-based composite index for domain cleanup; compare major, minor, and patch versions numerically to avoid two-digit version errors and version-marker downgrades
+- fix: |Inbox| Keep pagination and refresh above the list on narrow screens and let auto-refresh and filtering wrap as needed
 - docs: |User| Document mailbox binding, bound mailbox credential retrieval, and unbinding APIs with dual authentication requirements and request examples
 
 - perf: |CI| Organize test suites and run a dedicated Webhook UI group alongside API, other browser tests and SMTP/IMAP, with only each group's required services, separate unit/WASM tests and one aggregate check
