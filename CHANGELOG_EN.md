@@ -36,6 +36,7 @@
 - fix: |CI| Fix WASM npm publishing paths so local tarballs are not interpreted as GitHub repositories
 - fix: |CI| Use the E2E image's built-in tools for service probes so its build does not need Ubuntu package mirrors
 - fix: |CI| Prevent intermittent failures in the recent-mail cleanup test when it crosses a second boundary
+- fix: |CI| Wait for the forwarding settings refresh after saving so browser tests do not intermittently submit stale settings
 - fix: |Mail Parser| Upgrade WASM parser dependencies and use raw values only for structured headers, preserving decoded text headers while fixing `header.From` webhook filters and sender loss after attachment removal
 - fix: |Mail Parser| Support postal-mime v4's first-header semantics: handle empty/missing From in fallback parsing and regenerate MIME type/encoding headers when removing attachments to preserve stored message bodies
 - fix: |Telegram| Store separate permanent internal binding tokens, preserve historical expired bindings, and issue mailbox credentials on access while rejecting internal tokens at mailbox APIs

@@ -68,8 +68,15 @@ for (const locale of ['en', 'zh']) {
         new URL(response.url()).pathname === '/admin/account_settings'
         && response.request().method() === 'POST'
       ));
+      const refreshed = page.waitForResponse(response => (
+        new URL(response.url()).pathname === '/admin/account_settings'
+        && response.request().method() === 'GET'
+      ));
       await page.getByRole('button', { name: labels.save, exact: true }).click();
       expect((await saved).ok()).toBe(true);
+      const refreshResponse = await refreshed;
+      expect(refreshResponse.ok()).toBe(true);
+      expect(await refreshResponse.finished()).toBeNull();
       const persisted = await request.get(`${WORKER_URL}/admin/account_settings`, { headers: ADMIN_HEADERS });
       expect((await persisted.json()).emailRuleSettings.emailForwardingList[0]).toMatchObject({
         deleteOriginal: enabled, recipientPatterns: ['^[^@]*admin[^@]*@'], recipientMatchMode: enabled ? 'all' : 'any',
