@@ -98,6 +98,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 { text: 'What is Temporary Email', link: 'what-is-temp-mail' },
                 { text: 'Star History', link: 'star-history' },
                 { text: 'Quick Start', link: 'quick-start' },
+                { text: 'Login Entry Points and Credentials', link: 'login' },
             ]
         },
         {

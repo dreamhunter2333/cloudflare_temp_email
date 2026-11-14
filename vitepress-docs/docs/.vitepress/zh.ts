@@ -98,6 +98,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 { text: '什么是临时邮箱', link: 'what-is-temp-mail' },
                 { text: 'Star History', link: 'star-history' },
                 { text: '快速开始部署', link: 'quick-start' },
+                { text: '登录入口与凭据', link: 'login' },
             ]
         },
         {

@@ -46,7 +46,7 @@
 ### Improvements
 
 - perf: |CI| Reuse E2E images, schedule browser tests in parallel, reduce page reloads, fixed waits and repeated browser actions, and speed up WASM tool installation
-- docs: |Documentation| Distinguish mailbox, User Center, and Admin Console login entry points; list per-variable Worker defaults and explain custom roles; compare sending channels; and update Node.js compatibility steps by compatibility date
+- docs: |Documentation| Add guidance for mailbox, User Center, and Admin Console login entry points; list each Worker variable's required status and default behavior; explain custom roles; compare sending channels; and update Node.js compatibility steps by compatibility date
 - perf: |Database| Upgrade the schema to `v0.0.10` with a covering index for unknown-mail cleanup and an expression-based composite index for domain cleanup; compare major, minor, and patch versions numerically to avoid two-digit version errors and version-marker downgrades
 - docs: |User| Document mailbox binding, bound mailbox credential retrieval, and unbinding APIs with dual authentication requirements and request examples
 
