@@ -304,6 +304,7 @@ const multiActionSelectAll = (checked) => {
 }
 
 const multiActionDeleteMail = async () => {
+  const deletedIds = new Set()
   try {
     loading.value = true;
     const selectedMails = data.value.filter((item) => item.checked);
@@ -317,19 +318,22 @@ const multiActionDeleteMail = async () => {
     };
     for (const [index, mail] of selectedMails.entries()) {
       await props.deleteMail(mail.id);
-      showMultiActionDelete.value = true;
+      deletedIds.add(mail.id)
       multiActionDeleteProgress.value = {
         percentage: Math.floor((index + 1) / selectedMails.length * 100),
         tip: `${index + 1}/${selectedMails.length}`
       };
     }
+    showMultiActionDelete.value = true;
     message.success(t("success"));
     await refresh();
   } catch (error) {
+    rawData.value = rawData.value.filter(mail => !deletedIds.has(mail.id))
+    count.value = Math.max(0, count.value - deletedIds.size)
+    if (deletedIds.has(curMail.value?.id)) curMail.value = null
     message.error(error.message || "error");
   } finally {
     loading.value = false;
-    showMultiActionDelete.value = true;
   }
 }
 
