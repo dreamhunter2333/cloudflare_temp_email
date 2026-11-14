@@ -424,6 +424,7 @@ export const deMessages = {
   "views.admin.Maintenance.sqlName": "Name",
   "views.index.AccountSettings.newPassword": "Neues Passwort",
   "views.admin.Account.newPassword": "Neues Passwort",
+  "components.MailBox.noFilterMatches": "Keine E-Mails auf dieser Seite entsprechen dem Filter",
   "components.MailBox.nextMail": "Weiter",
   "views.index.SimpleIndex.nextPage": "Weiter",
   "views.admin.AccountSettings.noLimitSendAddressList": "Adressliste ohne Guthabenlimit",

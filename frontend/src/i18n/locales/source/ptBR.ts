@@ -424,6 +424,7 @@ export const ptBRMessages = {
   "views.admin.Maintenance.sqlName": "Nome",
   "views.index.AccountSettings.newPassword": "Nova senha",
   "views.admin.Account.newPassword": "Nova senha",
+  "components.MailBox.noFilterMatches": "Nenhum e-mail nesta página corresponde ao filtro",
   "components.MailBox.nextMail": "Próximo",
   "views.index.SimpleIndex.nextPage": "Próximo",
   "views.admin.AccountSettings.noLimitSendAddressList": "Lista de endereços sem limite de saldo",
