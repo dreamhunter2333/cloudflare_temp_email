@@ -17,12 +17,12 @@ const queryMail = () => {
     mailBoxKey.value = Date.now();
 }
 
-const fetchMailData = async (limit, offset) => {
+const fetchMailData = async (limit, offset, options) => {
     return await api.fetch(
         `/admin/mails`
         + `?limit=${limit}`
         + `&offset=${offset}`
-        + (adminMailTabAddress.value ? `&address=${adminMailTabAddress.value}` : '')
+        + (adminMailTabAddress.value ? `&address=${adminMailTabAddress.value}` : ''), options
     );
 }
 

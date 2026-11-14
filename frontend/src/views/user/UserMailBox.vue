@@ -20,12 +20,12 @@ const queryMail = () => {
     mailBoxKey.value = Date.now();
 }
 
-const fetchMailData = async (limit, offset) => {
+const fetchMailData = async (limit, offset, options) => {
     return await api.fetch(
         `/user_api/mails`
         + `?limit=${limit}`
         + `&offset=${offset}`
-        + (addressFilter.value ? `&address=${addressFilter.value}` : '')
+        + (addressFilter.value ? `&address=${addressFilter.value}` : ''), options
     );
 }
 

@@ -2,11 +2,11 @@
 import { api } from '../../api'
 import MailBox from '../../components/MailBox.vue';
 
-const fetchMailUnknowData = async (limit, offset) => {
+const fetchMailUnknowData = async (limit, offset, options) => {
     return await api.fetch(
         `/admin/mails_unknow`
         + `?limit=${limit}`
-        + `&offset=${offset}`
+        + `&offset=${offset}`, options
     );
 }
 
