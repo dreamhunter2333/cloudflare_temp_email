@@ -154,13 +154,13 @@ export function joinSubjectAndBody(subject: string | undefined, body: string | u
 export function extractCode(text: string): string | null {
     if (!text) return null;
     const normalized = normalizeText(text.slice(0, MAX_TEXT_LENGTH));
+    if (!/[0-9]/.test(normalized)) return null;
+    if (!VERIFY_CONTEXT.test(normalized)) return null;
 
     for (const pattern of PATTERNS) {
         const code = findCode(normalized, pattern);
         if (code) return code;
     }
-
-    if (!VERIFY_CONTEXT.test(normalized)) return null;
 
     for (const pattern of FALLBACK_PATTERNS) {
         const code = findCode(normalized, pattern);
