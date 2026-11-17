@@ -27,6 +27,7 @@
    | ----------------------- | --------------------------------------------------------------------------------------------------------------- |
    | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账户 ID, [参考文档](https://developers.cloudflare.com/workers/wrangler/ci-cd/#cloudflare-account-id) |
    | `CLOUDFLARE_API_TOKEN`  | Cloudflare API Token, [参考文档](https://developers.cloudflare.com/workers/wrangler/ci-cd/#api-token)           |
+   | `UPSTREAM_SYNC_TOKEN`  | (可选) 仅用于 `Upstream Sync`。使用仅授权自己 Fork 的 Fine-grained PAT，授予 `Contents: Read and write` 和 `Workflows: Read and write`；未配置时使用默认 `GITHUB_TOKEN`，详见[自动更新配置](./auto-update.md) |
 
 - worker 后端 `secrets`
 
@@ -71,3 +72,5 @@
 
 1. 打开仓库的 `Actions` 页面，找到 `Upstream Sync`，点击 `enable workflow` 启用 `workflow`
 2. 如果 `Upstream Sync` 运行失败，到仓库主页点击 `Sync` 手动同步即可
+
+（可选）配置 `UPSTREAM_SYNC_TOKEN` 可自动同步包含 workflow 变更的提交；未配置时仍使用默认 Token。所需权限和配置步骤见[自动更新配置](./auto-update.md)。
