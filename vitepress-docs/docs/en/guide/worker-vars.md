@@ -31,7 +31,7 @@ Unless an entry or its notes describe a different fallback, a `Text/JSON` boolea
 
 | Variable Name                  | Type      | Required | Description                                             | Default / When unset | Example          |
 | ------------------------------ | --------- | -------- | ------------------------------------------------------- | -------------------- | ---------------- |
-| `PASSWORDS`                    | JSON      | No       | Website private passwords, required after configuration | `[]`; public access  | `["123", "456"]` |
+| `PASSWORDS`                    | JSON      | No       | Website private passwords; must be a string array (also enter a JSON array for Secrets). Invalid configuration returns `500 / Invalid PASSWORDS configuration` instead of disabling password protection | Unset, empty string, or no non-empty passwords: public access | `["123", "456"]` |
 | `ADMIN_API_IP_WHITELIST`       | JSON      | No       | Admin API IP whitelist; when configured, only listed IPs may access `/admin/*` | `[]`; no IP restriction | `["203.0.113.10"]` |
 | `DISABLE_ADMIN_PASSWORD_CHECK` | Text/JSON | No       | Warning: skip Admin console password or user checks     | `false`              | `true`           |
 

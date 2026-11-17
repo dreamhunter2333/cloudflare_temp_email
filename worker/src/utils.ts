@@ -294,20 +294,19 @@ export const getAnotherWorkerList = (c: Context<HonoCustomType>): AnotherWorker[
 }
 
 export const getPasswords = (c: Context<HonoCustomType>): string[] => {
-    if (!c.env.PASSWORDS) {
+    if (c.env.PASSWORDS === undefined || c.env.PASSWORDS === "") {
         return [];
     }
-    // check if PASSWORDS is an array, if not use json.parse
-    if (!Array.isArray(c.env.PASSWORDS)) {
-        try {
-            const res = JSON.parse(c.env.PASSWORDS) as string[];
-            return res.filter((item) => item.length > 0);
-        } catch (e) {
-            console.error("Failed to parse PASSWORDS", e);
-            return [];
+    try {
+        const passwords: unknown = Array.isArray(c.env.PASSWORDS)
+            ? c.env.PASSWORDS : JSON.parse(c.env.PASSWORDS);
+        if (!Array.isArray(passwords) || passwords.some(password => typeof password !== "string")) {
+            throw new Error("Invalid PASSWORDS configuration");
         }
+        return passwords.filter(password => password.length > 0);
+    } catch {
+        throw new Error("Invalid PASSWORDS configuration");
     }
-    return c.env.PASSWORDS.filter((item) => item.length > 0);
 }
 
 export const getAdminPasswords = (c: Context<HonoCustomType>): string[] => {
