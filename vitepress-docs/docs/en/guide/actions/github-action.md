@@ -27,6 +27,7 @@ Then go to the repository page `Settings` -> `Secrets and variables` -> `Actions
    | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
    | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID, [Reference Documentation](https://developers.cloudflare.com/workers/wrangler/ci-cd/#cloudflare-account-id) |
    | `CLOUDFLARE_API_TOKEN`  | Cloudflare API Token, [Reference Documentation](https://developers.cloudflare.com/workers/wrangler/ci-cd/#api-token)           |
+   | `UPSTREAM_SYNC_TOKEN`  | (Optional) Used only by `Upstream Sync`. Use a fine-grained PAT scoped only to your fork with `Contents: Read and write` and `Workflows: Read and write`; defaults to `GITHUB_TOKEN` when unset. See [auto-update configuration](./auto-update.md) |
 
 - Worker backend `secrets`
 
@@ -71,3 +72,5 @@ If you want to use `Upstream Sync` for automatic updates and also let Pages forw
 
 1. Open the `Actions` page of the repository, find `Upstream Sync`, and click `enable workflow` to enable the `workflow`
 2. If `Upstream Sync` fails, go to the repository homepage and click `Sync` to synchronize manually
+
+(Optional) Configure `UPSTREAM_SYNC_TOKEN` to automatically sync workflow changes; otherwise, the default token is still used. See [auto-update configuration](./auto-update.md) for the required permissions and setup steps.

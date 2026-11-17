@@ -59,5 +59,6 @@
 
 | 问题                                       | 解决方案                                                                          |
 | ------------------------------------------ | --------------------------------------------------------------------------------- |
+| `Upstream Sync` 报错 `workflow scope or permission to merge` | Token 缺少同步 workflow 文件所需的权限。可配置 `UPSTREAM_SYNC_TOKEN`，授予自己 Fork 的 `Contents: Read and write` 和 `Workflows: Read and write`，步骤见[自动更新配置](/zh/guide/actions/auto-update)；也可在仓库主页点击 `Sync fork` 手动同步 |
 | Github Action部署后，cf里始终是preview分支 | 到 cf pages 页面的设置中确认 前端的分支 和 Github Action 的 前端部署分支 是否相同 |
 | 想用 GitHub Actions 自动更新，同时通过 Page Functions 转发后端请求 | 启用 `Deploy Frontend with page function` workflow，并配置 `PAGE_TOML` secret；`PAGE_TOML` 复制 `pages/wrangler.toml` 内容后把 `service` 改成你的 Worker 后端名称。这个 workflow 走同域请求，不需要 `FRONTEND_ENV` |

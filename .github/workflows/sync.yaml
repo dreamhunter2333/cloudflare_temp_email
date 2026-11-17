@@ -10,9 +10,11 @@ jobs:
     name: Sync latest commits from upstream repo
     runs-on: ubuntu-latest
     if: ${{ github.event.repository.fork }}
+    permissions:
+      contents: write
 
     steps:
       - name: Sync upstream changes
         run: gh repo sync ${{ github.repository }} --source dreamhunter2333/cloudflare_temp_email --branch main
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.UPSTREAM_SYNC_TOKEN || secrets.GITHUB_TOKEN }}

@@ -158,7 +158,9 @@ test('Rule checking and legacy delivery use separate dialogs, requests and mail 
   await expect(save).toBeEnabled();
   await editor.getByText('可视化', { exact: true }).click();
   await expect(editor.getByPlaceholder('匹配值', { exact: true }).first()).toHaveValue('^DOWN');
+  const saveResponse = page.waitForResponse(res => res.url().endsWith('/admin/mail_webhook/settings') && res.request().method() === 'POST');
   await save.click();
+  expect((await saveResponse).status()).toBe(200);
   expect(saved.at(-1).filter).toEqual(expression);
   await expect(page.getByText('成功', { exact: true })).toBeVisible();
   const openTest = page.locator('#app').getByRole('button', { name: '测试', exact: true });
@@ -188,12 +190,16 @@ test('Rule checking and legacy delivery use separate dialogs, requests and mail 
   await expect(page.locator('.n-message')).toHaveCount(0);
   await testInfo.attach('Unchanged delivery test dialog', { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' });
   await expect(page.getByRole('dialog').getByPlaceholder('邮件 ID', { exact: true })).toHaveCount(0);
+  const deliveryResponse = page.waitForResponse(res => res.url().endsWith('/admin/mail_webhook/test') && res.request().method() === 'POST');
   await page.getByRole('dialog').getByRole('button', { name: '测试', exact: true }).click();
+  expect((await deliveryResponse).status()).toBe(200);
   expect(tested.at(-1)).toMatchObject({ filter: expression });
   expect(tested.at(-1)).not.toHaveProperty('mail_id');
   expect(checked).toHaveLength(2);
   await editor.getByRole('button', { name: '移除', exact: true }).first().click();
+  const clearResponse = page.waitForResponse(res => res.url().endsWith('/admin/mail_webhook/settings') && res.request().method() === 'POST');
   await save.click();
+  expect((await clearResponse).status()).toBe(200);
   expect(saved.at(-1).filter).toBeNull();
 });
 
