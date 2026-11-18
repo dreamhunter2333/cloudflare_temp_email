@@ -25,6 +25,8 @@ const messages: LocaleMessages = {
     NewAddressDisabledMsg: "新建邮箱地址已禁用, 请联系管理员",
     NewAddressAnonymousDisabledMsg: "匿名用户新建邮箱地址已禁用, 请联系管理员",
     FailedCreateAddressMsg: "创建邮箱地址失败",
+    InvalidExpiresAtMsg: "无效的过期时间：必须是将来的有效日期时间",
+    AddressExpiryDisabledMsg: "未开启邮箱过期功能",
     InvalidAddressMsg: "无效的邮箱地址",
     InvalidAddressCredentialMsg: "无效的邮箱地址凭据",
     UserDeleteEmailDisabledMsg: "用户删除邮箱/邮件已禁用, 请联系管理员",

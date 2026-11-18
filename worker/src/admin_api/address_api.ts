@@ -3,7 +3,7 @@ import { createAddressToken } from '../address_auth';
 
 import i18n from '../i18n'
 import { getBooleanValue } from '../utils'
-import { newAddress, handleListQuery } from '../common'
+import { newAddress, handleListQuery, hasAddressExpiryInput } from '../common'
 import { unbindTelegramByAddress } from '../telegram_api/common'
 
 const listAddresses = async (c: Context<HonoCustomType>) => {
@@ -47,10 +47,13 @@ const listAddresses = async (c: Context<HonoCustomType>) => {
 };
 
 const createNewAddress = async (c: Context<HonoCustomType>) => {
-    const { name, domain, enablePrefix, enableRandomSubdomain } = await c.req.json();
+    const { name, domain, enablePrefix, enableRandomSubdomain, expiresAt, expires_at, expiresIn, expires_in } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     if (!name) {
         return c.text(msgs.RequiredFieldMsg, 400)
+    }
+    if (hasAddressExpiryInput({ expiresAt, expires_at, expiresIn, expires_in }) && !getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY)) {
+        return c.text(msgs.AddressExpiryDisabledMsg, 403)
     }
     try {
         const res = await newAddress(c, {
@@ -60,7 +63,9 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
             addressPrefix: null,
             checkAllowDomains: false,
             enableCheckNameRegex: false,
-            sourceMeta: 'admin'
+            sourceMeta: 'admin',
+            expiresAt: expiresAt ?? expires_at,
+            expiresIn: expiresIn ?? expires_in,
         });
         return c.json(res);
     } catch (e) {

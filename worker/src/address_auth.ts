@@ -4,6 +4,7 @@ import { Jwt } from 'hono/utils/jwt';
 
 import i18n from './i18n';
 import { getBooleanValue } from './utils';
+import { withExpiresAtFallback } from './common';
 
 const ADDRESS_PASSWORD_LOGIN_TTL_SECONDS = 30 * 24 * 60 * 60;
 
@@ -46,9 +47,15 @@ export const validateAddressPayload = async (
     ) return null;
     const addressId = Number(address_id);
     if (!Number.isSafeInteger(addressId) || addressId <= 0) return null;
-    const exists = await c.env.DB.prepare(
-        `SELECT id FROM address WHERE id = ? AND name = ?`
-    ).bind(addressId, address).first<number>('id');
+    const exists = await withExpiresAtFallback(
+        () => c.env.DB.prepare(
+            `SELECT id FROM address WHERE id = ? AND name = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`
+        ).bind(addressId, address).first<number>('id'),
+        () => c.env.DB.prepare(
+            `SELECT id FROM address WHERE id = ? AND name = ?`
+        ).bind(addressId, address).first<number>('id'),
+        getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY),
+    );
     return exists ? { address, address_id: addressId } : null;
 };
 

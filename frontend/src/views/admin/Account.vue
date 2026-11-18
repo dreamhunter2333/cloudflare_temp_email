@@ -289,6 +289,13 @@ const columns = computed(() => [
             return utcToLocalDate(row.updated_at, useUTCDate.value);
         }
     },
+    ...(openSettings.value.enableAddressExpiry ? [{
+        title: t('expires_at'),
+        key: "expires_at",
+        render(row) {
+            return row.expires_at ? utcToLocalDate(row.expires_at, useUTCDate.value) : t('neverExpires');
+        }
+    }] : []),
     {
         title: t('source_meta'),
         key: "source_meta",

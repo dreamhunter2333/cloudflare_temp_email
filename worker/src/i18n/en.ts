@@ -25,6 +25,8 @@ const messages: LocaleMessages = {
     NewAddressDisabledMsg: "New address is disabled, please contact the administrator",
     NewAddressAnonymousDisabledMsg: "New address for anonymous user is disabled, please contact the administrator",
     FailedCreateAddressMsg: "Failed to create address",
+    InvalidExpiresAtMsg: "Invalid expiration time: must be a valid future date/time",
+    AddressExpiryDisabledMsg: "Address expiration is disabled",
     InvalidAddressMsg: "Invalid address",
     InvalidAddressCredentialMsg: "Invalid address credential",
     UserDeleteEmailDisabledMsg: "User delete address/email is disabled, please contact the administrator",

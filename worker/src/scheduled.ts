@@ -1,12 +1,26 @@
 import { Context } from 'hono';
 import { cleanup } from './common'
 import { CONSTANTS } from './constants'
-import { getJsonSetting } from './utils';
+import { getBooleanValue, getJsonSetting } from './utils';
 import { CleanupSettings } from './models';
 import { executeCustomSqlCleanup } from './admin_api/cleanup_api';
 
 export async function scheduled(event: ScheduledEvent, env: Bindings, ctx: any) {
     console.log("Scheduled event: ", event);
+    if (getBooleanValue(env.ENABLE_ADDRESS_EXPIRY)) {
+        try {
+            await cleanup(
+                { env: env, } as Context<HonoCustomType>,
+                "expiredAddress",
+                0
+            );
+        } catch (error) {
+            const message = (error as Error).message;
+            if (!message || !message.includes("expires_at")) {
+                console.error("Cleanup [expiredAddress] failed:", error);
+            }
+        }
+    }
     const autoCleanupSetting = await getJsonSetting<CleanupSettings>(
         { env: env, } as Context<HonoCustomType>,
         CONSTANTS.AUTO_CLEANUP_KEY

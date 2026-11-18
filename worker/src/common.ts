@@ -319,12 +319,100 @@ const generatePasswordForAddress = async (
     return plainPassword;
 }
 
-const insertAddressRecord = async (
+export const isAddressExpired = (expiresAt: string | null | undefined): boolean => {
+    if (!expiresAt) return false;
+    const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(expiresAt)
+        ? `${expiresAt.replace(' ', 'T')}Z`
+        : expiresAt;
+    const ts = Date.parse(normalized);
+    return Number.isFinite(ts) && ts <= Date.now();
+};
+
+export const withExpiresAtFallback = async <T>(
+    withExpiresAt: () => Promise<T>,
+    withoutExpiresAt: () => Promise<T>,
+    expiryEnabled: boolean = true,
+): Promise<T> => {
+    if (!expiryEnabled) {
+        return await withoutExpiresAt();
+    }
+    try {
+        return await withExpiresAt();
+    } catch (e) {
+        const message = (e as Error)?.message;
+        if (message && message.includes("expires_at")) {
+            return await withoutExpiresAt();
+        }
+        throw e;
+    }
+};
+
+export const hasAddressExpiryInput = (input: {
+    expiresAt?: unknown;
+    expires_at?: unknown;
+    expiresIn?: unknown;
+    expires_in?: unknown;
+}): boolean => (input.expiresAt ?? input.expires_at ?? input.expiresIn ?? input.expires_in) != null;
+
+const normalizeAddressExpiresAt = (
+    expiresAt: unknown,
+    expiresIn: unknown,
+    msgs: ReturnType<typeof i18n.getMessagesbyContext>
+): string | null => {
+    const hasExpiresAt = expiresAt !== undefined && expiresAt !== null;
+    const hasExpiresIn = expiresIn !== undefined && expiresIn !== null;
+    if (hasExpiresAt && hasExpiresIn) {
+        throw new Error(msgs.InvalidExpiresAtMsg);
+    }
+    if (!hasExpiresAt && !hasExpiresIn) {
+        return null;
+    }
+    let timestamp = NaN;
+    if (hasExpiresIn) {
+        if (typeof expiresIn !== 'number' || !Number.isFinite(expiresIn) || expiresIn <= 0) {
+            throw new Error(msgs.InvalidExpiresAtMsg);
+        }
+        timestamp = Date.now() + expiresIn * 1000;
+    } else if (typeof expiresAt === 'number') {
+        timestamp = expiresAt;
+    } else if (typeof expiresAt === 'string') {
+        const trimmed = expiresAt.trim();
+        if (!trimmed) {
+            throw new Error(msgs.InvalidExpiresAtMsg);
+        }
+        const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(trimmed)
+            ? `${trimmed.replace(' ', 'T')}Z`
+            : trimmed;
+        const isoDate = /^(\d{4})-(\d{2})-(\d{2})/.exec(normalized);
+        if (isoDate) {
+            const [year, month, day] = isoDate.slice(1).map(Number);
+            const calendarDate = new Date(Date.UTC(year, month - 1, day));
+            if (
+                calendarDate.getUTCFullYear() !== year
+                || calendarDate.getUTCMonth() !== month - 1
+                || calendarDate.getUTCDate() !== day
+            ) {
+                throw new Error(msgs.InvalidExpiresAtMsg);
+            }
+        }
+        timestamp = Date.parse(normalized);
+    }
+    if (!Number.isFinite(timestamp) || Math.floor(timestamp / 1000) <= Math.floor(Date.now() / 1000)) {
+        throw new Error(msgs.InvalidExpiresAtMsg);
+    }
+    const date = new Date(timestamp);
+    if (!Number.isFinite(date.getTime()) || date.getUTCFullYear() > 9999) {
+        throw new Error(msgs.InvalidExpiresAtMsg);
+    }
+    return date.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+const insertAddressRecordLegacy = async (
     c: Context<HonoCustomType>,
     address: string,
     sourceMeta: string | undefined | null,
     msgs: ReturnType<typeof i18n.getMessagesbyContext>
-): Promise<void> => {
+): Promise<null> => {
     try {
         const result = await c.env.DB.prepare(
             `INSERT INTO address(name, source_meta) VALUES(?, ?)`
@@ -332,9 +420,9 @@ const insertAddressRecord = async (
         if (!result.success) {
             throw new Error(msgs.FailedCreateAddressMsg)
         }
+        return null;
     } catch (e) {
         const message = (e as Error).message;
-        // Fallback: source_meta field may not exist, try without it
         if (message && message.includes("source_meta")) {
             const result = await c.env.DB.prepare(
                 `INSERT INTO address(name) VALUES(?)`
@@ -342,7 +430,51 @@ const insertAddressRecord = async (
             if (!result.success) {
                 throw new Error(msgs.FailedCreateAddressMsg)
             }
-            return;
+            return null;
+        }
+        throw e;
+    }
+}
+
+const insertAddressRecord = async (
+    c: Context<HonoCustomType>,
+    address: string,
+    sourceMeta: string | undefined | null,
+    expiryEnabled: boolean,
+    resolveExpiresAt: () => string | null,
+    msgs: ReturnType<typeof i18n.getMessagesbyContext>
+): Promise<string | null> => {
+    if (!expiryEnabled) {
+        return await insertAddressRecordLegacy(c, address, sourceMeta, msgs);
+    }
+    const expiresAt = resolveExpiresAt();
+    try {
+        const result = await c.env.DB.prepare(
+            `INSERT INTO address(name, source_meta, expires_at) VALUES(?, ?, ?)`
+        ).bind(address, sourceMeta, expiresAt).run();
+        if (!result.success) {
+            throw new Error(msgs.FailedCreateAddressMsg)
+        }
+        return expiresAt;
+    } catch (e) {
+        const message = (e as Error).message;
+        // Fallback: expires_at or source_meta field may not exist on un-migrated DBs
+        if (message && message.includes("expires_at") && expiresAt === null) {
+            return await insertAddressRecordLegacy(c, address, sourceMeta, msgs);
+        }
+        if (message && message.includes("source_meta")) {
+            const fallbackExpiresAt = resolveExpiresAt();
+            const result = fallbackExpiresAt !== null
+                ? await c.env.DB.prepare(
+                    `INSERT INTO address(name, expires_at) VALUES(?, ?)`
+                ).bind(address, fallbackExpiresAt).run()
+                : await c.env.DB.prepare(
+                    `INSERT INTO address(name) VALUES(?)`
+                ).bind(address).run();
+            if (!result.success) {
+                throw new Error(msgs.FailedCreateAddressMsg)
+            }
+            return fallbackExpiresAt;
         }
         throw e;
     }
@@ -360,6 +492,8 @@ export const newAddress = async (
         checkAllowDomains = true,
         enableCheckNameRegex = true,
         sourceMeta = null,
+        expiresAt = null,
+        expiresIn = null,
     }: {
         name: string, domain: string | undefined | null,
         enablePrefix: boolean,
@@ -369,9 +503,19 @@ export const newAddress = async (
         checkAllowDomains?: boolean,
         enableCheckNameRegex?: boolean,
         sourceMeta?: string | undefined | null,
+        expiresAt?: string | number | null,
+        expiresIn?: number | null,
     }
-): Promise<{ address: string, jwt: string, password?: string | null, address_id: number }> => {
+): Promise<{ address: string, jwt: string, password?: string | null, address_id: number, expires_at?: string | null }> => {
     const msgs = i18n.getMessagesbyContext(c);
+    const expiryEnabled = getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY);
+    if (!expiryEnabled && hasAddressExpiryInput({ expiresAt, expiresIn })) {
+        throw new Error(msgs.AddressExpiryDisabledMsg);
+    }
+    if (expiryEnabled) {
+        // Validate expiry inputs early before domain/settings work; relative expiresIn deadline is recomputed at insert time.
+        normalizeAddressExpiresAt(expiresAt, expiresIn, msgs);
+    }
     // trim whitespace and remove special characters
     name = name.trim().replace(getNameRegex(c), '')
     // check name
@@ -439,7 +583,14 @@ export const newAddress = async (
         const address = `${name}@${addressDomain}`;
 
         try {
-            await insertAddressRecord(c, address, sourceMeta, msgs);
+            const writtenExpiresAt = await insertAddressRecord(
+                c,
+                address,
+                sourceMeta,
+                expiryEnabled,
+                () => normalizeAddressExpiresAt(expiresAt, expiresIn, msgs),
+                msgs
+            );
             await updateAddressUpdatedAt(c, address);
 
             const address_id = await c.env.DB.prepare(
@@ -460,9 +611,13 @@ export const newAddress = async (
                 address: address,
                 password: generatedPassword,
                 address_id: address_id,
+                ...(expiryEnabled ? { expires_at: writtenExpiresAt } : {}),
             }
         } catch (e) {
             const message = (e as Error).message;
+            if (message === msgs.InvalidExpiresAtMsg || message === msgs.AddressExpiryDisabledMsg) {
+                throw e;
+            }
             if (message && message.includes("UNIQUE")) {
                 if (enableRandomSubdomain && attempt < maxAttempts - 1) {
                     continue;
@@ -502,14 +657,14 @@ export const cleanup = async (
         return false;
     }
     const msgs = i18n.getMessagesbyContext(c);
-    if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
+    if (!cleanType || (cleanType !== "expiredAddress" && (typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000))) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
     }
     let cleanupBatchSize = getIntValue(c.env.CLEANUP_BATCH_SIZE, 3000);
     if (!Number.isInteger(cleanupBatchSize) || cleanupBatchSize < 1 || cleanupBatchSize > 5000) {
         cleanupBatchSize = 3000;
     }
-    console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
+    console.log(cleanType === "expiredAddress" ? `Cleanup ${cleanType}` : `Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
         case "inactiveAddress":
             await batchDeleteAddressWithData(
@@ -581,11 +736,104 @@ export const cleanup = async (
                 + `ORDER BY a.created_at, a.id LIMIT ${cleanupBatchSize})`
             )
             break;
+        case "expiredAddress": {
+            if (!getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY)) {
+                throw new Error(msgs.AddressExpiryDisabledMsg);
+            }
+            await cleanupExpiredAddresses(c, cleanupBatchSize);
+            break;
+        }
         default:
             throw new Error(msgs.InvalidCleanTypeMsg)
     }
     return true;
 }
+
+const EXPIRED_KV_OP_BUDGET = 40;
+const KV_DELETE_CHUNK_SIZE = 20;
+const NO_KV_DELETE_CHUNK_SIZE = 250;
+
+const deleteAddressChunk = async (
+    c: Context<HonoCustomType>,
+    ids: number[],
+): Promise<void> => {
+    const safeIds = ids.filter((id) => Number.isSafeInteger(id) && id > 0);
+    if (safeIds.length === 0) return;
+    const condition = `id IN (${safeIds.join(',')})`;
+    await c.env.DB.batch([
+        c.env.DB.prepare(`DELETE FROM raw_mails WHERE address IN (SELECT name FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM sendbox WHERE address IN (SELECT name FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM auto_reply_mails WHERE address IN (SELECT name FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM address_sender WHERE address IN (SELECT name FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM users_address WHERE address_id IN (SELECT id FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM address WHERE ${condition}`),
+    ]);
+};
+
+const cleanupExpiredAddresses = async (
+    c: Context<HonoCustomType>,
+    cleanupBatchSize: number,
+): Promise<void> => {
+    const cutoffUtc = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const hasKv = Boolean(c.env.KV);
+    const candidateLimit = hasKv ? Math.min(cleanupBatchSize, EXPIRED_KV_OP_BUDGET) : cleanupBatchSize;
+    const { results } = await c.env.DB.prepare(
+        `SELECT id, name FROM address WHERE expires_at IS NOT NULL AND expires_at <= ? `
+        + `ORDER BY expires_at, id LIMIT ?`
+    ).bind(cutoffUtc, candidateLimit).all<{ id: number; name: string }>();
+    if (!results || results.length === 0) return;
+
+    let kvOps = 0;
+    const kvMethods = new Set(['get', 'put', 'delete', 'list']);
+    const unbindCtx = hasKv ? {
+        env: {
+            ...c.env,
+            KV: new Proxy(c.env.KV, {
+                get(target, prop) {
+                    const value = Reflect.get(target, prop, target);
+                    if (typeof value !== 'function' || !kvMethods.has(String(prop))) {
+                        return typeof value === 'function' ? value.bind(target) : value;
+                    }
+                    return (...args: unknown[]) => {
+                        kvOps += 1;
+                        return value.apply(target, args);
+                    };
+                },
+            }),
+        },
+    } as Context<HonoCustomType> : c;
+
+    const chunkSize = hasKv ? KV_DELETE_CHUNK_SIZE : NO_KV_DELETE_CHUNK_SIZE;
+    let firstUnbindError: unknown = null;
+    let budgetReached = false;
+
+    for (let i = 0; i < results.length && !budgetReached; i += chunkSize) {
+        const chunkRows = results.slice(i, i + chunkSize);
+        const readyIds: number[] = [];
+        for (const row of chunkRows) {
+            if (!Number.isSafeInteger(row?.id) || row.id <= 0 || !row?.name) continue;
+            if (hasKv && kvOps >= EXPIRED_KV_OP_BUDGET) {
+                budgetReached = true;
+                break;
+            }
+            const opsBefore = kvOps;
+            try {
+                await unbindTelegramByAddress(unbindCtx, row.name);
+                if (hasKv && kvOps === opsBefore) kvOps += 1;
+                readyIds.push(row.id);
+            } catch (e) {
+                if (hasKv && kvOps === opsBefore) kvOps += 1;
+                console.warn("Failed to unbind telegram for expired address:", row.name, e);
+                firstUnbindError ??= e;
+            }
+        }
+        await deleteAddressChunk(c, readyIds);
+    }
+
+    if (firstUnbindError) {
+        throw firstUnbindError;
+    }
+};
 
 const batchDeleteAddressWithData = async (
     c: Context<HonoCustomType>,

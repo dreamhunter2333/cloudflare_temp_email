@@ -1,10 +1,10 @@
 import { Context } from 'hono';
 import { createAddressToken } from '../address_auth';
 
-import { isAddressCountLimitReached } from "../utils"
+import { getBooleanValue, isAddressCountLimitReached } from "../utils"
 import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
-import { updateAddressUpdatedAt, commonGetUserRole, handleListQuery, hideObjectFields } from '../common';
+import { updateAddressUpdatedAt, commonGetUserRole, handleListQuery, hideObjectFields, isAddressExpired, withExpiresAtFallback } from '../common';
 
 export const getBindedAddressById = async (
     c: Context<HonoCustomType>,
@@ -14,11 +14,20 @@ export const getBindedAddressById = async (
     if (!user_id || !address_id) {
         return null;
     }
-    const address = await c.env.DB.prepare(
-        `SELECT a.name FROM users_address ua`
-        + ` JOIN address a ON a.id = ua.address_id`
-        + ` WHERE ua.user_id = ? AND ua.address_id = ?`
-    ).bind(user_id, address_id).first<string>('name');
+    const address = await withExpiresAtFallback(
+        () => c.env.DB.prepare(
+            `SELECT a.name FROM users_address ua`
+            + ` JOIN address a ON a.id = ua.address_id`
+            + ` WHERE ua.user_id = ? AND ua.address_id = ?`
+            + ` AND (a.expires_at IS NULL OR a.expires_at > datetime('now'))`
+        ).bind(user_id, address_id).first<string>('name'),
+        () => c.env.DB.prepare(
+            `SELECT a.name FROM users_address ua`
+            + ` JOIN address a ON a.id = ua.address_id`
+            + ` WHERE ua.user_id = ? AND ua.address_id = ?`
+        ).bind(user_id, address_id).first<string>('name'),
+        getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY),
+    );
     return address ?? null;
 }
 
@@ -36,11 +45,18 @@ const UserBindAddressModule = {
         if (!address_id || !user_id) {
             return c.text(msgs.NoAddressOrUserTokenMsg, 400)
         }
-        // check if address exists
-        const db_address_id = await c.env.DB.prepare(
-            `SELECT id FROM address where id = ?`
-        ).bind(address_id).first("id");
-        if (!db_address_id) {
+        const expiryEnabled = getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY);
+        // check if address exists (and is not expired when expiry is enabled)
+        const addressRow = await withExpiresAtFallback<{ id: number; expires_at?: string | null } | null>(
+            () => c.env.DB.prepare(
+                `SELECT id, expires_at FROM address where id = ?`
+            ).bind(address_id).first<{ id: number; expires_at?: string | null }>(),
+            () => c.env.DB.prepare(
+                `SELECT id FROM address where id = ?`
+            ).bind(address_id).first<{ id: number }>(),
+            expiryEnabled,
+        );
+        if (!addressRow || (expiryEnabled && isAddressExpired(addressRow.expires_at))) {
             return c.text(msgs.AddressNotFoundMsg, 400)
         }
         // check if user exists
@@ -62,11 +78,23 @@ const UserBindAddressModule = {
         }
         // bind
         try {
-            const { success } = await c.env.DB.prepare(
-                `INSERT INTO users_address (user_id, address_id) VALUES (?, ?)`
-            ).bind(user_id, address_id).run();
+            const { success, meta } = await withExpiresAtFallback(
+                () => c.env.DB.prepare(
+                    `INSERT INTO users_address (user_id, address_id)`
+                    + ` SELECT ?, ? WHERE EXISTS (`
+                    + `SELECT 1 FROM address WHERE id = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`
+                    + `)`
+                ).bind(user_id, address_id, address_id).run(),
+                () => c.env.DB.prepare(
+                    `INSERT INTO users_address (user_id, address_id) VALUES (?, ?)`
+                ).bind(user_id, address_id).run(),
+                expiryEnabled,
+            );
             if (!success) {
                 return c.text(msgs.OperationFailedMsg, 500)
+            }
+            if (expiryEnabled && (meta?.changes ?? 0) === 0) {
+                return c.text(msgs.AddressNotFoundMsg, 400)
             }
         } catch (e) {
             const error = e as Error;
@@ -195,11 +223,20 @@ const UserBindAddressModule = {
         const msgs = i18n.getMessagesbyContext(c);
         const { user_id } = c.get("userPayload");
         const { address_id, target_user_email } = await c.req.json();
+        const expiryEnabled = getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY);
         // check if address exists
-        const address = await c.env.DB.prepare(
-            `SELECT name FROM address where id = ?`
-        ).bind(address_id).first<string>("name");
-        if (!address) {
+        const addressRow = await withExpiresAtFallback<{ name: string; expires_at?: string | null } | null>(
+            () => c.env.DB.prepare(
+                `SELECT name, expires_at FROM address where id = ?`
+            ).bind(address_id).first<{ name: string; expires_at?: string | null }>(),
+            () => c.env.DB.prepare(
+                `SELECT name FROM address where id = ?`
+            ).bind(address_id).first<{ name: string }>(),
+            expiryEnabled,
+        );
+        const address = addressRow?.name;
+        const expiresAt = expiryEnabled ? (addressRow?.expires_at ?? null) : null;
+        if (!address || (expiryEnabled && isAddressExpired(expiresAt))) {
             return c.text(msgs.AddressNotFoundMsg, 400)
         }
         // check if user exists
@@ -243,10 +280,31 @@ const UserBindAddressModule = {
         await c.env.DB.prepare(
             `DELETE FROM address WHERE id = ? `
         ).bind(address_id).run();
-        // new address
-        const { success: newAddressSuccess } = await c.env.DB.prepare(
-            `INSERT INTO address(name) VALUES(?)`
-        ).bind(address).run();
+        // new address (preserve expires_at when feature is enabled)
+        let newAddressSuccess = false;
+        if (!expiryEnabled) {
+            const { success } = await c.env.DB.prepare(
+                `INSERT INTO address(name) VALUES(?)`
+            ).bind(address).run();
+            newAddressSuccess = success;
+        } else {
+            try {
+                const { success } = await c.env.DB.prepare(
+                    `INSERT INTO address(name, expires_at) VALUES(?, ?)`
+                ).bind(address, expiresAt).run();
+                newAddressSuccess = success;
+            } catch (e) {
+                const msg = (e as Error).message;
+                if (msg && msg.includes("expires_at") && expiresAt === null) {
+                    const { success } = await c.env.DB.prepare(
+                        `INSERT INTO address(name) VALUES(?)`
+                    ).bind(address).run();
+                    newAddressSuccess = success;
+                } else {
+                    throw e;
+                }
+            }
+        }
         if (!newAddressSuccess) {
             throw new Error(msgs.FailedCreateAddressMsg)
         }

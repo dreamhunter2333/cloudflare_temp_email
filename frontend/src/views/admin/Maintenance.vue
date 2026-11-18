@@ -6,7 +6,7 @@ import { CleaningServicesFilled, AddFilled, DeleteFilled } from '@vicons/materia
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 
-const { loading } = useGlobalState()
+const { loading, openSettings } = useGlobalState()
 const message = useMessage()
 const cleanupModel = ref({
     enableMailsAutoCleanup: false,
@@ -178,6 +178,14 @@ onMounted(async () => {
                             </n-checkbox>
                             <n-input-number v-model:value="cleanupModel.cleanEmptyAddressDays" :placeholder="t('tip')" />
                             <n-button @click="cleanup('emptyAddress', cleanupModel.cleanEmptyAddressDays)">
+                                <template #icon>
+                                    <n-icon :component="CleaningServicesFilled" />
+                                </template>
+                                {{ t('cleanupNow') }}
+                            </n-button>
+                        </n-form-item-row>
+                        <n-form-item-row v-if="openSettings.enableAddressExpiry" :label="t('expiredAddressLabel')">
+                            <n-button @click="cleanup('expiredAddress', 0)">
                                 <template #icon>
                                     <n-icon :component="CleaningServicesFilled" />
                                 </template>
