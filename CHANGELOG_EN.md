@@ -24,6 +24,8 @@
 
 ### Bug Fixes
 
+- fix: |CI| Increase the unit-test job timeout from 5 to 15 minutes to allow time for dependency installation
+- fix: |Site Authentication| Fail closed for malformed or non-string-array `PASSWORDS` configurations while preserving valid and empty configuration behavior
 - fix: |CI| Wait for save and test responses in Webhook UI tests to avoid flaky assertions against missing or stale requests
 - fix: |Auto Update| Support an optional `UPSTREAM_SYNC_TOKEN` to sync workflow changes, retain the default token when unset, and declare the contents write permission required for syncing
 - fix: |Inbox| Keep the current message and restore the page and page size when pagination fails

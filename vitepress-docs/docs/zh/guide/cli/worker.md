@@ -101,7 +101,7 @@ database_id = "xxx" # D1 数据库 ID
 ```
 
 > [!NOTE]
-> 如果不想把密码写在 `wrangler.toml` 中，`ADMIN_PASSWORDS` 和 `PASSWORDS` 也可以配置为 secret。secret 的值总是字符串，所以需要输入 JSON 数组，例如 `["my-password"]`。直接输入 `my-password` 会解析失败并被当作空列表，导致 admin 控制台无法访问，或网站不再需要密码即可访问。
+> 如果不想把密码写在 `wrangler.toml` 中，`ADMIN_PASSWORDS` 和 `PASSWORDS` 也可以配置为 secret。secret 的值总是字符串，所以需要输入 JSON 数组，例如 `["my-password"]`。直接输入 `my-password` 会解析失败：`PASSWORDS` 配置错误时返回 `500 / Invalid PASSWORDS configuration`，不会关闭密码保护；`ADMIN_PASSWORDS` JSON 解析失败时无法使用管理员密码登录。
 >
 > ```bash
 > pnpm wrangler secret put ADMIN_PASSWORDS

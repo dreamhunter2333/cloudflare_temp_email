@@ -56,7 +56,11 @@ app.all('*', async c => {
       };
     },
   }) : c.env.KV;
-  const bindings = batchFailure || kvFailure ? { ...env, DB, KV } : env;
+  const sitePasswords = c.req.header('x-test-site-passwords');
+  const bindings = {
+    ...env, DB, KV,
+    ...(sitePasswords !== undefined ? { PASSWORDS: JSON.parse(sitePasswords) } : {}),
+  };
   if (!c.req.header('x-test-await-background')) return worker.fetch(c.req.raw, bindings, c.executionCtx);
 
   const tasks: Promise<unknown>[] = [];
