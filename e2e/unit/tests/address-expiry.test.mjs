@@ -136,7 +136,7 @@ const loadCommonModule = async ({ unbindTelegramByAddress = async () => true, ge
   });
 };
 
-test('DB initialization and v0.0.10 -> v0.0.11 migration add expires_at column and index', async (t) => {
+test('DB initialization and migration from v0.0.10 add expires_at column and index', async (t) => {
   const settingsMap = new Map();
   const utilsMock = {
     getSetting: async (_c, key) => settingsMap.get(key) ?? null,
@@ -153,7 +153,7 @@ test('DB initialization and v0.0.10 -> v0.0.11 migration add expires_at column a
   t.after(() => freshDb.close());
   const initRes = await dbApi.initialize(createContext(freshDb));
   assert.equal(initRes.status, 200);
-  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), 'v0.0.11');
+  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), CONSTANTS.DB_VERSION);
   const freshCols = freshDb.prepare('PRAGMA table_info(address)').all().map((r) => r.name);
   assert.ok(freshCols.includes('expires_at'));
   const freshIndexes = freshDb.prepare('PRAGMA index_list(address)').all().map((r) => r.name);
@@ -185,7 +185,7 @@ test('DB initialization and v0.0.10 -> v0.0.11 migration add expires_at column a
   settingsMap.set(CONSTANTS.DB_VERSION_KEY, 'v0.0.10');
   const migrateRes = await dbApi.migrate(createContext(legacyDb));
   assert.equal(migrateRes.status, 200);
-  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), 'v0.0.11');
+  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), CONSTANTS.DB_VERSION);
   const migratedCols = legacyDb.prepare('PRAGMA table_info(address)').all().map((r) => r.name);
   assert.ok(migratedCols.includes('expires_at'));
   const migratedIndexes = legacyDb.prepare('PRAGMA index_list(address)').all().map((r) => r.name);
@@ -208,7 +208,7 @@ test('DB initialization and v0.0.10 -> v0.0.11 migration add expires_at column a
   settingsMap.delete(CONSTANTS.DB_VERSION_KEY);
   const unversionedRes = await dbApi.migrate(createContext(unversionedDb));
   assert.equal(unversionedRes.status, 200);
-  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), 'v0.0.11');
+  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), CONSTANTS.DB_VERSION);
   const unversionedCols = unversionedDb.prepare('PRAGMA table_info(address)').all().map((r) => r.name);
   assert.ok(unversionedCols.includes('expires_at'));
   const unversionedIndexes = unversionedDb.prepare('PRAGMA index_list(address)').all().map((r) => r.name);
@@ -231,7 +231,7 @@ test('DB initialization and v0.0.10 -> v0.0.11 migration add expires_at column a
   settingsMap.delete(CONSTANTS.DB_VERSION_KEY);
   const quickInitRes = await dbApi.initialize(createContext(quickSetupDb));
   assert.equal(quickInitRes.status, 200);
-  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), 'v0.0.11');
+  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), CONSTANTS.DB_VERSION);
   const quickCols = quickSetupDb.prepare('PRAGMA table_info(address)').all().map((r) => r.name);
   assert.ok(quickCols.includes('expires_at'));
   const quickIndexes = quickSetupDb.prepare('PRAGMA index_list(address)').all().map((r) => r.name);
