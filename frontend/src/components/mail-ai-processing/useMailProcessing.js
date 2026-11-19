@@ -1,0 +1,53 @@
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
+import { useScopedI18n } from '@/i18n/app';
+import { api } from '../../api';
+import { useGlobalState } from '../../store';
+
+export function useMailProcessing(currentMail, translation) {
+  const { t, locale } = useScopedI18n('components.MailProcessing');
+  const { mailTranslationLanguage } = useGlobalState();
+  const request = shallowRef(null);
+  const pending = computed(() => request.value?.action);
+  const summary = ref(null);
+  const error = ref('');
+
+  onBeforeUnmount(() => {
+    request.value = null;
+  });
+
+  watch(() => currentMail()?.id, () => {
+    request.value = null;
+    translation.value = null;
+    summary.value = null;
+    error.value = '';
+  }, { flush: 'sync' });
+
+  const processMail = async (action) => {
+    const mail = currentMail();
+    if (!mail?.id || request.value) return;
+    error.value = '';
+    if (action === 'translate' && translation.value) {
+      translation.value = null;
+      return;
+    }
+    if (action === 'summarize') summary.value = null;
+    const targetLanguage = action === 'translate' ? mailTranslationLanguage.value || undefined : undefined;
+    const language = targetLanguage || locale.value;
+    const current = { action };
+    request.value = current;
+    try {
+      const { subject, text } = await api.fetch('/api/mail_processing', {
+        method: 'POST', body: { mailId: mail.id, action, targetLanguage }, showLoading: false,
+      });
+      if (request.value !== current) return;
+      if (action === 'translate') translation.value = { mailId: mail.id, subject, text, language };
+      else summary.value = { text, language };
+    } catch (e) {
+      if (request.value === current) error.value = e.message || t('failed');
+    } finally {
+      if (request.value === current) request.value = null;
+    }
+  };
+
+  return { t, pending, summary, error, processMail };
+}

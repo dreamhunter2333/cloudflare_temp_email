@@ -1,5 +1,6 @@
 import { Context, Hono } from 'hono'
 import { cors } from 'hono/cors';
+import { HTTPException } from 'hono/http-exception';
 import { Jwt } from 'hono/utils/jwt'
 import { addressJwtAuth } from './address_auth';
 
@@ -34,6 +35,9 @@ const app = new Hono<HonoCustomType>()
 app.use('/*', cors());
 // error handler
 app.onError((err, c) => {
+	if (err instanceof HTTPException && err.status === 400) {
+		return c.text(i18n.getMessagesbyContext(c).InvalidRequestBodyMsg, 400);
+	}
 	console.error(err)
 	return c.json({ code: ErrorCode.INTERNAL_SERVER_ERROR, message: `${err.name} ${err.message}` }, 500)
 })
@@ -74,6 +78,7 @@ app.use('/*', async (c, next) => {
 	if (
 		c.req.path.startsWith("/api/new_address")
 		|| c.req.path.startsWith("/api/send_mail")
+		|| c.req.path === "/api/mail_processing"
 		|| c.req.path.startsWith("/external/api/send_mail")
 		|| (c.req.path.startsWith("/user_api/address/") && c.req.path.endsWith("/send_mail"))
 		|| c.req.path.startsWith("/user_api/register")

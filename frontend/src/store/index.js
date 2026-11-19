@@ -65,6 +65,7 @@ export const useGlobalState = createGlobalState(
         })
         const settings = ref({
             fetched: false,
+            mailAiProcessing: false,
             send_balance: 0,
             address: '',
             auto_reply: {
@@ -98,6 +99,7 @@ export const useGlobalState = createGlobalState(
         const mailListPreviewLineClamp = useStorage('mailListPreviewLineClamp', 1);
         const useIframeShowMail = useStorage('useIframeShowMail', false);
         const preferShowTextMail = useStorage('preferShowTextMail', false);
+        const mailTranslationLanguage = useStorage('mailTranslationLanguage', '');
         const userJwt = useStorage('userJwt', '');
         const preferredLocale = useStorage('preferredLocale', '');
         const userTab = useSessionStorage('userTab', 'address_management');
@@ -179,6 +181,7 @@ export const useGlobalState = createGlobalState(
             mailListPreviewLineClamp,
             useIframeShowMail,
             preferShowTextMail,
+            mailTranslationLanguage,
             userJwt,
             preferredLocale,
             userTab,

@@ -1,11 +1,7 @@
 import { Context } from "hono";
 import { CONSTANTS } from "../constants";
 import { getJsonSetting, saveSetting } from "../utils";
-
-export type AiExtractSettings = {
-    enableAllowList: boolean;
-    allowList: string[];
-}
+import type { AiExtractSettings } from "../mail_ai_processing/allowlist";
 
 async function getAiExtractSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await getJsonSetting<AiExtractSettings>(c, CONSTANTS.AI_EXTRACT_SETTINGS_KEY) || {

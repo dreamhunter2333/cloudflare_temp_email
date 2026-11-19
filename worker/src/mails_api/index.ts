@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 
 import parsed_mail_api from './parsed_mail_api';
+import { processMail } from './mail_ai_processing';
 import mails_crud from './mails_crud';
 import new_address from './new_address';
 import auto_reply from './auto_reply'
@@ -35,6 +36,7 @@ api.patch('/api/mails/:id/read', mails_crud.updateMailReadStatus)
 // parsed mail (server-side parsed subject/text/html/attachments)
 api.get('/api/parsed_mails', parsed_mail_api.listParsedMails)
 api.get('/api/parsed_mail/:mail_id', parsed_mail_api.getParsedMail)
+api.post('/api/mail_processing', processMail)
 
 // address settings / lifecycle
 api.get('/api/settings', mails_crud.getSettings)

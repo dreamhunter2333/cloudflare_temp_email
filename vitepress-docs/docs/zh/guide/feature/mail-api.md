@@ -5,7 +5,7 @@
 邮箱 API 支持两种 JWT：原有邮箱凭据，以及带 `type: "address_password_login"`、`address`、`address_id`、`iat` 和 `exp` 的密码登录会话。后端继续校验签名和邮箱身份，并要求密码登录会话未过期、签发时间不晚于当前时间、有效期不超过 30 天。
 
 - 邮箱 API 继续使用 `Authorization: Bearer <jwt>`，无需数据库迁移。
-- `GET /api/settings` 仅返回 `address`、`send_balance` 和 `new_address_token`。有效密码登录 JWT 剩余不足 7 天时返回新的 30 天 token，否则为 `null`；原有凭据不会续期，已过期 JWT 必须重新登录。
+- `GET /api/settings` 返回 `address`、`send_balance` 和 `new_address_token`；邮箱可用按需处理时还返回 `enableAiMailProcessing: true`。有效密码登录 JWT 剩余不足 7 天时返回新的 30 天 token，否则 `new_address_token` 为 `null`；原有凭据不会续期，已过期 JWT 必须重新登录。
 - 仅当 `new_address_token` 非 `null` 时，客户端才应保存它并替换当前 token；为 `null` 时继续使用当前 token。
 
 网页通过一次成功的 settings 请求仅更新当前使用的 JWT。本地缓存继续保存 token 字符串，沿用原来的追加和绑定逻辑，不替换或去重历史 token；切换到已过期的缓存会话后，需要重新登录。JWT 解码仅用于显示邮箱、登录方式和 Token 到期时间，权限由后端校验。
@@ -34,6 +34,12 @@ res = requests.get(
 ```
 
 **注意**：`/api/mails` 按设计返回的是原始 RFC822 数据（如 `source`/`raw`），不保证直接包含 `subject`、`text`、`html` 等已解析字段。若要直接读取正文，请在客户端侧解析 `raw`（例如 `mail-parser-wasm`、`postal-mime`）。
+
+## 邮件摘要或翻译
+
+用邮箱 JWT 调用 `POST /api/mail_processing`，传入 JSON `{ "mailId": 123, "action": "summarize" }`（也可用 `"translate"`）。翻译可传 `targetLanguage`（`zh`、`en`、`es`、`pt-BR`、`ja` 或 `de`），不传则跟随 `x-lang`。只能处理该邮箱下的邮件。摘要返回 `{ "text": "..." }`，翻译返回 `{ "subject": "...", "text": "..." }`。Worker 不缓存、不入库。参见[服务配置](./ai-extract#mail-processing)。
+
+`GET /api/settings` 中的 `mailAiProcessing` 为 `true` 时才可调用站点模型接口。当前邮箱不可用时不返回此字段。
 
 ## admin 邮件 API
 

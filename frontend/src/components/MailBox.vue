@@ -59,6 +59,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  mailAiProcessing: Boolean,
   updateMailReadStatus: {
     type: Function,
     default: () => { }
@@ -168,6 +169,8 @@ const nextMail = async () => {
 }
 
 const curMail = ref(null);
+const mailTranslation = ref(null);
+watch(() => curMail.value?.id, () => { mailTranslation.value = null; });
 
 const multiActionMode = ref(false)
 const showMultiActionDownload = ref(false)
@@ -485,11 +488,12 @@ onBeforeUnmount(() => {
               </n-button>
             </n-flex>
           </div>
-          <n-card :bordered="false" v-if="curMail" class="mail-item" :title="curMail.subject"
+          <n-card :bordered="false" v-if="curMail" class="mail-item" :title="mailTranslation?.subject ?? curMail.subject"
             style="overflow: auto; max-height: 100vh;">
-            <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
+            <MailContentRenderer v-model:translation="mailTranslation" :mail="curMail" :showEMailTo="showEMailTo"
               :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
               :enableMailReadStatus="enableMailReadStatus" :onUpdateMailReadStatus="toggleCurrentMailUnread"
+              :mailAiProcessing="mailAiProcessing"
               :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
           </n-card>
           <n-card :bordered="false" embedded class="mail-item" v-else>
@@ -544,11 +548,12 @@ onBeforeUnmount(() => {
       </div>
       <n-drawer v-model:show="curMail" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
         style="height: 80vh;">
-        <n-drawer-content :title="curMail ? curMail.subject : ''" closable>
+        <n-drawer-content :title="mailTranslation?.subject ?? curMail?.subject ?? ''" closable>
           <div class="mail-mobile-reader">
-            <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
+            <MailContentRenderer v-model:translation="mailTranslation" :mail="curMail" :showEMailTo="showEMailTo"
               :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
               :enableMailReadStatus="enableMailReadStatus" :onUpdateMailReadStatus="toggleCurrentMailUnread"
+              :mailAiProcessing="mailAiProcessing"
               :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail"
               :onSaveToS3="saveToS3Proxy" />
           </div>

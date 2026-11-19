@@ -20,6 +20,13 @@
 | `ENABLE_USER_CREATE_EMAIL` | 文本/JSON   | 否       | 是否允许用户创建邮箱                       | `false`         | `true` |
 | `ENABLE_USER_DELETE_EMAIL` | 文本/JSON   | 否       | 是否允许用户删除邮件                       | `false`         | `true` |
 | `ENABLE_MAIL_READ_STATUS`  | 文本/JSON   | 否       | 启用邮件已读/未读状态。启用前需要升级数据库 Schema | `false` | `true` |
+| `ENABLE_MAIL_PROCESSING`   | 文本/JSON   | 否       | 启用[按需摘要和翻译](./feature/ai-extract#mail-processing)，不影响自动提取 | `false` | `true` |
+| `MAIL_PROCESSING_PROVIDER` | 文本       | 功能开启时 | 按需摘要和翻译的站点模型服务 | 无 | `workers-ai` |
+| `MAIL_PROCESSING_MODEL`    | 文本        | 外部 API 必填 | 邮件摘要和翻译使用的模型 | 仅 Workers AI 有默认模型 | `@cf/meta/llama-3.1-8b-instruct-fast` |
+| `MAIL_PROCESSING_BASE_URL` | 文本        | 否       | 外部服务的 HTTPS API 前缀 | 对应服务的默认地址 | `https://api.openai.com/v1` |
+| `MAIL_PROCESSING_API_KEY`  | Secret      | 外部 API 必填 | 所选服务的 API 密钥 | 无 | 设置为 Worker Secret |
+| `MAIL_PROCESSING_SUMMARY_PROMPT` | 文本 | 否 | 自定义摘要指令 | 内置指令 | `Highlight deadlines.` |
+| `MAIL_PROCESSING_TRANSLATION_PROMPT` | 文本 | 否 | 自定义翻译指令 | 内置指令 | `Preserve paragraph breaks.` |
 | `ENABLE_ADDRESS_EXPIRY`    | 文本/JSON   | 否       | 启用邮箱过期时间（`expiresAt`）、鉴权过期校验及定时清理。启用前需先升级数据库至 `v0.0.11`；关闭后暂停校验与清理，不会清除已保存的过期时间 | `false` | `true` |
 | `ENABLE_REDEEM_CODE`       | 文本/JSON   | 否       | 启用兑换码页面、用户兑换 API 和管理端兑换码功能 | `false` | `true` |
 | `REDEEM_CODE_URL`          | 文本        | 否       | 获取兑换码的外部平台链接                   | 空，不展示入口  | `https://example.com/redeem-codes` |
