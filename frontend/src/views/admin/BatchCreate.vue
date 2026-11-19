@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { api } from '../../api'
+import { resolveExpiryPayload } from '../../utils'
 import BatchExportModal from './BatchExportModal.vue'
 
 const props = defineProps({
@@ -33,15 +34,8 @@ const createBatch = async () => {
         return
     }
     const count = batchCount.value
-    const options = { ...props.options }
-    const hasCustomExpiry = Object.prototype.hasOwnProperty.call(options, 'expiresAt')
-    const isBatchExpiryValid = () => {
-        if (!hasCustomExpiry) return true
-        if (typeof options.expiresAt !== 'string' || !options.expiresAt) return false
-        const ts = Date.parse(options.expiresAt)
-        return Number.isFinite(ts) && Math.floor(ts / 1000) > Math.floor(Date.now() / 1000)
-    }
-    if (!isBatchExpiryValid()) {
+    const { expiryMode, customExpiresAt, ...options } = props.options
+    if (!resolveExpiryPayload(expiryMode, customExpiresAt)) {
         batchError.value = createAccountT('invalidExpiryDateTime')
         message.error(createAccountT('invalidExpiryDateTime'))
         return
@@ -54,7 +48,8 @@ const createBatch = async () => {
     emit('busy', true)
     try {
         for (let i = 0; i < count && !unmounted; i++) {
-            if (!isBatchExpiryValid()) {
+            const expiry = resolveExpiryPayload(expiryMode, customExpiresAt)
+            if (!expiry) {
                 throw new Error(createAccountT('invalidExpiryDateTime'))
             }
             const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -66,7 +61,7 @@ const createBatch = async () => {
             }
             const res = await api.fetch('/admin/new_address', {
                 method: 'POST',
-                body: JSON.stringify({ ...options, name }),
+                body: JSON.stringify({ ...options, name, ...expiry }),
                 showLoading: false,
             })
             if (unmounted) break

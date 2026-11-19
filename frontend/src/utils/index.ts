@@ -49,7 +49,7 @@ export const resolveExpiryPayload = (
     expiryMode: string,
     customExpiresAt: number | null | undefined,
     nowMs: number = Date.now(),
-): { expiresAt?: string | null; expiresIn?: number | null } | null => {
+): { expiresAt?: string } | null => {
     if (expiryMode === 'custom') {
         if (
             typeof customExpiresAt !== 'number'
@@ -67,5 +67,6 @@ export const resolveExpiryPayload = (
     const seconds = Object.hasOwn(EXPIRY_PRESET_SECONDS, expiryMode)
         ? EXPIRY_PRESET_SECONDS[expiryMode]
         : undefined;
-    return seconds ? { expiresIn: seconds } : {};
+    if (seconds === undefined) return {};
+    return { expiresAt: new Date(nowMs + seconds * 1000).toISOString() };
 };

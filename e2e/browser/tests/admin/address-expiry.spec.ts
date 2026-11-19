@@ -54,7 +54,7 @@ test.describe('Address Expiration UI', () => {
     const card = formCard(page);
     await expect(card.getByText('Expiration (Optional)', { exact: true })).toBeVisible();
 
-    // Switch to Batch creation and verify preset sends expiresIn
+    // Switch to batch creation and verify the preset sends an absolute UTC timestamp.
     await page.locator('.n-radio').getByText('Batch creation', { exact: true }).click();
     await page.getByRole('textbox', { name: 'Batch count' }).fill('1');
 
@@ -63,10 +63,15 @@ test.describe('Address Expiration UI', () => {
     await page.locator('.n-base-select-option').getByText('24 hours', { exact: true }).click();
 
     const batchButton = page.getByRole('button', { name: 'Create batch', exact: true });
+    const beforeCreate = Date.now();
     await batchButton.click();
     await expect(page.getByText('Completed: 1 / 1', { exact: true })).toBeVisible();
     expect(bodies).toHaveLength(1);
-    expect(bodies[0]).toMatchObject({ expiresIn: 86400 });
+    expect(bodies[0].expiresAt).toMatch(/Z$/);
+    const presetDeadline = Date.parse(String(bodies[0].expiresAt));
+    expect(presetDeadline).toBeGreaterThanOrEqual(beforeCreate + 86_400_000);
+    expect(presetDeadline).toBeLessThanOrEqual(Date.now() + 86_400_000);
+    expect(bodies[0]).not.toHaveProperty('expiryMode');
 
     // Custom mode without selected timestamp disables batch creation and sends 0 requests
     await expirySelect.click();

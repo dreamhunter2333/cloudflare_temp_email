@@ -111,6 +111,9 @@ const loadCommonModule = async ({ unbindTelegramByAddress = async () => true, ge
   const msgs = createTestMessages();
   return loadTsModule('../../../worker/src/common.ts', {
     CONSTANTS,
+    isAddressExpiryEnabled,
+    normalizeAddressExpiresAt,
+    shouldRejectExpiryInput,
     i18n: { getMessagesbyContext: () => msgs },
     unbindTelegramByAddress,
     createAddressToken: async (_c, addr, id) => `jwt:${addr}:${id}`,
@@ -136,6 +139,82 @@ const loadCommonModule = async ({ unbindTelegramByAddress = async () => true, ge
   });
 };
 
+const { getBooleanValue } = await loadTsModule('../../../worker/src/utils.ts', { CONSTANTS });
+const { isAddressExpiryEnabled, isAddressExpired, normalizeAddressExpiresAt, shouldRejectExpiryInput } =
+  await loadTsModule('../../../worker/src/utils/address_expiry.ts', { getBooleanValue });
+
+const disabledContext = { env: { ENABLE_ADDRESS_EXPIRY: false } };
+const enabledContext = { env: { ENABLE_ADDRESS_EXPIRY: true } };
+
+const messages = { InvalidExpiresAtMsg: 'Invalid expiry' };
+
+test('reading an unmigrated SQLite row needs no expiry-column fallback', async (t) => {
+  const db = new DatabaseSync(':memory:');
+  t.after(() => db.close());
+  db.exec("CREATE TABLE address (id INTEGER PRIMARY KEY, name TEXT); INSERT INTO address VALUES (1, 'legacy@example.com')");
+  const row = db.prepare('SELECT * FROM address WHERE id = ?').get(1);
+  assert.equal(row.name, 'legacy@example.com');
+  assert.equal(row.expires_at, undefined);
+  assert.equal(isAddressExpired(disabledContext, row.expires_at), false);
+  assert.equal(isAddressExpired(enabledContext, row.expires_at), false);
+});
+
+test('expiry checks retain permanent, expired, future and invalid-date behavior', () => {
+  for (const value of [undefined, null, '', 'not-a-date', '2099-01-01 00:00:00', '2099-01-01T00:00:00Z']) {
+    assert.equal(isAddressExpired(enabledContext, value), false, String(value));
+  }
+  for (const value of ['2020-01-01 00:00:00', '2020-01-01T08:00:00+08:00']) {
+    assert.equal(isAddressExpired(enabledContext, value), true, value);
+  }
+});
+
+test('expiry input is rejected only when the feature is disabled', () => {
+  for (const value of [undefined, null]) {
+    assert.equal(shouldRejectExpiryInput(disabledContext, value), false);
+    assert.equal(shouldRejectExpiryInput(enabledContext, value), false);
+  }
+  for (const value of ['', 0, '2099-01-01T00:00:00Z']) {
+    assert.equal(shouldRejectExpiryInput(disabledContext, value), true);
+    assert.equal(shouldRejectExpiryInput(enabledContext, value), false);
+  }
+});
+
+test('disabled expiry skips enforcement for expired addresses', () => {
+  for (const flag of [undefined, false, 'false']) {
+    const context = { env: { ENABLE_ADDRESS_EXPIRY: flag } };
+    assert.equal(isAddressExpired(context, '2020-01-01 00:00:00'), false);
+  }
+  for (const flag of [true, 'true']) {
+    const context = { env: { ENABLE_ADDRESS_EXPIRY: flag } };
+    assert.equal(isAddressExpired(context, '2020-01-01 00:00:00'), true);
+  }
+});
+
+test('absolute expiry formats normalize to the same UTC database timestamp', () => {
+  for (const value of [
+    '2099-01-01 00:00:00', '2099-01-01T00:00Z', '2099-01-01T00:00:00.123Z',
+    '2099-01-01T08:00:00+08:00', '2099-01-01T08:00:00+0800',
+    Date.parse('2099-01-01T00:00:00Z'),
+  ]) {
+    assert.equal(normalizeAddressExpiresAt(value, messages), '2099-01-01 00:00:00');
+  }
+  assert.equal(normalizeAddressExpiresAt('2096-02-29T00:00:00Z', messages), '2096-02-29 00:00:00');
+  assert.equal(normalizeAddressExpiresAt('+002096-02-29T00:00:00Z', messages), '2096-02-29 00:00:00');
+  assert.equal(normalizeAddressExpiresAt('2099-12-31T23:59:59Z', messages), '2099-12-31 23:59:59');
+});
+
+for (const value of [
+  '2019-01-01T00:00:00Z', '2100-01-01T00:00:00Z', '2999-01-01T00:00:00Z',
+  Date.parse('2999-01-01T00:00:00Z'), '', 'not-a-date', '2099-02-29T00:00:00Z', '2099-13-01T00:00:00Z',
+  '+002099-02-30T00:00:00Z', '2099-01-01T08:00:00', '2099-01-01',
+  'February 30, 2099 00:00:00 GMT', '2099-02-30 00:00:00',
+  Number.NaN, Infinity, true, null, undefined,
+]) {
+  test(`rejects invalid expiry input: ${String(value)}`, () => {
+    assert.throws(() => normalizeAddressExpiresAt(value, messages), /Invalid expiry/);
+  });
+}
+
 test('DB initialization and v0.0.10 -> v0.0.11 migration add expires_at column and index', async (t) => {
   const settingsMap = new Map();
   const utilsMock = {
@@ -151,7 +230,9 @@ test('DB initialization and v0.0.10 -> v0.0.11 migration add expires_at column a
   // 1. Fresh initialization via DB_INIT_QUERIES
   const freshDb = new DatabaseSync(':memory:');
   t.after(() => freshDb.close());
-  const initRes = await dbApi.initialize(createContext(freshDb));
+  const freshContext = createContext(freshDb);
+  freshContext.env.DB.prepare = () => assert.fail('Fresh initialization must not run migration checks');
+  const initRes = await dbApi.initialize(freshContext);
   assert.equal(initRes.status, 200);
   assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), 'v0.0.11');
   const freshCols = freshDb.prepare('PRAGMA table_info(address)').all().map((r) => r.name);
@@ -213,29 +294,6 @@ test('DB initialization and v0.0.10 -> v0.0.11 migration add expires_at column a
   assert.ok(unversionedCols.includes('expires_at'));
   const unversionedIndexes = unversionedDb.prepare('PRAGMA index_list(address)').all().map((r) => r.name);
   assert.ok(unversionedIndexes.includes('idx_address_expires_at'));
-
-  // 4. Quick Setup initialize() on an existing unversioned legacy DB (no db_version row)
-  const quickSetupDb = new DatabaseSync(':memory:');
-  t.after(() => quickSetupDb.close());
-  quickSetupDb.exec(`
-    CREATE TABLE address (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE,
-      password TEXT,
-      source_meta TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);
-  `);
-  settingsMap.delete(CONSTANTS.DB_VERSION_KEY);
-  const quickInitRes = await dbApi.initialize(createContext(quickSetupDb));
-  assert.equal(quickInitRes.status, 200);
-  assert.equal(settingsMap.get(CONSTANTS.DB_VERSION_KEY), 'v0.0.11');
-  const quickCols = quickSetupDb.prepare('PRAGMA table_info(address)').all().map((r) => r.name);
-  assert.ok(quickCols.includes('expires_at'));
-  const quickIndexes = quickSetupDb.prepare('PRAGMA index_list(address)').all().map((r) => r.name);
-  assert.ok(quickIndexes.includes('idx_address_expires_at'));
 });
 
 test('shared-auth, single-address user APIs, and transferAddress respect ENABLE_ADDRESS_EXPIRY', async (t) => {
@@ -254,9 +312,7 @@ test('shared-auth, single-address user APIs, and transferAddress respect ENABLE_
     commonGetUserRole: async () => null,
     handleListQuery: common.handleListQuery,
     hideObjectFields: common.hideObjectFields,
-    isAddressExpired: common.isAddressExpired,
-    withExpiresAtFallback: common.withExpiresAtFallback,
-    getBooleanValue: (v) => v === true || v === 'true',
+    isAddressExpired,
   });
   const sentCalls = [];
   const userSendMailApi = (await loadTsModule('../../../worker/src/user_api/user_send_mail_api.ts', {
@@ -278,7 +334,7 @@ test('shared-auth, single-address user APIs, and transferAddress respect ENABLE_
     Jwt: { sign: async () => '', verify: async () => ({}) },
     i18n: { getMessagesbyContext: () => msgs },
     getBooleanValue: (v) => v === true || v === 'true',
-    withExpiresAtFallback: common.withExpiresAtFallback,
+    isAddressExpired,
   });
 
   db.prepare(`INSERT INTO users(id, user_email, password) VALUES (1, 'u1@example.com', 'p'), (2, 'u2@example.com', 'p')`).run();
@@ -305,6 +361,10 @@ test('shared-auth, single-address user APIs, and transferAddress respect ENABLE_
   assert.deepEqual(
     await addressAuthMod.validateAddressPayload(createContext(db, enabledEnv), { address: 'active@example.com', address_id: 2 }),
     { address: 'active@example.com', address_id: 2 },
+  );
+  assert.equal(
+    await addressAuthMod.validateAddressPayload(createContext(db, enabledEnv), { address: 'other@example.com', address_id: 2 }),
+    null,
   );
   assert.deepEqual(
     await addressAuthMod.validateAddressPayload(createContext(db, enabledEnv), { address: 'forever@example.com', address_id: 3 }),

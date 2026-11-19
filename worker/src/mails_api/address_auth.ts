@@ -3,7 +3,7 @@ import i18n from '../i18n';
 import utils, { getBooleanValue, hashPassword, checkCfTurnstile } from '../utils';
 import { Jwt } from 'hono/utils/jwt';
 import { createAddressPasswordLoginToken } from '../address_auth';
-import { isAddressExpired } from '../common';
+import { isAddressExpired } from '../utils/address_expiry';
 
 export default {
     // 修改地址密码
@@ -65,7 +65,10 @@ export default {
             `SELECT * FROM address WHERE name = ?`
         ).bind(email).first<{ id: number; name: string; password: string | null; expires_at?: string | null }>();
 
-        if (!address || (getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY) && isAddressExpired(address.expires_at))) {
+        if (!address) {
+            return c.text(msgs.AddressNotFoundMsg, 404);
+        }
+        if (isAddressExpired(c, address.expires_at)) {
             return c.text(msgs.AddressNotFoundMsg, 404);
         }
 

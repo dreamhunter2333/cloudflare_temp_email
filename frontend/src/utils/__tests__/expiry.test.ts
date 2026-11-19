@@ -59,7 +59,7 @@ describe('resolveExpiryPayload', () => {
     expect(resolveExpiryPayload('constructor', null, 1_700_000_000_000)).toEqual({})
   })
 
-  it('returns expiresIn seconds for preset modes', () => {
+  it('returns an ISO expiresAt for each preset', () => {
     const expectedPresets: [string, number][] = [
       ['1h', 3600],
       ['24h', 86400],
@@ -68,7 +68,9 @@ describe('resolveExpiryPayload', () => {
       ['30d', 2592000],
     ]
     for (const [mode, seconds] of expectedPresets) {
-      expect(resolveExpiryPayload(mode, null, 1_700_000_000_000)).toEqual({ expiresIn: seconds })
+      expect(resolveExpiryPayload(mode, null, 1_700_000_000_000)).toEqual({
+        expiresAt: new Date(1_700_000_000_000 + seconds * 1000).toISOString(),
+      })
     }
   })
 
@@ -141,7 +143,8 @@ describe('BatchCreate expiry validation', () => {
       enablePrefix: true,
       enableRandomSubdomain: false,
       domain: 'example.com',
-      expiresAt: '',
+      expiryMode: 'custom',
+      customExpiresAt: null,
     })
     const createBtnEmpty = Array.from(container.querySelectorAll('button'))
       .find((btn) => btn.textContent?.includes('Create batch'))!
@@ -153,14 +156,15 @@ describe('BatchCreate expiry validation', () => {
     expect(container.textContent).toContain('Please select a valid future expiration date & time')
     appEmpty.unmount()
 
-    const staleTime = new Date(Date.now() + 30_000).toISOString()
+    const staleTime = Date.now() + 30_000
     vi.advanceTimersByTime(60_000)
 
     const appStale = await mountBatchCreate({
       enablePrefix: true,
       enableRandomSubdomain: false,
       domain: 'example.com',
-      expiresAt: staleTime,
+      expiryMode: 'custom',
+      customExpiresAt: staleTime,
     })
     const createBtnStale = Array.from(container.querySelectorAll('button'))
       .find((btn) => btn.textContent?.includes('Create batch'))!
@@ -174,7 +178,7 @@ describe('BatchCreate expiry validation', () => {
   })
 
   it('stops mid-batch if custom expiresAt becomes stale during execution', async () => {
-    const expiresInTwoSeconds = new Date(Date.now() + 2_000).toISOString()
+    const deadline = Date.now() + 2_000
     mockApiFetch.mockImplementationOnce(async () => {
       vi.advanceTimersByTime(5_000)
       return { address: 'a@example.com', jwt: 'jwt-1' }
@@ -184,7 +188,8 @@ describe('BatchCreate expiry validation', () => {
       enablePrefix: false,
       enableRandomSubdomain: false,
       domain: 'example.com',
-      expiresAt: expiresInTwoSeconds,
+      expiryMode: 'custom',
+      customExpiresAt: deadline,
     })
     const createBtn = Array.from(container.querySelectorAll('button'))
       .find((btn) => btn.textContent?.includes('Create batch'))!
@@ -194,7 +199,7 @@ describe('BatchCreate expiry validation', () => {
     })
 
     expect(mockApiFetch).toHaveBeenCalledTimes(1)
-    expect(mockApiFetch.mock.calls[0][1].body).toContain(expiresInTwoSeconds)
+    expect(JSON.parse(mockApiFetch.mock.calls[0][1].body).expiresAt).toBe(new Date(deadline).toISOString())
     app.unmount()
   })
 })

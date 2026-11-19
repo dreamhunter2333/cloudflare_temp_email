@@ -47,33 +47,15 @@ const invalidExpiry = computed(() => {
     if (Number.isNaN(new Date(expiresAt.value).getTime())) return true
     return Math.floor(expiresAt.value / 1000) <= Math.floor(Date.now() / 1000)
 })
-const batchOptions = computed(() => {
-    const base = {
-        enablePrefix: enablePrefix.value,
-        enableRandomSubdomain: subdomainMode.value === 'random',
-        domain: subdomainMode.value === 'custom'
-            ? `${customSubdomain.value.trim()}.${emailDomain.value}`
-            : emailDomain.value,
-    };
-    if (!openSettings.value.enableAddressExpiry) {
-        return base;
-    }
-    if (expiryMode.value === 'custom') {
-        const customDate = typeof expiresAt.value === 'number' && Number.isFinite(expiresAt.value)
-            ? new Date(expiresAt.value)
-            : null;
-        return {
-            ...base,
-            expiresAt: customDate && !Number.isNaN(customDate.getTime())
-                ? customDate.toISOString()
-                : '',
-        };
-    }
-    return {
-        ...base,
-        ...(resolveExpiryPayload(expiryMode.value, expiresAt.value) || {}),
-    };
-})
+const batchOptions = computed(() => ({
+    enablePrefix: enablePrefix.value,
+    enableRandomSubdomain: subdomainMode.value === 'random',
+    domain: subdomainMode.value === 'custom'
+        ? `${customSubdomain.value.trim()}.${emailDomain.value}`
+        : emailDomain.value,
+    expiryMode: openSettings.value.enableAddressExpiry ? expiryMode.value : 'never',
+    customExpiresAt: expiresAt.value,
+}))
 
 const addressRegex = computed(() => {
     try {

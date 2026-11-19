@@ -4,7 +4,7 @@ import { Jwt } from 'hono/utils/jwt';
 
 import i18n from './i18n';
 import { getBooleanValue } from './utils';
-import { withExpiresAtFallback } from './common';
+import { isAddressExpired } from './utils/address_expiry';
 
 const ADDRESS_PASSWORD_LOGIN_TTL_SECONDS = 30 * 24 * 60 * 60;
 
@@ -47,16 +47,12 @@ export const validateAddressPayload = async (
     ) return null;
     const addressId = Number(address_id);
     if (!Number.isSafeInteger(addressId) || addressId <= 0) return null;
-    const exists = await withExpiresAtFallback(
-        () => c.env.DB.prepare(
-            `SELECT id FROM address WHERE id = ? AND name = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`
-        ).bind(addressId, address).first<number>('id'),
-        () => c.env.DB.prepare(
-            `SELECT id FROM address WHERE id = ? AND name = ?`
-        ).bind(addressId, address).first<number>('id'),
-        getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY),
-    );
-    return exists ? { address, address_id: addressId } : null;
+    const row = await c.env.DB.prepare(
+        `SELECT * FROM address WHERE id = ? AND name = ?`
+    ).bind(addressId, address).first<{ expires_at?: string | null }>();
+    if (!row) return null;
+    if (isAddressExpired(c, row.expires_at)) return null;
+    return { address, address_id: addressId };
 };
 
 const validateAddressLoginPayload = async (

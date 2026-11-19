@@ -20,7 +20,7 @@ Unless an entry or its notes describe a different fallback, a `Text/JSON` boolea
 | `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | No       | Whether to allow users to create mailboxes                             | `false`              | `true` |
 | `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | No       | Whether to allow users to delete emails                                | `false`              | `true` |
 | `ENABLE_MAIL_READ_STATUS`  | Text/JSON   | No       | Enables read/unread mail state. Upgrade the database schema before enabling | `false` | `true` |
-| `ENABLE_ADDRESS_EXPIRY`    | Text/JSON   | No       | Enables optional per-address expiration (`expiresAt`/`expiresIn`), expiry enforcement, and cron cleanup. Upgrade database to `v0.0.11` before enabling; disabling pauses enforcement and cleanup without erasing saved deadlines | `false` | `true` |
+| `ENABLE_ADDRESS_EXPIRY`    | Text/JSON   | No       | Enables optional per-address expiration (`expiresAt`), expiry enforcement, and cron cleanup. Upgrade database to `v0.0.11` before enabling; disabling pauses enforcement and cleanup without erasing saved deadlines | `false` | `true` |
 | `ENABLE_REDEEM_CODE`       | Text/JSON   | No       | Enables the redemption page, public redemption APIs, and Admin redemption management | `false` | `true` |
 | `REDEEM_CODE_URL`          | Text        | No       | External URL for obtaining redemption codes                           | Empty; link hidden   | `https://example.com/redeem-codes` |
 
