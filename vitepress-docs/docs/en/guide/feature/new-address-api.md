@@ -27,6 +27,8 @@ res = requests.post(
         "enablePrefix": True,
         "name": "<email_name>",
         "domain": "<email_domain>",
+        # Optional: ISO 8601 string or epoch ms; omit or null for never expiring
+        # "expiresAt": "2026-12-31T23:59:59Z",
     },
     headers={
         'x-admin-auth': "<your_website_admin_password>",
@@ -35,9 +37,22 @@ res = requests.post(
     }
 )
 
-# Returns {"jwt": "<Jwt>", "address": "<email_address>", "address_id": 123}
+# Returns {"jwt": "<Jwt>", "address": "<email_address>", "address_id": 123, "expires_at": null}
 print(res.json())
 ```
+
+### Optional Expiration Time (`expiresAt` / `expiresIn`)
+
+This feature is controlled by `ENABLE_ADDRESS_EXPIRY` (default `false`):
+- **Migrate Before Enabling**: Existing deployments must run the `v0.0.11` database migration (`Admin -> Quick Setup -> Database -> Migrate Database`, `POST /admin/db_migration`, or `db/2026-11-18-address-expires-at.sql`) **before** setting `ENABLE_ADDRESS_EXPIRY = true`.
+- **Disabled Behavior**: When `ENABLE_ADDRESS_EXPIRY` is `false` (default), expiry UI controls are hidden, expiry checks and cleanup are paused (without erasing any previously saved `expires_at` values), and explicitly passing `expiresAt`/`expiresIn` returns an error (`403`) rather than silently creating a permanent mailbox.
+
+When `ENABLE_ADDRESS_EXPIRY = true`, both `/api/new_address` and `/admin/new_address` accept an optional `expiresAt` (or `expires_at`) OR `expiresIn` (or `expires_in`) field (mutually exclusive):
+- Omit or pass `null` (default) so the address never expires.
+- `expiresAt`: Pass a future ISO 8601 timestamp (e.g. `"2026-12-31T23:59:59Z"`) or Unix epoch milliseconds to expire at a specific date/time.
+- `expiresIn`: Pass a positive number of seconds (e.g. `86400` for 24 hours, `604800` for 1 week) to expire after a relative duration.
+- Once expired, shared mailbox authentication/login and single-address user actions reject access immediately. Inbound mail still follows `blockReceiveUnknowAddressEmail` until cleanup removes the address.
+- Actual deletion of expired addresses and their mails happens in bounded batches during the scheduled cron (`expiredAddress`) when `[triggers]` `crons` is enabled in `wrangler.toml` (commented out by default in `wrangler.toml.template`), so exact removal timing depends on your cron schedule and backlog progress.
 
 ### Create a Subdomain Mailbox Address
 

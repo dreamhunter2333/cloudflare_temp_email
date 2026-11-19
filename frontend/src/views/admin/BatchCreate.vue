@@ -11,6 +11,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['busy'])
 const { t } = useScopedI18n('views.admin.BatchCreate')
+const { t: createAccountT } = useScopedI18n('views.admin.CreateAccount')
 const message = useMessage()
 const busy = ref(false)
 const batchCount = ref(10)
@@ -33,14 +34,29 @@ const createBatch = async () => {
     }
     const count = batchCount.value
     const options = { ...props.options }
-    const normalization = props.addressRegex
+    const hasCustomExpiry = Object.prototype.hasOwnProperty.call(options, 'expiresAt')
+    const isBatchExpiryValid = () => {
+        if (!hasCustomExpiry) return true
+        if (typeof options.expiresAt !== 'string' || !options.expiresAt) return false
+        const ts = Date.parse(options.expiresAt)
+        return Number.isFinite(ts) && Math.floor(ts / 1000) > Math.floor(Date.now() / 1000)
+    }
+    if (!isBatchExpiryValid()) {
+        batchError.value = createAccountT('invalidExpiryDateTime')
+        message.error(createAccountT('invalidExpiryDateTime'))
+        return
+    }
     batchCompleted.value = 0
     batchRequested.value = count
     batchError.value = ''
+    const normalization = props.addressRegex
     busy.value = true
     emit('busy', true)
     try {
         for (let i = 0; i < count && !unmounted; i++) {
+            if (!isBatchExpiryValid()) {
+                throw new Error(createAccountT('invalidExpiryDateTime'))
+            }
             const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
             const name = Array.from(crypto.getRandomValues(new Uint8Array(30)),
                 byte => alphabet[byte % alphabet.length]).join('')

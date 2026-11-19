@@ -20,6 +20,7 @@
 | `ENABLE_USER_CREATE_EMAIL` | 文本/JSON   | 否       | 是否允许用户创建邮箱                       | `false`         | `true` |
 | `ENABLE_USER_DELETE_EMAIL` | 文本/JSON   | 否       | 是否允许用户删除邮件                       | `false`         | `true` |
 | `ENABLE_MAIL_READ_STATUS`  | 文本/JSON   | 否       | 启用邮件已读/未读状态。启用前需要升级数据库 Schema | `false` | `true` |
+| `ENABLE_ADDRESS_EXPIRY`    | 文本/JSON   | 否       | 启用邮箱过期时间（`expiresAt`/`expiresIn`）、鉴权过期校验及定时清理。启用前需先升级数据库至 `v0.0.11`；关闭后暂停校验与清理，不会清除已保存的过期时间 | `false` | `true` |
 | `ENABLE_REDEEM_CODE`       | 文本/JSON   | 否       | 启用兑换码页面、用户兑换 API 和管理端兑换码功能 | `false` | `true` |
 | `REDEEM_CODE_URL`          | 文本        | 否       | 获取兑换码的外部平台链接                   | 空，不展示入口  | `https://example.com/redeem-codes` |
 

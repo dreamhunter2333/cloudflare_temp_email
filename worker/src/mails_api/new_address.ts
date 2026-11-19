@@ -2,7 +2,7 @@ import { Context } from 'hono'
 
 import i18n from '../i18n';
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, isAddressCountLimitReached } from '../utils';
-import { newAddress, getAddressPrefix, generateRandomName } from '../common'
+import { newAddress, getAddressPrefix, generateRandomName, hasAddressExpiryInput } from '../common'
 import { CONSTANTS } from '../constants'
 
 const createNewAddress = async (c: Context<HonoCustomType>) => {
@@ -27,7 +27,10 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
     }
 
     // eslint-disable-next-line prefer-const
-    let { name, domain, cf_token, enableRandomSubdomain } = await c.req.json();
+    let { name, domain, cf_token, enableRandomSubdomain, expiresAt, expires_at, expiresIn, expires_in } = await c.req.json();
+    if (hasAddressExpiryInput({ expiresAt, expires_at, expiresIn, expires_in }) && !getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY)) {
+        return c.text(msgs.AddressExpiryDisabledMsg, 403)
+    }
     // check cf turnstile
     try {
         await checkCfTurnstile(c, cf_token);
@@ -63,7 +66,9 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
             enableRandomSubdomain: getBooleanValue(enableRandomSubdomain),
             checkLengthByConfig: true,
             addressPrefix,
-            sourceMeta
+            sourceMeta,
+            expiresAt: expiresAt ?? expires_at,
+            expiresIn: expiresIn ?? expires_in,
         });
         return c.json(res);
     } catch (e) {

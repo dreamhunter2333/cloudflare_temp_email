@@ -4,6 +4,7 @@ import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
+import { resolveExpiryPayload } from '../../utils'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 import BatchCreate from './BatchCreate.vue'
 
@@ -19,6 +20,17 @@ const subdomainMode = ref("normal")
 const customSubdomain = ref("")
 const emailName = ref("")
 const emailDomain = ref("")
+const expiryMode = ref("never")
+const expiresAt = ref(null)
+const expiryOptions = computed(() => [
+    { label: t('neverExpires'), value: 'never' },
+    { label: t('expiry1h'), value: '1h' },
+    { label: t('expiry24h'), value: '24h' },
+    { label: t('expiry3d'), value: '3d' },
+    { label: t('expiry7d'), value: '7d' },
+    { label: t('expiry30d'), value: '30d' },
+    { label: t('expiryCustom'), value: 'custom' },
+])
 const showReultModal = ref(false)
 const result = ref("")
 const addressPassword = ref("")
@@ -29,13 +41,39 @@ const creationMode = ref('single')
 
 const invalidDomain = computed(() => !emailDomain.value
     || (subdomainMode.value === "custom" && !customSubdomain.value.trim()))
-const batchOptions = computed(() => ({
-    enablePrefix: enablePrefix.value,
-    enableRandomSubdomain: subdomainMode.value === 'random',
-    domain: subdomainMode.value === 'custom'
-        ? `${customSubdomain.value.trim()}.${emailDomain.value}`
-        : emailDomain.value,
-}))
+const invalidExpiry = computed(() => {
+    if (!openSettings.value.enableAddressExpiry || expiryMode.value !== 'custom') return false
+    if (typeof expiresAt.value !== 'number' || !Number.isFinite(expiresAt.value)) return true
+    if (Number.isNaN(new Date(expiresAt.value).getTime())) return true
+    return Math.floor(expiresAt.value / 1000) <= Math.floor(Date.now() / 1000)
+})
+const batchOptions = computed(() => {
+    const base = {
+        enablePrefix: enablePrefix.value,
+        enableRandomSubdomain: subdomainMode.value === 'random',
+        domain: subdomainMode.value === 'custom'
+            ? `${customSubdomain.value.trim()}.${emailDomain.value}`
+            : emailDomain.value,
+    };
+    if (!openSettings.value.enableAddressExpiry) {
+        return base;
+    }
+    if (expiryMode.value === 'custom') {
+        const customDate = typeof expiresAt.value === 'number' && Number.isFinite(expiresAt.value)
+            ? new Date(expiresAt.value)
+            : null;
+        return {
+            ...base,
+            expiresAt: customDate && !Number.isNaN(customDate.getTime())
+                ? customDate.toISOString()
+                : '',
+        };
+    }
+    return {
+        ...base,
+        ...(resolveExpiryPayload(expiryMode.value, expiresAt.value) || {}),
+    };
+})
 
 const addressRegex = computed(() => {
     try {
@@ -90,6 +128,14 @@ const newEmail = async () => {
         message.error(t('fillInAllFields'))
         return
     }
+    let expiryPayload = {}
+    if (openSettings.value.enableAddressExpiry) {
+        expiryPayload = resolveExpiryPayload(expiryMode.value, expiresAt.value)
+        if (!expiryPayload) {
+            message.error(t('invalidExpiryDateTime'))
+            return
+        }
+    }
     busy.value = true
     try {
         const domain = subdomainMode.value === "custom"
@@ -102,6 +148,7 @@ const newEmail = async () => {
                 enableRandomSubdomain: subdomainMode.value === "random",
                 name: emailName.value,
                 domain,
+                ...expiryPayload,
             })
         })
         result.value = res["jwt"];
@@ -176,12 +223,22 @@ onMounted(async () => {
                     </n-input-group>
                 </div>
             </n-form-item-row>
+            <n-form-item-row v-if="openSettings.enableAddressExpiry" :label="t('expiresAt')">
+                <div style="width: 100%;">
+                    <n-select v-model:value="expiryMode" :disabled="busy" :options="expiryOptions" />
+                    <n-date-picker v-if="expiryMode === 'custom'" v-model:value="expiresAt"
+                        type="datetime" format="yyyy-MM-dd HH:mm:ss" clearable :disabled="busy"
+                        :placeholder="t('selectExpiryDateTime')"
+                        :is-date-disabled="(ts) => ts < new Date().setHours(0, 0, 0, 0)"
+                        style="width: 100%; margin-top: 8px;" />
+                </div>
+            </n-form-item-row>
             <n-button v-if="creationMode === 'single'" @click="newEmail" type="primary" block :loading="loading"
-                :disabled="busy || generateNameLoading || invalidDomain">
+                :disabled="busy || generateNameLoading || invalidDomain || invalidExpiry">
                 {{ t('createEmailAddress') }}
             </n-button>
             <BatchCreate v-show="creationMode === 'batch'" :options="batchOptions" :address-regex="addressRegex"
-                :disabled="invalidDomain || generateNameLoading || creationMode !== 'batch'" @busy="busy = $event" />
+                :disabled="invalidDomain || invalidExpiry || generateNameLoading || creationMode !== 'batch'" @busy="busy = $event" />
         </n-card>
     </div>
 </template>

@@ -9,7 +9,7 @@ import Turnstile from '../../components/Turnstile.vue'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { getRouterPathWithLang, hashPassword } from '../../utils'
+import { getRouterPathWithLang, hashPassword, resolveExpiryPayload } from '../../utils'
 
 const props = defineProps({
     bindUserAddress: {
@@ -19,7 +19,7 @@ const props = defineProps({
     },
     newAddressPath: {
         type: Function,
-        default: async (address_name, domain, cf_token, enableRandomSubdomain) => {
+        default: async (address_name, domain, cf_token, enableRandomSubdomain, expiryPayload = {}) => {
             return await api.fetch("/api/new_address", {
                 method: "POST",
                 body: JSON.stringify({
@@ -27,10 +27,15 @@ const props = defineProps({
                     domain: domain,
                     cf_token: cf_token,
                     enableRandomSubdomain: enableRandomSubdomain,
+                    ...expiryPayload,
                 }),
             });
         },
         required: true
+    },
+    enableExpiry: {
+        type: Boolean,
+        default: true,
     },
 })
 
@@ -50,6 +55,17 @@ const emailDomain = ref("")
 const cfToken = ref("")
 const subdomainMode = ref("normal")
 const customSubdomain = ref("")
+const expiryMode = ref("never")
+const expiresAt = ref(null)
+const expiryOptions = computed(() => [
+    { label: t('neverExpires'), value: 'never' },
+    { label: t('expiry1h'), value: '1h' },
+    { label: t('expiry24h'), value: '24h' },
+    { label: t('expiry3d'), value: '3d' },
+    { label: t('expiry7d'), value: '7d' },
+    { label: t('expiry30d'), value: '30d' },
+    { label: t('expiryCustom'), value: 'custom' },
+])
 const loginCfToken = ref("")
 const loginTurnstileRef = ref(null)
 const loginMethod = ref('credential') // 'credential' or 'password'
@@ -164,8 +180,18 @@ const generateName = async () => {
     }
 };
 
+const expiryEnabled = computed(() => props.enableExpiry && openSettings.value.enableAddressExpiry);
+
 const newEmail = async () => {
     try {
+        let expiryPayload = {};
+        if (expiryEnabled.value) {
+            expiryPayload = resolveExpiryPayload(expiryMode.value, expiresAt.value);
+            if (!expiryPayload) {
+                message.error(t('invalidExpiryDateTime'));
+                return;
+            }
+        }
         // If custom names are disabled, send empty name to trigger backend auto-generation
         const nameToSend = openSettings.value.disableCustomAddressName ? "" : emailName.value;
         const domainToSend = subdomainMode.value === "custom"
@@ -175,7 +201,8 @@ const newEmail = async () => {
             nameToSend,
             domainToSend,
             cfToken.value,
-            subdomainMode.value === "random"
+            subdomainMode.value === "random",
+            expiryPayload
         );
         jwt.value = res["jwt"];
         addressPassword.value = res["password"] || '';
@@ -356,9 +383,19 @@ onMounted(async () => {
                                 </n-input-group>
                             </div>
                         </n-form-item-row>
+                        <n-form-item-row v-if="expiryEnabled" :label="t('expiresAt')">
+                            <div style="width: 100%;">
+                                <n-select v-model:value="expiryMode" :options="expiryOptions" />
+                                <n-date-picker v-if="expiryMode === 'custom'" v-model:value="expiresAt"
+                                    type="datetime" format="yyyy-MM-dd HH:mm:ss" clearable
+                                    :placeholder="t('selectExpiryDateTime')"
+                                    :is-date-disabled="(ts) => ts < new Date().setHours(0, 0, 0, 0)"
+                                    style="width: 100%; margin-top: 8px;" />
+                            </div>
+                        </n-form-item-row>
                         <Turnstile v-model:value="cfToken" />
                         <n-button type="primary" block secondary strong @click="newEmail" :loading="loading"
-                            :disabled="subdomainMode === 'custom' && !customSubdomain.trim()">
+                            :disabled="(subdomainMode === 'custom' && !customSubdomain.trim()) || (expiryEnabled && expiryMode === 'custom' && !expiresAt)">
                             <template #icon>
                                 <n-icon :component="NewLabelOutlined" />
                             </template>

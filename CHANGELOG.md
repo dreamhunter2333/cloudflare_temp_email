@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |邮箱| 新增 `ENABLE_ADDRESS_EXPIRY` 开关（默认关闭 `false`），开启后支持在通过 API（`/api/new_address`、`/admin/new_address`）和 Web 界面创建邮箱时设置可选过期时间 `expiresAt`/`expiresIn`（默认永不过期），对单邮箱共享鉴权及单地址用户操作执行过期校验，并在 cron 中分批清理过期邮箱及关联数据；升级数据库 Schema 至 `v0.0.11`（需先升级数据库再开启开关；实际清理时间取决于 cron 调度与清理进度；关闭开关将暂停校验与清理但保留已保存的过期时间；已有部署升级需在管理后台 `Admin -> 快速设置 -> 数据库 -> 升级数据库 Schema` 执行迁移，若当前已在 `v0.0.10` 也可手动执行 `db/2026-11-18-address-expires-at.sql`）
+
 ### Bug Fixes
 
 ### Improvements

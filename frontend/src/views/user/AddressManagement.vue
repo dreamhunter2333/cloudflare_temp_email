@@ -1,17 +1,17 @@
 <script setup>
-import { ref, h, onMounted, watch } from 'vue';
+import { computed, ref, h, onMounted, watch } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router';
 import { NBadge, NPopconfirm, NButton } from 'naive-ui'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { getRouterPathWithLang } from '../../utils'
+import { getRouterPathWithLang, utcToLocalDate } from '../../utils'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 import Login from '../common/Login.vue';
 
-const { jwt, openSettings, loading } = useGlobalState()
+const { jwt, openSettings, loading, useUTCDate } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
 
@@ -145,7 +145,7 @@ const searchData = () => {
     }
 }
 
-const columns = [
+const columns = computed(() => [
     {
         title: t('emailAddress'),
         key: "name"
@@ -174,6 +174,13 @@ const columns = [
             })
         }
     },
+    ...(openSettings.value.enableAddressExpiry ? [{
+        title: t('expires_at'),
+        key: "expires_at",
+        render(row) {
+            return row.expires_at ? utcToLocalDate(row.expires_at, useUTCDate.value) : t('neverExpires');
+        }
+    }] : []),
     {
         title: t('actions'),
         key: 'actions',
@@ -232,7 +239,7 @@ const columns = [
             ])
         }
     }
-]
+])
 
 onMounted(async () => {
     await fetchData()

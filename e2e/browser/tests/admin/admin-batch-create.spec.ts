@@ -232,7 +232,7 @@ test('sends selected domain, prefix and subdomain settings and retains CSV resul
   await createBatch(page).click();
   await expect(page.getByText('Saved results: 1', { exact: true })).toBeVisible();
   await form(page).getByRole('switch').click();
-  await form(page).locator('.n-select').click();
+  await form(page).locator('.n-input-group .n-select').click();
   await page.getByText('other.example.com', { exact: true }).last().click();
   await form(page).getByText('Use Random Subdomain', { exact: true }).click();
   await createBatch(page).click();
@@ -323,7 +323,9 @@ test('locks shared settings and mode switching for the entire sequential batch',
       await expect(form(page).getByRole('button', { name: 'Generate Fake Name' })).toHaveCount(0);
       await expect(countInput(page)).toBeDisabled();
       for (const input of await form(page).locator('.n-input-group .n-input input').all()) await expect(input).toBeDisabled();
-      await expect(form(page).locator('.n-select .n-base-selection')).toHaveClass(/n-base-selection--disabled/);
+      for (const select of await form(page).locator('.n-select .n-base-selection').all()) {
+        await expect(select).toHaveClass(/n-base-selection--disabled/);
+      }
       await expect(form(page).getByRole('switch')).toHaveClass(/n-switch--disabled/);
       for (const radio of await form(page).getByRole('radio').all()) await expect(radio).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Export CSV' })).toBeDisabled();
