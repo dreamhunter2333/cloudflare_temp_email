@@ -80,6 +80,12 @@ Admins can enable **global mail push** in the admin panel under `Settings` -> `T
 > [!NOTE]
 > Global push and per-user push can work simultaneously. If an address is bound to a user who is also in the global push list, they will receive two notifications.
 
+### Blocking or removing the bot
+
+For existing deployments, apply `db/2026-11-19-telegram-chat-delivery.sql` before updating the Worker. After updating, click **Initialize** again in the Telegram admin page so Telegram includes the verification secret with each webhook request.
+
+Mail notifications pause when the bot is blocked or removed from a group or channel. Existing mailbox bindings and global notification recipients resume when the bot is unblocked or re-added. For historical recipients, an explicit blocked or removed send error also pauses notifications.
+
 ### Attachment Push
 
 > [!NOTE]

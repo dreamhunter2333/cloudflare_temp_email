@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |Telegram| 拉黑或移除机器人事件直接确认并暂停推送，历史目标首次明确发送失败后停用，解除拉黑或重新加入后恢复。已有部署需迁移数据库至 `v0.0.12` 并重新初始化 Telegram webhook
+
 ### Improvements
 
 ## v1.14.0

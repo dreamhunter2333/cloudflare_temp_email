@@ -81,6 +81,15 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS telegram_chat_delivery (
+    bot_id TEXT NOT NULL,
+    chat_id TEXT NOT NULL,
+    blocked INTEGER NOT NULL,
+    observed_at INTEGER NOT NULL,
+    update_id INTEGER NOT NULL,
+    PRIMARY KEY (bot_id, chat_id)
+);
+
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     user_email TEXT UNIQUE NOT NULL,
