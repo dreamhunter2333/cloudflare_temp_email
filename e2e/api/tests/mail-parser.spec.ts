@@ -1,8 +1,25 @@
 import { test, expect } from '@playwright/test';
-import { commonParseMail } from '../../../worker/src/common';
+import { commonParseMail } from '../../../worker/src/utils/mail_parser';
 import { remove_attachment_if_need } from '../../../worker/src/email/check_attachment';
 
 test.describe('Worker PostalMime v4 contract', () => {
+  test('returns undefined without raw mail', async () => {
+    for (const context of [undefined, {}, { rawEmail: '' }]) {
+      expect(await commonParseMail(context as ParsedEmailContext)).toBeUndefined();
+    }
+  });
+
+  test('reuses the cached parsed message without reparsing changed raw mail', async () => {
+    const context: ParsedEmailContext = {
+      rawEmail: 'From: First <first@example.com>\r\nSubject: Original\r\n\r\nBody',
+    };
+    const parsed = await commonParseMail(context);
+    context.rawEmail = 'From: Second <second@example.com>\r\nSubject: Changed\r\n\r\nOther body';
+    expect(await commonParseMail(context)).toBe(parsed);
+    expect(parsed?.sender).toBe('First <first@example.com>');
+    expect(parsed?.subject).toBe('Original');
+  });
+
   for (const [headers, sender] of [
     ['From: First <first@example.com>\r\nFrom: Last <last@example.com>', 'First <first@example.com>'],
     ['From: invalid\r\nFrom: Last <last@example.com>', 'invalid <>'],

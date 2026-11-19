@@ -8,7 +8,7 @@ import { getBooleanValue, getDomains, getJsonObjectValue, trimLower, htmlToText 
 import { TelegramSettings } from "./settings";
 import { sendTelegramAttachments } from "./tg_file_upload";
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
-import { commonParseMail } from "../common";
+import { commonParseMail } from "../utils/mail_parser";
 import { resolveRawEmail } from "../gzip";
 import { UserFromGetMe } from "telegraf/types";
 import i18n from "../i18n";

@@ -1,7 +1,8 @@
 import { Context } from "hono";
 import { CONSTANTS } from "../constants";
 import { AdminWebhookSettings, WebhookSettings, RawMailRow } from "../models";
-import { commonParseMail, sendWebhook, compileWebhookFilter } from "../common";
+import { sendWebhook, compileWebhookFilter } from "../common";
+import { commonParseMail } from "../utils/mail_parser";
 import { resolveRawEmail } from "../gzip";
 import { getWebhookAttachments } from '../utils/webhook';
 import i18n from "../i18n";

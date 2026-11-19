@@ -16,6 +16,8 @@
 
 ### Improvements
 
+- refactor: |Mail Parsing| Extract backend mail parsing into a shared module without changing parsing behavior or WASM selection
+
 ## v1.14.0
 
 ### Features

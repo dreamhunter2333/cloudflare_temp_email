@@ -1,6 +1,7 @@
 import { Context } from 'hono'
 
-import { commonParseMail, handleMailListQuery, updateAddressUpdatedAt } from '../common'
+import { handleMailListQuery, updateAddressUpdatedAt } from '../common'
+import { commonParseMail } from '../utils/mail_parser'
 import { resolveRawEmailRow } from '../gzip'
 
 const toParsedMailRow = async (row: Record<string, unknown>): Promise<Record<string, unknown>> => {
