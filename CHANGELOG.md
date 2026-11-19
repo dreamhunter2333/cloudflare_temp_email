@@ -16,6 +16,8 @@
 
 ### Improvements
 
+- refactor: |邮件解析| 将后端邮件解析提取为独立公共模块，保持解析行为和 WASM 切换方式不变
+
 ## v1.14.0
 
 ### Features

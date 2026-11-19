@@ -1,5 +1,5 @@
 import { getBooleanValue, getStringArray } from "../utils";
-import { commonParseMail } from "../common";
+import { commonParseMail } from "../utils/mail_parser";
 import { isJunkMailByHeaders } from "./junk_mail_policy";
 
 export const check_if_junk_mail = async (

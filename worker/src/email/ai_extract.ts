@@ -6,7 +6,7 @@
  * authentication links, service links, and subscription management links.
  */
 
-import { commonParseMail } from "../common";
+import { commonParseMail } from "../utils/mail_parser";
 import { extractCode, joinSubjectAndBody } from "./extract_code";
 import { ExtractMode, resolveExtractMode } from "./extract_mode";
 import { getBooleanValue, getJsonSetting } from "../utils";

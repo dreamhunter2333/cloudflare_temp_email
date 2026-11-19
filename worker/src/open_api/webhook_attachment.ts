@@ -5,7 +5,7 @@ import { RawMailRow } from '../models';
 import { getBooleanValue } from '../utils';
 import i18n from '../i18n';
 
-import { commonParseMail } from '../common';
+import { commonParseMail } from '../utils/mail_parser';
 import {
     WEBHOOK_ATTACHMENT_TTL_SECONDS, SAFE_INLINE_IMAGE_TYPES,
     decodeBase32, getSigningKey, getSignaturePayload

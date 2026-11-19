@@ -28,7 +28,7 @@ cd worker
 pnpm add mail-parser-wasm-worker
 ```
 
-编辑 `worker/src/common.ts`, 取消注释这段代码，使用 mail-parser-wasm-worker 来解析邮件
+编辑 `worker/src/utils/mail_parser.ts`, 取消注释这段代码，使用 mail-parser-wasm-worker 来解析邮件
 
 ```ts
 export const commonParseMail = async (raw_mail: string | undefined | null): Promise<{

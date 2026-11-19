@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'mail-parser-wasm/**'
+      - 'worker/src/utils/mail_parser.ts'
+      - '.github/config/mail-parser-wasm-worker.patch'
       - 'e2e/wasm/**'
       - 'e2e/package-lock.json'
       - 'e2e/package.json'
