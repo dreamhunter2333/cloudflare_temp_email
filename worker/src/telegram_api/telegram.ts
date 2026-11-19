@@ -1,12 +1,13 @@
 
 import { Context } from "hono";
-import { Telegraf, Context as TgContext, Markup } from "telegraf";
+import { Telegraf, Context as TgContext, Markup, TelegramError } from "telegraf";
 import { callbackQuery } from "telegraf/filters";
 
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getDomains, getJsonObjectValue, trimLower, htmlToText } from '../utils';
 import { TelegramSettings } from "./settings";
 import { sendTelegramAttachments } from "./tg_file_upload";
+import { isTelegramChatBlocked, isTelegramChatUnavailable, recordTelegramChatBlocked } from './chat_delivery';
 import { bindTelegramAddress, deleteTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress, unbindTelegramByAddress } from "./common";
 import { commonParseMail } from "../utils/mail_parser";
 import { resolveRawEmail } from "../gzip";
@@ -139,8 +140,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
     }
 
     bot.use(async (ctx, next) => {
-        // check if in private chat
-        if (ctx.chat?.type !== "private") {
+        if (ctx.chat?.type !== "private" || await isTelegramChatBlocked(c.env, String(ctx.chat.id))) {
             return;
         }
 
@@ -157,9 +157,14 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
             const msgs = await getTgMessages(c, ctx);
             return await ctx.reply(msgs.TgNoPermissionMsg);
         }
+        const startedAt = Date.now();
         try {
             await next();
         } catch (error) {
+            if (error instanceof TelegramError && isTelegramChatUnavailable(error.code, error.description)) {
+                await recordTelegramChatBlocked(c.env, String(ctx.chat.id), startedAt);
+                return;
+            }
             console.error(`Error: ${error}`);
             return await ctx.reply(`Error: ${error}`);
         }
@@ -484,7 +489,11 @@ export async function sendMailToTelegram(
     }
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
 
+    const blockedTargets = new Set<string>();
     const buildAndSend = async (targetUserId: string, msgs: LocaleMessages) => {
+        const target = String(targetUserId).toLowerCase();
+        if (blockedTargets.has(target) || await isTelegramChatBlocked(c.env, target)) return;
+
         const { mail } = await parseMail(
             msgs, parsedEmailContext, address, new Date().toUTCString(), aiExtract
         );
@@ -497,13 +506,27 @@ export async function sendMailToTelegram(
             url.searchParams.set("mail_id", String(mailId));
             buttons.push(Markup.button.webApp(msgs.TgViewMailBtnMsg, url.toString()));
         }
-        await bot.telegram.sendMessage(targetUserId, mail, {
-            ...Markup.inlineKeyboard([...buttons])
-        });
+        const startedAt = Date.now();
+        try {
+            await bot.telegram.sendMessage(targetUserId, mail, {
+                ...Markup.inlineKeyboard([...buttons])
+            });
+        } catch (error) {
+            if (!(error instanceof TelegramError) || !isTelegramChatUnavailable(error.code, error.description)) {
+                throw error;
+            }
+            blockedTargets.add(target);
+            await recordTelegramChatBlocked(c.env, target, startedAt);
+            return;
+        }
         // send attachments via native fetch (telegraf multipart upload is incompatible with CF Workers)
         if (getBooleanValue(c.env.ENABLE_TG_PUSH_ATTACHMENT) && attachments.length > 0) {
             const caption = `From: ${parsedEmailContext.parsedEmail?.sender || ""}\nSubject: ${parsedEmailContext.parsedEmail?.subject || ""}`;
-            await sendTelegramAttachments(c.env.TELEGRAM_BOT_TOKEN, targetUserId, attachments, caption);
+            const unavailableAt = await sendTelegramAttachments(c.env, targetUserId, attachments, caption);
+            if (unavailableAt !== undefined) {
+                blockedTargets.add(target);
+                await recordTelegramChatBlocked(c.env, target, unavailableAt);
+            }
         }
     };
 

@@ -1,11 +1,13 @@
+import { isTelegramChatBlocked, isTelegramChatUnavailable } from './chat_delivery';
+
 const TG_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB Telegram Bot API limit
 
 export async function sendTelegramAttachments(
-    botToken: string,
+    env: Bindings,
     chatId: string,
     attachments: ParsedEmailAttachment[],
     caption: string
-) {
+): Promise<number | undefined> {
     try {
         const validAttachments = attachments.filter(att => {
             if (att.content.byteLength > TG_MAX_FILE_SIZE) {
@@ -34,12 +36,17 @@ export async function sendTelegramAttachments(
             }
             formData.append('chat_id', chatId);
             formData.append('media', JSON.stringify(media));
+            if (await isTelegramChatBlocked(env, chatId)) return;
+
+            const startedAt = Date.now();
             const res = await fetch(
-                `https://api.telegram.org/bot${botToken}/sendMediaGroup`,
+                `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMediaGroup`,
                 { method: 'POST', body: formData }
             );
             if (!res.ok) {
                 const text = await res.text();
+                if (isTelegramChatUnavailable(res.status, text)) return startedAt;
+
                 console.error(`Failed to send attachment batch ${i / batchSize + 1}: ${res.status} ${text.substring(0, 200)}`);
             }
         }

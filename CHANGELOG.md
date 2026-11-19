@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |Telegram| 拉黑或移除机器人事件直接确认并暂停推送，历史目标首次明确发送失败后停用，解除拉黑或重新加入后恢复。所有 webhook 请求均验证密钥，停推状态保存在现有 KV，已有部署需重新初始化 Telegram webhook
+
 ### Improvements
 
 - refactor: |邮件解析| 将后端邮件解析提取为独立公共模块，保持解析行为和 WASM 切换方式不变

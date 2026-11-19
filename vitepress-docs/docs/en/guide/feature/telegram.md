@@ -80,6 +80,12 @@ Admins can enable **global mail push** in the admin panel under `Settings` -> `T
 > [!NOTE]
 > Global push and per-user push can work simultaneously. If an address is bound to a user who is also in the global push list, they will receive two notifications.
 
+### Blocking or removing the bot
+
+The Worker stores chat delivery state in the existing KV namespace. After updating an existing deployment, click **Initialize** again in the Telegram admin page so Telegram includes the verification secret with each webhook request. Reinitialize promptly after deployment because the Worker rejects every webhook request that fails secret verification.
+
+Mail notifications pause when the bot is blocked or removed from a group or channel. Existing mailbox bindings and global notification recipients resume when the bot is unblocked or re-added. For historical recipients, an explicit blocked or removed send error also pauses notifications. Changes may take 60 seconds or longer to become visible in other Cloudflare locations.
+
 ### Attachment Push
 
 > [!NOTE]

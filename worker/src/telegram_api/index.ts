@@ -1,8 +1,10 @@
 import { Hono } from 'hono'
 import { ServerResponse } from 'node:http'
 import { Writable } from 'node:stream'
+import type { Update } from 'telegraf/types'
 
 import { newTelegramBot, initTelegramBotCommands, sendMailToTelegram } from './telegram'
+import { getTelegramWebhookSecret, handleTelegramMembershipUpdate, verifyTelegramWebhookSecret } from './chat_delivery'
 import settings from './settings'
 import miniapp from './miniapp'
 import i18n from '../i18n'
@@ -34,6 +36,16 @@ api.use("/admin/telegram/*", async (c, next) => {
 
 api.post("/telegram/webhook", async (c) => {
     const token = c.env.TELEGRAM_BOT_TOKEN;
+    if (!verifyTelegramWebhookSecret(token, c.req.header('X-Telegram-Bot-Api-Secret-Token'))) {
+        return c.body(null, 401);
+    }
+
+    const update = await c.req.json<Update>();
+    if ('my_chat_member' in update) {
+        await handleTelegramMembershipUpdate(c.env, update);
+        return c.body(null, 200);
+    }
+
     const bot = newTelegramBot(c, token);
     let body = null;
     const res = new Writable();
@@ -42,8 +54,7 @@ api.post("/telegram/webhook", async (c) => {
         setHeader: (name: string, value: string) => c.header(name, value),
         end: (data: any) => body = data,
     });
-    const reqJson = await c.req.json();
-    await bot.handleUpdate(reqJson, res as ServerResponse);
+    await bot.handleUpdate(update, res as ServerResponse);
     return c.body(body);
 });
 
@@ -53,7 +64,10 @@ api.post("/admin/telegram/init", async (c) => {
     const webhookUrl = `https://${domain}/telegram/webhook`;
     console.log(`setting webhook to ${webhookUrl}`);
     const bot = newTelegramBot(c, token);
-    await bot.telegram.setWebhook(webhookUrl)
+    await bot.telegram.setWebhook(webhookUrl, {
+        allowed_updates: ["message", "callback_query", "my_chat_member"],
+        secret_token: getTelegramWebhookSecret(token),
+    });
     await initTelegramBotCommands(c, bot);
     return c.json({
         message: "webhook set successfully",

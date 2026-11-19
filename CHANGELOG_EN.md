@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |Telegram| Acknowledge block and removal updates, pause push after a confirmed failure for existing recipients, and resume on unblock or rejoin. Require a valid secret for all webhook updates. Store delivery state in the existing KV namespace. Existing deployments must initialize the Telegram webhook again
+
 ### Improvements
 
 - refactor: |Mail Parsing| Extract backend mail parsing into a shared module without changing parsing behavior or WASM selection
