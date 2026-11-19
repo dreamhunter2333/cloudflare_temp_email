@@ -1,4 +1,12 @@
 export const ptBRMessages = {
+  "views.index.AccountSettings.mailAiAssistant": "Assistente de e-mail com IA",
+  "views.index.AccountSettings.translationLanguage": "Idioma da tradução",
+  "views.index.AccountSettings.followInterfaceLanguage": "Seguir o idioma da interface",
+  "components.MailProcessing.summarize": "Resumir",
+  "components.MailProcessing.translate": "Traduzir",
+  "components.MailProcessing.summary": "Resumo do e-mail",
+  "components.MailProcessing.showOriginal": "Ver original",
+  "components.MailProcessing.failed": "Não foi possível processar o e-mail. Tente novamente.",
   "views.admin.CreateAccount.creationMode": "Modo de criação",
   "views.admin.CreateAccount.singleMode": "Criação individual",
   "views.admin.CreateAccount.batchMode": "Criação em lote",

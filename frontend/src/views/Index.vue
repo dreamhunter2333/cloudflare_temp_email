@@ -136,7 +136,8 @@ onMounted(() => {
           <MailBox :key="mailBoxKey" :showEMailTo="false" :showReply="openSettings.enableSendMail" :showSaveS3="openSettings.isS3Enabled"
             :saveToS3="saveToS3" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
             :fetchMailData="fetchMailData" :deleteMail="deleteMail" :showFilterInput="true"
-            :enableMailReadStatus="openSettings.enableMailReadStatus" :updateMailReadStatus="updateMailReadStatus" />
+            :enableMailReadStatus="openSettings.enableMailReadStatus" :updateMailReadStatus="updateMailReadStatus"
+            :mailAiProcessing="settings.mailAiProcessing" />
         </n-tab-pane>
         <n-tab-pane v-if="openSettings.enableSendMail" name="sendbox" :tab="t('sendbox')">
           <SendBox :fetchMailData="fetchSenboxData" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"

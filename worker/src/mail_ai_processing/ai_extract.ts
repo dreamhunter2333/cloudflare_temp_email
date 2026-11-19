@@ -12,8 +12,8 @@ import { ExtractMode, resolveExtractMode } from "./extract_mode";
 import { getBooleanValue, getJsonSetting } from "../utils";
 import { CONSTANTS } from "../constants";
 import { Context } from "hono";
-import type { AiExtractSettings } from "../admin_api/ai_extract_settings";
 import type { ExtractResult } from "../models";
+import { isAddressInAiAllowlist, type AiExtractSettings } from "./allowlist";
 
 // AI Prompt for email analysis
 const PROMPT = `
@@ -226,20 +226,6 @@ function getEmailContentForExtract(parsedEmail: Awaited<ReturnType<typeof common
     }
 
     return htmlToTextForAi(parsedEmail.html) || parsedEmail.html;
-}
-
-function isAddressInAiAllowlist(settings: AiExtractSettings | null | undefined, address: string): boolean {
-    if (!settings?.enableAllowList) return true;
-    if (!Array.isArray(settings.allowList) || settings.allowList.length === 0) return false;
-
-    return settings.allowList.some(pattern => {
-        if (typeof pattern !== 'string') return false;
-        if (!pattern.includes('*')) return address === pattern;
-        const escapedPattern = pattern
-            .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-            .replace(/\*/g, '.*');
-        return new RegExp('^' + escapedPattern + '$').test(address);
-    });
 }
 
 /**

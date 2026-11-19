@@ -6,6 +6,7 @@ import { handleMailListQuery, deleteAddressWithData, updateAddressUpdatedAt } fr
 import { resolveRawEmailRow } from '../gzip'
 import { getSendBalanceState } from './send_balance';
 import { renewAddressPasswordLoginToken } from '../address_auth';
+import { getMailProcessingAccess } from '../mail_ai_processing';
 
 const listMails = async (c: Context<HonoCustomType>) => {
     const { address } = c.get("jwtPayload")
@@ -68,10 +69,12 @@ const getSettings = async (c: Context<HonoCustomType>) => {
     updateAddressUpdatedAt(c, address);
 
     const { balance } = await getSendBalanceState(c, address);
+    const mailProcessing = await getMailProcessingAccess(c, address);
     return c.json({
         address: address,
         send_balance: balance || 0,
         new_address_token: await renewAddressPasswordLoginToken(c, c.get("jwtPayload")),
+        mailAiProcessing: Boolean(mailProcessing),
     });
 };
 

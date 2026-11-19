@@ -1,5 +1,6 @@
 import { Context, Hono } from 'hono'
 import { cors } from 'hono/cors';
+import { HTTPException } from 'hono/http-exception';
 import { Jwt } from 'hono/utils/jwt'
 import { addressJwtAuth } from './address_auth';
 
@@ -34,6 +35,9 @@ const app = new Hono<HonoCustomType>()
 app.use('/*', cors());
 // error handler
 app.onError((err, c) => {
+	if (err instanceof HTTPException && err.status === 400) {
+		return c.text(i18n.getMessagesbyContext(c).InvalidRequestBodyMsg, 400);
+	}
 	console.error(err)
 	return c.json({ code: ErrorCode.INTERNAL_SERVER_ERROR, message: `${err.name} ${err.message}` }, 500)
 })
@@ -71,9 +75,11 @@ app.use('/*', async (c, next) => {
 	}
 
 	// rate limit for specific endpoints
+	const mailProcessing = c.req.method === "POST" && /^\/api\/mails\/[^/]+\/(summarize|translate)$/.test(c.req.path);
 	if (
 		c.req.path.startsWith("/api/new_address")
 		|| c.req.path.startsWith("/api/send_mail")
+		|| mailProcessing
 		|| c.req.path.startsWith("/external/api/send_mail")
 		|| (c.req.path.startsWith("/user_api/address/") && c.req.path.endsWith("/send_mail"))
 		|| c.req.path.startsWith("/user_api/register")
@@ -82,8 +88,9 @@ app.use('/*', async (c, next) => {
 	) {
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
+			const rateLimitPath = mailProcessing ? "/api/mails/:mail_id/processing" : c.req.path;
 			const { success } = await c.env.RATE_LIMITER.limit(
-				{ key: `${c.req.path}|${reqIp}` }
+				{ key: `${rateLimitPath}|${reqIp}` }
 			)
 			if (!success) {
 				return c.text(`IP=${reqIp} Rate limit exceeded for ${c.req.path}`, 429)
