@@ -58,7 +58,7 @@ test.describe('Address Expiration UI', () => {
     await page.locator('.n-radio').getByText('Batch creation', { exact: true }).click();
     await page.getByRole('textbox', { name: 'Batch count' }).fill('1');
 
-    const expirySelect = card.locator('.n-form-item-row', { hasText: 'Expiration (Optional)' }).locator('.n-select');
+    const expirySelect = card.locator('.n-form-item', { hasText: 'Expiration (Optional)' }).locator('.n-select');
     await expirySelect.click();
     await page.locator('.n-base-select-option').getByText('24 hours', { exact: true }).click();
 
