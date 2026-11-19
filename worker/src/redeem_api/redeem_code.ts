@@ -1,6 +1,7 @@
 import { Context, Next } from 'hono';
 
-import { generateRandomName, newAddress as createAddress } from '../common';
+import { newAddress as createAddress } from '../common';
+import { generateRandomName } from '../utils/address_creation';
 import i18n from '../i18n';
 import { ensureDefaultSendBalance } from '../mails_api/send_balance';
 import {

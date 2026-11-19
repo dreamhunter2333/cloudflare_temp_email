@@ -3,7 +3,8 @@ import { Jwt } from "hono/utils/jwt";
 import { validateAddressPayload, verifyAddressToken } from '../address_auth';
 import { CONSTANTS } from "../constants";
 import { getBooleanValue, getIntValue, getJsonSetting } from "../utils";
-import { deleteAddressWithData, newAddress, generateRandomName } from "../common";
+import { deleteAddressWithData, newAddress } from "../common";
+import { generateRandomName } from "../utils/address_creation";
 import { LocaleMessages } from "../i18n/type";
 import i18n from '../i18n';
 

@@ -2,7 +2,8 @@ import { Context } from 'hono'
 
 import i18n from '../i18n';
 import { getBooleanValue, getJsonSetting, checkCfTurnstile, isAddressCountLimitReached } from '../utils';
-import { newAddress, getAddressPrefix, generateRandomName } from '../common'
+import { newAddress, getAddressPrefix } from '../common'
+import { generateRandomName } from '../utils/address_creation'
 import { shouldRejectExpiryInput } from '../utils/address_expiry'
 import { CONSTANTS } from '../constants'
 
