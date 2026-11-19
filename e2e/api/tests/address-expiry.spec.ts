@@ -23,9 +23,9 @@ test.describe('Address Expiration', () => {
 
       const explicitApiRes = await request.post(`${url}/api/new_address`, {
         headers: extraHeaders,
-        data: { name: `expdis${Date.now().toString(36)}`, domain: TEST_DOMAIN, expiresIn: 3600 },
+        data: { name: `expdis${Date.now().toString(36)}`, domain: TEST_DOMAIN, expiresAt: new Date(Date.now() + 3600_000).toISOString() },
       });
-      expect(explicitApiRes.status(), `${label} explicit expiresIn`).toBe(403);
+      expect(explicitApiRes.status(), `${label} explicit expiresAt`).toBe(403);
 
       const explicitAdminRes = await request.post(`${url}/admin/new_address`, {
         headers: extraHeaders,
@@ -41,7 +41,8 @@ test.describe('Address Expiration', () => {
         headers: extraHeaders,
         data: { cleanType: 'expiredAddress' },
       });
-      expect(cleanupRes.status(), `${label} disabled cleanup`).toBe(403);
+      expect(cleanupRes.status(), `${label} disabled cleanup`).toBe(500);
+      expect(await cleanupRes.text()).toContain('Address expiration is disabled');
 
       // Normal mailbox access continues unaffected when disabled
       const accessRes = await request.get(`${url}/api/settings`, {
@@ -68,61 +69,56 @@ test.describe('Address Expiration', () => {
 
     expect(res.ok()).toBe(true);
     const body = await res.json();
-    expect(body.expires_at).toBeNull();
+    expect(body.expires_at).toBeUndefined();
+    const listRes = await request.get(`${WORKER_URL}/admin/address`, {
+      params: { query: body.address, limit: '10', offset: '0' },
+    });
+    expect(listRes.ok()).toBe(true);
+    expect((await listRes.json()).results).toContainEqual(expect.objectContaining({
+      id: body.address_id,
+      expires_at: null,
+    }));
     await deleteAddress(request, body.jwt);
   });
 
-  test('rejects invalid or past expiresAt values', async ({ request }) => {
-    const pastIso = new Date(Date.now() - 60_000).toISOString();
-    const pastRes = await request.post(`${WORKER_URL}/admin/new_address`, {
-      data: { name: `pastexp${Date.now()}`, domain: TEST_DOMAIN, expiresAt: pastIso },
-    });
-    expect(pastRes.status()).toBe(400);
-    expect(await pastRes.text()).toContain('Invalid expiration time');
+  test('rejects invalid, past, or out-of-range expiresAt values', async ({ request }) => {
+    for (const expiresAt of ['2019-01-01T00:00:00Z', '2999-01-01T00:00:00Z']) {
+      const response = await request.post(`${WORKER_URL}/admin/new_address`, {
+        data: { name: `rangeexp${Date.now()}`, domain: TEST_DOMAIN, expiresAt },
+      });
+      expect(response.status(), expiresAt).toBe(400);
+      expect(await response.text()).toContain('Invalid expiration time');
+    }
 
-    const invalidRes = await request.post(`${WORKER_URL}/api/new_address`, {
-      data: { name: `badexp${Date.now()}`, domain: TEST_DOMAIN, expiresAt: 'not-a-date' },
-    });
-    expect(invalidRes.status()).toBe(400);
-    expect(await invalidRes.text()).toContain('Invalid expiration time');
-
-    const blankRes = await request.post(`${WORKER_URL}/api/new_address`, {
-      data: { name: `blankexp${Date.now()}`, domain: TEST_DOMAIN, expiresAt: '   ' },
-    });
-    expect(blankRes.status()).toBe(400);
-    expect(await blankRes.text()).toContain('Invalid expiration time');
-
-    const invalidInRes = await request.post(`${WORKER_URL}/api/new_address`, {
-      data: { name: `badin${Date.now()}`, domain: TEST_DOMAIN, expiresIn: -60 },
-    });
-    expect(invalidInRes.status()).toBe(400);
-    expect(await invalidInRes.text()).toContain('Invalid expiration time');
-
-    const bothRes = await request.post(`${WORKER_URL}/admin/new_address`, {
-      data: {
-        name: `bothexp${Date.now()}`,
-        domain: TEST_DOMAIN,
-        expiresAt: new Date(Date.now() + 60_000).toISOString(),
-        expiresIn: 60,
-      },
-    });
-    expect(bothRes.status()).toBe(400);
-    expect(await bothRes.text()).toContain('Invalid expiration time');
+    for (const expiresAt of ['not-a-date', '   ', '2099-01-01T08:00:00', 'February 30, 2099 00:00:00 GMT']) {
+      const response = await request.post(`${WORKER_URL}/api/new_address`, {
+        data: { name: `badexp${Date.now()}`, domain: TEST_DOMAIN, expiresAt },
+      });
+      expect(response.status(), expiresAt).toBe(400);
+      expect(await response.text()).toContain('Invalid expiration time');
+    }
   });
 
-  test('supports relative expiresIn duration in seconds', async ({ request }) => {
-    const startedAt = Date.now();
-    const res = await request.post(`${WORKER_URL}/api/new_address`, {
-      data: { name: `relexp${Date.now().toString(36)}`, domain: TEST_DOMAIN, expiresIn: 86400 },
-    });
-    const finishedAt = Date.now();
-    expect(res.ok()).toBe(true);
-    const body = await res.json();
-    expect(body.expires_at).toBeTruthy();
-    const storedMs = Date.parse(`${body.expires_at.replace(' ', 'T')}Z`);
-    expect(storedMs).toBeGreaterThanOrEqual(Math.floor((startedAt + 86400_000) / 1000) * 1000);
-    expect(storedMs).toBeLessThanOrEqual(Math.floor((finishedAt + 86400_000) / 1000) * 1000);
-    await deleteAddress(request, body.jwt);
+  test('both creation endpoints accept expiresAt', async ({ request }) => {
+    for (const endpoint of ['/api/new_address', '/admin/new_address']) {
+      for (const expiresAt of ['2099-01-01T08:00:00+08:00', '2099-01-01 00:00:00', Date.parse('2099-01-01T00:00:00Z')]) {
+        const response = await request.post(`${WORKER_URL}${endpoint}`, {
+          data: { name: `canonical${Date.now().toString(36)}`, domain: TEST_DOMAIN, expiresAt },
+        });
+        expect(response.ok(), await response.text()).toBe(true);
+        const address = await response.json();
+        expect(address.expires_at).toBeUndefined();
+        const listRes = await request.get(`${WORKER_URL}/admin/address`, {
+          params: { query: address.address, limit: '10', offset: '0' },
+        });
+        expect(listRes.ok()).toBe(true);
+        expect((await listRes.json()).results).toContainEqual(expect.objectContaining({
+          id: address.address_id,
+          expires_at: '2099-01-01 00:00:00',
+        }));
+        await deleteAddress(request, address.jwt);
+      }
+    }
   });
 
   test('enforces expiry in shared auth, keeps pre-cleanup inbound mail & mixed lists, and cleans up', async ({ request }) => {
@@ -163,7 +159,7 @@ test.describe('Address Expiration', () => {
       });
       expect(permRes.ok()).toBe(true);
       permBody = await permRes.json();
-      expect(permBody.expires_at).toBeNull();
+      expect(permBody.expires_at).toBeUndefined();
 
       expect((await request.post(`${WORKER_URL}/user_api/bind_address`, {
         headers: { Authorization: `Bearer ${addrBody.jwt}`, 'x-user-token': userJwt },
@@ -182,9 +178,7 @@ test.describe('Address Expiration', () => {
       });
       expect(permSeedRes.ok()).toBe(true);
 
-      // Wait until strictly past stored expires_at (1s granularity in SQLite DATETIME)
-      const storedExpiryMs = Date.parse(`${addrBody.expires_at.replace(' ', 'T')}Z`);
-      const waitMs = Math.max(0, storedExpiryMs - Date.now() + 1200);
+      const waitMs = Math.max(0, Date.parse(expiresAt) - Date.now() + 1200);
       await new Promise((resolve) => setTimeout(resolve, waitMs));
 
       // Shared mailbox auth & single-address user ops reject expired address immediately

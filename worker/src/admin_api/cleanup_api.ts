@@ -2,7 +2,7 @@ import { Context } from 'hono';
 
 import { cleanup } from '../common';
 import { CONSTANTS } from '../constants';
-import { getBooleanValue, getJsonSetting, saveSetting } from '../utils';
+import { getJsonSetting, saveSetting } from '../utils';
 import { CleanupSettings, CustomSqlCleanup } from '../models';
 import i18n from '../i18n';
 import { LocaleMessages } from '../i18n/type';
@@ -97,9 +97,6 @@ export default {
     cleanup: async (c: Context<HonoCustomType>) => {
         const msgs = i18n.getMessagesbyContext(c);
         const { cleanType, cleanDays } = await c.req.json();
-        if (cleanType === "expiredAddress" && !getBooleanValue(c.env.ENABLE_ADDRESS_EXPIRY)) {
-            return c.text(msgs.AddressExpiryDisabledMsg, 403);
-        }
         try {
             const success = await cleanup(c, cleanType, cleanDays);
             if (!success) {

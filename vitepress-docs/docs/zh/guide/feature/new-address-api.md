@@ -37,20 +37,19 @@ res = requests.post(
     }
 )
 
-# 返回值 {"jwt": "<Jwt>", "address": "<邮箱地址>", "address_id": 123, "expires_at": null}
+# 返回值 {"jwt": "<Jwt>", "address": "<邮箱地址>", "address_id": 123}
 print(res.json())
 ```
 
-### 可选过期时间（`expiresAt` / `expiresIn`）
+### 可选过期时间（`expiresAt`）
 
 该功能受环境变量 `ENABLE_ADDRESS_EXPIRY` 控制（默认 `false` 关闭）：
-- **先迁移再开启**：现有部署必须先完成 `v0.0.11` 数据库迁移（`Admin -> 快速设置 -> 数据库 -> 升级数据库 Schema`、`POST /admin/db_migration` 或执行 `db/2026-11-18-address-expires-at.sql`），再将 `ENABLE_ADDRESS_EXPIRY` 设为 `true`。
-- **关闭状态语义**：关闭时隐藏过期时间相关界面控件，暂停过期校验与过期清理（不会抹掉数据库中已保存的 `expires_at`），且 API 显式传入 `expiresAt`/`expiresIn` 时会明确返回错误（`403`），避免悄悄创建永久邮箱。
+- **先迁移再开启**：现有部署必须先完成 `v0.0.11` 数据库迁移（`Admin -> 快速设置 -> 数据库 -> 升级数据库 Schema`、`POST /admin/db_migration` 或执行 `db/2026-11-18-address-expires-at.sql`），再将 `ENABLE_ADDRESS_EXPIRY` 设为 `true`。如果旧库没有版本记录，请直接调用迁移接口，不要重新初始化。
+- **关闭状态语义**：关闭时隐藏过期时间相关界面控件，暂停过期校验与过期清理（不会抹掉数据库中已保存的 `expires_at`），且 API 显式传入 `expiresAt` 时会明确返回错误（`403`），避免悄悄创建永久邮箱。
 
-开启 `ENABLE_ADDRESS_EXPIRY = true` 后，`/api/new_address` 和 `/admin/new_address` 均支持可选参数 `expiresAt`（或 `expires_at`）或 `expiresIn`（或 `expires_in`），两者互斥：
+开启 `ENABLE_ADDRESS_EXPIRY = true` 后，`/api/new_address` 和 `/admin/new_address` 均支持可选参数 `expiresAt`：
 - 不传或传 `null`（默认）表示该邮箱永不过期。
-- `expiresAt`：传入将来的 ISO 8601 时间字符串（例如 `"2026-12-31T23:59:59Z"`）或毫秒时间戳，按指定日期时间过期。
-- `expiresIn`：传入正数秒数（例如 `86400` 表示 24 小时，`604800` 表示 1 周），按相对时长过期。
+- `expiresAt`：传入将来的毫秒时间戳，或带时区的 ISO 8601 字符串（例如 `"2026-12-31T23:59:59Z"`）。也接受数据库格式 `YYYY-MM-DD HH:mm:ss`，按 UTC 解释。过期时间必须早于 `2100-01-01T00:00:00Z`。网页的时长预设会在提交时换算成这个字段。
 - 到期后，共享邮箱鉴权/登录及单地址用户操作将立即拒绝访问；在清理删除该地址前，收件流程仍沿用 `blockReceiveUnknowAddressEmail` 策略，清理之后再按原有未知地址规则处理。
 - 过期邮箱及关联数据的实际删除在 `wrangler.toml` 启用 `[triggers]` `crons`（`wrangler.toml.template` 默认注释了该项）后由 `expiredAddress` 定时分批执行，因此实际删除时间取决于 cron 周期与批处理清理进度。
 
