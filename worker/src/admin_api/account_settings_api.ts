@@ -2,7 +2,7 @@ import { Context } from 'hono'
 
 import i18n from '../i18n'
 import { deleteSetting, getJsonSetting, saveSetting } from '../utils'
-import { getAddressCreationSettings, getAddressCreationSubdomainMatchStatus } from '../common'
+import { getAddressCreationSettings, getAddressCreationSubdomainMatchStatus } from '../utils/address_creation'
 import { CONSTANTS } from '../constants'
 import {
     getSendMailLimitConfig,
