@@ -489,8 +489,10 @@ export async function sendMailToTelegram(
     }
     const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
 
+    const blockedTargets = new Set<string>();
     const buildAndSend = async (targetUserId: string, msgs: LocaleMessages) => {
-        if (await isTelegramChatBlocked(c.env, targetUserId)) return;
+        const target = String(targetUserId).toLowerCase();
+        if (blockedTargets.has(target) || await isTelegramChatBlocked(c.env, target)) return;
 
         const { mail } = await parseMail(
             msgs, parsedEmailContext, address, new Date().toUTCString(), aiExtract
@@ -513,7 +515,8 @@ export async function sendMailToTelegram(
             if (!(error instanceof TelegramError) || !isTelegramChatUnavailable(error.code, error.description)) {
                 throw error;
             }
-            await recordTelegramChatBlocked(c.env, targetUserId, startedAt);
+            blockedTargets.add(target);
+            await recordTelegramChatBlocked(c.env, target, startedAt);
             return;
         }
         // send attachments via native fetch (telegraf multipart upload is incompatible with CF Workers)
@@ -521,7 +524,8 @@ export async function sendMailToTelegram(
             const caption = `From: ${parsedEmailContext.parsedEmail?.sender || ""}\nSubject: ${parsedEmailContext.parsedEmail?.subject || ""}`;
             const unavailableAt = await sendTelegramAttachments(c.env, targetUserId, attachments, caption);
             if (unavailableAt !== undefined) {
-                await recordTelegramChatBlocked(c.env, targetUserId, unavailableAt);
+                blockedTargets.add(target);
+                await recordTelegramChatBlocked(c.env, target, unavailableAt);
             }
         }
     };
