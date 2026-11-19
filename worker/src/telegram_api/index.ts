@@ -4,7 +4,7 @@ import { Writable } from 'node:stream'
 import type { Update } from 'telegraf/types'
 
 import { newTelegramBot, initTelegramBotCommands, sendMailToTelegram } from './telegram'
-import { getTelegramWebhookSecret, handleTelegramMembershipUpdate } from './chat_delivery'
+import { getTelegramWebhookSecret, handleTelegramMembershipUpdate, verifyTelegramWebhookSecret } from './chat_delivery'
 import settings from './settings'
 import miniapp from './miniapp'
 import i18n from '../i18n'
@@ -35,13 +35,18 @@ api.use("/admin/telegram/*", async (c, next) => {
 });
 
 api.post("/telegram/webhook", async (c) => {
+    const token = c.env.TELEGRAM_BOT_TOKEN;
+    if (!verifyTelegramWebhookSecret(token, c.req.header('X-Telegram-Bot-Api-Secret-Token'))) {
+        return c.body(null, 401);
+    }
+
     const update = await c.req.json<Update>();
     if ('my_chat_member' in update) {
-        await handleTelegramMembershipUpdate(c, update);
+        await handleTelegramMembershipUpdate(c.env, update);
         return c.body(null, 200);
     }
 
-    const bot = newTelegramBot(c, c.env.TELEGRAM_BOT_TOKEN);
+    const bot = newTelegramBot(c, token);
     let body = null;
     const res = new Writable();
     Object.assign(res, {

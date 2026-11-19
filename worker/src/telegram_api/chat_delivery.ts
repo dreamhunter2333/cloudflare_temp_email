@@ -1,11 +1,14 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import type { Context } from 'hono';
 import type { Update } from 'telegraf/types';
 
 const botId = (token: string) => token.split(':', 1)[0];
 
 export const getTelegramWebhookSecret = (token: string): string =>
     createHmac('sha256', token).update('cloudflare-temp-email/telegram-webhook').digest('hex');
+
+export const verifyTelegramWebhookSecret = (token: string, secret: string | undefined): boolean =>
+    typeof secret === 'string' && /^[0-9a-f]{64}$/.test(secret)
+    && timingSafeEqual(Buffer.from(secret), Buffer.from(getTelegramWebhookSecret(token)));
 
 export const isTelegramChatBlocked = async (env: Bindings, chatId: string): Promise<boolean> =>
     (await env.DB.prepare(
@@ -28,12 +31,7 @@ const setTelegramChatBlocked = async (
 export const recordTelegramChatBlocked = (env: Bindings, chatId: string, sendStartedAt: number): Promise<void> =>
     setTelegramChatBlocked(env, chatId, true, sendStartedAt, 0);
 
-export const handleTelegramMembershipUpdate = async (c: Context<HonoCustomType>, update: Update.MyChatMemberUpdate) => {
-    const secret = c.req.header('X-Telegram-Bot-Api-Secret-Token');
-    if (!secret || !/^[0-9a-f]{64}$/.test(secret) || !timingSafeEqual(
-        Buffer.from(secret), Buffer.from(getTelegramWebhookSecret(c.env.TELEGRAM_BOT_TOKEN))
-    )) return;
-
+export const handleTelegramMembershipUpdate = async (env: Bindings, update: Update.MyChatMemberUpdate) => {
     const change = update.my_chat_member;
     if (!change?.chat || !change.new_chat_member
         || !Number.isSafeInteger(change.chat.id) || !Number.isSafeInteger(change.date)
@@ -46,7 +44,7 @@ export const handleTelegramMembershipUpdate = async (c: Context<HonoCustomType>,
 
     const blocked = status === 'kicked' || status === 'left' || (status === 'restricted' && !member.is_member);
     // Telegram timestamps have second precision. A membership update wins over a send started in that second.
-    await setTelegramChatBlocked(c.env, String(change.chat.id), blocked, change.date * 1000 + 999, update.update_id);
+    await setTelegramChatBlocked(env, String(change.chat.id), blocked, change.date * 1000 + 999, update.update_id);
 };
 
 export const isTelegramChatUnavailable = (code: number, description: unknown): boolean =>

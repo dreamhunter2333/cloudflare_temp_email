@@ -82,7 +82,7 @@ Telegram Bot 支持 **每用户独立推送**，用户绑定地址后，该地�
 
 ### 拉黑与移除机器人
 
-已有部署请先执行数据库迁移 `db/2026-11-19-telegram-chat-delivery.sql`，更新 Worker 后在管理后台的 Telegram 页面重新点击「初始化」，使 Telegram 在 webhook 请求中携带用于验证的密钥。
+已有部署请先执行数据库迁移 `db/2026-11-19-telegram-chat-delivery.sql`，更新 Worker 后在管理后台的 Telegram 页面重新点击「初始化」，使 Telegram 在 webhook 请求中携带用于验证的密钥。Worker 拒绝所有未通过密钥校验的 webhook 请求，因此部署后请立即重新初始化。
 
 机器人被拉黑或从群组、频道移除后，会暂停该聊天的邮件推送。邮箱绑定和全局推送列表仍可用于解除拉黑或重新加入后的推送。历史目标首次收到明确的拉黑或移除发送错误时，也会停止推送。
 

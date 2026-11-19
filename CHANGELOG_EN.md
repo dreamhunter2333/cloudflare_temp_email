@@ -14,7 +14,7 @@
 
 ### Bug Fixes
 
-- fix: |Telegram| Acknowledge block and removal updates, pause push after a confirmed failure for existing recipients, and resume on unblock or rejoin. Existing deployments must migrate to `v0.0.12` and initialize the Telegram webhook again
+- fix: |Telegram| Acknowledge block and removal updates, pause push after a confirmed failure for existing recipients, and resume on unblock or rejoin. Require a valid secret for all webhook updates. Existing deployments must migrate to `v0.0.12` and initialize the Telegram webhook again
 
 ### Improvements
 
