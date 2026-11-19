@@ -27,6 +27,8 @@ const message = useMessage()
 const currentPage = ref(1)
 const totalCount = ref(0)
 const currentMail = ref(null)
+const mailTranslation = ref(null)
+watch(() => currentMail.value?.id, () => { mailTranslation.value = null; })
 const showAccountSettingsCard = ref(false)
 const currentAutoRefreshInterval = ref(60)
 const timer = ref(null)
@@ -236,14 +238,15 @@ onBeforeUnmount(() => {
                     <n-empty :description="t('noMails')" />
                 </div>
                 <div v-else>
-                    <h3 v-if="currentMail.subject"
+                    <h3 v-if="mailTranslation?.subject ?? currentMail.subject"
                         :class="{ 'mail-title-unread': openSettings.enableMailReadStatus && currentMail.is_unread === 1 }">
-                        {{ currentMail.subject }}
+                        {{ mailTranslation?.subject ?? currentMail.subject }}
                     </h3>
                     <div style="margin-top: 16px;">
-                        <MailContentRenderer :mail="currentMail" :showEMailTo="false" :showReply="false"
+                        <MailContentRenderer v-model:translation="mailTranslation" :mail="currentMail" :showEMailTo="false" :showReply="false"
                             :enableUserDeleteEmail="openSettings.enableUserDeleteEmail" :showSaveS3="false"
                             :enableMailReadStatus="openSettings.enableMailReadStatus"
+                            :enableMailProcessing="settings.enableMailProcessing"
                             :onUpdateMailReadStatus="toggleCurrentMailUnread"
                             :onDelete="deleteMail" />
                     </div>

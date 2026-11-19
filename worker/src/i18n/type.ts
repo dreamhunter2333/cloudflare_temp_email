@@ -2,6 +2,11 @@ export type LocaleMessages = {
     InvalidStatisticsRangeMsg: string;
     InvalidStatisticsGranularityMsg: string;
     InvalidRequestBodyMsg: string
+    MailProcessingDisabledMsg: string
+    MailProcessingNotFoundMsg: string
+    MailProcessingTooLongMsg: string
+    MailProcessingEmptyMsg: string
+    MailProcessingFailedMsg: string
     InvalidWebhookFilterMsg: string
     WebhookFilterEvaluationFailedMsg: string
     InvalidMailIdMsg: string

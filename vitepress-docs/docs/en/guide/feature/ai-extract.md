@@ -110,3 +110,22 @@ This configuration will only call Workers AI for:
 - `user@example.com` (exact match)
 - All emails under `@mydomain.com` (e.g., `test@mydomain.com`, `admin@mydomain.com`)
 - All emails starting with `admin` under `@company.com` (e.g., `admin@company.com`, `admin123@company.com`)
+
+## On-demand summaries and translations {#mail-processing}
+
+Set `ENABLE_MAIL_PROCESSING = true` and configure a valid `MAIL_PROCESSING_PROVIDER` to show **Summarize** and **Translate** in the mail actions. Summaries can be dismissed. Translation replaces the subject and body in the reader. The model is asked to preserve HTML layout and links, but results may vary. Select **Show original** to switch back. Both follow the interface language by default. Expand **Mail AI Assistant** at the bottom of **Mailbox Settings** to choose a different translation language; only this browser saves the preference. Opening a message never calls the model. Results are not saved, the original message is unchanged, and no database migration is needed.
+
+| Provider | Value | Setup |
+| --- | --- | --- |
+| Workers AI | `workers-ai` | Bind `AI` to the Worker. The default model is `@cf/meta/llama-3.1-8b-instruct-fast`. |
+| OpenAI Chat Completions | `openai-chat` | Set `MAIL_PROCESSING_MODEL` and the `MAIL_PROCESSING_API_KEY` secret. |
+| OpenAI Responses | `openai-responses` | Set `MAIL_PROCESSING_MODEL` and the `MAIL_PROCESSING_API_KEY` secret. |
+| Claude Messages | `claude-messages` | Set `MAIL_PROCESSING_MODEL` and the `MAIL_PROCESSING_API_KEY` secret. |
+
+`ENABLE_MAIL_PROCESSING` controls only the site's AI summary and translation service. It is off by default and does not affect `ENABLE_AI_EMAIL_EXTRACT`. For an external provider you can optionally set `MAIL_PROCESSING_BASE_URL` to an HTTPS API prefix, such as `https://api.openai.com/v1`; the Worker appends the protocol-specific path.
+
+Optionally set `MAIL_PROCESSING_SUMMARY_PROMPT` and `MAIL_PROCESSING_TRANSLATION_PROMPT` in the Worker to replace each action's default style instructions. The action and target language still come from the request.
+
+When a mailbox user requests an action, the browser sends the parsed subject and body to the Worker, which calls the site's configured provider. HTML translation also sends sanitized markup, which can contain URLs and inline content. The raw message and separate attachments are not sent. Model inputs longer than 12,000 characters are rejected. Use the address allowlist and Worker rate limiter on public deployments; AI requests do not count toward the existing shared daily IP limit.
+
+The site model uses the existing address allowlist under **AI Extract Settings**. When enabled, only matching mailboxes see the AI actions and can use the site model; otherwise it is available to all mailboxes. Configure the site model and prompts in the Worker.

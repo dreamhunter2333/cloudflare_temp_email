@@ -8,7 +8,7 @@ import { triggerWebhook, triggerAnotherWorker } from "../common";
 import { commonParseMail } from "../utils/mail_parser";
 import { check_if_junk_mail } from "./check_junk";
 import { remove_attachment_if_need } from "./check_attachment";
-import { extractEmailInfo } from "./ai_extract";
+import { extractEmailInfo } from "../mail_ai_processing/ai_extract";
 import { forwardEmail } from "./forward";
 import { EmailRuleSettings } from "../models";
 import { CONSTANTS } from "../constants";

@@ -5,7 +5,7 @@
 Mailbox APIs accept legacy mailbox credentials and password sessions containing `type: "address_password_login"`, `address`, `address_id`, `iat`, and `exp`. The backend verifies signatures and mailbox identity, and requires password sessions to be unexpired, issued no later than the current time, and valid for no more than 30 days.
 
 - Mailbox APIs retain `Authorization: Bearer <jwt>` without a database migration.
-- `GET /api/settings` returns only `address`, `send_balance`, and `new_address_token`. A valid password-session JWT with less than seven days remaining receives a new 30-day token; otherwise the field is `null`. Legacy credentials do not renew, and expired sessions must log in again.
+- `GET /api/settings` returns `address`, `send_balance`, `new_address_token`, and the boolean `enableMailProcessing`, which indicates whether the mailbox can use the site's AI service. A valid password-session JWT with less than seven days remaining receives a new 30-day token; otherwise `new_address_token` is `null`. Legacy credentials do not renew, and expired sessions must log in again.
 - Clients must replace their current token only when `new_address_token` is non-null; when it is `null`, keep using the current token.
 
 The web client updates only the active JWT from one successful settings response. The local cache retains token strings and its existing append and bind behavior, without replacing or deduplicating historical tokens. Switching to an expired cached session requires logging in again. JWT decoding is only for mailbox, login-method, and token-expiry display; authorization remains on the backend.
@@ -34,6 +34,17 @@ res = requests.get(
 ```
 
 **Note**: `/api/mails` returns raw RFC822 data by design (for example `source`/`raw`), and it does not guarantee parsed fields such as `subject`, `text`, or `html`. Parse the raw source on the client side (for example with `mail-parser-wasm` or `postal-mime`) if you need readable message content.
+
+## Summarize or translate an email
+
+Send the mailbox JWT and JSON `{ "subject": "...", "text": "..." }` to either endpoint below. The client supplies the subject and text; the Worker checks mail ownership without reading or parsing the original message. Check `enableMailProcessing: true` in `GET /api/settings` for availability.
+
+- `POST /api/mails/:mail_id/summarize` returns `{ "text": "..." }`.
+- `POST /api/mails/:mail_id/translate` returns `{ "subject": "...", "text": "..." }`. Optionally pass `targetLanguage` (`zh`, `en`, `es`, `pt-BR`, `ja`, or `de`); otherwise it follows `x-lang`.
+
+For HTML translation, send `html` instead of `text`. The response is `{ "subject": "...", "html": "..." }`. The Worker passes HTML to the model as a string without parsing it. The browser applies its usual email safety filters without comparing the layout or links with the original. Select **Show original** to switch back.
+
+Results are not cached or persisted. See [site AI service setup](./ai-extract#mail-processing).
 
 ## Admin Mail API
 

@@ -3,15 +3,17 @@ import { ref, computed, watch, nextTick } from "vue";
 import { useThemeVars } from 'naive-ui';
 import { useScopedI18n } from '@/i18n/app'
 import { CloudDownloadRound, ReplyFilled, ForwardFilled, FullscreenRound, ImageRound, AttachFileRound,
-  MarkEmailReadRound, MarkEmailUnreadRound, MoreHorizRound, DeleteOutlineRound, TextSnippetRound, InfoOutlined } from '@vicons/material'
+  MarkEmailReadRound, MarkEmailUnreadRound, MoreHorizRound, DeleteOutlineRound, TextSnippetRound, InfoOutlined,
+  TranslateRound } from '@vicons/material'
 import ShadowHtmlComponent from "./ShadowHtmlComponent.vue";
 import AiExtractInfo from "./AiExtractInfo.vue";
+import { useMailProcessing } from "./mail-ai-processing/useMailProcessing";
 import { getDownloadEmlUrl } from '../utils/email-parser';
 import { blockRemoteContent } from '../utils/remote-content-policy';
 import { utcToLocalDate } from '../utils';
 import { useGlobalState } from '../store';
 
-const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark, autoLoadRemoteImages } = useGlobalState();
+const { preferShowTextMail, useIframeShowMail, useUTCDate, isDark, autoLoadRemoteImages, settings } = useGlobalState();
 
 const { t } = useScopedI18n('components.MailContentRenderer')
 const themeVars = useThemeVars();
@@ -47,6 +49,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  enableMailProcessing: Boolean,
   // 回调函数 props
   onDelete: {
     type: Function,
@@ -80,6 +83,19 @@ const showMoreActions = ref(false);
 const showMailDetails = ref(false);
 const moreActionsButton = ref(null);
 const downloadMailButton = ref(null);
+const summarizeButton = ref(null);
+const translation = defineModel('translation', { default: null });
+const canProcessMail = computed(() => props.enableMailProcessing && props.mail?.address === settings.value.address);
+const translated = computed(() => canProcessMail.value && translation.value?.mailId === props.mail?.id
+  ? translation.value : null);
+const { t: aiT, pending, summary, error: processingError, processMail } = useMailProcessing(
+  () => canProcessMail.value ? props.mail : null, translation, showTextMail
+);
+
+const closeSummary = () => {
+  summary.value = null;
+  summarizeButton.value?.$el.focus();
+};
 
 watch(showMoreActions, async (show) => {
   if (!show) return;
@@ -100,16 +116,19 @@ watch(() => props.mail.id, () => {
 const allowRemoteImages = computed(() => autoLoadRemoteImages.value || showRemoteImages.value);
 
 const processedMail = computed(() => {
+  const message = translated.value?.html ?? props.mail.message;
   if (allowRemoteImages.value) {
-    return { message: props.mail.message, blocked: 0 };
+    return { message, blocked: 0 };
   }
-  const { html, blocked } = blockRemoteContent(props.mail.message);
+  const { html, blocked } = blockRemoteContent(message);
   return { message: html, blocked };
 });
 
 const shadowMailHtml = computed(() => allowRemoteImages.value
   ? blockRemoteContent(processedMail.value.message, { allowRemoteImages: true }).html
   : processedMail.value.message);
+const iframeMailHtml = computed(() => translated.value?.html !== undefined ? shadowMailHtml.value : processedMail.value.message);
+const showTranslatedText = computed(() => translated.value?.text !== undefined);
 
 const handleLoadRemoteImages = () => {
   showRemoteImages.value = true;
@@ -189,25 +208,41 @@ const handleSaveToS3 = async (filename, blob) => {
         <n-text depth="3">{{ utcToLocalDate(mail.created_at, useUTCDate) }}</n-text>
       </div>
     </div>
-    <n-flex class="mail-actions" align="center" justify="space-between" :size="4">
-      <n-space v-if="showReply || mail.attachments?.length" align="center" :size="4">
-        <n-button v-if="showReply" size="small" quaternary type="info" :color="replyColor" @click="handleReply">
-          <template #icon><n-icon :component="ReplyFilled" /></template>
-          {{ t('reply') }}
+    <n-flex class="mail-actions" align="center" :size="4">
+      <template v-if="canProcessMail">
+        <n-button ref="summarizeButton" size="small" quaternary :loading="pending === 'summarize'"
+          :aria-disabled="!!pending" @click="processMail('summarize')">
+          <template #icon>
+            <n-icon aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 4c1.1 5.2 2.8 6.9 8 8-5.2 1.1-6.9 2.8-8 8-1.1-5.2-2.8-6.9-8-8 5.2-1.1 6.9-2.8 8-8Zm9.5-2c.5 2.3 1.2 3 3.5 3.5-2.3.5-3 1.2-3.5 3.5-.5-2.3-1.2-3-3.5-3.5 2.3-.5 3-1.2 3.5-3.5Z" />
+              </svg>
+            </n-icon>
+          </template>
+          {{ aiT('summarize') }}
         </n-button>
-        <n-button v-if="showReply" size="small" quaternary :color="neutralActionColor" @click="handleForward">
-          <template #icon><n-icon :component="ForwardFilled" /></template>
-          {{ t('forward') }}
+        <n-button size="small" quaternary :loading="pending === 'translate'" :aria-disabled="!!pending && !translated"
+          @click="processMail('translate')">
+          <template #icon><n-icon :component="TranslateRound" aria-hidden="true" /></template>
+          {{ aiT(translated ? 'showOriginal' : 'translate') }}
         </n-button>
-        <n-button v-if="mail.attachments?.length" size="small" quaternary :color="neutralActionColor"
-          :title="t('attachments')" :aria-label="t('attachments')" @click="handleViewAttachments">
-          <template #icon><n-icon :component="AttachFileRound" /></template>
-          <n-space align="center" :size="4">
-            <span>{{ t('attachments') }}</span>
-            <n-badge :value="mail.attachments.length" :color="themeVars.tagColor" />
-          </n-space>
-        </n-button>
-      </n-space>
+      </template>
+      <n-button v-if="showReply" size="small" quaternary type="info" :color="replyColor" @click="handleReply">
+        <template #icon><n-icon :component="ReplyFilled" /></template>
+        {{ t('reply') }}
+      </n-button>
+      <n-button v-if="showReply" size="small" quaternary :color="neutralActionColor" @click="handleForward">
+        <template #icon><n-icon :component="ForwardFilled" /></template>
+        {{ t('forward') }}
+      </n-button>
+      <n-button v-if="mail.attachments?.length" size="small" quaternary :color="neutralActionColor"
+        :title="t('attachments')" :aria-label="t('attachments')" @click="handleViewAttachments">
+        <template #icon><n-icon :component="AttachFileRound" /></template>
+        <n-space align="center" :size="4">
+          <span>{{ t('attachments') }}</span>
+          <n-badge :value="mail.attachments.length" :color="themeVars.tagColor" />
+        </n-space>
+      </n-button>
       <div class="mail-secondary-actions">
         <n-space align="center" :wrap="false" :size="4">
           <n-popover v-model:show="showMoreActions" trigger="click" placement="bottom-end" :show-arrow="false">
@@ -276,9 +311,17 @@ const handleSaveToS3 = async (filename, blob) => {
     <AiExtractInfo :metadata="mail.metadata" />
 
     <!-- 邮件内容 -->
-    <div class="mail-content" :class="{ 'dark-mode': isDark }">
-      <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-      <iframe v-else-if="useIframeShowMail" :srcdoc="processedMail.message" class="mail-iframe" sandbox="allow-same-origin allow-popups">
+    <div class="mail-content" :class="{ 'dark-mode': isDark }" :lang="translated?.language">
+      <div v-if="canProcessMail" role="status" class="mail-processing-status">
+        <n-alert v-if="processingError" type="error" :bordered="false">{{ processingError }}</n-alert>
+        <n-alert v-if="summary" type="info" :bordered="false" :show-icon="false" closable
+          :title="aiT('summary')" @close="closeSummary">
+          <div class="mail-processing-summary" :lang="summary.language">{{ summary.text }}</div>
+        </n-alert>
+      </div>
+      <pre v-if="showTranslatedText" class="mail-text mail-translation" :lang="translated.language">{{ translated.text }}</pre>
+      <pre v-else-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
+      <iframe v-else-if="useIframeShowMail" :srcdoc="iframeMailHtml" class="mail-iframe" sandbox="allow-same-origin allow-popups">
       </iframe>
       <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="shadowMailHtml" :isDark="isDark" class="mail-html" />
     </div>
@@ -309,10 +352,11 @@ const handleSaveToS3 = async (filename, blob) => {
 
   <n-drawer v-model:show="showFullscreen" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
     style="height: 100vh;">
-    <n-drawer-content :title="mail.subject" closable>
-      <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }">
-        <pre v-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
-        <iframe v-else-if="useIframeShowMail" :srcdoc="processedMail.message" class="mail-iframe" sandbox="allow-same-origin allow-popups">
+    <n-drawer-content :title="translated?.subject ?? mail.subject" closable>
+      <div class="fullscreen-mail-content" :class="{ 'dark-mode': isDark }" :lang="translated?.language">
+        <pre v-if="showTranslatedText" class="mail-text mail-translation" :lang="translated.language">{{ translated.text }}</pre>
+        <pre v-else-if="showTextMail" class="mail-text">{{ mail.text }}</pre>
+        <iframe v-else-if="useIframeShowMail" :srcdoc="iframeMailHtml" class="mail-iframe" sandbox="allow-same-origin allow-popups">
         </iframe>
         <ShadowHtmlComponent v-else :key="mail.id" :htmlContent="shadowMailHtml" :isDark="isDark" class="mail-html" />
       </div>
@@ -421,6 +465,15 @@ const handleSaveToS3 = async (filename, blob) => {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
+}
+
+.mail-processing-status :deep(.n-alert) {
+  margin-bottom: 10px;
+}
+
+.mail-processing-summary {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .mail-text {
