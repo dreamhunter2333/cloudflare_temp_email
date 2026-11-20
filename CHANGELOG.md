@@ -11,6 +11,7 @@
 ### Features
 
 - feat: |邮箱| 邮件详情支持按需摘要和原地翻译，使用 `ENABLE_MAIL_PROCESSING` 独立开启（默认关闭）。站点模型支持 Workers AI、OpenAI Chat Completions、OpenAI Responses 和 Claude Messages，共用现有 AI 地址白名单。翻译目标语言可在邮箱设置中选择（#1243、#1244）。
+- feat: |邮箱| 白名单外的邮箱可在浏览器配置自己的摘要和翻译模型，请求不经过站点服务端。
 
 - feat: |邮箱| 新增 `ENABLE_ADDRESS_EXPIRY` 开关（默认关闭 `false`），开启后支持在通过 API（`/api/new_address`、`/admin/new_address`）和 Web 界面创建邮箱时设置可选过期时间 `expiresAt`（默认永不过期），对单邮箱共享鉴权及单地址用户操作执行过期校验，并在 cron 中分批清理过期邮箱及关联数据；升级数据库 Schema 至 `v0.0.11`（需先升级数据库再开启开关；实际清理时间取决于 cron 调度与清理进度；关闭开关将暂停校验与清理但保留已保存的过期时间；已有部署升级需在管理后台 `Admin -> 快速设置 -> 数据库 -> 升级数据库 Schema` 执行迁移，若当前已在 `v0.0.10` 也可手动执行 `db/2026-11-18-address-expires-at.sql`）
 

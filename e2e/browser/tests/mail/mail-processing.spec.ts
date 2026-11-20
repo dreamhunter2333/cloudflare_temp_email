@@ -112,23 +112,128 @@ test('uses the browser-local translation language without changing the interface
   }
 });
 
-test('a mailbox outside the allowlist can read mail without AI actions or settings', async ({ page }) => {
+test('a mailbox outside the site allowlist uses its own model and browser-only settings', async ({ page, context }) => {
   const api = await apiRequest.newContext();
-  const mailbox = await createTestAddress(api, 'no-site-model');
+  const mailbox = await createTestAddress(api, 'personal-model');
+  const other = await createTestAddress(api, 'other-model');
+  const providerUrl = 'https://personal-ai.example.test/v1';
+  const key = 'mock-custom-ai-key';
+  const expected = {
+    '/v1/chat/completions': 'OpenAI Chat Completions',
+    '/v1/responses': 'OpenAI Responses',
+    '/v1/messages': 'Claude Messages',
+  };
+  const outgoing: { path: string; instruction: string; input: string }[] = [];
+  let siteRequests = 0;
   try {
-    await page.route('**/api/settings', route => route.continue({ headers: {
+    await context.route('**/api/settings', route => route.continue({ headers: {
       ...route.request().headers(), 'x-test-mail-processing-provider': 'workers-ai',
       'x-test-ai-allowlist': JSON.stringify({ enableAllowList: true, allowList: [] }),
     } }));
+    await context.route('**/api/mail_processing', route => {
+      siteRequests++;
+      return route.abort();
+    });
+    await context.route('https://personal-ai.example.test/**', async route => {
+      const request = route.request();
+      const cors = {
+        'access-control-allow-origin': new URL(FRONTEND_URL).origin,
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'content-type, authorization, x-api-key, anthropic-version',
+      };
+      if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
+      const path = new URL(request.url()).pathname;
+      const headers = request.headers();
+      const body = request.postDataJSON();
+      expect(headers.cookie).toBeUndefined();
+      expect(headers.referer).toBeUndefined();
+      for (const header of ['x-user-token', 'x-admin-auth', 'x-custom-auth', 'x-user-access-token']) {
+        expect(headers[header]).toBeUndefined();
+      }
+      expect(path in expected).toBe(true);
+      expect(body.model).toBe('personal-test-model');
+      if (path === '/v1/messages') {
+        expect(headers['x-api-key']).toBe(key);
+        expect(headers.authorization).toBeUndefined();
+        expect(headers['anthropic-version']).toBe('2023-06-01');
+      } else {
+        expect(headers.authorization).toBe('Bearer ' + key);
+        expect(body.store).toBe(false);
+      }
+      const instruction = body.instructions ?? body.system ?? body.messages[0].content;
+      const input = body.input ?? body.messages.at(-1).content;
+      outgoing.push({ path, instruction, input });
+      const output = instruction.startsWith('Summarize') ? 'Custom summary'
+        : JSON.stringify({ subject: 'Translated package', text: 'Translated body' });
+      const json = path === '/v1/messages' ? { stop_reason: 'end_turn', content: [{ type: 'text', text: output }] }
+        : path === '/v1/responses' ? { status: 'completed', output: [
+          { type: 'message', content: [{ type: 'output_text', text: output }] },
+        ] } : { choices: [{ finish_reason: 'stop', message: { content: output } }] };
+      return route.fulfill({ json, headers: cors });
+    });
     await seedTestMail(api, mailbox.address, { subject: 'Package update', text: 'A package arrived.' });
     await page.goto(`${FRONTEND_URL}/en/?jwt=${mailbox.jwt}`);
-    await expect(page.getByRole('button', { name: 'Reply', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Summarize', exact: true })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Translate', exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Summarize', exact: true }).click();
+    await expect(page.getByText(/Save a custom model in Mailbox Settings/)).toBeVisible();
+    expect(outgoing).toHaveLength(0);
+    const assistant = page.locator('summary', { hasText: 'Mail AI Assistant' });
+    const form = page.getByRole('form', { name: 'Custom model' });
+    for (const [path, label] of Object.entries(expected)) {
+      await page.getByText('Mailbox Settings', { exact: true }).click();
+      await expect(form).toBeHidden();
+      await assistant.click();
+      await form.getByText(label, { exact: true }).click();
+      await expect(form.getByRole('radio', { name: label, exact: true })).toBeChecked();
+      await form.getByLabel('API Base URL', { exact: true }).fill(providerUrl);
+      await form.getByLabel('Model name', { exact: true }).fill('personal-test-model');
+      await form.getByLabel('API Key', { exact: true }).fill(key);
+      await form.getByLabel('Summary prompt', { exact: true }).fill('Highlight the next step.');
+      await form.getByRole('button', { name: 'Save model', exact: true }).click();
+      await expect(form.getByRole('status')).toHaveText('Saved in this browser');
+      await page.getByText('Inbox', { exact: true }).click();
+      await page.getByRole('button', { name: 'Summarize', exact: true }).click();
+      await expect(page.locator('.mail-processing-summary')).toHaveText('Custom summary');
+      expect(outgoing.at(-1)).toMatchObject({
+        path, instruction: expect.stringContaining('Highlight the next step.'),
+        input: 'Subject: Package update\n\nA package arrived.',
+      });
+      await page.getByRole('button', { name: 'Translate', exact: true }).click();
+      await expect(page.locator('.mail-content > .mail-translation')).toHaveText('Translated body');
+      await expect(page.getByText('Translated package', { exact: true })).toBeVisible();
+      expect(outgoing.at(-1)).toMatchObject({
+        path, instruction: expect.stringContaining('Translate the subject and body into English.'),
+        input: JSON.stringify({ subject: 'Package update', text: 'A package arrived.' }),
+      });
+      await page.getByRole('button', { name: 'Show original', exact: true }).click();
+    }
+    expect(outgoing).toHaveLength(6);
+    expect(siteRequests).toBe(0);
+    expect(await page.evaluate(() => localStorage.getItem('mailAiCustomProfiles'))).not.toContain(key);
+
     await page.getByText('Mailbox Settings', { exact: true }).click();
-    await expect(page.locator('summary', { hasText: 'Mail AI Assistant' })).toHaveCount(0);
+    await page.reload();
+    await assistant.click();
+    await expect(form.getByLabel('API Key', { exact: true })).toHaveValue(key);
+    await form.getByLabel('API Base URL', { exact: true }).fill('https://different.example.test/v1');
+    await expect(form.getByLabel('API Key', { exact: true })).toHaveValue('');
+
+    const freshTab = await context.newPage();
+    await freshTab.goto(`${FRONTEND_URL}/en/?jwt=${mailbox.jwt}`);
+    await freshTab.getByText('Mailbox Settings', { exact: true }).click();
+    await freshTab.locator('summary', { hasText: 'Mail AI Assistant' }).click();
+    const freshForm = freshTab.getByRole('form', { name: 'Custom model' });
+    await expect(freshForm.getByLabel('API Base URL', { exact: true })).toHaveValue(providerUrl);
+    await expect(freshForm.getByLabel('API Key', { exact: true })).toHaveValue('');
+    await freshTab.close();
+
+    await page.goto(`${FRONTEND_URL}/en/?jwt=${other.jwt}`);
+    await expect(page.getByText(other.address, { exact: true })).toBeVisible();
+    await assistant.click();
+    await expect(form.getByLabel('API Base URL', { exact: true })).toHaveValue('');
+    await expect(form.getByLabel('API Key', { exact: true })).toHaveValue('');
   } finally {
     await deleteAddress(api, mailbox.jwt);
+    await deleteAddress(api, other.jwt);
     await api.dispose();
   }
 });

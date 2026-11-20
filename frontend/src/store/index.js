@@ -65,7 +65,7 @@ export const useGlobalState = createGlobalState(
         })
         const settings = ref({
             fetched: false,
-            mailAiProcessing: false,
+            mailAiProcessing: null,
             send_balance: 0,
             address: '',
             auto_reply: {

@@ -39,7 +39,7 @@ res = requests.get(
 
 用邮箱 JWT 调用 `POST /api/mail_processing`，传入 JSON `{ "mailId": 123, "action": "summarize" }`（也可用 `"translate"`）。翻译可传 `targetLanguage`（`zh`、`en`、`es`、`pt-BR`、`ja` 或 `de`），不传则跟随 `x-lang`。只能处理该邮箱下的邮件。摘要返回 `{ "text": "..." }`，翻译返回 `{ "subject": "...", "text": "..." }`。Worker 不缓存、不入库。参见[服务配置](./ai-extract#mail-processing)。
 
-`GET /api/settings` 中的 `mailAiProcessing` 为 `true` 时才可调用站点模型接口。当前邮箱不可用时不返回此字段。
+`GET /api/settings` 中的 `mailAiProcessing` 为 `site` 时才可调用站点模型接口。值为 `custom` 时，邮箱只能在浏览器使用自定义模型；功能关闭时不返回此字段。
 
 ## admin 邮件 API
 

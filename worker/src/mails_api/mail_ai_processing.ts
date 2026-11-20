@@ -10,8 +10,8 @@ type MailProcessingRequest = { mailId?: number; action?: string; targetLanguage?
 export const processMail = validator('json', async (body: MailProcessingRequest | null, c: Context<HonoCustomType>) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { address } = c.get('jwtPayload');
-    const provider = await getMailProcessingAccess(c, address);
-    if (!provider) return c.text(msgs.MailProcessingDisabledMsg, 403);
+    const access = await getMailProcessingAccess(c, address);
+    if (access?.mode !== 'site') return c.text(msgs.MailProcessingDisabledMsg, 403);
 
     const { mailId, action, targetLanguage } = body ?? {};
     if (!mailId || !Number.isSafeInteger(mailId) || mailId < 1 || (action !== 'summarize' && action !== 'translate')) {
@@ -33,7 +33,7 @@ export const processMail = validator('json', async (body: MailProcessingRequest 
         const interfaceLanguage = c.get('lang') || c.env.DEFAULT_LANG || 'en';
         const locale = action === 'translate' && targetLanguage ? targetLanguage : interfaceLanguage;
         const prompt = action === 'summarize' ? c.env.MAIL_PROCESSING_SUMMARY_PROMPT : c.env.MAIL_PROCESSING_TRANSLATION_PROMPT;
-        const result = await processMailText(provider, action, mail, locale, prompt);
+        const result = await processMailText(access.provider, action, mail, locale, prompt);
         return c.json(result, 200, { 'Cache-Control': 'no-store' });
     } catch {
         return c.text(msgs.MailProcessingFailedMsg, 502);

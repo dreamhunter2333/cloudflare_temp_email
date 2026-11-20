@@ -46,7 +46,7 @@ test('requires an enabled feature, configured provider, and mailbox ownership', 
     const settings = await request.get(`${WORKER_URL}/api/settings`, { headers: auth(owner.jwt) });
     expect((await settings.json()).mailAiProcessing).toBeUndefined();
     const enabledSettings = await request.get(`${WORKER_URL}/api/settings`, { headers: { ...resultHeaders, ...auth(owner.jwt) } });
-    expect((await enabledSettings.json()).mailAiProcessing).toBe(true);
+    expect((await enabledSettings.json()).mailAiProcessing).toBe('site');
     const disabledHeaders = { ...resultHeaders, ...auth(owner.jwt), 'x-test-mail-processing-enabled': 'false' };
     const disabled = await request.get(`${WORKER_URL}/api/settings`, { headers: disabledHeaders });
     expect(disabled.status()).toBe(200);
@@ -83,7 +83,7 @@ test('all providers use the existing AI allowlist, including wildcard entries', 
         const headers = { ...auth(mailbox.jwt), 'x-test-mail-processing-provider': provider, 'x-test-ai-allowlist': allowlist };
         const capability = await request.get(`${WORKER_URL}/api/settings`, { headers });
         expect(capability.ok()).toBe(true);
-        expect((await capability.json()).mailAiProcessing).toBe(canProcess ? true : undefined);
+        expect((await capability.json()).mailAiProcessing).toBe(canProcess ? 'site' : 'custom');
         for (const action of ['summarize', 'translate']) {
           const response = await request.post(endpoint, { headers, data: { mailId: mail.id, action } });
           expect(response.status(), await response.text()).toBe(canProcess ? 200 : 403);
@@ -170,7 +170,7 @@ test('allowlist read and JSON failures disable new AI actions without breaking m
     const headers = { ...resultHeaders, ...auth(jwt) };
     const url = `${WORKER_URL}/api/settings`;
     const normal = await (await request.get(url, { headers })).json();
-    expect(normal.mailAiProcessing).toBe(true);
+    expect(normal.mailAiProcessing).toBe('site');
     for (const failure of ['read', 'json']) {
       const failingHeaders = { ...headers, 'x-test-fail-ai-allowlist': failure };
       const settings = await request.get(url, { headers: failingHeaders });

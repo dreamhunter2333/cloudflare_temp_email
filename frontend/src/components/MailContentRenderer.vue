@@ -49,7 +49,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  mailAiProcessing: Boolean,
+  mailAiProcessing: String,
   // 回调函数 props
   onDelete: {
     type: Function,
@@ -89,7 +89,7 @@ const canProcessMail = computed(() => props.mailAiProcessing && props.mail?.addr
 const translated = computed(() => canProcessMail.value && translation.value?.mailId === props.mail?.id
   ? translation.value : null);
 const { t: aiT, pending, summary, error: processingError, processMail } = useMailProcessing(
-  () => canProcessMail.value ? props.mail : null, translation
+  () => canProcessMail.value ? props.mail : null, () => props.mailAiProcessing, translation
 );
 
 const closeSummary = () => {
