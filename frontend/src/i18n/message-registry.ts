@@ -203,6 +203,10 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "components.MailProcessing": {
+    customSetupRequired: { zh: "先在「邮箱设置 → 邮件 AI 助手」保存自定义模型。", en: "Save a custom model in Mailbox Settings → Mail AI Assistant first." },
+    customRequestFailed: { zh: "自定义模型未返回可用结果。请检查连接、API Key 和服务的跨域设置。", en: "The custom model did not return a usable result. Check the connection, API key, and CORS settings." },
+    emptyMail: { zh: "这封邮件没有可处理的内容。", en: "This email has no content to process." },
+    mailTooLong: { zh: "邮件内容过长，无法处理。", en: "This email is too long to process." },
     summarize: { zh: '摘要', en: 'Summarize' },
     translate: { zh: '翻译', en: 'Translate' },
     summary: { zh: '邮件摘要', en: 'Email summary' },
@@ -1207,6 +1211,18 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.index.AccountSettings": {
+    customAiModel: { zh: "自定义模型", en: "Custom model" },
+    customAiNotice: { zh: "此邮箱不能使用站点模型。点击摘要或翻译时，浏览器会把邮件标题和正文发给你填写的服务。", en: "This mailbox cannot use the site model. When you click Summarize or Translate, your browser sends the subject and body to the service you configure." },
+    customAiProtocol: { zh: "接口格式", en: "API format" },
+    customAiModelName: { zh: "模型名称", en: "Model name" },
+    customAiSummaryPrompt: { zh: "摘要 Prompt", en: "Summary prompt" },
+    customAiPromptPlaceholder: { zh: "留空使用默认提示词", en: "Leave blank to use the default" },
+    customAiSave: { zh: "保存模型", en: "Save model" },
+    customAiClear: { zh: "清除配置", en: "Clear settings" },
+    customAiSaved: { zh: "已保存在当前浏览器", en: "Saved in this browser" },
+    customAiCleared: { zh: "已清除自定义模型", en: "Custom model cleared" },
+    customAiKeyHelp: { zh: "仅保存在当前标签页会话。请使用可信服务和专用密钥。", en: "Kept only in this tab session. Use a trusted provider and a dedicated key." },
+    customAiInvalidUrl: { zh: "请输入不含用户名、密码、查询参数或片段的 HTTPS API 地址。", en: "Enter an HTTPS API URL without a username, password, query, or fragment." },
     "mailAiAssistant": {
       "en": "Mail AI Assistant",
       "zh": "邮件 AI 助手"

@@ -74,7 +74,7 @@ const getSettings = async (c: Context<HonoCustomType>) => {
         address: address,
         send_balance: balance || 0,
         new_address_token: await renewAddressPasswordLoginToken(c, c.get("jwtPayload")),
-        ...(mailProcessing ? { mailAiProcessing: true } : {}),
+        ...(mailProcessing ? { mailAiProcessing: mailProcessing.mode } : {}),
     });
 };
 

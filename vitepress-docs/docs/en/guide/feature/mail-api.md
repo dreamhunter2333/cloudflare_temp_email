@@ -39,7 +39,7 @@ res = requests.get(
 
 Send `POST /api/mail_processing` with the mailbox JWT, an optional `x-lang` header, and JSON `{ "mailId": 123, "action": "summarize" }` (or `"translate"`). Translation optionally accepts `targetLanguage` (`zh`, `en`, `es`, `pt-BR`, `ja`, or `de`); otherwise it follows `x-lang`. Only mail in that mailbox can be processed. Summary returns `{ "text": "..." }`; translation returns `{ "subject": "...", "text": "..." }`. The Worker does not cache or persist either response. See [provider setup](./ai-extract#mail-processing).
 
-The site-model endpoint is available when `GET /api/settings` returns `mailAiProcessing: true`. The field is omitted when mail processing is unavailable to the current mailbox.
+The site-model endpoint requires `mailAiProcessing: "site"` in `GET /api/settings`. The value `"custom"` means the mailbox can only use a browser-configured model. The field is omitted when the feature is disabled.
 
 ## Admin Mail API
 

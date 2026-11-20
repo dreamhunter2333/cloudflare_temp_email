@@ -59,7 +59,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  mailAiProcessing: Boolean,
+  mailAiProcessing: String,
   updateMailReadStatus: {
     type: Function,
     default: () => { }

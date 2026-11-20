@@ -26,7 +26,8 @@ export async function getMailProcessingAccess(c: Context<HonoCustomType>, addres
         const value = await c.env.DB.prepare('SELECT value FROM settings WHERE key = ?')
             .bind(CONSTANTS.AI_EXTRACT_SETTINGS_KEY).first<string>('value');
         const settings = value === null ? null : JSON.parse(value) as AiExtractSettings;
-        return isAddressInAiAllowlist(settings, address) ? provider : null;
+        if (!isAddressInAiAllowlist(settings, address)) return { mode: 'custom' } as const;
+        return { mode: 'site', provider } as const;
     } catch (error) {
         console.error('Failed to read mail AI allowlist:', error instanceof Error ? error.name : 'Unknown error');
         return null;
