@@ -1,4 +1,12 @@
 export const esMessages = {
+  "views.index.AccountSettings.mailAiAssistant": "Asistente de correo con IA",
+  "views.index.AccountSettings.translationLanguage": "Idioma de traducción",
+  "views.index.AccountSettings.followInterfaceLanguage": "Usar el idioma de la interfaz",
+  "components.MailProcessing.summarize": "Resumir",
+  "components.MailProcessing.translate": "Traducir",
+  "components.MailProcessing.summary": "Resumen del correo",
+  "components.MailProcessing.showOriginal": "Ver original",
+  "components.MailProcessing.failed": "No se pudo procesar el correo. Inténtalo de nuevo.",
   "views.admin.CreateAccount.creationMode": "Modo de creación",
   "views.admin.CreateAccount.singleMode": "Creación individual",
   "views.admin.CreateAccount.batchMode": "Creación por lotes",

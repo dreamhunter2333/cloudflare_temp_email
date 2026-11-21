@@ -114,7 +114,8 @@ test('password login tokens renew below seven days; legacy credentials do not re
       });
       expect(response.ok()).toBe(true);
       const settings = await response.json();
-      expect(Object.keys(settings).sort()).toEqual(['address', 'new_address_token', 'send_balance']);
+      expect(Object.keys(settings).sort()).toEqual(['address', 'mailAiProcessing', 'new_address_token', 'send_balance']);
+      expect(settings.mailAiProcessing).toBe(false);
       if (remainingDays > 7) {
         expect(settings.new_address_token).toBeNull();
         continue;
@@ -164,6 +165,8 @@ async function expectRejected(request: APIRequestContext, jwt: string) {
     ['GET', '/api/mail/1'],
     ['GET', '/api/parsed_mails?limit=20&offset=0'],
     ['GET', '/api/parsed_mail/1'],
+    ['POST', '/api/mails/1/summarize'],
+    ['POST', '/api/mails/1/translate'],
     ['GET', '/api/sendbox?limit=20&offset=0'],
     ['GET', '/api/auto_reply'],
     ['POST', '/api/webhook/settings'],

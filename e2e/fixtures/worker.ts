@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import worker from '../../worker/src/worker';
 import { CONSTANTS } from '../../worker/src/constants';
 import mailApi from './mail-api';
+import { mailProcessingTestEnv } from './mail-processing';
 
 const testApi = new Hono<HonoCustomType>();
 testApi.post('/seed_mail', c => mailApi.seedMail(c.req.raw, c.env));
@@ -43,9 +44,24 @@ app.all('*', async c => {
   };
   const batchFailure = c.req.header('x-test-fail-db-batch');
   const kvFailure = c.req.header('x-test-fail-kv');
-  const DB = batchFailure ? {
-    prepare: c.env.DB.prepare.bind(c.env.DB),
-    batch: async () => {
+  const allowlistFailure = c.req.header('x-test-fail-ai-allowlist');
+  const mockedMailProvider = c.req.header('x-test-mail-processing-provider');
+  const DB = batchFailure || allowlistFailure || mockedMailProvider ? {
+    prepare(query: string) {
+      if ((allowlistFailure || mockedMailProvider) && query === 'SELECT value FROM settings WHERE key = ?') {
+        return { bind: (key: string) => {
+          if (key !== CONSTANTS.AI_EXTRACT_SETTINGS_KEY) return c.env.DB.prepare(query).bind(key);
+          return { first: async () => {
+            if (allowlistFailure === 'read') throw new Error('Injected AI allowlist read failure');
+            if (allowlistFailure === 'json') return '{invalid json';
+            return c.req.header('x-test-ai-allowlist') ?? null;
+          } };
+        } };
+      }
+      return c.env.DB.prepare(query);
+    },
+    batch: async (statements: D1PreparedStatement[]) => {
+      if (!batchFailure) return c.env.DB.batch(statements);
       if (batchFailure === 'throw') throw new Error('Injected database batch failure');
       return [{ success: false }];
     },
@@ -64,7 +80,7 @@ app.all('*', async c => {
   }) : c.env.KV;
   const sitePasswords = c.req.header('x-test-site-passwords');
   const bindings = {
-    ...env, DB, KV,
+    ...env, DB, KV, ...mailProcessingTestEnv(c.req.raw, env),
     ...(sitePasswords !== undefined ? { PASSWORDS: JSON.parse(sitePasswords) } : {}),
   };
   if (!c.req.header('x-test-await-background')) return worker.fetch(c.req.raw, bindings, c.executionCtx);

@@ -1,4 +1,12 @@
 export const jaMessages = {
+  "views.index.AccountSettings.mailAiAssistant": "メール AI アシスタント",
+  "views.index.AccountSettings.translationLanguage": "翻訳先の言語",
+  "views.index.AccountSettings.followInterfaceLanguage": "表示言語に合わせる",
+  "components.MailProcessing.summarize": "要約",
+  "components.MailProcessing.translate": "翻訳",
+  "components.MailProcessing.summary": "メールの要約",
+  "components.MailProcessing.showOriginal": "原文を表示",
+  "components.MailProcessing.failed": "メールを処理できませんでした。もう一度お試しください。",
   "views.admin.CreateAccount.creationMode": "作成方法",
   "views.admin.CreateAccount.singleMode": "個別作成",
   "views.admin.CreateAccount.batchMode": "一括作成",

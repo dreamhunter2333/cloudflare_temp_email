@@ -7,6 +7,7 @@ import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { hashPassword } from '../../utils'
 import { getRouterPathWithLang } from '../../utils'
+import MailboxAiSettings from '../../components/mail-ai-processing/MailboxAiSettings.vue'
 
 const {
     jwt, settings, showAddressCredential, loading, openSettings
@@ -116,6 +117,7 @@ const changePassword = async () => {
                 {{ t('deleteMailbox') }}
             </n-button>
         </n-card>
+        <MailboxAiSettings v-if="settings.mailAiProcessing" class="account-card" />
 
         <n-modal v-model:show="showLogout" preset="dialog" :title="t('logout')">
             <p>{{ t('logoutConfirm') }}</p>
@@ -173,7 +175,9 @@ const changePassword = async () => {
 <style scoped>
 .center {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
 .account-card {

@@ -1,4 +1,12 @@
 export const deMessages = {
+  "views.index.AccountSettings.mailAiAssistant": "KI-Assistent für E-Mails",
+  "views.index.AccountSettings.translationLanguage": "Übersetzungssprache",
+  "views.index.AccountSettings.followInterfaceLanguage": "Sprache der Benutzeroberfläche verwenden",
+  "components.MailProcessing.summarize": "Zusammenfassen",
+  "components.MailProcessing.translate": "Übersetzen",
+  "components.MailProcessing.summary": "E-Mail-Zusammenfassung",
+  "components.MailProcessing.showOriginal": "Original anzeigen",
+  "components.MailProcessing.failed": "E-Mail konnte nicht verarbeitet werden. Versuche es erneut.",
   "views.admin.CreateAccount.creationMode": "Erstellungsmodus",
   "views.admin.CreateAccount.singleMode": "Einzeln erstellen",
   "views.admin.CreateAccount.batchMode": "Stapel erstellen",

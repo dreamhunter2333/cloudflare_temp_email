@@ -202,6 +202,13 @@ export const MESSAGE_REGISTRY = {
       "zh": "订阅链接"
     }
   },
+  "components.MailProcessing": {
+    summarize: { zh: '摘要', en: 'Summarize' },
+    translate: { zh: '翻译', en: 'Translate' },
+    summary: { zh: '邮件摘要', en: 'Email summary' },
+    showOriginal: { zh: '查看原文', en: 'Show original' },
+    failed: { zh: '无法处理邮件，请重试。', en: 'Could not process the email. Try again.' },
+  },
   "components.MailContentRenderer": {
     "from": {
       "en": "From",
@@ -1200,6 +1207,18 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.index.AccountSettings": {
+    "mailAiAssistant": {
+      "en": "Mail AI Assistant",
+      "zh": "邮件 AI 助手"
+    },
+    "translationLanguage": {
+      "en": "Translation language",
+      "zh": "翻译目标语言"
+    },
+    "followInterfaceLanguage": {
+      "en": "Follow interface language",
+      "zh": "跟随界面语言"
+    },
     "changePassword": {
       "en": "Change Mailbox Password",
       "zh": "修改邮箱密码"
