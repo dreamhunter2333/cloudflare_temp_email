@@ -70,3 +70,15 @@ export const resolveExpiryPayload = (
     if (seconds === undefined) return {};
     return { expiresAt: new Date(nowMs + seconds * 1000).toISOString() };
 };
+
+export const isAddressExpiredAt = (
+    expiresAt: string | null | undefined,
+    nowMs: number = Date.now(),
+): boolean => {
+    if (!expiresAt) return false;
+    const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(expiresAt)
+        ? `${expiresAt.replace(' ', 'T')}Z`
+        : expiresAt;
+    const ts = Date.parse(normalized);
+    return Number.isFinite(ts) && ts <= nowMs;
+};

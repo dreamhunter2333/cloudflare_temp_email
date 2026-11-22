@@ -16,6 +16,7 @@
 
 ### Improvements
 
+- feat: |Mailbox| Display an `Expired (Pending Deletion)` status tag in Admin `Mailbox Management -> Mailboxes` and user mailbox lists for expired mailboxes awaiting scheduled or manual cleanup
 - refactor: |Mail Parsing| Extract backend mail parsing into a shared module without changing parsing behavior or WASM selection
 - refactor: |Address Expiry| Extract shared expiry checks, remove duplicate queries and fallback wrappers, validate the format and time zone of `expiresAt` (a valid future date before 2100 UTC), omit `expires_at` from creation responses, and add the expiry column only during version migration
 

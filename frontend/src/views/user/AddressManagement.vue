@@ -7,6 +7,7 @@ import { NBadge, NPopconfirm, NButton } from 'naive-ui'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { getRouterPathWithLang, utcToLocalDate } from '../../utils'
+import { renderAddressExpiryCell, useNowMs } from '../../utils/address-expiry-cell'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 import Login from '../common/Login.vue';
@@ -17,6 +18,7 @@ const router = useRouter()
 
 const { locale, t } = useScopedI18n('views.user.AddressManagement')
 const { t: credentialT } = useScopedI18n('components.AddressCredentialModal')
+const nowMs = useNowMs()
 
 const data = ref([])
 const count = ref(0)
@@ -178,7 +180,7 @@ const columns = computed(() => [
         title: t('expires_at'),
         key: "expires_at",
         render(row) {
-            return row.expires_at ? utcToLocalDate(row.expires_at, useUTCDate.value) : t('neverExpires');
+            return renderAddressExpiryCell(row.expires_at, useUTCDate.value, t, nowMs.value);
         }
     }] : []),
     {

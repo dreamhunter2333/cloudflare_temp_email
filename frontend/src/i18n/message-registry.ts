@@ -1122,6 +1122,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Expires At",
       "zh": "过期时间"
     },
+    "expiredPendingDeletion": {
+      "en": "Expired (Pending Deletion)",
+      "zh": "已过期（待删除）"
+    },
     "neverExpires": {
       "en": "Never",
       "zh": "永不过期"
@@ -1733,6 +1737,10 @@ export const MESSAGE_REGISTRY = {
     "expires_at": {
       "en": "Expires At",
       "zh": "过期时间"
+    },
+    "expiredPendingDeletion": {
+      "en": "Expired (Pending Deletion)",
+      "zh": "已过期（待删除）"
     },
     "neverExpires": {
       "en": "Never",
