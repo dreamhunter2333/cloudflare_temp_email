@@ -359,7 +359,7 @@ export function newTelegramBot(c: Context<HonoCustomType>, token: string): Teleg
         ).bind(
             queryAddress, mailIndex
         ).first<RawMailRow>();
-        const raw = mailRow ? await resolveRawEmail(mailRow) : undefined;
+        const raw = mailRow ? await resolveRawEmail(c.env.DB, mailRow) : undefined;
         const mailId = mailRow?.id;
         const created_at = mailRow?.created_at;
         const { mail } = raw

@@ -12,6 +12,16 @@ testApi.post('/expire_redeem_code', async c => {
     .bind(code).run();
   return c.json({ updated: meta.changes });
 });
+testApi.get('/raw_mail_chunks', async c => {
+  const mailId = c.req.query('mail_id');
+  const chunkKey = c.req.query('chunk_key') ?? (mailId ? await c.env.DB.prepare(
+    'SELECT raw_chunk_key FROM raw_mails WHERE id = ?'
+  ).bind(mailId).first<string | null>('raw_chunk_key') : null);
+  const count = chunkKey ? await c.env.DB.prepare(
+    'SELECT COUNT(*) AS count FROM raw_mail_chunks WHERE chunk_key = ?'
+  ).bind(chunkKey).first<number>('count') : 0;
+  return c.json({ chunk_key: chunkKey, count });
+});
 testApi.get('/telegram_binding', async c => {
   const userId = c.req.query('userId');
   if (userId) return c.json(await c.env.KV.get(`${CONSTANTS.TG_KV_PREFIX}:${userId}`, 'json'));

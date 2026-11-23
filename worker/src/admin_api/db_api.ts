@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     address TEXT,
     raw TEXT,
     raw_blob BLOB,
+    raw_chunk_key TEXT,
     metadata TEXT,
     is_unread INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -25,6 +26,16 @@ CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);
 CREATE INDEX IF NOT EXISTS idx_raw_mails_cleanup_unknown ON raw_mails(created_at, id, address);
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_source_domain_created_at ON raw_mails(lower(trim(substr(source, instr(source, '@') + 1), ' <>')), created_at, id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_raw_mails_raw_chunk_key ON raw_mails(raw_chunk_key);
+
+CREATE TABLE IF NOT EXISTS raw_mail_chunks (
+    chunk_key TEXT NOT NULL,
+    seq INTEGER NOT NULL,
+    data BLOB NOT NULL,
+    PRIMARY KEY (chunk_key, seq),
+    FOREIGN KEY (chunk_key) REFERENCES raw_mails(raw_chunk_key) ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -243,6 +254,15 @@ export default {
                         throw error;
                     }
                 }
+            }
+        }
+        if (!version || compareVersions(version, "v0.0.11") <= 0) {
+            // migration to v0.0.12: add raw_chunk_key before DB_INIT_QUERIES creates raw_mail_chunks,
+            // whose foreign key needs it (and its unique index) on raw_mails
+            const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(raw_mails)`).all();
+            if (tableInfo.results && tableInfo.results.length > 0
+                && !tableInfo.results.some((col: any) => col.name === 'raw_chunk_key')) {
+                await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_chunk_key TEXT;`);
             }
         }
         if (!version || compareVersions(version, CONSTANTS.DB_VERSION) < 0) {
