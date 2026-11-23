@@ -25,6 +25,20 @@ const getRawMailTableColumns = async (
     return columns;
 }
 
+let rawMailChunksReady = false;
+
+/**
+ * The migration adds raw_chunk_key before it creates raw_mail_chunks,
+ * so chunked writes wait until both exist.
+ */
+const canStoreChunks = async (env: Bindings): Promise<boolean> => {
+    if (rawMailChunksReady) return true;
+    if (!(await getRawMailTableColumns(env, ['raw_chunk_key'])).has('raw_chunk_key')) return false;
+    const { results } = await env.DB.prepare(`PRAGMA table_info(raw_mail_chunks)`).all();
+    rawMailChunksReady = results.length > 0;
+    return rawMailChunksReady;
+}
+
 export const storeRawMail = async (
     env: Bindings,
     source: string,
@@ -60,8 +74,7 @@ export const storeRawMail = async (
     }
     const content = rawBlob ?? raw;
     // Before the database is migrated, large mail is stored in one row as before
-    const chunks = exceedsChunkSize(content)
-        && (await getRawMailTableColumns(env, ['raw_chunk_key'])).has('raw_chunk_key')
+    const chunks = exceedsChunkSize(content) && await canStoreChunks(env)
         ? splitRawMail(content, RAW_MAIL_CHUNK_BYTES)
         : undefined;
     if (!chunks) {

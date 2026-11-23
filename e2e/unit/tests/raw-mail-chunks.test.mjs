@@ -60,7 +60,7 @@ const createD1Mock = (db) => {
       db.exec('BEGIN');
       try {
         const results = [];
-        for (const stmt of stmts) results.push(await stmt.run());
+        for (const stmt of stmts) results.push(/^\s*select\b/i.test(stmt.sql) ? await stmt.all() : await stmt.run());
         db.exec('COMMIT');
         return results;
       } catch (error) {
@@ -256,6 +256,49 @@ test('a mail with a missing chunk reads as empty instead of failing the request'
   const errors = t.mock.method(console, 'error', () => {});
   assert.equal(await gzip.resolveRawEmail(env.DB, row), '');
   assert.equal(errors.mock.callCount(), 1);
+});
+
+test('chunked writes wait until the chunk table exists, not just the column', async (t) => {
+  // The migration adds raw_chunk_key before it creates raw_mail_chunks
+  const db = await createDb(t, `CREATE TABLE raw_mails (id INTEGER PRIMARY KEY, message_id TEXT, source TEXT,
+    address TEXT, raw TEXT, raw_blob BLOB, raw_chunk_key TEXT, metadata TEXT, is_unread INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
+  const storage = await loadStorage();
+  const raw = mailOfSize(1_500_000);
+  await storage.storeRawMail({ DB: createD1Mock(db) }, 'sender@test', 'user@test', null, raw);
+  assert.deepEqual({ ...db.prepare('SELECT raw, raw_chunk_key FROM raw_mails').get() }, { raw, raw_chunk_key: null });
+});
+
+test('a list reads the chunks of ten mails per batch, never one query per mail', async (t) => {
+  const db = await createDb(t);
+  const storage = await loadStorage();
+  const mock = createD1Mock(db);
+  for (let i = 0; i < 25; i++) {
+    await storage.storeRawMail({ DB: mock }, 'sender@test', 'user@test', null, mailOfSize(1_000_100 + i));
+  }
+  await storage.storeRawMail({ DB: mock }, 'sender@test', 'user@test', null, 'From: a\r\n\r\nsmall');
+  const { results } = await mock.prepare('SELECT * FROM raw_mails ORDER BY id').all();
+  // Count batches, and queries run on their own rather than inside a batch
+  const calls = { batch: 0, query: 0 };
+  let inBatch = false;
+  const counting = {
+    ...mock,
+    prepare: (sql) => {
+      const stmt = mock.prepare(sql);
+      const all = stmt.all.bind(stmt);
+      stmt.all = async () => { if (!inBatch) calls.query++; return all(); };
+      return stmt;
+    },
+    batch: async (stmts) => {
+      calls.batch++;
+      inBatch = true;
+      try { return await mock.batch(stmts); } finally { inBatch = false; }
+    },
+  };
+  const resolved = await gzip.resolveRawEmailList(counting, results);
+  assert.deepEqual(calls, { batch: 3, query: 0 });
+  assert.deepEqual(resolved.map((row) => Buffer.byteLength(row.raw)),
+    [...Array.from({ length: 25 }, (_, i) => 1_000_100 + i), Buffer.byteLength('From: a\r\n\r\nsmall')]);
 });
 
 test('before migration, large mail is still stored in one row', async (t) => {
