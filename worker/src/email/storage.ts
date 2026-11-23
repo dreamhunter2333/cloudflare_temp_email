@@ -8,35 +8,36 @@ import { getBooleanValue } from "../utils";
 // into raw_mail_chunks rows; this size leaves room for the other columns.
 export const RAW_MAIL_CHUNK_BYTES = 1_000_000;
 
-let rawMailTableColumns: Set<string> | undefined;
+// Cached per D1 binding: a deploy that only changes bindings may reuse this isolate with another database
+const rawMailTableColumns = new WeakMap<D1Database, Set<string>>();
+const rawMailChunksReady = new WeakSet<D1Database>();
 
 const getRawMailTableColumns = async (
     env: Bindings, requiredColumns: string[]
 ): Promise<Set<string>> => {
-    const cachedColumns = rawMailTableColumns;
+    const cachedColumns = rawMailTableColumns.get(env.DB);
     if (cachedColumns && requiredColumns.every(column => cachedColumns.has(column))) {
         return cachedColumns;
     }
     const tableInfo = await env.DB.prepare(`PRAGMA table_info(raw_mails)`).all<{ name: string }>();
     const columns = new Set(tableInfo.results.map(column => column.name));
     if (requiredColumns.every(column => columns.has(column))) {
-        rawMailTableColumns = columns;
+        rawMailTableColumns.set(env.DB, columns);
     }
     return columns;
 }
-
-let rawMailChunksReady = false;
 
 /**
  * The migration adds raw_chunk_key before it creates raw_mail_chunks,
  * so chunked writes wait until both exist.
  */
 const canStoreChunks = async (env: Bindings): Promise<boolean> => {
-    if (rawMailChunksReady) return true;
+    if (rawMailChunksReady.has(env.DB)) return true;
     if (!(await getRawMailTableColumns(env, ['raw_chunk_key'])).has('raw_chunk_key')) return false;
     const { results } = await env.DB.prepare(`PRAGMA table_info(raw_mail_chunks)`).all();
-    rawMailChunksReady = results.length > 0;
-    return rawMailChunksReady;
+    if (results.length === 0) return false;
+    rawMailChunksReady.add(env.DB);
+    return true;
 }
 
 export const storeRawMail = async (

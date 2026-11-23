@@ -269,6 +269,20 @@ test('chunked writes wait until the chunk table exists, not just the column', as
   assert.deepEqual({ ...db.prepare('SELECT raw, raw_chunk_key FROM raw_mails').get() }, { raw, raw_chunk_key: null });
 });
 
+test('chunk readiness is cached per database binding', async (t) => {
+  // A deploy that only changes bindings may reuse the isolate with an unmigrated database
+  const storage = await loadStorage();
+  const migrated = await createDb(t);
+  await storage.storeRawMail({ DB: createD1Mock(migrated) }, 'sender@test', 'user@test', null, mailOfSize(1_500_000));
+  assert.equal(migrated.prepare('SELECT COUNT(*) AS n FROM raw_mail_chunks').get().n, 2);
+
+  const unmigrated = await createDb(t, `CREATE TABLE raw_mails (id INTEGER PRIMARY KEY, message_id TEXT, source TEXT,
+    address TEXT, raw TEXT, raw_blob BLOB, metadata TEXT, is_unread INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
+  const raw = mailOfSize(1_500_000);
+  await storage.storeRawMail({ DB: createD1Mock(unmigrated) }, 'sender@test', 'user@test', null, raw);
+  assert.equal(unmigrated.prepare('SELECT raw FROM raw_mails').get().raw, raw);
+});
+
 test('a list reads the chunks of ten mails per batch, never one query per mail', async (t) => {
   const db = await createDb(t);
   const storage = await loadStorage();
