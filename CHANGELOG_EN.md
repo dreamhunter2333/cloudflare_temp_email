@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |Mailbox| Lowercase requested address names on the server before filtering, so `Alice` creates `alice@...` instead of `lice@...` via API, Web UI and Telegram `/new`
+
 ### Improvements
 
 - refactor: |Mail Parsing| Extract backend mail parsing into a shared module without changing parsing behavior or WASM selection
