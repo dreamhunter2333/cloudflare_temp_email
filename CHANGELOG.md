@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |邮箱| 服务端在过滤前先将邮箱名转为小写，通过 API、网页和 Telegram `/new` 创建 `Alice` 时得到 `alice@...` 而不是 `lice@...`
+
 ### Improvements
 
 - refactor: |邮件解析| 将后端邮件解析提取为独立公共模块，保持解析行为和 WASM 切换方式不变

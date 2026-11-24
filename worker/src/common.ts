@@ -215,7 +215,7 @@ export const newAddress = async (
         throw new Error(msgs.AddressExpiryDisabledMsg);
     }
     // trim whitespace and remove special characters
-    name = name.trim().replace(getNameRegex(c), '')
+    name = name.trim().toLowerCase().replace(getNameRegex(c), '')
     // check name
     if (enableCheckNameRegex) {
         await checkNameBlockList(c, name);
