@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |SMTP Proxy| Send `basic_password` as `x-custom-auth` when sending mail, so SMTP sends no longer fail with 401 when the worker sets `PASSWORDS`
+
 ### Improvements
 
 - refactor: |Mail Parsing| Extract backend mail parsing into a shared module without changing parsing behavior or WASM selection

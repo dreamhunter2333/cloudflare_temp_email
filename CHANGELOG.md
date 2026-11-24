@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |SMTP 代理| 发信时携带 `basic_password` 作为 `x-custom-auth`，修复 Worker 设置 `PASSWORDS` 后 SMTP 发信返回 401 的问题
+
 ### Improvements
 
 - refactor: |邮件解析| 将后端邮件解析提取为独立公共模块，保持解析行为和 WASM 切换方式不变
