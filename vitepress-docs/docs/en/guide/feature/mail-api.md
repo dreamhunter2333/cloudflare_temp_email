@@ -51,7 +51,7 @@ Supported query parameters:
 | Parameter | Default | Description |
 | --- | --- | --- |
 | `address` | required | Email address, case insensitive |
-| `limit` | `10` | Number of mails to return, 1–50 |
+| `limit` | `10` | Number of mails to return, 1–100 |
 | `offset` | `0` | Pagination offset |
 | `id` | empty | Mail ID, returns only that mail (including body) |
 | `code_only` | `false` | Only return mails a code was extracted from |
@@ -100,7 +100,24 @@ Example JSON response (`count` is the total number of mails for that address and
 }
 ```
 
-Mails are returned newest first (by descending ID); `code` is the newest extracted code among the returned mails. An unknown address returns 404, an invalid address returns 400.
+Mails are returned newest first (by descending ID); `code` is the newest extracted code among the returned mails. An unknown address returns 404, an invalid address returns 400. `count` is the total number of mails for that address and is returned on every page, so you can tell whether more pages exist.
+
+To read older history, page with `limit` + `offset` (up to 100 mails per page; the endpoint never truncates the inbox to the newest few mails):
+
+```python
+page_size, offset, all_mails = 100, 0, []
+while True:
+    page = requests.get(
+        "https://<your-worker-address>/open_api/mailbox",
+        params={"address": "xxx@awsl.uk", "key": "<key>", "limit": page_size, "offset": offset},
+        timeout=10,
+    ).json()
+    all_mails.extend(page["mails"])
+    if len(page["mails"]) < page_size:
+        break
+    offset += page_size
+print(page["count"], len(all_mails))  # total mails vs mails actually fetched
+```
 
 ::: warning
 With `MAILBOX_QUERY_PUBLIC` enabled, anyone who knows the email address can read that inbox. Use it only in trusted environments; prefer `MAILBOX_QUERY_KEY` in production.

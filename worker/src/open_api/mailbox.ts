@@ -25,7 +25,7 @@ import { getBooleanValue, getPasswords, trimLower } from '../utils'
 const api = new Hono<HonoCustomType>()
 
 const DEFAULT_LIMIT = 10
-const MAX_LIMIT = 50
+const MAX_LIMIT = 100
 const MAX_TEXT_LENGTH = 4000
 const MAX_HTML_LENGTH = 20000
 const ADDRESS_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
@@ -203,9 +203,13 @@ api.get('/open_api/mailbox', async (c) => {
     if (listResponse.status !== 200) {
         return listResponse
     }
-    const { results, count } = await listResponse.json() as {
+    const { results } = await listResponse.json() as {
         results: RawMailRow[], count: number
     }
+    // count is the total number of mails for the address, available on every page
+    const count = await c.env.DB.prepare(
+        `SELECT count(id) as count FROM raw_mails where address = ?`
+    ).bind(address).first<number>("count") ?? 0
     const mails = await Promise.all(
         results.map((row) => toMailboxMail(row, includeBody, includeHtml))
     )
@@ -217,7 +221,7 @@ api.get('/open_api/mailbox', async (c) => {
         return c.text(code ?? '', 200, { 'Content-Type': 'text/plain; charset=utf-8' })
     }
     if (format === 'html') {
-        return c.html(renderHtmlPage(address, matchedMails, code, count ?? 0))
+        return c.html(renderHtmlPage(address, matchedMails, code, count))
     }
     return c.json({ address, count, code, mails: matchedMails })
 })

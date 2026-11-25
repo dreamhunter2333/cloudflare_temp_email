@@ -51,7 +51,7 @@ res = requests.get(
 | 参数 | 默认值 | 说明 |
 | --- | --- | --- |
 | `address` | 必填 | 邮箱地址，大小写不敏感 |
-| `limit` | `10` | 返回邮件数量，范围 1–50 |
+| `limit` | `10` | 返回邮件数量，范围 1–100 |
 | `offset` | `0` | 分页偏移 |
 | `id` | 空 | 指定邮件 ID，只返回该封邮件（包含正文） |
 | `code_only` | `false` | 只返回成功提取到验证码的邮件 |
@@ -100,7 +100,24 @@ JSON 响应示例（`count` 为该地址的邮件总数，仅第一页有意义�
 }
 ```
 
-邮件按 ID 倒序返回（最新在前）；`code` 取返回列表中最新的验证码。地址不存在返回 404，地址格式不合法返回 400。
+邮件按 ID 倒序返回（最新在前）；`code` 取返回列表中最新的验证码。地址不存在返回 404，地址格式不合法返回 400。`count` 是该地址的邮件总数，每一页都会返回，便于判断还要不要继续翻页。
+
+要读取更早的历史邮件，用 `limit` + `offset` 翻页即可（单页最多 100 封，不会只保留最近几封）：
+
+```python
+page_size, offset, all_mails = 100, 0, []
+while True:
+    page = requests.get(
+        "https://<你的worker地址>/open_api/mailbox",
+        params={"address": "xxx@awsl.uk", "key": "<密钥>", "limit": page_size, "offset": offset},
+        timeout=10,
+    ).json()
+    all_mails.extend(page["mails"])
+    if len(page["mails"]) < page_size:
+        break
+    offset += page_size
+print(page["count"], len(all_mails))  # 总数与实际取到的封数
+```
 
 ::: warning
 开启 `MAILBOX_QUERY_PUBLIC` 后，任何知道邮箱地址的人都能读取该邮箱的邮件，请只在可信环境使用；生产环境推荐使用 `MAILBOX_QUERY_KEY`。
