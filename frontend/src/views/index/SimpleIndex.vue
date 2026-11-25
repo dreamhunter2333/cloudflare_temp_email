@@ -18,6 +18,7 @@ import AccountSettings from './AccountSettings.vue'
 import { processItem } from '../../utils/email-parser'
 import MailContentRenderer from '../../components/MailContentRenderer.vue'
 import AddressSelect from '../../components/AddressSelect.vue'
+import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 const { jwt, settings, useSimpleIndex, showAddressCredential, openSettings, loading } = useGlobalState()
 const message = useMessage()
@@ -50,9 +51,28 @@ const fetchMails = async () => {
         totalCount.value = count > 0 ? count : totalCount.value;
         const rawMail = results && results.length > 0 ? results[0] : null
         currentMail.value = rawMail ? await processItem(rawMail) : null
+        return true
     } catch (error) {
         console.error('Failed to fetch mails:', error)
         message.error('获取邮件失败')
+    }
+}
+
+const toggleCurrentMailUnread = async () => {
+    if (!currentMail.value || !openSettings.value.enableMailReadStatus) return
+    const mail = currentMail.value
+    const previousValue = mail.is_unread
+    const isUnread = previousValue !== 1
+    mail.is_unread = isUnread ? 1 : 0
+    try {
+        await api.fetch(`/api/mails/${mail.id}/read`, {
+            method: 'PATCH',
+            body: JSON.stringify({ isUnread }),
+            showLoading: false
+        })
+        message.success(t('readStatusUpdated'))
+    } catch {
+        mail.is_unread = previousValue
     }
 }
 
@@ -76,7 +96,7 @@ const refreshMails = async () => {
     currentPage.value = 1
     showAccountSettingsCard.value = false
     currentAutoRefreshInterval.value = 60
-    await fetchMails()
+    if (!(await fetchMails())) return
     message.success(t('refreshSuccess'))
 }
 
@@ -170,7 +190,7 @@ onBeforeUnmount(() => {
                                 <SettingsFilled />
                             </n-icon>
                         </template>
-                        {{ t('accountSettings') }}
+                        {{ t('mailboxSettings') }}
                     </n-button>
                 </n-flex>
                 <div v-if="isFirstPage" style="text-align: center; margin-top: 12px;">
@@ -182,7 +202,7 @@ onBeforeUnmount(() => {
 
             <!-- 账户设置卡片 -->
             <n-card v-if="showAccountSettingsCard" :bordered="false" embedded closable
-                @close="showAccountSettingsCard = false" :title="t('accountSettings')">
+                @close="showAccountSettingsCard = false" :title="t('mailboxSettings')">
                 <AccountSettings />
             </n-card>
 
@@ -216,23 +236,21 @@ onBeforeUnmount(() => {
                     <n-empty :description="t('noMails')" />
                 </div>
                 <div v-else>
-                    <h3 v-if="currentMail.subject">{{ currentMail.subject }}</h3>
+                    <h3 v-if="currentMail.subject"
+                        :class="{ 'mail-title-unread': openSettings.enableMailReadStatus && currentMail.is_unread === 1 }">
+                        {{ currentMail.subject }}
+                    </h3>
                     <div style="margin-top: 16px;">
                         <MailContentRenderer :mail="currentMail" :showEMailTo="false" :showReply="false"
                             :enableUserDeleteEmail="openSettings.enableUserDeleteEmail" :showSaveS3="false"
+                            :enableMailReadStatus="openSettings.enableMailReadStatus"
+                            :onUpdateMailReadStatus="toggleCurrentMailUnread"
                             :onDelete="deleteMail" />
                     </div>
                 </div>
             </n-card>
         </div>
-        <n-modal v-model:show="showAddressCredential" preset="dialog" :title="t('addressCredential')">
-            <span>
-                <p>{{ t("addressCredentialTip") }}</p>
-            </span>
-            <n-card embedded>
-                <b>{{ jwt }}</b>
-            </n-card>
-        </n-modal>
+        <AddressCredentialModal v-model:show="showAddressCredential" :address="settings.address" :jwt="jwt" />
     </div>
 </template>
 
@@ -245,5 +263,20 @@ onBeforeUnmount(() => {
 .n-card {
     margin-top: 20px;
     width: 100%;
+}
+
+.mail-title-unread {
+    font-weight: 700;
+}
+
+.mail-title-unread::before {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: #2080f0;
+    content: '';
+    vertical-align: middle;
 }
 </style>

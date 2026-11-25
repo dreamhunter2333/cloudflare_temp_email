@@ -21,7 +21,10 @@ jobs:
           PR_REVIEWER.REQUIRE_TESTS_REVIEW: "false"
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
-          CONFIG.MODEL: "gpt-5.4-nano"
-          CONFIG.MODEL_TURBO: "gpt-5.4-nano"
+          CONFIG.MODEL: "openai/responses/gpt-6-luna"
+          CONFIG.MODEL_TURBO: "openai/responses/gpt-6-luna"
+          CONFIG.FALLBACK_MODELS: "[]"
+          CONFIG.CUSTOM_MODEL_MAX_TOKENS: "32000"
+          CONFIG.TEMPERATURE: "1"
           OPENAI.API_BASE: ${{ secrets.OPENAI_API_BASE }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

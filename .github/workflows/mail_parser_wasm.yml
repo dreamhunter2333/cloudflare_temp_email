@@ -1,0 +1,52 @@
+name: Publish WASM Packages
+
+on:
+  push:
+    tags: ['mail-parser-wasm-v*']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test packages
+    uses: ./.github/workflows/mail_parser_wasm_ci.yml
+
+  publish:
+    name: Publish ${{ matrix.package }}
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [mail-parser-wasm, mail-parser-wasm-worker]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag is on main
+        run: git merge-base --is-ancestor HEAD origin/main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Download npm packages
+        uses: actions/download-artifact@v6
+        with:
+          name: wasm-packages
+          path: packages
+
+      - name: Publish to npm (OIDC)
+        env:
+          PACKAGE_NAME: ${{ matrix.package }}
+        run: |
+          npm install --global npm@11
+          package_version="${GITHUB_REF_NAME#mail-parser-wasm-v}"
+          npm publish "./packages/$PACKAGE_NAME-$package_version.tgz" --provenance --access public

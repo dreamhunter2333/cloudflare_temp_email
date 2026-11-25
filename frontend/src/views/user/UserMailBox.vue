@@ -32,7 +32,7 @@ const fetchMailData = async (limit, offset) => {
 const fetchAddresData = async () => {
     try {
         const { results } = await api.fetch(
-            `/user_api/bind_address`
+            `/user_api/bind_address?limit=100&offset=0`
         );
         addressFilterOptions.value = results.map((item) => {
             return {

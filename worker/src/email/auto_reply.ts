@@ -1,5 +1,5 @@
 import { createMimeMessage } from "mimetext";
-import { getBooleanValue } from "../utils";
+import { getBooleanValue, normalizeAddressDomain } from "../utils";
 
 /**
  * Check if the sender matches the source_prefix filter.
@@ -21,14 +21,18 @@ function matchSender(from: string, sourcePrefix: string | undefined): boolean {
     return from.startsWith(sourcePrefix);
 }
 
-export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings): Promise<void> => {
+export const auto_reply = async (
+    message: ForwardableEmailMessage,
+    env: Bindings,
+    toAddress: string = normalizeAddressDomain(message.to)
+): Promise<void> => {
     const message_id = message.headers.get("Message-ID");
     // auto reply email
     if (getBooleanValue(env.ENABLE_AUTO_REPLY) && message_id) {
         try {
             const results = await env.DB.prepare(
                 `SELECT * FROM auto_reply_mails where address = ? and enabled = 1`
-            ).bind(message.to).first<Record<string, string>>();
+            ).bind(toAddress).first<Record<string, string>>();
             if (results && matchSender(message.from, results.source_prefix)) {
                 if (!results.subject || !results.message) {
                     console.log("auto-reply using defaults:", !results.subject ? "subject" : "", !results.message ? "message" : "");
@@ -45,18 +49,14 @@ export const auto_reply = async (message: ForwardableEmailMessage, env: Bindings
                     contentType: 'text/plain',
                     data: results.message || "This is an auto-reply message, please reconact later."
                 });
-                if (getBooleanValue(env.E2E_TEST_MODE)) {
-                    await message.reply(msg.asRaw());
-                } else {
-                    const { EmailMessage } = await import('cloudflare:email');
-                    const replyMessage = new EmailMessage(
-                        message.to,
-                        message.from,
-                        msg.asRaw()
-                    );
-                    // @ts-ignore
-                    await message.reply(replyMessage);
-                }
+                const { EmailMessage } = await import('cloudflare:email');
+                const replyMessage = new EmailMessage(
+                    toAddress,
+                    message.from,
+                    msg.asRaw()
+                );
+                // @ts-ignore
+                await message.reply(replyMessage);
             }
         } catch (error) {
             console.log("reply email error", error);

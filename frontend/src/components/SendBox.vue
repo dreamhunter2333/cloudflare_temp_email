@@ -210,8 +210,13 @@ onMounted(async () => {
           </n-button>
         </n-space>
       </div>
-      <n-split direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
-        :on-update:size="onSpiltSizeChange">
+      <n-split direction="horizontal" :max="0.75" :min="0" :resize-trigger-size="8"
+        :default-size="mailboxSplitSize" :on-update:size="onSpiltSizeChange">
+        <template #resize-trigger>
+          <div class="split-handle">
+            <div class="split-handle__grip" />
+          </div>
+        </template>
         <template #1>
           <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
             <n-list hoverable clickable>
@@ -378,5 +383,24 @@ onMounted(async () => {
 pre {
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.split-handle {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.split-handle__grip {
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+  background-color: var(--n-resize-trigger-color);
+  transition: background-color 0.2s;
+}
+
+.split-handle:hover .split-handle__grip {
+  background-color: var(--n-resize-trigger-color-hover);
 }
 </style>

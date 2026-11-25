@@ -67,6 +67,8 @@ JWT_SECRET = "xxx"
 
 # Admin console password, if not configured, console access is not allowed
 # ADMIN_PASSWORDS = ["123", "456"]
+# Admin API IP whitelist; applies to admin-password and Admin user-token access
+# ADMIN_API_IP_WHITELIST = ["203.0.113.10"]
 
 # Whether to allow users to create emails, not allowed if not configured
 ENABLE_USER_CREATE_EMAIL = true
@@ -97,6 +99,13 @@ database_id = "xxx" # D1 database ID
 # binding = "AUTH_INBOX"
 # service = "auth-inbox"
 ```
+
+> [!NOTE]
+> To keep passwords out of `wrangler.toml`, `ADMIN_PASSWORDS` and `PASSWORDS` can also be set as secrets. A secret is always a string, so enter the list as a JSON array, e.g. `["my-password"]`. A bare `my-password` fails to parse: invalid `PASSWORDS` returns `500 / Invalid PASSWORDS configuration` instead of disabling password protection; a JSON parsing failure in `ADMIN_PASSWORDS` prevents admin-password login.
+>
+> ```bash
+> pnpm wrangler secret put ADMIN_PASSWORDS
+> ```
 
 ## Deploy Worker with Frontend (Optional)
 

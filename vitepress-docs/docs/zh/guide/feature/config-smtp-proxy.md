@@ -64,6 +64,7 @@ services:
 | `imap_tls_key` | 空 | IMAP TLS 私钥文件路径（PEM） |
 | `imap_cache_size` | `500` | 每个邮箱的消息缓存上限 |
 | `imap_http_timeout` | `30.0` | 后端 HTTP 请求超时时间（秒） |
+| `imap_flag_db_path` | `data/imap_flags.db` | 存储 IMAP 标志（如 `\Seen`）的 SQLite 文件路径，使 `STORE`（标记已读）在客户端断线重连后依然生效。建议挂载卷到其所在目录以在容器重启后保留 |
 
 ## 启用 STARTTLS
 

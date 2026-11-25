@@ -1,43 +1,49 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const WORKER_BASE = process.env.WORKER_URL!;
-const WORKER_GZIP_BASE = process.env.WORKER_GZIP_URL || '';
 const FRONTEND_BASE = process.env.FRONTEND_URL!;
+const workerCount = process.env.PLAYWRIGHT_WORKERS || '1';
 
 export default defineConfig({
   timeout: 30_000,
   retries: 0,
-  workers: 1,
+  workers: workerCount.endsWith('%') ? workerCount : Number(workerCount),
   reporter: [['html', { open: 'never' }]],
   projects: [
     {
       name: 'api',
-      testDir: './tests/api',
+      workers: 1,
+      testDir: './api/tests',
       use: {
         baseURL: WORKER_BASE,
       },
     },
     {
-      name: 'api-gzip',
-      testDir: './tests/api-gzip',
-      use: {
-        baseURL: WORKER_GZIP_BASE,
-      },
-    },
-    {
       name: 'smtp-proxy',
-      testDir: './tests/smtp-proxy',
+      workers: 1,
+      testDir: './smtp-proxy/tests',
       use: {
         baseURL: WORKER_BASE,
       },
     },
     {
       name: 'browser',
-      testDir: './tests/browser',
+      fullyParallel: true,
+      testDir: './browser/tests',
       use: {
         baseURL: FRONTEND_BASE,
         ...devices['Desktop Chrome'],
         // Accept self-signed cert from Docker frontend (HTTPS for WebAuthn)
+        ignoreHTTPSErrors: true,
+      },
+    },
+    {
+      name: 'webhook',
+      fullyParallel: true,
+      testDir: './webhook/tests',
+      use: {
+        baseURL: FRONTEND_BASE,
+        ...devices['Desktop Chrome'],
         ignoreHTTPSErrors: true,
       },
     },

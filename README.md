@@ -30,7 +30,8 @@
 
 <p align="center">
   <a href="README.md">中文文档</a> |
-  <a href="README_EN.md">English Document</a>
+  <a href="README_EN.md">English Document</a> |
+  <a href="README_JA.md">日本語ドキュメント</a>
 </p>
 
 > 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
@@ -74,9 +75,9 @@
 <summary>Star History（点击收缩/展开）</summary>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date&theme=dark" />
+  <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
+  <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
 </picture>
 
 </details>

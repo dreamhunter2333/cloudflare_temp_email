@@ -1,16 +1,19 @@
 /**
  * AI Email Extraction Module
  *
- * This module provides email content analysis using Cloudflare Workers AI.
- * It extracts important information like verification codes, authentication links,
- * service links, and subscription management links from email content.
+ * This module provides email content analysis, either with built-in local rules
+ * (verification codes only) or with Cloudflare Workers AI, which also extracts
+ * authentication links, service links, and subscription management links.
  */
 
-import { commonParseMail } from "../common";
+import { commonParseMail } from "../utils/mail_parser";
+import { extractCode, joinSubjectAndBody } from "./extract_code";
+import { ExtractMode, resolveExtractMode } from "./extract_mode";
 import { getBooleanValue, getJsonSetting } from "../utils";
 import { CONSTANTS } from "../constants";
 import { Context } from "hono";
 import type { AiExtractSettings } from "../admin_api/ai_extract_settings";
+import type { ExtractResult } from "../models";
 
 // AI Prompt for email analysis
 const PROMPT = `
@@ -73,7 +76,8 @@ If the extracted content is in markdown link format [text](url):
 2. **Single Selection**: Choose ONLY ONE type based on the highest priority match
 3. **Real Data Only**: Never invent, guess, or fabricate content
 4. **Complete URLs**: Links must be full, valid URLs as they appear in the email
-5. **Clean Extraction**: Return only the raw extracted content, no extra text
+5. **No Domain Modification**: Never modify, rewrite, or substitute URL domains. If the exact URL domain is uncertain, return none
+6. **Clean Extraction**: Return only the raw extracted content, no extra text
 
 # Output Format (JSON only)
 {
@@ -97,7 +101,7 @@ async function extractWithCloudflareAI(
     env: Bindings
 ): Promise<ExtractResult> {
     // Get the AI model name from environment variable or use default
-    const modelName = env.AI_EXTRACT_MODEL || '@cf/meta/llama-3.1-8b-instruct';
+    const modelName = env.AI_EXTRACT_MODEL || '@cf/meta/llama-3.1-8b-instruct-fast';
 
     const result = await env.AI.run(modelName as keyof AiModels, {
         messages: [
@@ -137,66 +141,177 @@ async function extractWithCloudflareAI(
 }
 
 /**
+ * Persist an extraction result to the raw_mails metadata column.
+ * Shared by the Workers AI mode and the local rule mode.
+ *
+ * @param env - Cloudflare Workers environment bindings
+ * @param mailId - The stored mail row ID
+ * @param result - The extraction result to persist
+ */
+async function saveExtractMetadata(
+    env: Bindings,
+    mailId: number | undefined,
+    result: ExtractResult
+): Promise<void> {
+    if (!mailId) return;
+    try {
+        const metadata = JSON.stringify({
+            ai_extract: result,
+            extracted_at: new Date().toISOString()
+        });
+
+        // Update the raw_mails record with metadata
+        await env.DB.prepare(
+            `UPDATE raw_mails SET metadata = ? WHERE id = ?`
+        ).bind(metadata, mailId).run();
+    } catch (e) {
+        console.error('AI extraction metadata save error:', e);
+    }
+}
+
+function decodeHtmlEntities(text: string): string {
+    const entities: Record<string, string> = {
+        amp: '&',
+        lt: '<',
+        gt: '>',
+        quot: '"',
+        apos: "'",
+        nbsp: ' ',
+    };
+
+    const decodeCodePoint = (value: number, fallback: string) => {
+        if (!Number.isFinite(value) || value < 0 || value > 0x10ffff) {
+            return fallback;
+        }
+        return String.fromCodePoint(value);
+    };
+
+    return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]+);/gi, (match, entity) => {
+        const normalized = entity.toLowerCase();
+        if (normalized.startsWith('#x')) {
+            const value = Number.parseInt(normalized.slice(2), 16);
+            return decodeCodePoint(value, match);
+        }
+        if (normalized.startsWith('#')) {
+            const value = Number.parseInt(normalized.slice(1), 10);
+            return decodeCodePoint(value, match);
+        }
+        return entities[normalized] ?? match;
+    });
+}
+
+function htmlToTextForAi(html: string): string {
+    return decodeHtmlEntities(
+        html
+            .replace(/<\s*(script|style|head|svg)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, ' ')
+            .replace(/<!--[\s\S]*?-->/g, ' ')
+            .replace(/<a\b[^>]*\bhref=(["'])(.*?)\1[^>]*>([\s\S]*?)<\/a>/gi, ' $3 $2 ')
+            .replace(/<\s*br\s*\/?>/gi, '\n')
+            .replace(/<\/\s*(p|div|tr|td|th|li|table|section|article|header|footer|h[1-6])\s*>/gi, '\n')
+            .replace(/<[^>]+>/g, ' ')
+    )
+        .replace(/[ \t\r\f\v]+/g, ' ')
+        .replace(/\n\s+/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
+function getEmailContentForExtract(parsedEmail: Awaited<ReturnType<typeof commonParseMail>>): string {
+    if (parsedEmail?.text) {
+        return parsedEmail.text;
+    }
+
+    if (!parsedEmail?.html) {
+        return "";
+    }
+
+    return htmlToTextForAi(parsedEmail.html) || parsedEmail.html;
+}
+
+function isAddressInAiAllowlist(settings: AiExtractSettings | null | undefined, address: string): boolean {
+    if (!settings?.enableAllowList) return true;
+    if (!Array.isArray(settings.allowList) || settings.allowList.length === 0) return false;
+
+    return settings.allowList.some(pattern => {
+        if (typeof pattern !== 'string') return false;
+        if (!pattern.includes('*')) return address === pattern;
+        const escapedPattern = pattern
+            .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+            .replace(/\*/g, '.*');
+        return new RegExp('^' + escapedPattern + '$').test(address);
+    });
+}
+
+/**
  * Main extraction function
- * Checks if AI extraction is enabled, processes the email content, and saves to database
+ * Checks if extraction is enabled, processes the email content, and saves to database.
+ * `AI_EXTRACT_MODE` selects the preferred extractor:
+ * - `local` (default): built-in rules, verification codes only, content never sent to AI
+ * - `ai`: Cloudflare Workers AI, verification codes and links; if the address is not
+ *   in the AI allowlist, only the AI call is skipped and local code extraction still runs
  *
  * @param parsedEmailContext - The parsed email context
  * @param env - Cloudflare Workers environment bindings
- * @param message_id - The email message ID
+ * @param mailId - The stored mail row ID
  * @param address - The recipient email address
- * @returns Promise<void>
+ * @returns Promise<ExtractResult | null>
  */
 export async function extractEmailInfo(
     parsedEmailContext: ParsedEmailContext,
     env: Bindings,
-    message_id: string | null,
+    mailId: number | undefined,
     address: string
-): Promise<void> {
+): Promise<ExtractResult | null> {
     try {
-        // Check if AI extraction is enabled via environment variable
+        // Check if extraction is enabled via environment variable
         if (!getBooleanValue(env.ENABLE_AI_EMAIL_EXTRACT)) {
-            return;
+            return null;
         }
 
-        // Ensure AI binding is available
-        if (!env.AI) {
-            console.error('AI binding not available');
-            return;
+        const mode = resolveExtractMode(env.AI_EXTRACT_MODE);
+        if (!mode) {
+            console.error(`Email extraction skipped: unsupported AI_EXTRACT_MODE "${env.AI_EXTRACT_MODE}", expected "local" or "ai"`);
+            return null;
         }
-
-        // Check allowlist if enabled
         const aiSettings = await getJsonSetting<AiExtractSettings>(
             { env: env } as Context<HonoCustomType>,
             CONSTANTS.AI_EXTRACT_SETTINGS_KEY
         );
+        const isAiAllowed = isAddressInAiAllowlist(aiSettings, address);
 
-        if (aiSettings?.enableAllowList && aiSettings.allowList?.length > 0) {
-            const isAllowed = aiSettings.allowList.some(pattern => {
-                // Support wildcard matching
-                if (pattern.includes('*')) {
-                    // Escape special regex characters except *
-                    const escapedPattern = pattern
-                        .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-                        .replace(/\*/g, '.*');
-                    const regex = new RegExp('^' + escapedPattern + '$');
-                    return regex.test(address);
-                }
-                // Exact match
-                return address === pattern;
-            });
+        // Parse email to get content (shared by both modes)
+        const parsedEmail = await commonParseMail(parsedEmailContext);
+        const emailContent = getEmailContentForExtract(parsedEmail);
 
-            if (!isAllowed) {
-                console.log(`AI extraction skipped for ${address}: not in allowlist`);
-                return;
-            }
+        const runLocalExtract = async () => {
+            const localContent = joinSubjectAndBody(parsedEmail?.subject, emailContent);
+            const code = localContent ? extractCode(localContent) : null;
+            if (!code) return null;
+            const result: ExtractResult = { type: 'auth_code', result: code, result_text: '' };
+            await saveExtractMetadata(env, mailId, result);
+            console.log(`Local code extraction completed for ${mailId}`);
+            return result;
+        };
+
+        // Local mode: built-in rules only, mail content is never sent to any AI model.
+        // The subject is included because many services put the code there.
+        // Telegram / webhook reuse the same ExtractResult.
+        if (mode === ExtractMode.Local) {
+            return await runLocalExtract();
         }
 
-        // Parse email to get content
-        const parsedEmail = await commonParseMail(parsedEmailContext);
-        const emailContent = parsedEmail?.text || parsedEmail?.html || "";
+        if (!isAiAllowed) {
+            console.log(`Workers AI extraction skipped for ${address}: not in AI allowlist; trying local code extraction`);
+            return await runLocalExtract();
+        }
+
+        if (!env.AI) {
+            console.error('Email extraction skipped: AI_EXTRACT_MODE is "ai" but the Workers AI binding "AI" is not configured');
+            return null;
+        }
 
         if (!emailContent) {
-            return;
+            return null;
         }
 
         // Truncate content if too long (max 4000 characters to avoid token limits)
@@ -208,28 +323,12 @@ export async function extractEmailInfo(
 
         // If extraction found something useful, save it to database
         if (result.type !== 'none' && result.result) {
-            const metadata = JSON.stringify({
-                ai_extract: result,
-                extracted_at: new Date().toISOString()
-            });
-
-            // Update the raw_mails record with metadata
-            await env.DB.prepare(
-                `UPDATE raw_mails SET metadata = ? WHERE message_id = ?`
-            ).bind(metadata, message_id).run();
-
-            console.log(`AI extraction completed for ${message_id}: ${result.type}`);
+            await saveExtractMetadata(env, mailId, result);
+            console.log(`AI extraction completed for ${mailId}: ${result.type}`);
         }
+        return result;
     } catch (e) {
         console.error('AI email extraction error:', e);
+        return null;
     }
 }
-
-/**
- * Type definition for extraction result
- */
-export type ExtractResult = {
-    type: 'auth_code' | 'auth_link' | 'service_link' | 'subscription_link' | 'other_link' | 'none';
-    result: string;
-    result_text: string;
-};

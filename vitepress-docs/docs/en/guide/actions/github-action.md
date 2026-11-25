@@ -27,6 +27,7 @@ Then go to the repository page `Settings` -> `Secrets and variables` -> `Actions
    | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
    | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID, [Reference Documentation](https://developers.cloudflare.com/workers/wrangler/ci-cd/#cloudflare-account-id) |
    | `CLOUDFLARE_API_TOKEN`  | Cloudflare API Token, [Reference Documentation](https://developers.cloudflare.com/workers/wrangler/ci-cd/#api-token)           |
+   | `UPSTREAM_SYNC_TOKEN`  | (Optional) Used only by `Upstream Sync`. Use a fine-grained PAT scoped only to your fork with `Contents: Read and write` and `Workflows: Read and write`; defaults to `GITHUB_TOKEN` when unset. See [auto-update configuration](./auto-update.md) |
 
 - Worker backend `secrets`
 
@@ -44,7 +45,7 @@ Then go to the repository page `Settings` -> `Secrets and variables` -> `Actions
 
    | Name               | Description                                                                                                                                                                      |
    | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-   | `FRONTEND_ENV`     | Frontend configuration file used by the `Deploy Frontend` workflow. Copy the content from `frontend/.env.example`, [and modify it according to this guide](/en/guide/cli/pages.html). For separate frontend/backend deployment that talks to Worker directly, `VITE_API_BASE` should be the backend Worker API root URL, must start with `https://`, and must not include a trailing `/`. When this address is configured incorrectly, common symptoms are the `map` error or `405` API responses |
+   | `FRONTEND_ENV`     | Frontend configuration file used by the `Deploy Frontend` workflow. Copy the content from `frontend/.env.example` and modify it according to [Frontend Variables](/en/guide/frontend-vars) |
    | `FRONTEND_NAME`    | The project name you created in Cloudflare Pages, can be created via [UI](https://temp-mail-docs.awsl.uk/en/guide/ui/pages.html) or [Command Line](https://temp-mail-docs.awsl.uk/en/guide/cli/pages.html) |
    | `FRONTEND_BRANCH`  | (Optional) Branch for pages deployment, can be left unconfigured, defaults to `production`                                                                                      |
    | `PAGE_TOML`        | (Optional) Used only by the `Deploy Frontend with page function` workflow. Required when using page functions to forward backend requests. Please copy the content from `pages/wrangler.toml` and modify the `service` field to your worker backend name according to actual situation. This workflow builds the frontend in Pages mode and uses same-origin requests, so it does not read `FRONTEND_ENV` |
@@ -71,3 +72,5 @@ If you want to use `Upstream Sync` for automatic updates and also let Pages forw
 
 1. Open the `Actions` page of the repository, find `Upstream Sync`, and click `enable workflow` to enable the `workflow`
 2. If `Upstream Sync` fails, go to the repository homepage and click `Sync` to synchronize manually
+
+(Optional) Configure `UPSTREAM_SYNC_TOKEN` to automatically sync workflow changes; otherwise, the default token is still used. See [auto-update configuration](./auto-update.md) for the required permissions and setup steps.

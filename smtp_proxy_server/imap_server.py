@@ -48,6 +48,49 @@ class SimpleIMAPServer(imap4.IMAP4Server):
             return real_write_seq(data)
         self.transport.writeSequence = logging_write_seq
 
+    @staticmethod
+    def _fetch_implies_seen(query):
+        """Whether a FETCH query marks the messages it returns as read.
+
+        Per RFC 3501, ``BODY[...]`` sets ``\\Seen`` while ``BODY.PEEK[...]``
+        does not. ``RFC822`` and ``RFC822.TEXT`` are defined as equivalents of
+        ``BODY[]`` / ``BODY[TEXT]`` and so also set it; ``RFC822.HEADER`` is
+        equivalent to ``BODY.PEEK[HEADER]`` and does not.
+        """
+        for part in query:
+            part_type = getattr(part, "type", None)
+            if part_type == "body" and not getattr(part, "peek", False):
+                return True
+            if part_type in ("rfc822", "rfc822text"):
+                return True
+        return False
+
+    def do_FETCH(self, tag, messages, query, uid=0):
+        """Set ``\\Seen`` for non-peek fetches before delivering the response.
+
+        Twisted hands the parsed query to its own response builder and never
+        passes it to the mailbox, so the mailbox alone cannot tell a ``BODY[]``
+        from a ``BODY.PEEK[]``. Flag the messages here, before the FETCH
+        response is generated, so the flags the client receives are current.
+        """
+        if not query or not self._fetch_implies_seen(query):
+            return imap4.IMAP4Server.do_FETCH(self, tag, messages, query, uid)
+
+        def _fetch(_):
+            return imap4.IMAP4Server.do_FETCH(self, tag, messages, query, uid)
+
+        def _store_failed(failure):
+            # A failure to persist \Seen must not cost the client its mail.
+            _logger.warning("FETCH: could not set \\Seen: %s", failure.value)
+            return None
+
+        d = defer.maybeDeferred(
+            self.mbox.store, messages, ["\\Seen"], 1, uid
+        )
+        d.addErrback(_store_failed)
+        d.addCallback(_fetch)
+        return d
+
     def _cbSelectWork(self, mbox, cmdName, tag):
         """Override to add UIDNEXT in SELECT response (RFC 3501)."""
         if mbox is None:
@@ -83,7 +126,7 @@ class Account(imap4.MemoryAccount):
     def _emptyMailbox(self, name, id):
         """Return a dummy mailbox for CREATE requests (e.g. Gmail creating Drafts)."""
         _logger.debug("Accepting CREATE request for %s", name)
-        return SimpleMailbox(name, self._client)
+        return SimpleMailbox(name, self._client, self.name)
 
     def create(self, pathspec):
         """Accept CREATE silently without actually creating mailboxes."""
@@ -111,8 +154,8 @@ class SimpleRealm:
 
         client = BackendClient(password)
 
-        inbox = SimpleMailbox("INBOX", client)
-        sent = SimpleMailbox("SENT", client)
+        inbox = SimpleMailbox("INBOX", client, username)
+        sent = SimpleMailbox("SENT", client, username)
 
         account = Account(username)
         account._client = client

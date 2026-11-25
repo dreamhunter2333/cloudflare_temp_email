@@ -1,5 +1,6 @@
 import { Context } from "hono";
 import { handleMailListQuery } from "../common";
+import { resolveRawEmailRow } from "../gzip";
 
 export default {
     getMails: async (c: Context<HonoCustomType>) => {
@@ -23,6 +24,14 @@ export default {
             + ` where address NOT IN (select name from address) `,
             [], limit, offset
         );
+    },
+    getMail: async (c: Context<HonoCustomType>) => {
+        const { id } = c.req.param();
+        const result = await c.env.DB.prepare(
+            `SELECT * FROM raw_mails WHERE id = ?`
+        ).bind(id).first();
+        if (!result) return c.json(null);
+        return c.json(await resolveRawEmailRow(result));
     },
     deleteMail: async (c: Context<HonoCustomType>) => {
         const { id } = c.req.param();

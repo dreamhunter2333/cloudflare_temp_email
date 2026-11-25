@@ -42,6 +42,7 @@ type Bindings = {
     RANDOM_SUBDOMAIN_DOMAINS: string | string[] | undefined
     RANDOM_SUBDOMAIN_LENGTH: string | number | undefined
     DISABLE_CUSTOM_ADDRESS_NAME: string | boolean | undefined
+    DISABLE_ADDRESS_UPDATED_AT: string | boolean | undefined
     CREATE_ADDRESS_DEFAULT_DOMAIN_FIRST: string | boolean | undefined
     ADMIN_USER_ROLE: string | undefined
     USER_DEFAULT_ROLE: string | UserRole | undefined
@@ -49,16 +50,21 @@ type Bindings = {
     DOMAIN_LABELS: string | string[] | undefined
     PASSWORDS: string | string[] | undefined
     ADMIN_PASSWORDS: string | string[] | undefined
+    ADMIN_API_IP_WHITELIST: string | string[] | undefined
     DISABLE_ADMIN_PASSWORD_CHECK: string | boolean | undefined
     JWT_SECRET: string
     BLACK_LIST: string | undefined
     ENABLE_AUTO_REPLY: string | boolean | undefined
     ENABLE_WEBHOOK: string | boolean | undefined
+    DISABLE_USER_SYSTEM: string | boolean | undefined
     ENABLE_USER_CREATE_EMAIL: string | boolean | undefined
     DISABLE_ANONYMOUS_USER_CREATE_EMAIL: string | boolean | undefined
     ENABLE_USER_DELETE_EMAIL: string | boolean | undefined
     ENABLE_ADDRESS_PASSWORD: string | boolean | undefined
+    ADDRESS_PASSWORD_LOGIN_ONLY: string | boolean | undefined
     ENABLE_AGENT_EMAIL_INFO: string | boolean | undefined
+    ENABLE_REDEEM_CODE: string | boolean | undefined
+    REDEEM_CODE_URL: string | undefined
     SMTP_IMAP_PROXY_CONFIG: string | SmtpImapProxyConfig | undefined
     ENABLE_INDEX_ABOUT: string | boolean | undefined
     DEFAULT_SEND_BALANCE: number | string | undefined
@@ -67,6 +73,7 @@ type Bindings = {
     COPYRIGHT: string | undefined
     STATUS_URL: string | undefined
     DISABLE_SHOW_GITHUB: string | boolean | undefined
+    DISABLE_SHOW_GITHUB_FOR_USER: string | boolean | undefined
     FORWARD_ADDRESS_LIST: string | string[] | undefined
 
     ENABLE_CHECK_JUNK_MAIL: string | boolean | undefined
@@ -109,21 +116,28 @@ type Bindings = {
 
     // webhook config
     FRONTEND_URL: string | undefined
+    BACKEND_URL: string | undefined
 
     // AI extraction config
     ENABLE_AI_EMAIL_EXTRACT: string | boolean | undefined
+    AI_EXTRACT_MODE: string | undefined
     AI_EXTRACT_MODEL: string | undefined
 
     // gzip compression for raw_mails
     ENABLE_MAIL_GZIP: string | boolean | undefined
-
-    // E2E testing
-    E2E_TEST_MODE: string | boolean | undefined
+    ENABLE_MAIL_READ_STATUS: string | boolean | undefined
+    ENABLE_ADDRESS_EXPIRY: string | boolean | undefined
+    CLEANUP_BATCH_SIZE: string | number | undefined
 }
+
+type JwtType = 'address_credential_login' | 'address_password_login'
 
 type JwtPayload = {
     address: string
     address_id: number
+    type?: JwtType
+    iat?: number
+    exp?: number
 }
 
 type UserPayload = {
@@ -180,7 +194,10 @@ type ParsedEmailContext = {
 type SubdomainForwardAddressList = {
     domains: string[] | undefined | null,
     forward: string,
+    deleteOriginal?: boolean,
     // 来源地址正则匹配 (可选，兼容原配置)
     sourcePatterns?: string[] | undefined | null,  // 来源地址正则表达式列表
     sourceMatchMode?: 'any' | 'all' | undefined,   // 匹配模式: any-任一匹配, all-全部匹配
+    recipientPatterns?: string[] | undefined | null,
+    recipientMatchMode?: 'any' | 'all' | undefined,
 }

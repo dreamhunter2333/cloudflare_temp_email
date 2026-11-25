@@ -1,9 +1,11 @@
 import { Context } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
+import { createAddressToken } from '../address_auth';
 
 import i18n from '../i18n'
 import { getBooleanValue } from '../utils'
 import { newAddress, handleListQuery } from '../common'
+import { shouldRejectExpiryInput } from '../utils/address_expiry'
+import { unbindTelegramByAddress } from '../telegram_api/common'
 
 const listAddresses = async (c: Context<HonoCustomType>) => {
     const { limit, offset, query, sort_by, sort_order } = c.req.query();
@@ -46,10 +48,13 @@ const listAddresses = async (c: Context<HonoCustomType>) => {
 };
 
 const createNewAddress = async (c: Context<HonoCustomType>) => {
-    const { name, domain, enablePrefix, enableRandomSubdomain } = await c.req.json();
+    const { name, domain, enablePrefix, enableRandomSubdomain, expiresAt } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     if (!name) {
         return c.text(msgs.RequiredFieldMsg, 400)
+    }
+    if (shouldRejectExpiryInput(c, expiresAt)) {
+        return c.text(msgs.AddressExpiryDisabledMsg, 403)
     }
     try {
         const res = await newAddress(c, {
@@ -59,7 +64,8 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
             addressPrefix: null,
             checkAllowDomains: false,
             enableCheckNameRegex: false,
-            sourceMeta: 'admin'
+            sourceMeta: 'admin',
+            expiresAt,
         });
         return c.json(res);
     } catch (e) {
@@ -70,29 +76,42 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
 const deleteAddress = async (c: Context<HonoCustomType>) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM address WHERE id = ? `
-    ).bind(id).run();
+    const address = await c.env.DB.prepare(
+        `SELECT name FROM address WHERE id = ?`
+    ).bind(id).first<string>('name');
+    if (address) await unbindTelegramByAddress(c, address);
+    // single batch runs as one transaction: rows keyed by address name are
+    // deleted first and the address row last, so the name subqueries still
+    // resolve and a failed statement rolls back the whole deletion
+    const results = await c.env.DB.batch([
+        c.env.DB.prepare(
+            `DELETE FROM raw_mails WHERE address IN`
+            + ` (select name from address where id = ?) `
+        ).bind(id),
+        c.env.DB.prepare(
+            `DELETE FROM address_sender WHERE address IN`
+            + ` (select name from address where id = ?) `
+        ).bind(id),
+        c.env.DB.prepare(
+            `DELETE FROM sendbox WHERE address IN`
+            + ` (select name from address where id = ?) `
+        ).bind(id),
+        c.env.DB.prepare(
+            `DELETE FROM auto_reply_mails WHERE address IN`
+            + ` (select name from address where id = ?) `
+        ).bind(id),
+        c.env.DB.prepare(
+            `DELETE FROM users_address WHERE address_id = ?`
+        ).bind(id),
+        c.env.DB.prepare(
+            `DELETE FROM address WHERE id = ? `
+        ).bind(id),
+    ]);
+    const success = results.every((result) => result.success);
     if (!success) {
         return c.text(msgs.OperationFailedMsg, 500)
     }
-    const { success: mailSuccess } = await c.env.DB.prepare(
-        `DELETE FROM raw_mails WHERE address IN`
-        + ` (select name from address where id = ?) `
-    ).bind(id).run();
-    if (!mailSuccess) {
-        return c.text(msgs.OperationFailedMsg, 500)
-    }
-    const { success: sendAccess } = await c.env.DB.prepare(
-        `DELETE FROM address_sender WHERE address IN`
-        + ` (select name from address where id = ?) `
-    ).bind(id).run();
-    const { success: usersAddressSuccess } = await c.env.DB.prepare(
-        `DELETE FROM users_address WHERE address_id = ?`
-    ).bind(id).run();
-    return c.json({
-        success: success && mailSuccess && sendAccess && usersAddressSuccess
-    })
+    return c.json({ success })
 };
 
 const clearInbox = async (c: Context<HonoCustomType>) => {
@@ -125,11 +144,9 @@ const showPassword = async (c: Context<HonoCustomType>) => {
     const { id } = c.req.param();
     const name = await c.env.DB.prepare(
         `SELECT name FROM address WHERE id = ? `
-    ).bind(id).first("name");
-    const jwt = await Jwt.sign({
-        address: name,
-        address_id: id
-    }, c.env.JWT_SECRET, "HS256")
+    ).bind(id).first<string>("name");
+    if (!name) return c.text(i18n.getMessagesbyContext(c).AddressNotFoundMsg, 404);
+    const jwt = await createAddressToken(c, name, Number(id));
     return c.json({ jwt });
 };
 

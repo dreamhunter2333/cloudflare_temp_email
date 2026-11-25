@@ -6,16 +6,201 @@
   <a href="CHANGELOG_EN.md">English</a>
 </p>
 
-## v1.9.0(main)
+## v1.15.0(main)
 
 ### Features
 
+- feat: |邮箱| 新增 `ENABLE_ADDRESS_EXPIRY` 开关（默认关闭 `false`），开启后支持在通过 API（`/api/new_address`、`/admin/new_address`）和 Web 界面创建邮箱时设置可选过期时间 `expiresAt`（默认永不过期），对单邮箱共享鉴权及单地址用户操作执行过期校验，并在 cron 中分批清理过期邮箱及关联数据；升级数据库 Schema 至 `v0.0.11`（需先升级数据库再开启开关；实际清理时间取决于 cron 调度与清理进度；关闭开关将暂停校验与清理但保留已保存的过期时间；已有部署升级需在管理后台 `Admin -> 快速设置 -> 数据库 -> 升级数据库 Schema` 执行迁移，若当前已在 `v0.0.10` 也可手动执行 `db/2026-11-18-address-expires-at.sql`）
+
+### Bug Fixes
+
+### Improvements
+
+- refactor: |邮件解析| 将后端邮件解析提取为独立公共模块，保持解析行为和 WASM 切换方式不变
+- refactor: |有效期| 提取公共有效期判断与参数校验，移除重复查询和回退包装，创建参数统一为 `expiresAt`，校验日期格式及时区（须为有效日期、在将来且早于 2100 年 UTC），创建响应不再返回 `expires_at`，补字段仅在版本升级时执行
+
+## v1.14.0
+
+### Features
+
+- feat: |邮件转发| 规则新增收件人地址正则过滤，复用现有站内转发流程，支持任一或全部匹配
+- feat: |邮箱登录| 保留会话 Token 查看入口并显示到期时间，密码模式隐藏旧凭据内容并禁止旧缓存切换，保留缓存删除功能
+- feat: |邮箱会话| 将可续期的 30 天 JWT 签发扩展至创建邮箱及用户、管理员、Telegram 授权入口
+- feat: |邮箱会话| 网页仅更新当前使用的续期 JWT，沿用本地字符串缓存，历史 token 过期后需重新登录；列表同时存在两种 Token 类型时，以独立列或标签展示登录方式
+- feat: |管理后台| 支持切换单个或批量创建，批量创建最多 100 个随机名称邮箱，并导出自动登录链接 CSV（电子表格安全或无损格式）
+- feat: |管理统计| 新增 Dashboard，展示邮件、邮箱、用户和发件总数及 7 天、30 天活跃邮箱和用户数，支持按日期查看全站趋势
+- feat: |邮件转发| 转发规则按配置域名复用站内收件流程，独立提取和推送且不再转发，自动回复仅执行一次；规则可选流程结束后删除原邮件，全局转发仅支持外部地址并保持原有方式
+- feat: |用户系统| 新增 `DISABLE_USER_SYSTEM` 总开关，统一拦截用户接口、停用用户管理员令牌并隐藏前端用户界面
+- feat: |邮箱会话| 密码登录开关生效时签发 30 天 JWT，支持邮箱鉴权及剩余不足 7 天时通过 settings 续期
+- feat: |邮箱登录| 新增登录页仅显示密码登录的开关，仅在启用邮箱密码时生效；旧凭据、登录链接、API 访问和旧凭据 JWT 时效保持原有行为
+- feat: |邮箱凭证| 自动登录链接折叠项新增二维码，方便手机扫码打开邮箱，并提示持有二维码者可访问该邮箱（issue #1189）
+
+### Bug Fixes
+
+- fix: |CI| 单测 Job 超时上限从 5 分钟调整为 15 分钟，给依赖安装预留时间
+- fix: |站点认证| `PASSWORDS` 配置解析失败或不是字符串数组时拒绝访问，保留正常配置和空配置行为，避免误关闭站点密码保护
+- fix: |CI| Webhook UI 测试等待保存和测试请求响应，避免读取空记录或旧请求导致偶发失败
+- fix: |自动更新| 支持可选的 `UPSTREAM_SYNC_TOKEN` 同步 workflow 变更，未配置时保留默认 Token，并声明同步所需的内容写权限
+- fix: |收件箱| 分页请求失败时保留当前邮件，并恢复页码和每页条数
+- fix: |收件箱| 极简模式仅在成功取得邮件后提示刷新成功
+- fix: |邮件阅读| 允许加载远程图片时，Shadow DOM 邮件预览仍会净化 HTML
+- fix: |健康检查| Worker 绑定 `ASSETS` 时 `/health_check` 仍返回 `OK`，不再返回前端页面，便于可用性监控
+- fix: |创建邮箱| 随机生成名称时先转为小写再过滤字符，避免默认 `[^a-z0-9]` 规则删除每段名称的首字母导致名称残缺或过短
+- fix: |邮件阅读| 为普通和全屏 iframe 邮件预览启用沙箱，禁止执行邮件正文中的脚本
+- fix: |定时清理| 分别捕获各项内置清理和自定义 SQL 清理异常，记录错误并继续执行后续任务
+- fix: |顶部导航| 为手机端页眉添加左右留白
+- fix: |收件箱| 保留批量删除失败的勾选，仅在全部删除后提示成功
+- fix: |邮件处理| metadata 更新和 Telegram 邮件链接改用本次入库 ID，避免重复或缺失 Message-ID 导致更新错记录或链接定位错误
+- fix: |邮件阅读| 重置 Shadow 邮件继承的应用默认样式，使用浏览器普通文档的默认系统颜色并保留发件人配色
+- fix: |Telegram| 管理员删除邮箱前清理当前推送用户的绑定及推送映射，释放名额并避免同名重建后继续推送；KV 清理失败时保留邮箱供重试，数据库删除失败时可能已解绑
+- fix: |CI| 修复 WASM npm 包发布路径，避免本地 tarball 被误识别为 GitHub 仓库
+- fix: |CI| E2E 使用测试镜像自带的工具探测服务，构建时无需访问 Ubuntu 软件源
+- fix: |CI| 修复近期邮件清理测试在跨秒时偶发失败的问题
+- fix: |CI| 等待转发设置保存后的刷新完成，避免浏览器测试偶发提交旧设置
+- fix: |邮件解析| 升级 WASM 解析依赖，仅对结构化邮件头补充原始值，保留原有文本头解码行为，修复 `header.From` Webhook 过滤失效及移除附件后发件人丢失的问题
+- fix: |邮件解析| 兼容 postal-mime v4 的首个头字段语义，备用解析支持空或缺失 From，移除附件时重新生成 MIME 类型与编码头，避免入库后正文丢失
+- fix: |Telegram| 使用独立的永久内部绑定 token，兼容历史过期绑定；打开邮箱时签发邮箱凭据，阻止内部 token 用于邮箱 API
+- fix: |Worker| 未知邮件、未绑定地址及空地址清理改为分批处理，避免大量积压数据导致 D1 操作超时
+- fix: |用户系统| 邮箱转移确认按钮绑定已有请求加载状态，修复 loading 变量未定义
+
+### Improvements
+
+- perf: |CI| 复用 E2E 镜像，并行调度浏览器测试，减少页面重载、固定等待和重复的浏览器操作，加快 WASM 构建工具安装
+- docs: |文档| 新增邮箱、用户中心与管理后台的登录入口说明，逐项列出 Worker 变量是否必填及默认行为并说明自定义角色，补充发信通道对比，并按兼容日期更新 Node.js 兼容配置步骤
+- perf: |数据库| Schema 升级至 `v0.0.10`，为未知地址邮件清理增加覆盖索引、为域名清理增加表达式联合索引；按主、次、补丁版本逐段比较迁移版本，避免两位数版本误判及回退版本标记
+- docs: |用户系统| 补充邮箱绑定、获取已绑定邮箱凭据及解绑 API 的双重鉴权说明和请求示例
+
+- perf: |CI| 整理测试目录，独立 Webhook UI 功能组，与 API、其他浏览器测试、SMTP/IMAP 并行执行；仅启动各组所需服务，保留单元测试、WASM 测试与统一检查结果
+
+## v1.13.0
+
+### Features
+
+- feat: |Webhook| 新增邮件过滤规则，统一匹配条件/与/或/非四种节点，支持嵌套、字符串和原生正则匹配、可视化/JSON 编辑及规则检查；移除附件时保留全部原 From 头，缺失或无效时仍移除附件（issue #1155）
+- feat: |用户系统| 邮箱地址管理支持按地址关键字搜索已绑定邮箱，并保持分页结果准确（issue #1156）
+- feat: |AI 识别| 新增 `AI_EXTRACT_MODE`，可显式选择仅用本地规则（`local`）或优先用 Workers AI（`ai`）识别邮件；不填默认使用本地规则，邮件内容不会发送给 AI。**升级注意**：原先依赖 Workers AI 绑定自动启用 AI 识别的部署需设置 `AI_EXTRACT_MODE = "ai"`
+
+### Bug Fixes
+
+- fix: |收件| 黑名单同时检查 SMTP 信封发件人与邮件头 From 的全部邮箱地址，任意一个命中即拒收；独立解析地址，避免正文解析失败或多个发件地址导致漏拦截；地址解析异常时保留原有信封检查
+- fix: |AI 识别| `ai` 模式下地址未命中 AI 提取白名单时只跳过 Workers AI 调用，仍回退到本地规则提取验证码
+- fix: |Telegram| 当邮件没有纯文本正文（如纯 HTML 邮件）时回退到 HTML 转纯文本，避免 Telegram 通知显示“解析失败”
+
+### Improvements
+
+- feat: |AI 识别| 本地验证码规则增强：同时识别邮件标题，支持验证码在关键词前（如 `116352（动态验证码）`、`ABC123 is your code`）、`G-123456` 前缀、分组 / 空格 / 零宽字符 / 全角数字，新增俄西葡法德意土希伯来语等关键词；排除超过 8 位数字、小数金额、时间、URL 与邮箱地址中的数字、tracking / order / voucher code 及纯字母单词，收紧无关键词时的数字识别，并限制分析长度、消除正则回溯风险
+- feat: |Frontend| 统一桌面和移动端邮件摘要，突出主题、保留完整发件人并支持正文预览；阅读区使用主题配色按钮和附件数量徽标，更多菜单支持键盘操作，详情弹窗集中展示邮件信息
+
+## v1.12.0
+
+### Features
+
+- feat: |Webhook| 测试弹框支持随机邮件或指定邮件 ID，校验请求体及邮箱归属并适配现有前端语言及中英文错误提示
+- feat: |Webhook| 支持无需 S3 的多附件签名链接、纯 URL 与 Markdown 链接列表，签名兼容大小写，绑定本次入库邮件并保留下载文件名，关闭 Webhook 时禁止附件下载（issue #1142）
+- feat: |Worker| 新增 `DISABLE_ADDRESS_UPDATED_AT`，可关闭单地址及用户批量的主动保活刷新，并禁止内置手动及定时不活跃地址清理，降低 D1 写入量
+- feat: |Frontend| 新增 `VITE_DEFAULT_LANG` 构建变量，并支持通过 `index.html` 运行时配置覆盖前端设置
+- feat: |兑换码| 新增角色、发信额度及专属邮箱兑换与管理，完善并发保护和表单提示
+- feat: |邮件| 新增可选的已读/未读状态，支持点击邮件自动已读和手动切换状态
+- feat: |Admin| 数据库页面新增 D1 存储容量展示，支持选择并保存 Free 或 Workers Paid 套餐，对比当前数据库大小和容量上限
+- feat: |Admin| 创建邮箱页面支持一键生成随机邮箱名称（issue #1126）
+- feat: |Admin API| 新增 `ADMIN_API_IP_WHITELIST`，可按来源 IP 限制所有管理接口访问
+- feat: |用户系统| 用户中心新增发送邮件、与收件箱一致的可按绑定地址过滤的发件箱，以及地址管理凭证弹框；提供使用用户 JWT 的地址设置、发信权限申请、发信及发件箱 API
+
+### Bug Fixes
+
+- fix: |邮箱鉴权| 修复旧邮箱凭证仍可访问 API、Telegram 越权解绑、重新绑定失效及外部发信保存凭证的问题，区分认证错误以准确提示站点及管理员登录，并将 E2E 测试接口移出生产代码
+- fix: |Frontend| 修复 AdSense 脚本包含不受支持的 `data-onload` 和 `data-onerror` 属性
+- fix: |Admin| 修复权限设置加载完成前短暂显示管理员密码输入框的问题
+- fix: |Admin| 修复切换一级标签页时二级标签页偶发无选中项、内容不显示及指示条偏移的问题
+- fix: |发信页面| 统一邮箱与名称字段顺序，并修复空正文输入框的光标与占位文字错位
+- fix: |用户发信| 用户地址发信接口支持角色无限额度
+
+### Improvements
+
+- fix: |Frontend| 统一邮箱、邮箱地址、用户账号与管理后台的核心界面术语，并补齐附加语言缺失的邮件状态与远程图片文案（issue #1129）
+- feat: |发信页面| 优化用户和 Admin 发信页面的信息层级与响应式布局，增加正文格式工具栏、草稿状态、底部发送操作区及隔离的 HTML 预览
+
+### Testing
+
+- test: |E2E| 覆盖 D1 数据库大小响应、配置键隔离，以及数据库页面套餐选择的持久化与刷新恢复
+- fix: |E2E| 覆盖发信页面草稿编辑、正文格式切换及 HTML 预览
+- fix: |E2E| 覆盖用户 JWT 发信接口的地址归属、额度扣减、实际投递和发件箱操作，以及用户中心查看地址凭证、切换发件地址和按地址过滤发件箱的完整流程
+
+## v1.11.0
+
+### Features
+
+- feat: |Frontend| 在随机子域名允许范围内新增普通、随机和自定义子域名模式选择（issue #1108）
+
+### Bug Fixes
+
+- fix: |Frontend| 将邮箱主页的账户设置、删除账户等表述更正为邮箱地址操作，并明确发信权限与额度按当前邮箱地址独立管理
+
+### Improvements
+
+- docs: |发送邮件| 补充用户账号、邮箱地址和发信权限的概念区别及按当前地址申请权限的操作说明
+
+- fix: |Worker| 地址活跃时间保活增加 1 天写入窗口，用户设置和邮箱访问不再重复更新近期活跃地址，降低 D1 写入量（issue #1103）
+
+- feat: |用户系统| 用户绑定地址列表改用服务端分页，并仅在第一页查询总数；用户邮件列表改用 JOIN、删除改用 `EXISTS` 在数据库侧校验地址归属，避免为大用户加载全部绑定地址（issue #1103）
+
+- feat: |Worker| 邮件、发件箱及按创建/活跃时间清理地址时改为分批处理，默认每次最多 3000 条并支持通过 `CLEANUP_BATCH_SIZE` 调整（上限 5000），减少单次扫描和删除量（issue #1103）
+
+### Testing
+
+- fix: |E2E| 新增近期地址活跃时间不会被用户设置接口重复写入的回归测试
+- fix: |E2E| 新增清理批次上限、后续批次继续执行、保留未过期数据及地址关联数据清理测试
+
+## v1.10.0
+
+### Features
+
+- feat: |Admin| 新增 `GET /admin/mails/:id` 接口，支持管理员按邮件 ID 跨邮箱读取单封邮件，并兼容 gzip 压缩存储（issue #1096）
+- feat: |Frontend| 邮箱新增「邮箱全宽列表视图」开关（在外观设置中控制），开启后默认全宽列表展示邮件标题与正文预览，点击单封邮件再展开为双栏，再次点击同一封邮件可回到列表视图；多选模式下点击邮件会同步切换勾选状态与右侧预览，并禁用同邮件点击收回列表，展开时双栏左侧列表宽度仍遵循「邮箱双栏视图左侧列表宽度占比」配置；默认关闭，保留原有双栏行为
+- feat: |Frontend| 邮箱全宽列表视图新增「正文预览行数」配置（在外观设置中控制），可设置邮件正文预览的最大行数，默认 2 行，0 表示关闭预览
+- feat: |Frontend| 外观设置新增「自动加载邮件正文中的外部图片」开关，关闭后邮件预览（含全屏视图）会先经 DOMPurify 消毒，并以白名单策略处理所有可能发起请求的位置：仅保留可证明为本地的引用（`cid:`、`data:image/`、`blob:` 与站内相对路径），其余一律阻断；`base`、`meta`、`script`、`link`、`iframe`、`object`、`embed`、`noscript` 等会自行取用资源或改变解析基准的元素在此模式下移除，`<style>` 保留但其中 `url()`、`image-set()`、`@import` 的远端引用会被替换。正文上方显示已阻断资源数量的提示条，可一键按封加载；默认保持开启，行为与此前一致（issue #1073）
+
+### Bug Fixes
+
+- fix: |Frontend| 关闭邮件外部图片自动加载时保留 `<a>` 与 `<area>` 的外部导航链接，并阻断通过 CSS 转义函数名或 at-rule 绕过远程资源过滤的情况
+- fix: |Frontend| 使用共享 DOMPurify 净化逻辑处理关于页面与启动通知中的 HTML 公告，避免 `ANNOUNCEMENT` 中的可执行标签或事件属性造成 XSS
+- fix: |Worker| 按邮件认证规范修复垃圾邮件检测：SPF、DKIM、DMARC 的 `none` 及 SPF/DKIM `neutral` 按认证方法不存在处理，并忽略未注册结果和不支持的方法版本；`JUNK_MAIL_FORCE_PASS_LIST` 仍要求明确返回受支持的 `pass`
+- fix: |Admin| 管理后台删除邮箱地址时，先删除该地址的邮件、发件记录、自动回复等关联数据，最后再删除地址本身；此前地址行先被删除导致按地址名匹配的子查询查不到数据，邮件等记录被遗留在数据库中
+- fix: |AI 提取| 强化提示词，要求 AI 保持邮件原始链接域名，避免小模型改写验证链接域名导致错误跳转（issue #1072）
+- fix: |AI 提取| HTML-only 邮件在发送给 Workers AI 前会先压缩为可读文本，避免样式模板过长导致验证码位于 4000 字截断之后而无法识别
+- fix: |Frontend| 移动端 Header 增加页头内边距，避免标题、菜单按钮与屏幕边缘过近
+- fix: |IMAP 代理| 修复 IMAP `STORE` 无法真正标记邮件已读的问题：邮件不再硬编码为 `\Seen`，且 `SimpleMailbox` 的 flags 变更现持久化到本地 SQLite（新增 `imap_flag_db_path` 配置），使已读/未读状态可在客户端断线重连（如 Thunderbird 轮询）后保留，而非每次新建连接即丢失（issue #1074）
+- fix: |IMAP 代理| 修复 `SEARCH UNSEEN` 返回全部邮件的问题：`SimpleMailbox.search()` 现按持久化的 flags 计算 `SEEN`/`UNSEEN`/`FLAGGED`/`DELETED`/`ANSWERED`/`DRAFT` 及其否定形式，多个条件按 AND 组合；无法识别的检索条件仍沿用原有行为返回全部邮件
+- fix: |IMAP 代理| 修复取信不会自动标记已读的问题：`BODY[...]`、`RFC822`、`RFC822.TEXT` 取信现按 RFC 3501 自动置 `\Seen`，而 `BODY.PEEK[...]`、`RFC822.HEADER` 及仅取元数据（如 `FLAGS`）不会
+
+### Testing
+
+- test: |Worker| 新增 junk_mail_policy 回归测试（issue #1084）：覆盖 SPF/DKIM/DMARC 的 `none`/`neutral` 按认证方法不存在处理、明确 `fail` 仍被拒收，以及 `JUNK_MAIL_FORCE_PASS_LIST` 仅接受明确 `pass`
+
+### Improvements
+
+- docs: |README| 新增完整日文 README，并在中文和英文 README 中添加日文导航链接
+- feat: |Frontend| 「邮箱双栏视图左侧列表宽度占比」最小值由 0.25 放宽至 0，左侧列表可完全折叠使正文近乎全屏，刻度增加 0 点；收件箱与发件箱的双栏拆分同步生效，并优化外观设置文案以明确该比例控制左侧邮件列表宽度
+
+## v1.9.0
+
+### Features
+
+- feat: |AI 识别| 未配置 Workers AI 绑定时，自动回退到内置正则提取验证码（支持中英日韩，并排除年份与 `YYYYMMDD` 日期误判），让无 Workers AI 的自部署用户也能在 Telegram 推送与 Webhook 中拿到验证码
+- feat: |Telegram| Telegram 新邮件推送与 `/mails` 历史邮件查看支持展示 AI 提取结果，包含验证码、验证链接、服务链接、订阅链接等关键信息
+- feat: |Webhook| 邮件 Webhook 模板支持填充 AI 提取结果占位符，包括 `aiExtractType`、`aiExtractResult`、`aiExtractResultText`
+- feat: |Frontend| 新增 `DISABLE_SHOW_GITHUB_FOR_USER` 配置，可仅对普通用户隐藏 Header 的 GitHub/版本入口，admin 仍可见（issue #1041）
 - feat: |Frontend| 将邮箱地址凭证弹窗升级为“地址凭证与连接方式”，复用普通用户与 admin 创建邮箱结果弹窗；支持通过 `ENABLE_AGENT_EMAIL_INFO` 展示 AI Agent 接入信息，并通过 `SMTP_IMAP_PROXY_CONFIG` 展示 SMTP/IMAP 客户端连接信息
+- docs: |随机子域名| 在前端“启用随机子域名”提示与 `subdomain` / `worker-vars` 文档（中英）中明确说明：要让 `name@<随机>.abc.com` 真正收到邮件，必须在基础域名 DNS 中为 `*` 子域添加通配 MX 记录，Email Routing 子域不继承父域配置（issue #1035）
 
 ### Bug Fixes
 
 - fix: |Admin| 管理员重置邮箱地址密码时改为前端 SHA-256 后提交，后端只接受并存储哈希值，避免该接口继续接收明文密码
 - fix: |Address| 管理员邮箱地址列表与用户绑定地址列表不再返回已存储的地址密码哈希值，避免列表接口暴露敏感字段
+- fix: |Address| 统一规范化配置域名、收件地址域名与前缀的空白和大小写，覆盖 `DOMAINS`、`DEFAULT_DOMAINS`、`USER_ROLES.domains`、随机子域名、转发规则、SMTP 与 `SEND_MAIL` 域名匹配，保留转发规则空域名 catch-all 行为，并明确空 `DEFAULT_DOMAINS` / 角色域名回退到 `DOMAINS` 的行为，避免大小写配置或入站收件域名导致创建、收件、转发或发信失败（issue #926）
+- fix: |AI 提取| 将 AI 邮件识别默认 Workers AI 模型切换为支持 JSON Mode 且未弃用的 `@cf/meta/llama-3.1-8b-instruct-fast`，并在文档中补充 `@cf/zai-org/glm-4.7-flash` 结构化输出兼容性提示（issue #1029）
+- fix: |CI| 将 GitHub Actions 与 e2e Docker 镜像统一升级到 Node.js 24，适配 Wrangler 4.90.0 的运行时要求
+- fix: |Frontend| 修复 iOS Safari 点击输入框时因移动端表单控件字号过小导致页面自动放大的问题
 
 ### Improvements
 
@@ -145,7 +330,7 @@
 
 - test: |E2E| 新增 Docker 化端到端测试环境（Playwright + Mailpit），`cd e2e && npm test` 一条命令运行
 - test: |E2E| 覆盖 API 健康检查、地址生命周期、SMTP 发信、收件箱 UI、回复 HTML 邮件及 XSS 防护
-- test: |Worker| 新增 `/admin/test/seed_mail` 测试端点，仅 `E2E_TEST_MODE` 启用时可用
+- test: |Worker| 新增 `/admin/test/seed_mail` 测试端点
 
 ### Improvements
 

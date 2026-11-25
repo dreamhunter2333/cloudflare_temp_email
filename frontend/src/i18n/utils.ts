@@ -1,11 +1,11 @@
 import { LOCALE_REGISTRY, SUPPORTED_LOCALES } from './locale-registry'
+import { APP_CONFIG } from '../config'
 
 export { SUPPORTED_LOCALES } from './locale-registry'
 export type { SupportedLocale } from './locale-registry'
 
 import type { SupportedLocale } from './locale-registry'
 
-export const DEFAULT_LOCALE: SupportedLocale = 'zh'
 export const FALLBACK_LOCALE: SupportedLocale = 'zh'
 export const PREFERRED_LOCALE_STORAGE_KEY = 'preferredLocale'
 export const EMPTY_LOCALE_MESSAGES = Object.fromEntries(
@@ -28,6 +28,9 @@ export const resolveSupportedLocale = (locale: string | null | undefined): Suppo
 
   return null
 }
+
+export const DEFAULT_LOCALE: SupportedLocale = resolveSupportedLocale(APP_CONFIG.DEFAULT_LANG)
+  || FALLBACK_LOCALE
 
 export const matchSupportedLocale = (locale: string | null | undefined): SupportedLocale | null => {
   if (!locale) return null

@@ -1,12 +1,12 @@
 import { Context, Hono } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
+import { verifyAddressToken } from '../address_auth';
 import { createMimeMessage } from 'mimetext';
 import { Resend } from 'resend';
 import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getBooleanValue, getJsonObjectValue } from '../utils';
+import { getJsonSetting, getDomains, getBooleanValue, getJsonObjectValue, getDomainMapValue, getMailDomain, includesDomain } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery, isSendMailBindingEnabled, updateAddressUpdatedAt } from '../common'
 import { getSendBalanceState, requestSendMailAccess } from './send_balance';
@@ -81,7 +81,7 @@ const sendMailByResend = async (
         subject: string, content: string, is_html: boolean
     }
 ): Promise<void> => {
-    const mailDomain = address.split("@")[1];
+    const mailDomain = getMailDomain(address);
     const token = c.env[
         `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
     ] || c.env.RESEND_TOKEN;
@@ -143,9 +143,9 @@ export const sendMail = async (
         throw new Error(msgs.AddressNotFoundMsg)
     }
     // check domain
-    const mailDomain = address.split("@")[1];
+    const mailDomain = getMailDomain(address);
     const domains = getDomains(c);
-    if (!domains.includes(mailDomain)) {
+    if (!includesDomain(domains, mailDomain)) {
         throw new Error(msgs.InvalidDomainMsg)
     }
     const sendBalanceState = await getSendBalanceState(c, address, {
@@ -182,7 +182,7 @@ export const sendMail = async (
     ];
     // send by smtp
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    const smtpConfig = smtpConfigMap ? smtpConfigMap[mailDomain] : null;
+    const smtpConfig = getDomainMapValue(smtpConfigMap, mailDomain);
     // send by verified address list
     let sendByVerifiedAddressList = false;
     if (c.env.SEND_MAIL) {
@@ -261,14 +261,11 @@ api.post('/api/send_mail', async (c) => {
 })
 
 api.post('/external/api/send_mail', async (c) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    const { token } = await c.req.json();
+    const body = await c.req.json();
     try {
-        const { address } = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
-        if (!address) {
-            return c.text(msgs.AddressNotFoundMsg, 400)
-        }
-        const reqJson = await c.req.json();
+        const { address } = await verifyAddressToken(c, body?.token);
+        const { from_name, to_mail, to_name, subject, content, is_html } = body;
+        const reqJson = { from_name, to_mail, to_name, subject, content, is_html };
         await sendMail(c, address as string, reqJson);
         return c.json({ status: "ok" })
     } catch (e) {

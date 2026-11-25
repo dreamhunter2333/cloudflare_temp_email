@@ -1,31 +1,51 @@
 <script setup>
-import { ref, h, onMounted } from 'vue';
+import { computed, ref, h, onMounted, watch } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router';
 import { NBadge, NPopconfirm, NButton } from 'naive-ui'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { getRouterPathWithLang } from '../../utils'
+import { getRouterPathWithLang, utcToLocalDate } from '../../utils'
+import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 import Login from '../common/Login.vue';
 
-const { jwt } = useGlobalState()
+const { jwt, openSettings, loading, useUTCDate } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
 
 const { locale, t } = useScopedI18n('views.user.AddressManagement')
+const { t: credentialT } = useScopedI18n('components.AddressCredentialModal')
 
 const data = ref([])
+const count = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
+const addressQuery = ref('')
+const activeQuery = ref('')
 const showTranferAddress = ref(false)
 const currentAddress = ref("")
 const currentAddressId = ref(0)
 const targetUserEmail = ref('')
+const showAddressCredential = ref(false)
+const currentAddressCredential = ref('')
+const credentialAddress = ref('')
+
+const showCredential = async (row) => {
+    try {
+        const { jwt: addressCredential } = await api.fetch(`/user_api/bind_address_jwt/${row.id}`)
+        currentAddressCredential.value = addressCredential
+        credentialAddress.value = row.name
+        showAddressCredential.value = true
+    } catch (error) {
+        message.error(error.message || "error")
+    }
+}
 
 const changeMailAddress = async (address_id) => {
     try {
         const res = await api.fetch(`/user_api/bind_address_jwt/${address_id}`);
-        message.success(t('changeMailAddress') + " " + t('success'));
         if (!res.jwt) {
             message.error("jwt not found");
             return;
@@ -46,7 +66,11 @@ const unbindAddress = async (address_id) => {
             body: JSON.stringify({ address_id })
         });
         message.success(t('unbindAddress') + " " + t('success'));
-        await fetchData();
+        if (page.value === 1) {
+            await fetchData();
+        } else {
+            page.value = 1;
+        }
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
@@ -71,7 +95,11 @@ const transferAddress = async () => {
             })
         });
         message.success(t('transferAddress') + " " + t('success'));
-        await fetchData();
+        if (page.value === 1) {
+            await fetchData();
+        } else {
+            page.value = 1;
+        }
         showTranferAddress.value = false;
         currentAddressId.value = 0;
         currentAddress.value = "";
@@ -84,19 +112,42 @@ const transferAddress = async () => {
 
 const fetchData = async () => {
     try {
-        const { results } = await api.fetch(
-            `/user_api/bind_address`
+        const params = new URLSearchParams({
+            limit: String(pageSize.value),
+            offset: String((page.value - 1) * pageSize.value),
+        });
+        if (activeQuery.value) params.set('query', activeQuery.value);
+        const { results, count: addressCount } = await api.fetch(
+            `/user_api/bind_address?${params.toString()}`
         );
         data.value = results;
+        if (page.value === 1) {
+            count.value = addressCount;
+        }
     } catch (error) {
         console.log(error)
         message.error(error.message || "error");
     }
 }
 
-const columns = [
+const searchData = () => {
+    const query = addressQuery.value.trim();
+    if (query.length > 100 || /[%_]/.test(query)) {
+        message.error(t('invalidQuery'));
+        return;
+    }
+    addressQuery.value = query;
+    activeQuery.value = addressQuery.value;
+    if (page.value === 1) {
+        fetchData();
+    } else {
+        page.value = 1;
+    }
+}
+
+const columns = computed(() => [
     {
-        title: t('name'),
+        title: t('emailAddress'),
         key: "name"
     },
     {
@@ -123,11 +174,26 @@ const columns = [
             })
         }
     },
+    ...(openSettings.value.enableAddressExpiry ? [{
+        title: t('expires_at'),
+        key: "expires_at",
+        render(row) {
+            return row.expires_at ? utcToLocalDate(row.expires_at, useUTCDate.value) : t('neverExpires');
+        }
+    }] : []),
     {
         title: t('actions'),
         key: 'actions',
         render(row) {
             return h('div', [
+                h(NButton,
+                    {
+                        tertiary: true,
+                        type: "primary",
+                        onClick: () => showCredential(row)
+                    },
+                    { default: () => credentialT(openSettings.value.addressPasswordLoginOnly ? 'sessionToken' : 'addressCredential') }
+                ),
                 h(NPopconfirm,
                     {
                         onPositiveClick: () => changeMailAddress(row.id)
@@ -138,9 +204,9 @@ const columns = [
                                 tertiary: true,
                                 type: "primary",
                             },
-                            { default: () => t('changeMailAddress') }
+                            { default: () => t('openMailbox') }
                         ),
-                        default: () => `${t('changeMailAddress')}?`
+                        default: () => `${t('openMailbox')}?`
                     }
                 ),
                 h(NButton,
@@ -167,21 +233,27 @@ const columns = [
                             },
                             { default: () => t('unbindAddress') }
                         ),
-                        default: () => t('unbindAddressTip')
+                        default: () => t(openSettings.value.addressPasswordLoginOnly ? 'unbindPasswordTip' : 'unbindAddressTip')
                     }
                 ),
             ])
         }
     }
-]
+])
 
 onMounted(async () => {
     await fetchData()
+})
+
+watch([page, pageSize], async () => {
+    await fetchData();
 })
 </script>
 
 <template>
     <div>
+        <AddressCredentialModal v-model:show="showAddressCredential" :address="credentialAddress"
+            :jwt="currentAddressCredential" />
         <n-modal v-model:show="showTranferAddress" preset="dialog" :title="t('transferAddress')">
             <span>
                 <p>{{ t("transferAddressTip") }}</p>
@@ -196,7 +268,20 @@ onMounted(async () => {
         </n-modal>
         <n-tabs type="segment">
             <n-tab-pane name="address" :tab="t('address')">
+                <n-input-group style="margin-top: 10px;">
+                    <n-input v-model:value="addressQuery" data-testid="user-address-search" clearable :placeholder="t('addressQueryTip')"
+                        @keydown.enter="searchData" />
+                    <n-button @click="searchData" type="primary" tertiary>
+                        {{ t('query') }}
+                    </n-button>
+                </n-input-group>
                 <div class="address-table-scroll">
+                    <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"
+                        :page-sizes="[20, 50, 100]" show-size-picker>
+                        <template #prefix="{ itemCount }">
+                            {{ t('itemCount') }}: {{ itemCount }}
+                        </template>
+                    </n-pagination>
                     <n-data-table :columns="columns" :data="data" :bordered="false" embedded />
                 </div>
             </n-tab-pane>
@@ -215,5 +300,10 @@ onMounted(async () => {
 .address-table-scroll {
     max-width: 100%;
     overflow-x: auto;
+}
+
+.n-pagination {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 </style>

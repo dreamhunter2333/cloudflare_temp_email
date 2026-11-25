@@ -5,14 +5,15 @@ import { useScopedI18n } from '@/i18n/app'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { hashPassword } from '../../utils'
+import { hashPassword, utcToLocalDate } from '../../utils'
 import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
 
 const {
     loading, adminTab, openSettings,
-    adminMailTabAddress, adminSendBoxTabAddress
+    adminMailTabAddress, adminSendBoxTabAddress,
+    useUTCDate
 } = useGlobalState()
 const message = useMessage()
 
@@ -265,7 +266,7 @@ const columns = computed(() => [
         sortOrder: sortBy.value === 'id' ? sortOrder.value : false
     },
     {
-        title: t('name'),
+        title: t('emailAddress'),
         key: "name",
         sorter: true,
         sortOrder: sortBy.value === 'name' ? sortOrder.value : false
@@ -274,14 +275,27 @@ const columns = computed(() => [
         title: t('created_at'),
         key: "created_at",
         sorter: true,
-        sortOrder: sortBy.value === 'created_at' ? sortOrder.value : false
+        sortOrder: sortBy.value === 'created_at' ? sortOrder.value : false,
+        render(row) {
+            return utcToLocalDate(row.created_at, useUTCDate.value);
+        }
     },
     {
         title: t('updated_at'),
         key: "updated_at",
         sorter: true,
-        sortOrder: sortBy.value === 'updated_at' ? sortOrder.value : false
+        sortOrder: sortBy.value === 'updated_at' ? sortOrder.value : false,
+        render(row) {
+            return utcToLocalDate(row.updated_at, useUTCDate.value);
+        }
     },
+    ...(openSettings.value.enableAddressExpiry ? [{
+        title: t('expires_at'),
+        key: "expires_at",
+        render(row) {
+            return row.expires_at ? utcToLocalDate(row.expires_at, useUTCDate.value) : t('neverExpires');
+        }
+    }] : []),
     {
         title: t('source_meta'),
         key: "source_meta",
@@ -479,11 +493,11 @@ onMounted(async () => {
     <div style="margin-top: 10px;">
         <AddressCredentialModal v-model:show="showEmailCredential" :address="curEmailAddress"
             :jwt="curEmailCredential" />
-        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteAccount')">
+        <n-modal v-model:show="showDeleteAccount" preset="dialog" :title="t('deleteMailbox')">
             <p>{{ t('deleteTip') }}</p>
             <template #action>
                 <n-button :loading="loading" @click="deleteEmail" size="small" tertiary type="error">
-                    {{ t('deleteAccount') }}
+                    {{ t('deleteMailbox') }}
                 </n-button>
             </template>
         </n-modal>

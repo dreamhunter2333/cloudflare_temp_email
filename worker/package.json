@@ -1,6 +1,6 @@
 {
   "name": "cloudflare_temp_email",
-  "version": "1.9.0",
+  "version": "1.15.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,25 +11,25 @@
     "build": "wrangler deploy --dry-run --outdir dist --minify"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260429.1",
+    "@cloudflare/workers-types": "^5.20261117.1",
     "@eslint/js": "9.39.1",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.9.9",
     "eslint": "9.39.1",
     "globals": "^16.5.0",
-    "typescript-eslint": "^8.59.1",
-    "wrangler": "^4.86.0"
+    "typescript-eslint": "^8.73.0",
+    "wrangler": "^4.163.0"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.888.0",
     "@aws-sdk/s3-request-presigner": "3.888.0",
-    "@simplewebauthn/server": "13.2.3",
-    "hono": "^4.12.15",
+    "@simplewebauthn/server": "^13.3.3",
+    "hono": "^4.13.19",
     "jsonpath-plus": "^10.4.0",
     "mimetext": "^3.0.28",
-    "postal-mime": "^2.7.4",
-    "resend": "^6.12.2",
+    "postal-mime": "^4.2.1",
+    "resend": "^6.38.1",
     "telegraf": "4.16.3",
-    "worker-mailer": "^1.2.1"
+    "worker-mailer": "^1.3.1"
   },
   "pnpm": {
     "patchedDependencies": {

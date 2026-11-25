@@ -29,6 +29,12 @@ Change `VITE_API_BASE` to the `worker` `url` created in the previous step. Do no
 
 For example: `VITE_API_BASE=https://xxx.xxx.workers.dev`
 
+Set the frontend default language with `VITE_DEFAULT_LANG`. Supported values are `zh`, `en`, `es`, `pt-BR`, `ja`, and `de`; an unset or invalid value falls back to `zh`.
+
+For example: `VITE_DEFAULT_LANG=en`
+
+See [Frontend Variables](/en/guide/frontend-vars) for other settings.
+
 ```bash
 pnpm build --emptyOutDir
 # The first deployment will prompt you to create a project, for production branch enter production
@@ -46,6 +52,8 @@ Forwarding requests from page functions to the worker backend can achieve faster
 The first deployment will prompt you to create a project. For the `production` branch, enter `production`.
 
 If your worker backend name is not `cloudflare_temp_email`, please modify `pages/wrangler.toml`.
+
+To set the default language, add `VITE_DEFAULT_LANG=en` to `frontend/.env.pages.local`. Same-origin requests do not require `VITE_API_BASE`; see [Frontend Variables](/en/guide/frontend-vars) for other settings.
 
 ```bash
 cd frontend

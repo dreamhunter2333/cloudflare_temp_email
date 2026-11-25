@@ -67,6 +67,8 @@ JWT_SECRET = "xxx"
 
 # admin 控制台密码, 不配置则不允许访问控制台
 # ADMIN_PASSWORDS = ["123", "456"]
+# Admin API IP 白名单，同时限制管理员密码和 Admin 用户令牌访问
+# ADMIN_API_IP_WHITELIST = ["203.0.113.10"]
 
 # 是否允许用户创建邮件, 不配置则不允许
 ENABLE_USER_CREATE_EMAIL = true
@@ -97,6 +99,13 @@ database_id = "xxx" # D1 数据库 ID
 # binding = "AUTH_INBOX"
 # service = "auth-inbox"
 ```
+
+> [!NOTE]
+> 如果不想把密码写在 `wrangler.toml` 中，`ADMIN_PASSWORDS` 和 `PASSWORDS` 也可以配置为 secret。secret 的值总是字符串，所以需要输入 JSON 数组，例如 `["my-password"]`。直接输入 `my-password` 会解析失败：`PASSWORDS` 配置错误时返回 `500 / Invalid PASSWORDS configuration`，不会关闭密码保护；`ADMIN_PASSWORDS` JSON 解析失败时无法使用管理员密码登录。
+>
+> ```bash
+> pnpm wrangler secret put ADMIN_PASSWORDS
+> ```
 
 ## 部署带有前端页面的 worker(可选)
 

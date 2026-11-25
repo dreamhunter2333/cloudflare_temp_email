@@ -1,6 +1,7 @@
 import { Context } from "hono";
 import { CONSTANTS } from "../constants";
 import utils from "../utils";
+import { compareVersions } from "../utils/version";
 
 const DB_INIT_QUERIES = `
 CREATE TABLE IF NOT EXISTS raw_mails (
@@ -11,6 +12,7 @@ CREATE TABLE IF NOT EXISTS raw_mails (
     raw TEXT,
     raw_blob BLOB,
     metadata TEXT,
+    is_unread INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -20,11 +22,16 @@ CREATE INDEX IF NOT EXISTS idx_raw_mails_created_at ON raw_mails(created_at);
 
 CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);
 
+CREATE INDEX IF NOT EXISTS idx_raw_mails_cleanup_unknown ON raw_mails(created_at, id, address);
+
+CREATE INDEX IF NOT EXISTS idx_raw_mails_source_domain_created_at ON raw_mails(lower(trim(substr(source, instr(source, '@') + 1), ' <>')), created_at, id);
+
 CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE,
     password TEXT,
     source_meta TEXT,
+    expires_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,6 +43,8 @@ CREATE INDEX IF NOT EXISTS idx_address_created_at ON address(created_at);
 CREATE INDEX IF NOT EXISTS idx_address_updated_at ON address(updated_at);
 
 CREATE INDEX IF NOT EXISTS idx_address_source_meta ON address(source_meta);
+
+CREATE INDEX IF NOT EXISTS idx_address_expires_at ON address(expires_at);
 
 CREATE TABLE IF NOT EXISTS auto_reply_mails (
     id INTEGER PRIMARY KEY,
@@ -123,6 +132,22 @@ CREATE TABLE IF NOT EXISTS user_passkeys (
 CREATE INDEX IF NOT EXISTS idx_user_passkeys_user_id ON user_passkeys(user_id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_passkeys_user_id_passkey_id ON user_passkeys(user_id, passkey_id);
+
+CREATE TABLE IF NOT EXISTS redeem_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    redeem_type TEXT NOT NULL,
+    value TEXT NOT NULL,
+    result TEXT,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    redeemed INTEGER NOT NULL DEFAULT 0 CHECK (redeemed IN (0, 1)),
+    expires_at DATETIME NOT NULL,
+    redeemed_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_redeem_codes_type ON redeem_codes(redeem_type);
 `
 
 export default {
@@ -144,7 +169,7 @@ export default {
     },
     migrate: async (c: Context<HonoCustomType>) => {
         const version = await utils.getSetting(c, CONSTANTS.DB_VERSION_KEY);
-        if (version && version <= "v0.0.2") {
+        if (version && compareVersions(version, "v0.0.2") <= 0) {
             // migration to v0.0.3: add password column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(address)`
@@ -156,7 +181,7 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE address ADD COLUMN password TEXT;`);
             }
         }
-        if (version && version <= "v0.0.3") {
+        if (version && compareVersions(version, "v0.0.3") <= 0) {
             // migration to v0.0.4: add metadata column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(raw_mails)`
@@ -168,7 +193,7 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN metadata TEXT;`);
             }
         }
-        if (version && version <= "v0.0.4") {
+        if (version && compareVersions(version, "v0.0.4") <= 0) {
             // migration to v0.0.5: add source_meta column
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(address)`
@@ -181,11 +206,11 @@ export default {
                 await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_address_source_meta ON address(source_meta);`);
             }
         }
-        if (version && version <= "v0.0.5") {
+        if (version && compareVersions(version, "v0.0.5") <= 0) {
             // migration to v0.0.6: add message_id index on raw_mails
             await c.env.DB.exec(`CREATE INDEX IF NOT EXISTS idx_raw_mails_message_id ON raw_mails(message_id);`);
         }
-        if (version && version <= "v0.0.6") {
+        if (version && compareVersions(version, "v0.0.6") <= 0) {
             // migration to v0.0.7: add raw_blob column for gzip compressed email storage
             const tableInfo = await c.env.DB.prepare(
                 `PRAGMA table_info(raw_mails)`
@@ -197,7 +222,30 @@ export default {
                 await c.env.DB.exec(`ALTER TABLE raw_mails ADD COLUMN raw_blob BLOB;`);
             }
         }
-        if (version != CONSTANTS.DB_VERSION) {
+        if (version && compareVersions(version, "v0.0.7") <= 0) {
+            const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(raw_mails)`).all();
+            if (!tableInfo.results?.some((col: any) => col.name === 'is_unread')) {
+                await c.env.DB.exec(
+                    `ALTER TABLE raw_mails ADD COLUMN is_unread INTEGER;`
+                );
+            }
+        }
+        if (!version || compareVersions(version, "v0.0.10") <= 0) {
+            // migration to v0.0.11: add expires_at column when address table already exists without it
+            const tableInfo = await c.env.DB.prepare(`PRAGMA table_info(address)`).all();
+            if (tableInfo.results && tableInfo.results.length > 0
+                && !tableInfo.results.some((col: any) => col.name === 'expires_at')) {
+                try {
+                    await c.env.DB.exec(`ALTER TABLE address ADD COLUMN expires_at DATETIME;`);
+                } catch (error) {
+                    const refreshedInfo = await c.env.DB.prepare(`PRAGMA table_info(address)`).all();
+                    if (!refreshedInfo.results?.some((col: any) => col.name === 'expires_at')) {
+                        throw error;
+                    }
+                }
+            }
+        }
+        if (!version || compareVersions(version, CONSTANTS.DB_VERSION) < 0) {
             // remove all \r and \n characters from the query string
             // split by ; and join with a ;\n
             const query = DB_INIT_QUERIES.replace(/[\r\n]/g, "")
@@ -219,11 +267,13 @@ export default {
     },
     getVersion: async (c: Context<HonoCustomType>) => {
         const version = await utils.getSetting(c, CONSTANTS.DB_VERSION_KEY);
+        const sizeResult = await c.env.DB.prepare("SELECT 1").run();
         return c.json({
             need_initialization: !version,
-            need_migration: version && version != CONSTANTS.DB_VERSION,
+            need_migration: version && compareVersions(version, CONSTANTS.DB_VERSION) < 0,
             current_db_version: version,
-            code_db_version: CONSTANTS.DB_VERSION
+            code_db_version: CONSTANTS.DB_VERSION,
+            database_size: sizeResult.meta.size_after ?? null
         });
     },
 }

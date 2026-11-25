@@ -6,6 +6,7 @@ import bind_address from './bind_address';
 import passkey from './passkey';
 import oauth2 from './oauth2';
 import user_mail_api from './user_mail_api';
+import user_send_mail_api from './user_send_mail_api';
 
 export const api = new Hono<HonoCustomType>();
 
@@ -16,6 +17,13 @@ api.get('/user_api/settings', settings.settings);
 // mail api
 api.get('/user_api/mails', user_mail_api.getMails);
 api.delete('/user_api/mails/:id', user_mail_api.deleteMail);
+
+// send mail api
+api.get('/user_api/address/:address_id/settings', user_send_mail_api.settings);
+api.post('/user_api/address/:address_id/request_send_mail_access', user_send_mail_api.requestAccess);
+api.post('/user_api/address/:address_id/send_mail', user_send_mail_api.send);
+api.get('/user_api/sendbox', user_send_mail_api.listUserSendbox);
+api.delete('/user_api/sendbox/:mail_id', user_send_mail_api.removeUserSendboxMail);
 
 // user api
 api.post('/user_api/login', user.login);

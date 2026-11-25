@@ -6,7 +6,7 @@ on:
     types: [completed]
   push:
     tags:
-      - "*"
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
       - uses: pnpm/action-setup@v5
         name: Install pnpm
@@ -59,7 +59,7 @@ jobs:
 
           if [ -n "$use_mail_wasm_parser" ]; then
             echo "Using mail-parser-wasm-worker"
-            pnpm add mail-parser-wasm-worker
+            pnpm add mail-parser-wasm-worker@0.2.3
             git apply ../.github/config/mail-parser-wasm-worker.patch
             echo "Applied mail-parser-wasm-worker patch"
           fi

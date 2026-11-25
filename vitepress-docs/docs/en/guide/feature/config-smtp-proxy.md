@@ -64,6 +64,7 @@ services:
 | `imap_tls_key` | empty | IMAP TLS private key file path (PEM) |
 | `imap_cache_size` | `500` | Max cached messages per mailbox |
 | `imap_http_timeout` | `30.0` | Backend HTTP request timeout (seconds) |
+| `imap_flag_db_path` | `data/imap_flags.db` | SQLite file storing IMAP flags (e.g. `\Seen`) so `STORE` (mark as read) survives client reconnects. Mount a volume over its parent directory so it persists across container restarts |
 
 ## Enabling STARTTLS
 

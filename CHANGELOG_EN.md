@@ -6,16 +6,201 @@
   <a href="CHANGELOG_EN.md">English</a>
 </p>
 
-## v1.9.0(main)
+## v1.15.0(main)
 
 ### Features
 
+- feat: |Mailbox| Add `ENABLE_ADDRESS_EXPIRY` feature flag (default `false`); when enabled, support optional `expiresAt` expiration when creating addresses via API (`/api/new_address`, `/admin/new_address`) and Web UI (defaults to never expiring), enforce expiry in shared mailbox auth and single-address user checks, and clean up expired addresses in bounded cron batches; upgrade database schema to `v0.0.11` (migrate database before enabling; actual deletion depends on cron schedule and cleanup progress; disabling pauses enforcement and cleanup without erasing saved deadlines; existing deployments must run `Admin -> Quick Setup -> Database -> Migrate Database`, or `db/2026-11-18-address-expires-at.sql` if already on `v0.0.10`)
+
+### Bug Fixes
+
+### Improvements
+
+- refactor: |Mail Parsing| Extract backend mail parsing into a shared module without changing parsing behavior or WASM selection
+- refactor: |Address Expiry| Extract shared expiry checks, remove duplicate queries and fallback wrappers, validate the format and time zone of `expiresAt` (a valid future date before 2100 UTC), omit `expires_at` from creation responses, and add the expiry column only during version migration
+
+## v1.14.0
+
+### Features
+
+- feat: |Mail Forwarding| Add recipient address regex filters to forwarding rules, reusing internal delivery with any/all matching
+- feat: |Mailbox Login| Keep session-token access with expiry details, hiding legacy credential contents and blocking legacy cache switches in password-only mode while retaining cache removal
+- feat: |Mailbox Sessions| Extend renewable 30-day JWT issuance to mailbox creation and authorized user, admin, and Telegram access
+- feat: |Mailbox Sessions| Update only the active mailbox JWT on renewal, retaining the existing string cache; expired historical tokens require login; show login method columns or tags only when both token types appear in the list
+- feat: |Admin| Switch between single and batch creation, create batches of up to 100 random-name mailboxes, and export their auto-login links as spreadsheet-safe or lossless CSV
+- feat: |Admin Statistics| Add a dashboard with mail, mailbox, user and sent mail totals, 7- and 30-day mailbox and user activity, and site-wide trends by date
+- feat: |Mail Forwarding| Route forwarding rules internally by configured domain with independent receive processing, extraction and notifications, no second forwarding and only one auto-reply; optionally delete the original at the end and keep global forwarding external-only with its existing behavior
+- feat: |User System| Add `DISABLE_USER_SYSTEM` to block user APIs, disable user admin tokens, and hide user interfaces
+- feat: |Mailbox Sessions| Issue 30-day JWTs at password login when password-only mode is effective, validate mailbox access, and renew through settings below 7 days
+- feat: |Mailbox Login| Add a password-only login-page switch that requires mailbox passwords; preserve existing credentials, login links, API access, and legacy JWT lifetimes
+- feat: |Mailbox Credential| Show a QR code of the auto-login link in the credential dialog for opening the mailbox on mobile, with a reminder that anyone with the QR code can access the mailbox (issue #1189)
+
+### Bug Fixes
+
+- fix: |CI| Increase the unit-test job timeout from 5 to 15 minutes to allow time for dependency installation
+- fix: |Site Authentication| Fail closed for malformed or non-string-array `PASSWORDS` configurations while preserving valid and empty configuration behavior
+- fix: |CI| Wait for save and test responses in Webhook UI tests to avoid flaky assertions against missing or stale requests
+- fix: |Auto Update| Support an optional `UPSTREAM_SYNC_TOKEN` to sync workflow changes, retain the default token when unset, and declare the contents write permission required for syncing
+- fix: |Inbox| Keep the current message and restore the page and page size when pagination fails
+- fix: |Inbox| Show simple inbox refresh success only after a successful fetch
+- fix: |Mail Reader| Sanitize Shadow DOM email previews when remote images are allowed
+- fix: |Health Check| Return `OK` from `/health_check` when the Worker has an `ASSETS` binding instead of the frontend page, so uptime monitors can use it
+- fix: |Create Address| Lowercase generated names before filtering characters, so the default `[^a-z0-9]` rule no longer drops the first letter of each name part and leaves names mangled or too short
+- fix: |Mail Reader| Sandbox regular and fullscreen iframe previews to block scripts in email bodies
+- fix: |Scheduled Cleanup| Catch errors for each built-in and custom SQL cleanup task, log failures, and continue with subsequent tasks
+- fix: |Header| Add horizontal spacing to the phone header
+- fix: |Inbox| Keep failed batch-delete selections and show success only when the batch completes
+- fix: |Mail Processing| Use the newly stored row ID for metadata updates and Telegram links, avoiding wrong-row updates or links when Message-ID is repeated or missing
+- fix: |Mail Reader| Reset inherited application defaults in Shadow mail and use browser-default system colors for a normal document while preserving sender colors
+- fix: |Telegram| Clean up the current push recipient's binding and push mapping before admin mailbox deletion, freeing a slot and preventing stale pushes on recreation; KV cleanup failures preserve the mailbox for retry, while database deletion failures may leave it unbound
+- fix: |CI| Fix WASM npm publishing paths so local tarballs are not interpreted as GitHub repositories
+- fix: |CI| Use the E2E image's built-in tools for service probes so its build does not need Ubuntu package mirrors
+- fix: |CI| Prevent intermittent failures in the recent-mail cleanup test when it crosses a second boundary
+- fix: |CI| Wait for the forwarding settings refresh after saving so browser tests do not intermittently submit stale settings
+- fix: |Mail Parser| Upgrade WASM parser dependencies and use raw values only for structured headers, preserving decoded text headers while fixing `header.From` webhook filters and sender loss after attachment removal
+- fix: |Mail Parser| Support postal-mime v4's first-header semantics: handle empty/missing From in fallback parsing and regenerate MIME type/encoding headers when removing attachments to preserve stored message bodies
+- fix: |Telegram| Store separate permanent internal binding tokens, preserve historical expired bindings, and issue mailbox credentials on access while rejecting internal tokens at mailbox APIs
+- fix: |Worker| Process unknown-mail, unbound-address, and empty-address cleanup in bounded batches to avoid D1 timeouts on large backlogs
+- fix: |User| Bind the mailbox transfer confirmation button to the existing request loading state, fixing the undefined loading variable
+
+### Improvements
+
+- perf: |CI| Reuse E2E images, schedule browser tests in parallel, reduce page reloads, fixed waits and repeated browser actions, and speed up WASM tool installation
+- docs: |Documentation| Add guidance for mailbox, User Center, and Admin Console login entry points; list each Worker variable's required status and default behavior; explain custom roles; compare sending channels; and update Node.js compatibility steps by compatibility date
+- perf: |Database| Upgrade the schema to `v0.0.10` with a covering index for unknown-mail cleanup and an expression-based composite index for domain cleanup; compare major, minor, and patch versions numerically to avoid two-digit version errors and version-marker downgrades
+- docs: |User| Document mailbox binding, bound mailbox credential retrieval, and unbinding APIs with dual authentication requirements and request examples
+
+- perf: |CI| Organize test suites and run a dedicated Webhook UI group alongside API, other browser tests and SMTP/IMAP, with only each group's required services, separate unit/WASM tests and one aggregate check
+
+## v1.13.0
+
+### Features
+
+- feat: |Webhook| Add email filters with condition/AND/OR/NOT nodes, nesting, string and native regex matching, visual/JSON editing and rule checking; preserve all original From headers while still removing attachments when From is missing or invalid (issue #1155)
+- feat: |User| Search bound mailboxes by email address in address management with accurate pagination (issue #1156)
+- feat: |AI Extract| Add `AI_EXTRACT_MODE` to explicitly choose local rules only (`local`) or prefer Workers AI (`ai`); defaults to local rules when unset so mail content is never sent to AI. **Upgrade note**: deployments that relied on the Workers AI binding to enable AI extraction automatically must set `AI_EXTRACT_MODE = "ai"`
+
+### Bug Fixes
+
+- fix: |Mail| Check the SMTP envelope sender and every From email address against sender blacklists; parse addresses independently so body parsing failures or multiple From addresses cannot skip matching; preserve envelope checks on address parsing errors
+- fix: |AI Extract| In `ai` mode, an address allowlist miss now skips only the Workers AI call and still falls back to local verification-code extraction
+- fix: |Telegram| Fall back to HTML-to-text conversion when plain text body is empty, preventing "parse failed" messages in Telegram notifications
+
+### Improvements
+
+- feat: |AI Extract| Improve local verification-code rules: also read the mail subject; support codes before keywords (e.g. `116352（动态验证码）`, `ABC123 is your code`), `G-123456` prefixes, grouped / spaced / zero-width-split / full-width codes, and Russian, Spanish, Portuguese, French, German, Italian, Turkish and Hebrew keywords; reject numbers longer than 8 digits, decimals and amounts, times, digits in URLs and email addresses, tracking / order / voucher codes and letters-only words; only accept keyword-less numbers in stricter positions; bound input length and remove regex backtracking risks
+- feat: |Frontend| Unify desktop and mobile mail summaries with prominent subjects, full sender identities and body previews; use theme-aware reader buttons and attachment-count badges, add keyboard-accessible actions and a mail-details dialog
+
+## v1.12.0
+
+### Features
+
+- feat: |Webhook| Support random or specified email IDs in the test dialog, with request-body validation, mailbox ownership checks, existing UI languages and Chinese/English errors
+- feat: |Webhook| Support signed attachment URLs without S3, plain URL and Markdown link lists, with case-insensitive signatures bound to the inserted email and original download filenames; deny attachment downloads when Webhook is disabled (issue #1142)
+- feat: |Worker| Add `DISABLE_ADDRESS_UPDATED_AT` to disable individual and user-wide address activity keep-alive updates and built-in manual/scheduled inactive-address cleanup, reducing D1 writes
+- feat: |Frontend| Add the `VITE_DEFAULT_LANG` build variable and support overriding frontend settings through runtime configuration in `index.html`
+- feat: |Redemption Codes| Add role, sending-credit and custom-mailbox redemption with Admin management, concurrency protection and form validation
+- feat: |Mail| Add optional read/unread status with click-to-read and manual status switching
+- feat: |Admin| Add D1 storage capacity details to the database page, with persistent Free and Workers Paid plan selection and a comparison between the current database size and capacity limit
+- feat: |Admin| Add one-click random email-name generation to the address creation page (issue #1126)
+- feat: |Admin API| Add `ADMIN_API_IP_WHITELIST` to restrict all admin endpoints by source IP
+- feat: |User| Add mail composition, inbox-style sent-item filtering by bound address, and the shared address-credentials dialog to the user center, backed by User JWT APIs for address settings, send-access requests, sending, and sent-item management
+
+### Bug Fixes
+
+- fix: |Mailbox Auth| Fix stale mailbox credentials retaining API access, unauthorized Telegram unbinding, ineffective rebinding and credential storage in external sent mail; distinguish authentication errors to prompt for site and Admin login correctly; move E2E test endpoints out of production code
+- fix: |Frontend| Remove unsupported `data-onload` and `data-onerror` attributes from the AdSense script
+- fix: |Admin| Avoid briefly showing the Admin password dialog before access settings finish loading
+- fix: |Admin| Fix secondary tabs occasionally losing their active item, hiding content, and leaving the indicator offset after switching primary tabs
+- fix: |Send Mail| Use a consistent address/name field order and align the empty content editor caret with its placeholder
+- fix: |User Send Mail| Apply role-based unlimited sending to user-address APIs
+
+### Improvements
+
+- fix: |Frontend| Unify core mailbox, email-address, user-account, and Admin Console terminology, and fill missing additional-locale strings for mail status and remote images (issue #1129)
+- feat: |Send Mail| Improve the information hierarchy and responsive layout of the user and Admin composers, with a content-format toolbar, draft status, bottom send-action area, and isolated HTML preview
+
+### Testing
+
+- test: |E2E| Cover the D1 database-size response, config-key isolation, and persistence of the database-page plan selection across reloads
+- fix: |E2E| Cover draft editing, content-format switching, and HTML preview in the send-mail composer
+- fix: |E2E| Cover address ownership, balance decrement, delivery, and sent-item operations through the User JWT API, plus user-center credential display, sender switching, and sent-item filtering by address
+
+## v1.11.0
+
+### Features
+
+- feat: |Frontend| Add Normal, Random, and Custom subdomain mode selection within the random-subdomain scope (issue #1108)
+
+### Bug Fixes
+
+- fix: |Frontend| Relabel mailbox settings and deletion actions as email-address operations, and clarify that send permission and balance are managed independently for the current email address
+
+### Improvements
+
+- docs: |Send Mail| Document the differences between user accounts, email addresses, and send permission, including how to request permission for the currently selected address
+
+- fix: |Worker| Throttle address-activity touches to one write per day so user settings and mailbox access do not repeatedly update recently active addresses, reducing D1 writes (issue #1103)
+
+- feat: |User| Add server-side pagination for bound addresses, with totals queried only on the first page; validate user-mail list ownership with a JOIN and delete ownership with `EXISTS` instead of loading every bound address for large users (issue #1103)
+
+- feat: |Worker| Process mail, sent-mail, and creation/activity-based address cleanup in batches of 3000 by default, configurable through `CLEANUP_BATCH_SIZE` up to 5000, reducing per-run scans and deletes (issue #1103)
+
+### Testing
+
+- fix: |E2E| Add regression coverage ensuring user settings do not rewrite recent address activity timestamps
+- fix: |E2E| Cover cleanup batch limits, continuation on later runs, preservation of recent data, and address-related data cleanup
+
+## v1.10.0
+
+### Features
+
+- feat: |Admin| Add `GET /admin/mails/:id` for administrators to fetch a single mail by ID across mailboxes, including gzip-compressed storage support (issue #1096)
+- feat: |Frontend| Add a "Full-width mailbox list view" toggle in Appearance settings. When enabled, the mailbox shows a full-width list of subjects and body previews by default; clicking a mail expands it into the two-pane split view, clicking the same mail again returns to the list view; in multi-select mode, clicking a mail updates both its checked state and the right-side preview while disabling same-mail collapse, and the split width still follows the "Left list width in two-column mailbox view" setting. Defaults to off, preserving the original two-pane behavior
+- feat: |Frontend| Add "Body Preview Lines" in Appearance settings for the full-width mailbox list view, allowing runtime control over the body-preview clamp. It defaults to 2 lines, and 0 disables previews
+- feat: |Frontend| Add an "Automatically load external images in mail body" toggle in Appearance settings. When disabled, the mail body (including fullscreen view) is run through DOMPurify and an allowlist policy: only references that can be *proven* local are kept (`cid:`, `data:image/`, `blob:` and same-origin relative paths), everything else is blocked. Elements that fetch on their own or change how relative URLs resolve — `base`, `meta`, `script`, `link`, `iframe`, `object`, `embed`, `noscript` — are removed in this mode, while `<style>` is kept with remote `url()`, `image-set()` and `@import` references substituted. A banner above the body reports how many resources were blocked and loads them for that mail on demand; defaults to on, preserving the previous behavior (issue #1073)
+
+### Bug Fixes
+
+- fix: |Frontend| Preserve external navigation links on `<a>` and `<area>` elements when automatic remote-image loading is disabled, and block remote CSS resources hidden behind escaped function or at-rule names
+- fix: |Frontend| Sanitize HTML announcements in both the About page and startup notification through a shared DOMPurify helper, preventing executable tags or event attributes in `ANNOUNCEMENT` from causing XSS
+- fix: |Worker| Align junk-mail checking with authentication standards: treat SPF, DKIM, and DMARC `none` plus SPF/DKIM `neutral` as absent, and ignore unregistered results and unsupported method versions; `JUNK_MAIL_FORCE_PASS_LIST` still requires an explicit supported `pass`
+- fix: |Admin| When deleting an address from the admin panel, delete its mails, sender records, sendbox and auto-reply entries before removing the address row itself; previously the address row was deleted first, so the name-based subqueries matched nothing and the mails were left orphaned in the database
+- fix: |AI Extract| Strengthen the prompt to keep original link domains from the email, preventing small models from rewriting verification-link domains (issue #1072)
+- fix: |AI Extract| Convert HTML-only mail bodies into compact readable text before sending them to Workers AI, preventing long templates from pushing verification codes past the 4000-character truncation window
+- fix: |Frontend| Add mobile Header page padding so the title and menu button no longer sit too close to the screen edge
+- fix: |IMAP Proxy| Fix IMAP `STORE` not actually marking mail as read: messages are no longer hardcoded to `\Seen`, and `SimpleMailbox` flag changes are now persisted to a local SQLite file (new `imap_flag_db_path` setting) so the read/unread state survives a client disconnect and reconnect (e.g. Thunderbird polling) instead of resetting on every new connection (issue #1074)
+- fix: |IMAP Proxy| Fix `SEARCH UNSEEN` returning every message: `SimpleMailbox.search()` now evaluates `SEEN`/`UNSEEN`/`FLAGGED`/`DELETED`/`ANSWERED`/`DRAFT` and their negations against the persisted flags, combining multiple keys with AND; search keys it cannot evaluate keep the previous behaviour of matching everything
+- fix: |IMAP Proxy| Fix fetches never marking mail as read: `BODY[...]`, `RFC822` and `RFC822.TEXT` fetches now set `\Seen` per RFC 3501, while `BODY.PEEK[...]`, `RFC822.HEADER` and metadata-only fetches (e.g. `FLAGS`) do not
+
+### Testing
+
+- test: |Worker| Add junk_mail_policy regression tests (issue #1084): `none`/`neutral` results for SPF/DKIM/DMARC are treated as the method being absent, explicit `fail` results are still rejected, and `JUNK_MAIL_FORCE_PASS_LIST` only accepts an explicit `pass`
+
+### Improvements
+
+- docs: |README| Add a complete Japanese README and Japanese navigation links to the Chinese and English READMEs
+- feat: |Frontend| Lower the "Left list width in two-column mailbox view" minimum from 0.25 to 0 so the left list pane can fully collapse for a near-fullscreen content view, with a 0 mark added; applies to both the inbox and send-box two-pane splits, and clarifies the Appearance setting label so it is clear the value controls the left mail list width
+
+## v1.9.0
+
+### Features
+
+- feat: |AI Extract| Fall back to a built-in regex verification-code extractor (English / Chinese / Japanese / Korean, with year and `YYYYMMDD` date rejection) when no Workers AI binding is configured, so self-hosted deployments without Workers AI still surface codes in Telegram pushes and webhooks
+- feat: |Telegram| Show AI extraction results in Telegram new-mail notifications and `/mails` history views, including verification codes, auth links, service links, and subscription links
+- feat: |Webhook| Support AI extraction placeholders in mail webhook templates, including `aiExtractType`, `aiExtractResult`, and `aiExtractResultText`
+- feat: |Frontend| Add `DISABLE_SHOW_GITHUB_FOR_USER` to hide the Header GitHub/version entry from normal users while keeping it visible to admin users (issue #1041)
 - feat: |Frontend| Upgrade the address credential dialog to "Address Credentials & Connection Methods" and reuse it for both normal users and admin-created addresses; support showing AI Agent access via `ENABLE_AGENT_EMAIL_INFO` and SMTP/IMAP client settings via `SMTP_IMAP_PROXY_CONFIG`
+- docs: |Random Subdomain| Clarify in the "Use Random Subdomain" frontend tip and the `subdomain` / `worker-vars` docs (zh & en) that receiving mail on `name@<random>.abc.com` requires a wildcard `*` MX record under the base domain in DNS, because Cloudflare Email Routing does not inherit the apex configuration onto subdomains (issue #1035)
 
 ### Bug Fixes
 
 - fix: |Admin| Hash address passwords in the frontend before admin reset requests, and make the backend accept and store only the hash instead of plaintext
 - fix: |Address| Stop returning stored address password hashes from the admin address list and user bound-address list APIs to avoid exposing sensitive fields
+- fix: |Address| Normalize whitespace and casing for configured domains, inbound recipient domains, and prefixes across `DOMAINS`, `DEFAULT_DOMAINS`, `USER_ROLES.domains`, random subdomains, forwarding rules, SMTP, and `SEND_MAIL` domain matching, preserve blank-domain catch-all forwarding rules, and clarify that empty `DEFAULT_DOMAINS` / role domains fall back to `DOMAINS`, to avoid create, receive, forward, or send failures caused by mixed-case configuration or inbound recipient domains (issue #926)
+- fix: |AI Extract| Switch the default Workers AI model for AI email recognition to the JSON Mode-compatible, non-deprecated `@cf/meta/llama-3.1-8b-instruct-fast`, and document structured-output compatibility guidance for `@cf/zai-org/glm-4.7-flash` (issue #1029)
+- fix: |CI| Upgrade GitHub Actions and e2e Docker images to Node.js 24 to satisfy Wrangler 4.90.0 runtime requirements
+- fix: |Frontend| Prevent iOS Safari from auto-zooming the page when focusing mobile form controls with small font sizes
 
 ### Improvements
 
@@ -145,7 +330,7 @@
 
 - test: |E2E| Add Dockerized E2E test environment (Playwright + Mailpit), run with `cd e2e && npm test`
 - test: |E2E| Cover API health check, address lifecycle, SMTP send, inbox UI, HTML reply & XSS sanitization
-- test: |Worker| Add `/admin/test/seed_mail` test endpoint, only available when `E2E_TEST_MODE` is enabled
+- test: |Worker| Add `/admin/test/seed_mail` test endpoint
 
 ### Improvements
 

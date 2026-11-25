@@ -32,7 +32,7 @@ const fetchData = async () => {
 
 const columns = [
     {
-        title: t('name'),
+        title: t('emailAddress'),
         key: "name"
     },
     {

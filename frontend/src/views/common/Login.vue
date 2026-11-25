@@ -2,14 +2,14 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
-import { NewLabelOutlined, EmailOutlined } from '@vicons/material'
+import { NewLabelOutlined, EmailOutlined, RedeemOutlined } from '@vicons/material'
 
 import AdminContact from '../common/AdminContact.vue'
 import Turnstile from '../../components/Turnstile.vue'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { getRouterPathWithLang, hashPassword } from '../../utils'
+import { getRouterPathWithLang, hashPassword, resolveExpiryPayload } from '../../utils'
 
 const props = defineProps({
     bindUserAddress: {
@@ -19,7 +19,7 @@ const props = defineProps({
     },
     newAddressPath: {
         type: Function,
-        default: async (address_name, domain, cf_token, enableRandomSubdomain) => {
+        default: async (address_name, domain, cf_token, enableRandomSubdomain, expiryPayload = {}) => {
             return await api.fetch("/api/new_address", {
                 method: "POST",
                 body: JSON.stringify({
@@ -27,10 +27,15 @@ const props = defineProps({
                     domain: domain,
                     cf_token: cf_token,
                     enableRandomSubdomain: enableRandomSubdomain,
+                    ...expiryPayload,
                 }),
             });
         },
         required: true
+    },
+    enableExpiry: {
+        type: Boolean,
+        default: true,
     },
 })
 
@@ -48,7 +53,19 @@ const credential = ref('')
 const emailName = ref("")
 const emailDomain = ref("")
 const cfToken = ref("")
-const enableRandomSubdomain = ref(false)
+const subdomainMode = ref("normal")
+const customSubdomain = ref("")
+const expiryMode = ref("never")
+const expiresAt = ref(null)
+const expiryOptions = computed(() => [
+    { label: t('neverExpires'), value: 'never' },
+    { label: t('expiry1h'), value: '1h' },
+    { label: t('expiry24h'), value: '24h' },
+    { label: t('expiry3d'), value: '3d' },
+    { label: t('expiry7d'), value: '7d' },
+    { label: t('expiry30d'), value: '30d' },
+    { label: t('expiryCustom'), value: 'custom' },
+])
 const loginCfToken = ref("")
 const loginTurnstileRef = ref(null)
 const loginMethod = ref('credential') // 'credential' or 'password'
@@ -148,10 +165,10 @@ const generateName = async () => {
         const { faker } = await import('https://esm.sh/@faker-js/faker');
         emailName.value = faker.internet.email()
             .split('@')[0]
+            .toLowerCase()
             .replace(/\s+/g, '.')
             .replace(/\.{2,}/g, '.')
-            .replace(addressRegex.value, '')
-            .toLowerCase();
+            .replace(addressRegex.value, '');
         // support maxAddressLen
         if (emailName.value.length > openSettings.value.maxAddressLen) {
             emailName.value = emailName.value.slice(0, openSettings.value.maxAddressLen);
@@ -163,15 +180,29 @@ const generateName = async () => {
     }
 };
 
+const expiryEnabled = computed(() => props.enableExpiry && openSettings.value.enableAddressExpiry);
+
 const newEmail = async () => {
     try {
+        let expiryPayload = {};
+        if (expiryEnabled.value) {
+            expiryPayload = resolveExpiryPayload(expiryMode.value, expiresAt.value);
+            if (!expiryPayload) {
+                message.error(t('invalidExpiryDateTime'));
+                return;
+            }
+        }
         // If custom names are disabled, send empty name to trigger backend auto-generation
         const nameToSend = openSettings.value.disableCustomAddressName ? "" : emailName.value;
+        const domainToSend = subdomainMode.value === "custom"
+            ? `${customSubdomain.value.trim()}.${emailDomain.value}`
+            : emailDomain.value;
         const res = await props.newAddressPath(
             nameToSend,
-            emailDomain.value,
+            domainToSend,
             cfToken.value,
-            enableRandomSubdomain.value
+            subdomainMode.value === "random",
+            expiryPayload
         );
         jwt.value = res["jwt"];
         addressPassword.value = res["password"] || '';
@@ -186,6 +217,10 @@ const newEmail = async () => {
     } catch (error) {
         message.error(error.message || "error");
     }
+};
+
+const openRedeemPage = async () => {
+    await router.push(getRouterPathWithLang('/redeem', locale.value));
 };
 
 const addressPrefix = computed(() => {
@@ -206,7 +241,7 @@ const canUseRandomSubdomain = computed(() => {
 
 watch(canUseRandomSubdomain, (enabled) => {
     if (!enabled) {
-        enableRandomSubdomain.value = false;
+        subdomainMode.value = "normal";
     }
 });
 
@@ -275,7 +310,7 @@ onMounted(async () => {
                         v-model:value="loginCfToken" />
 
                     <div class="switch-login-button">
-                        <n-button v-if="openSettings?.enableAddressPassword"
+                        <n-button v-if="openSettings?.enableAddressPassword && !openSettings.addressPasswordLoginOnly"
                             @click="loginMethod === 'password' ? loginMethod = 'credential' : loginMethod = 'password'"
                             type="info" quaternary size="tiny">
                             {{ loginMethod === 'password' ? t('credentialLogin') : t('passwordLogin') }}
@@ -294,6 +329,16 @@ onMounted(async () => {
                         </template>
                         {{ t('getNewEmail') }}
                     </n-button>
+                    <div v-if="openSettings.enableRedeemCode" class="redeem-entry-section">
+                        <n-divider />
+                        <n-text type="info" class="redeem-entry-tip">{{ t('redeemEntryTip') }}</n-text>
+                        <n-button data-testid="redeem-entry" block secondary strong @click="openRedeemPage">
+                            <template #icon>
+                                <n-icon :component="RedeemOutlined" />
+                            </template>
+                            {{ t('useRedeemCode') }}
+                        </n-button>
+                    </div>
                 </n-form>
             </n-tab-pane>
             <n-tab-pane v-if="showNewAddressTab" name="register" :tab="t('getNewEmail')">
@@ -321,20 +366,52 @@ onMounted(async () => {
                                 :options="domainsOptions" />
                         </n-input-group>
                         <n-form-item-row v-if="canUseRandomSubdomain">
-                            <n-checkbox v-model:checked="enableRandomSubdomain">
-                                {{ t('enableRandomSubdomain') }}
-                            </n-checkbox>
-                            <p style="margin: 8px 0 0; opacity: 0.75;">
-                                {{ t('randomSubdomainTip') }}
-                            </p>
+                            <div style="width: 100%;">
+                                <n-radio-group v-model:value="subdomainMode">
+                                    <n-space vertical>
+                                        <n-radio value="normal">{{ t('normalSubdomain') }}</n-radio>
+                                        <n-radio value="random">{{ t('enableRandomSubdomain') }}</n-radio>
+                                        <n-radio value="custom">{{ t('enableCustomSubdomain') }}</n-radio>
+                                    </n-space>
+                                </n-radio-group>
+                                <p v-if="subdomainMode === 'random'" style="margin: 8px 0 0; opacity: 0.75;">
+                                    {{ t('randomSubdomainTip') }}
+                                </p>
+                                <n-input-group v-if="subdomainMode === 'custom'" style="margin-top: 8px;">
+                                    <n-input v-model:value="customSubdomain" />
+                                    <n-input-group-label>.{{ emailDomain }}</n-input-group-label>
+                                </n-input-group>
+                            </div>
+                        </n-form-item-row>
+                        <n-form-item-row v-if="expiryEnabled" :label="t('expiresAt')">
+                            <div style="width: 100%;">
+                                <n-select v-model:value="expiryMode" :options="expiryOptions" />
+                                <n-date-picker v-if="expiryMode === 'custom'" v-model:value="expiresAt"
+                                    type="datetime" format="yyyy-MM-dd HH:mm:ss" clearable
+                                    :placeholder="t('selectExpiryDateTime')"
+                                    :is-date-disabled="(ts) => ts < new Date().setHours(0, 0, 0, 0)"
+                                    style="width: 100%; margin-top: 8px;" />
+                            </div>
                         </n-form-item-row>
                         <Turnstile v-model:value="cfToken" />
-                        <n-button type="primary" block secondary strong @click="newEmail" :loading="loading">
+                        <n-button type="primary" block secondary strong @click="newEmail" :loading="loading"
+                            :disabled="(subdomainMode === 'custom' && !customSubdomain.trim()) || (expiryEnabled && expiryMode === 'custom' && !expiresAt)">
                             <template #icon>
                                 <n-icon :component="NewLabelOutlined" />
                             </template>
                             {{ t('getNewEmail') }}
                         </n-button>
+                        <div v-if="openSettings.enableRedeemCode" class="redeem-entry-section">
+                            <n-divider />
+                            <n-text type="info" class="redeem-entry-tip">{{ t('redeemEntryTip') }}</n-text>
+                            <n-button data-testid="redeem-entry-register" block secondary strong
+                                @click="openRedeemPage">
+                                <template #icon>
+                                    <n-icon :component="RedeemOutlined" />
+                                </template>
+                                {{ t('useRedeemCode') }}
+                            </n-button>
+                        </div>
                     </n-form>
                 </n-spin>
             </n-tab-pane>
@@ -358,6 +435,21 @@ onMounted(async () => {
 
 .n-form .n-button {
     margin-top: 10px;
+}
+
+.redeem-entry-section {
+    margin-top: 18px;
+}
+
+.redeem-entry-section :deep(.n-divider) {
+    margin: 0 0 14px;
+}
+
+.redeem-entry-tip {
+    display: block;
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: center;
 }
 
 .switch-login-button {

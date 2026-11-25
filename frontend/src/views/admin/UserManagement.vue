@@ -6,11 +6,11 @@ import { MenuFilled } from '@vicons/material'
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
-import { hashPassword } from '../../utils';
+import { hashPassword, utcToLocalDate } from '../../utils';
 
 import UserAddressManagement from './UserAddressManagement.vue'
 
-const { loading, openSettings } = useGlobalState()
+const { loading, openSettings, useUTCDate } = useGlobalState()
 const message = useMessage()
 
 const { t } = useScopedI18n('views.admin.UserManagement')
@@ -193,7 +193,10 @@ const columns = [
     },
     {
         title: t('created_at'),
-        key: "created_at"
+        key: "created_at",
+        render(row) {
+            return utcToLocalDate(row.created_at, useUTCDate.value);
+        }
     },
     {
         title: t('actions'),

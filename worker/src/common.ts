@@ -1,29 +1,25 @@
 import { Context } from 'hono';
-import { Jwt } from 'hono/utils/jwt'
+import { createAddressToken } from './address_auth';
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains } from './utils';
+import { getBooleanValue, getDomains, getStringArray, getIntValue, getUserRoles, getDefaultDomains, getAnotherWorkerList, hashPassword, getJsonObjectValue, getDomainMapValue, isDomainOrSubdomain, normalizeDomains, trimLower } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
-import { AddressCreationSettings, AdminWebhookSettings, WebhookMail, WebhookSettings } from './models';
+import { AdminWebhookSettings, ExtractResult, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
+import { formatWebhookBody, getWebhookAttachments } from './utils/webhook';
+import { compileFilter, type FilterValues } from './utils/filter';
+import { commonParseMail } from './utils/mail_parser';
+import { isAddressExpiryEnabled, normalizeAddressExpiresAt, shouldRejectExpiryInput } from './utils/address_expiry';
+import {
+    allowRandomSubdomainForDomain, checkNameBlockList, checkNameRegex, findMatchedAllowedDomain,
+    generateRandomSubdomain, getAddressCreationSubdomainMatchStatus, getNameRegex,
+} from './utils/address_creation';
 
-const DEFAULT_NAME_REGEX = /[^a-z0-9.-]/g;
-const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
 const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
-const MAX_DOMAIN_LENGTH = 253;
-const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
 
 const normalizeDomainValue = (domain: string): string => {
-    return domain.trim().toLowerCase();
-}
-
-const isValidDomainLabel = (label: string): boolean => {
-    return DOMAIN_LABEL_RE.test(label);
-}
-
-const areValidDomainLabels = (labels: string[]): boolean => {
-    return labels.length > 0 && labels.every((label) => isValidDomainLabel(label));
+    return trimLower(domain);
 }
 
 /**
@@ -41,7 +37,7 @@ export const isSendMailEnabled = (
 
     // Check SMTP config for domain
     const smtpConfigMap = getJsonObjectValue<Record<string, WorkerMailerOptions>>(c.env.SMTP_CONFIG);
-    if (smtpConfigMap && smtpConfigMap[mailDomain]) return true;
+    if (getDomainMapValue(smtpConfigMap, mailDomain)) return true;
 
     // Check SEND_MAIL binding
     if (isSendMailBindingEnabled(c, mailDomain)) return true;
@@ -56,8 +52,7 @@ export const isSendMailBindingEnabled = (
     if (!c.env.SEND_MAIL) {
         return false;
     }
-    const sendMailDomains = getStringArray(c.env.SEND_MAIL_DOMAINS)
-        .map((domain) => normalizeDomainValue(domain));
+    const sendMailDomains = normalizeDomains(getStringArray(c.env.SEND_MAIL_DOMAINS));
     if (sendMailDomains.length === 0) {
         return true;
     }
@@ -72,174 +67,6 @@ export const isAnySendMailEnabled = (c: Context<HonoCustomType>): boolean => {
     return domains.some(domain => isSendMailEnabled(c, domain));
 }
 
-export const generateRandomName = (c: Context<HonoCustomType>): string => {
-    // name min length min 1
-    const minLength = Math.max(
-        getIntValue(c.env.MIN_ADDRESS_LEN, 1),
-        1
-    );
-    // name max length min 1
-    const maxLength = Math.max(
-        getIntValue(c.env.MAX_ADDRESS_LEN, 30),
-        1
-    );
-
-    // Build full name recursively until minimum length is reached
-    const buildName = (currentName: string = ""): string => {
-        return currentName.length >= minLength
-            ? currentName
-            : buildName(currentName + Math.random().toString(36).substring(2, 15));
-    };
-
-    const fullName = buildName();
-
-    // Return truncated to max length
-    return fullName.substring(0, Math.min(fullName.length, maxLength));
-};
-
-const generateRandomSubdomain = (c: Context<HonoCustomType>): string => {
-    const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
-    const length = Math.min(
-        Math.max(getIntValue(c.env.RANDOM_SUBDOMAIN_LENGTH, DEFAULT_RANDOM_SUBDOMAIN_LENGTH), 1),
-        63
-    );
-    let subdomain = "";
-    for (let i = 0; i < length; i++) {
-        subdomain += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return subdomain;
-}
-
-const allowRandomSubdomainForDomain = (
-    c: Context<HonoCustomType>,
-    domain: string
-): boolean => {
-    const normalizedDomain = normalizeDomainValue(domain);
-    return getRandomSubdomainDomains(c)
-        .map((item) => normalizeDomainValue(item))
-        .includes(normalizedDomain);
-}
-
-const isCreateAddressSubdomainMatchEnvConfigured = (c: Context<HonoCustomType>): boolean => {
-    return c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== undefined
-        && c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== null
-        && c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH !== "";
-}
-
-export const getAddressCreationSettings = async (
-    c: Context<HonoCustomType>
-): Promise<AddressCreationSettings> => {
-    const value = await getJsonSetting<AddressCreationSettings>(
-        c, CONSTANTS.ADDRESS_CREATION_SETTINGS_KEY
-    );
-    return new AddressCreationSettings(value);
-}
-
-export const getAddressCreationSubdomainMatchStatus = async (
-    c: Context<HonoCustomType>,
-    existingSettings?: AddressCreationSettings
-): Promise<{
-    envConfigured: boolean,
-    envEnabled: boolean,
-    storedEnabled: boolean | undefined,
-    effectiveEnabled: boolean,
-}> => {
-    const envConfigured = isCreateAddressSubdomainMatchEnvConfigured(c);
-    const envEnabled = getBooleanValue(c.env.ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH);
-    const addressCreationSettings = existingSettings || await getAddressCreationSettings(c);
-    const storedEnabled = addressCreationSettings.enableSubdomainMatch;
-
-    // 业务约束：env=false 作为全局 kill switch，后台开关不能强行打开。
-    const effectiveEnabled = envConfigured && !envEnabled
-        ? false
-        : typeof storedEnabled === "boolean"
-            ? storedEnabled
-            : envEnabled;
-
-    return {
-        envConfigured,
-        envEnabled,
-        storedEnabled,
-        effectiveEnabled,
-    };
-}
-
-const findMatchedAllowedDomain = (
-    domain: string,
-    allowDomains: string[],
-    enableSubdomainMatch: boolean,
-): string | null => {
-    const normalizedDomain = normalizeDomainValue(domain);
-    if (normalizedDomain.length > MAX_DOMAIN_LENGTH) {
-        return null;
-    }
-    const domainLabels = normalizedDomain.split('.');
-    if (!areValidDomainLabels(domainLabels)) {
-        return null;
-    }
-    const normalizedAllowDomains = allowDomains.map((allowDomain) => normalizeDomainValue(allowDomain));
-    if (normalizedAllowDomains.includes(normalizedDomain)) {
-        return normalizedDomain;
-    }
-    if (!enableSubdomainMatch) {
-        return null;
-    }
-    const matchedDomain = [...normalizedAllowDomains]
-        .sort((a, b) => b.length - a.length)
-        .find((allowDomain) => {
-            if (allowDomain.length > MAX_DOMAIN_LENGTH) {
-                return false;
-            }
-            const allowDomainLabels = allowDomain.split('.');
-            if (!areValidDomainLabels(allowDomainLabels)) {
-                return false;
-            }
-            if (domainLabels.length <= allowDomainLabels.length) {
-                return false;
-            }
-            const prefixLabels = domainLabels.slice(0, domainLabels.length - allowDomainLabels.length);
-            if (!areValidDomainLabels(prefixLabels)) {
-                return false;
-            }
-            return allowDomainLabels.every((label, index) => {
-                return domainLabels[domainLabels.length - allowDomainLabels.length + index] === label;
-            });
-        });
-    return matchedDomain || null;
-}
-
-const checkNameRegex = (c: Context<HonoCustomType>, name: string) => {
-    let error = null;
-    try {
-        const regexStr = getStringValue(c.env.ADDRESS_CHECK_REGEX);
-        if (!regexStr) return;
-        const regex = new RegExp(regexStr);
-        if (!regex.test(name)) {
-            error = new Error(`Name not match regex: /${regexStr}/`);
-        }
-    }
-    catch (e) {
-        console.error("Failed to check address regex", e);
-    }
-    if (error) {
-        throw error;
-    }
-}
-
-const getNameRegex = (c: Context<HonoCustomType>): RegExp => {
-    try {
-        const regex = getStringValue(c.env.ADDRESS_REGEX);
-        if (!regex) {
-            return DEFAULT_NAME_REGEX;
-        }
-        return new RegExp(regex, 'g');
-    }
-    catch (e) {
-        console.error("Failed to get address regex", e);
-    }
-    return DEFAULT_NAME_REGEX;
-}
-
 export function updateAddressUpdatedAt(
     c: Context<HonoCustomType>,
     address: string | undefined | null
@@ -247,14 +74,42 @@ export function updateAddressUpdatedAt(
     if (!address) {
         return;
     }
+    // Skip activity timestamp writes when activity tracking is disabled.
+    if (getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) return;
     // update address updated_at asynchronously
     c.executionCtx.waitUntil((async () => {
         try {
             await c.env.DB.prepare(
-                `UPDATE address SET updated_at = datetime('now') where name = ?`
+                `UPDATE address SET updated_at = datetime('now')`
+                + ` WHERE name = ?`
+                + ` AND (updated_at IS NULL OR updated_at < datetime('now', '-1 day'))`
             ).bind(address).run();
         } catch (e) {
-            console.warn("[updateAddressUpdatedAt] failed:", address, e);
+            const errorName = e instanceof Error ? e.name : "UnknownError";
+            console.warn("[updateAddressUpdatedAt] failed:", errorName);
+        }
+    })());
+}
+
+export function updateUserAddressesUpdatedAt(
+    c: Context<HonoCustomType>,
+    userId: number | string | undefined | null
+): void {
+    if (!userId) {
+        return;
+    }
+    // Apply the same activity tracking switch to bulk updates.
+    if (getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) return;
+    c.executionCtx.waitUntil((async () => {
+        try {
+            await c.env.DB.prepare(
+                `UPDATE address SET updated_at = datetime('now')`
+                + ` WHERE id IN (SELECT address_id FROM users_address WHERE user_id = ?)`
+                + ` AND (updated_at IS NULL OR updated_at < datetime('now', '-1 day'))`
+            ).bind(userId).run();
+        } catch (e) {
+            const errorName = e instanceof Error ? e.name : "UnknownError";
+            console.warn("[updateUserAddressesUpdatedAt] failed:", errorName);
         }
     })());
 }
@@ -294,29 +149,40 @@ const insertAddressRecord = async (
     c: Context<HonoCustomType>,
     address: string,
     sourceMeta: string | undefined | null,
+    expiresAt: string | number | null,
     msgs: ReturnType<typeof i18n.getMessagesbyContext>
 ): Promise<void> => {
+    const writeExpiry = isAddressExpiryEnabled(c) && expiresAt != null;
+    if (writeExpiry) {
+        const expiry = normalizeAddressExpiresAt(expiresAt, msgs);
+        try {
+            const { success } = await c.env.DB.prepare(
+                `INSERT INTO address(name, source_meta, expires_at) VALUES(?, ?, ?)`
+            ).bind(address, sourceMeta, expiry).run();
+            if (success) return;
+        } catch (e) {
+            if (!(e as Error).message?.includes("source_meta")) throw e;
+            const { success } = await c.env.DB.prepare(
+                `INSERT INTO address(name, expires_at) VALUES(?, ?)`
+            ).bind(address, expiry).run();
+            if (success) return;
+        }
+        throw new Error(msgs.FailedCreateAddressMsg);
+    }
+
     try {
-        const result = await c.env.DB.prepare(
+        const { success } = await c.env.DB.prepare(
             `INSERT INTO address(name, source_meta) VALUES(?, ?)`
         ).bind(address, sourceMeta).run();
-        if (!result.success) {
-            throw new Error(msgs.FailedCreateAddressMsg)
-        }
+        if (success) return;
     } catch (e) {
-        const message = (e as Error).message;
-        // Fallback: source_meta field may not exist, try without it
-        if (message && message.includes("source_meta")) {
-            const result = await c.env.DB.prepare(
-                `INSERT INTO address(name) VALUES(?)`
-            ).bind(address).run();
-            if (!result.success) {
-                throw new Error(msgs.FailedCreateAddressMsg)
-            }
-            return;
-        }
-        throw e;
+        if (!(e as Error).message?.includes("source_meta")) throw e;
+        const { success } = await c.env.DB.prepare(
+            `INSERT INTO address(name) VALUES(?)`
+        ).bind(address).run();
+        if (success) return;
     }
+    throw new Error(msgs.FailedCreateAddressMsg);
 }
 
 export const newAddress = async (
@@ -331,6 +197,7 @@ export const newAddress = async (
         checkAllowDomains = true,
         enableCheckNameRegex = true,
         sourceMeta = null,
+        expiresAt = null,
     }: {
         name: string, domain: string | undefined | null,
         enablePrefix: boolean,
@@ -340,9 +207,13 @@ export const newAddress = async (
         checkAllowDomains?: boolean,
         enableCheckNameRegex?: boolean,
         sourceMeta?: string | undefined | null,
+        expiresAt?: string | number | null,
     }
 ): Promise<{ address: string, jwt: string, password?: string | null, address_id: number }> => {
     const msgs = i18n.getMessagesbyContext(c);
+    if (shouldRejectExpiryInput(c, expiresAt)) {
+        throw new Error(msgs.AddressExpiryDisabledMsg);
+    }
     // trim whitespace and remove special characters
     name = name.trim().replace(getNameRegex(c), '')
     // check name
@@ -369,9 +240,9 @@ export const newAddress = async (
     }
     // create address with prefix
     if (typeof addressPrefix === "string") {
-        name = addressPrefix.trim() + name;
+        name = trimLower(addressPrefix) + name;
     } else if (enablePrefix) {
-        name = getStringValue(c.env.PREFIX).trim() + name;
+        name = trimLower(c.env.PREFIX) + name;
     }
     // check domain
     const allowDomains = checkAllowDomains ? await getAllowDomains(c) : getDomains(c);
@@ -387,8 +258,12 @@ export const newAddress = async (
         domain = normalizeDomainValue(domain);
     }
     const { effectiveEnabled: enableSubdomainMatch } = await getAddressCreationSubdomainMatchStatus(c);
+    const allowManualSubdomain = domain
+        ? allowDomains.some((baseDomain) =>
+            allowRandomSubdomainForDomain(c, baseDomain) && isDomainOrSubdomain(domain, baseDomain))
+        : false;
     const matchedAllowDomain = domain
-        ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch)
+        ? findMatchedAllowedDomain(domain, allowDomains, enableSubdomainMatch || allowManualSubdomain)
         : null;
     // check domain is valid
     if (!domain || !matchedAllowDomain) {
@@ -406,7 +281,7 @@ export const newAddress = async (
         const address = `${name}@${addressDomain}`;
 
         try {
-            await insertAddressRecord(c, address, sourceMeta, msgs);
+            await insertAddressRecord(c, address, sourceMeta, expiresAt, msgs);
             await updateAddressUpdatedAt(c, address);
 
             const address_id = await c.env.DB.prepare(
@@ -421,10 +296,7 @@ export const newAddress = async (
             const generatedPassword = await generatePasswordForAddress(c, address);
 
             // create jwt
-            const jwt = await Jwt.sign({
-                address: address,
-                address_id: address_id
-            }, c.env.JWT_SECRET, "HS256")
+            const jwt = await createAddressToken(c, address, address_id);
             return {
                 jwt: jwt,
                 address: address,
@@ -433,6 +305,9 @@ export const newAddress = async (
             }
         } catch (e) {
             const message = (e as Error).message;
+            if (message === msgs.InvalidExpiresAtMsg || message === msgs.AddressExpiryDisabledMsg) {
+                throw e;
+            }
             if (message && message.includes("UNIQUE")) {
                 if (enableRandomSubdomain && attempt < maxAttempts - 1) {
                     continue;
@@ -446,79 +321,193 @@ export const newAddress = async (
     throw new Error(msgs.FailedCreateAddressMsg)
 }
 
-const checkNameBlockList = async (
-    c: Context<HonoCustomType>, name: string
-): Promise<void> => {
-    // check name block list
-    const blockList = [] as string[];
-    try {
-        const value = await getJsonSetting(c, CONSTANTS.ADDRESS_BLOCK_LIST_KEY);
-        blockList.push(...(value || []));
-    } catch (error) {
-        console.error(error);
-    }
-    if (blockList.some((item) => name.includes(item))) {
-        throw new Error(`Name[${name}]is blocked`);
-    }
-}
-
 export const cleanup = async (
     c: Context<HonoCustomType>,
     cleanType: string | undefined | null,
     cleanDays: number | undefined | null
 ): Promise<boolean> => {
+    // Frozen activity timestamps cannot reliably identify inactive addresses.
+    if (cleanType === "inactiveAddress" && getBooleanValue(c.env.DISABLE_ADDRESS_UPDATED_AT)) {
+        return false;
+    }
     const msgs = i18n.getMessagesbyContext(c);
-    if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
+    if (!cleanType || (cleanType !== "expiredAddress" && (typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000))) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
+    }
+    let cleanupBatchSize = getIntValue(c.env.CLEANUP_BATCH_SIZE, 3000);
+    if (!Number.isInteger(cleanupBatchSize) || cleanupBatchSize < 1 || cleanupBatchSize > 5000) {
+        cleanupBatchSize = 3000;
     }
     console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
     switch (cleanType) {
         case "inactiveAddress":
             await batchDeleteAddressWithData(
                 c,
-                `updated_at < datetime('now', '-${cleanDays} day')`
+                `id IN (`
+                + `SELECT id FROM address WHERE updated_at < datetime('now', '-${cleanDays} day') `
+                + `ORDER BY updated_at, id LIMIT ${cleanupBatchSize})`
             )
             break;
         case "addressCreated":
             await batchDeleteAddressWithData(
                 c,
-                `created_at < datetime('now', '-${cleanDays} day')`
+                `id IN (`
+                + `SELECT id FROM address WHERE created_at < datetime('now', '-${cleanDays} day') `
+                + `ORDER BY created_at, id LIMIT ${cleanupBatchSize})`
             )
             break;
         case "unboundAddress":
             await batchDeleteAddressWithData(
                 c,
-                `id NOT IN (SELECT address_id FROM users_address) AND created_at < datetime('now', '-${cleanDays} day')`
+                `id IN (`
+                + `SELECT a.id FROM address AS a `
+                + `WHERE a.created_at < datetime('now', '-${cleanDays} day') `
+                + `AND NOT EXISTS (SELECT 1 FROM users_address AS ua WHERE ua.address_id = a.id) `
+                + `ORDER BY a.created_at, a.id LIMIT ${cleanupBatchSize})`
             )
             break;
         case "mails":
             await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM raw_mails WHERE id IN (
+                    SELECT id FROM raw_mails
+                    WHERE created_at < datetime('now', ?)
+                    ORDER BY created_at, id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "mails_unknow":
             await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE address NOT IN
-                (select name from address) AND created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM raw_mails WHERE id IN (
+                    SELECT rm.id FROM raw_mails AS rm
+                    WHERE rm.created_at < datetime('now', ?)
+                    AND NOT EXISTS (
+                        SELECT 1 FROM address AS a WHERE a.name = rm.address
+                    )
+                    ORDER BY rm.created_at, rm.id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "sendbox":
             await c.env.DB.prepare(`
-                DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
-            ).run();
+                DELETE FROM sendbox WHERE id IN (
+                    SELECT id FROM sendbox
+                    WHERE created_at < datetime('now', ?)
+                    ORDER BY created_at, id
+                    LIMIT ?
+                )`
+            ).bind(`-${cleanDays} day`, cleanupBatchSize).run();
             break;
         case "emptyAddress":
             // Delete addresses that have no emails and were created more than N days ago
             await batchDeleteAddressWithData(
                 c,
-                `name NOT IN (SELECT DISTINCT address FROM raw_mails WHERE address IS NOT NULL) AND created_at < datetime('now', '-${cleanDays} day')`
+                `id IN (`
+                + `SELECT a.id FROM address AS a `
+                + `WHERE a.created_at < datetime('now', '-${cleanDays} day') `
+                + `AND NOT EXISTS (SELECT 1 FROM raw_mails AS rm WHERE rm.address = a.name) `
+                + `ORDER BY a.created_at, a.id LIMIT ${cleanupBatchSize})`
             )
             break;
+        case "expiredAddress": {
+            if (!isAddressExpiryEnabled(c)) {
+                throw new Error(msgs.AddressExpiryDisabledMsg);
+            }
+            await cleanupExpiredAddresses(c, cleanupBatchSize);
+            break;
+        }
         default:
             throw new Error(msgs.InvalidCleanTypeMsg)
     }
     return true;
 }
+
+const EXPIRED_KV_OP_BUDGET = 40;
+const KV_DELETE_CHUNK_SIZE = 20;
+const NO_KV_DELETE_CHUNK_SIZE = 250;
+
+const deleteAddressChunk = async (
+    c: Context<HonoCustomType>,
+    ids: number[],
+): Promise<void> => {
+    const safeIds = ids.filter((id) => Number.isSafeInteger(id) && id > 0);
+    if (safeIds.length === 0) return;
+    const condition = `id IN (${safeIds.join(',')})`;
+    await c.env.DB.batch([
+        c.env.DB.prepare(`DELETE FROM raw_mails WHERE address IN (SELECT name FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM sendbox WHERE address IN (SELECT name FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM auto_reply_mails WHERE address IN (SELECT name FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM address_sender WHERE address IN (SELECT name FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM users_address WHERE address_id IN (SELECT id FROM address WHERE ${condition})`),
+        c.env.DB.prepare(`DELETE FROM address WHERE ${condition}`),
+    ]);
+};
+
+const cleanupExpiredAddresses = async (
+    c: Context<HonoCustomType>,
+    cleanupBatchSize: number,
+): Promise<void> => {
+    const cutoffUtc = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const hasKv = Boolean(c.env.KV);
+    const candidateLimit = hasKv ? Math.min(cleanupBatchSize, EXPIRED_KV_OP_BUDGET) : cleanupBatchSize;
+    const { results } = await c.env.DB.prepare(
+        `SELECT id, name FROM address WHERE expires_at IS NOT NULL AND expires_at <= ? `
+        + `ORDER BY expires_at, id LIMIT ?`
+    ).bind(cutoffUtc, candidateLimit).all<{ id: number; name: string }>();
+    if (!results || results.length === 0) return;
+
+    let kvOps = 0;
+    const kvMethods = new Set(['get', 'put', 'delete', 'list']);
+    const unbindCtx = hasKv ? {
+        env: {
+            ...c.env,
+            KV: new Proxy(c.env.KV, {
+                get(target, prop) {
+                    const value = Reflect.get(target, prop, target);
+                    if (typeof value !== 'function' || !kvMethods.has(String(prop))) {
+                        return typeof value === 'function' ? value.bind(target) : value;
+                    }
+                    return (...args: unknown[]) => {
+                        kvOps += 1;
+                        return value.apply(target, args);
+                    };
+                },
+            }),
+        },
+    } as Context<HonoCustomType> : c;
+
+    const chunkSize = hasKv ? KV_DELETE_CHUNK_SIZE : NO_KV_DELETE_CHUNK_SIZE;
+    let firstUnbindError: unknown = null;
+    let budgetReached = false;
+
+    for (let i = 0; i < results.length && !budgetReached; i += chunkSize) {
+        const chunkRows = results.slice(i, i + chunkSize);
+        const readyIds: number[] = [];
+        for (const row of chunkRows) {
+            if (!Number.isSafeInteger(row?.id) || row.id <= 0 || !row?.name) continue;
+            if (hasKv && kvOps >= EXPIRED_KV_OP_BUDGET) {
+                budgetReached = true;
+                break;
+            }
+            const opsBefore = kvOps;
+            try {
+                await unbindTelegramByAddress(unbindCtx, row.name);
+                if (hasKv && kvOps === opsBefore) kvOps += 1;
+                readyIds.push(row.id);
+            } catch (e) {
+                if (hasKv && kvOps === opsBefore) kvOps += 1;
+                console.warn("Failed to unbind telegram for expired address:", row.name, e);
+                firstUnbindError ??= e;
+            }
+        }
+        await deleteAddressChunk(c, readyIds);
+    }
+
+    if (firstUnbindError) {
+        throw firstUnbindError;
+    }
+};
 
 const batchDeleteAddressWithData = async (
     c: Context<HonoCustomType>,
@@ -682,71 +671,6 @@ export const handleMailListQuery = async (
     return c.json({ results: resolvedResults, count });
 }
 
-export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): Promise<{
-    sender: string,
-    subject: string,
-    text: string,
-    html: string,
-    headers?: Record<string, string>[],
-    attachments?: ParsedEmailAttachment[],
-} | undefined> => {
-    // check parsed email context is valid
-    if (!parsedEmailContext || !parsedEmailContext.rawEmail) {
-        return undefined;
-    }
-    // return parsed email if already parsed
-    if (parsedEmailContext.parsedEmail) {
-        return parsedEmailContext.parsedEmail;
-    }
-    const raw_mail = parsedEmailContext.rawEmail;
-    // NOTE: WASM parse email
-    // try {
-    //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
-
-    //     const parsedEmail = parse_message_wrapper(raw_mail);
-    //     parsedEmailContext.parsedEmail = {
-    //         sender: parsedEmail.sender || "",
-    //         subject: parsedEmail.subject || "",
-    //         text: parsedEmail.text || "",
-    //         headers: parsedEmail.headers?.map(
-    //             (header) => ({ key: header.key, value: header.value })
-    //         ) || [],
-    //         html: parsedEmail.body_html || "",
-    //         attachments: (parsedEmail.attachments || []).map(att => ({
-    //             filename: att.filename || "attachment",
-    //             mimeType: att.content_type || "application/octet-stream",
-    //             content: att.content,
-    //             disposition: "attachment",
-    //         })),
-    //     };
-    //     return parsedEmailContext.parsedEmail;
-    // } catch (e) {
-    //     console.error("Failed use mail-parser-wasm-worker to parse email", e);
-    // }
-    try {
-        const { default: PostalMime } = await import('postal-mime');
-        const parsedEmail = await PostalMime.parse(raw_mail);
-        parsedEmailContext.parsedEmail = {
-            sender: parsedEmail.from ? `${parsedEmail.from.name} <${parsedEmail.from.address}>` : "",
-            subject: parsedEmail.subject || "",
-            text: parsedEmail.text || "",
-            html: parsedEmail.html || "",
-            headers: parsedEmail.headers || [],
-            attachments: (parsedEmail.attachments || []).map(att => ({
-                filename: att.filename || "attachment",
-                mimeType: att.mimeType || "application/octet-stream",
-                content: new Uint8Array(att.content),
-                disposition: att.disposition || "attachment",
-            })),
-        };
-        return parsedEmailContext.parsedEmail;
-    }
-    catch (e) {
-        console.error("Failed use PostalMime to parse email", e);
-    }
-    return undefined;
-}
-
 export const commonGetUserRole = async (
     c: Context<HonoCustomType>, user_id: number
 ): Promise<UserRole | undefined | null> => {
@@ -760,13 +684,13 @@ export const commonGetUserRole = async (
 export const getAddressPrefix = async (c: Context<HonoCustomType>): Promise<string | undefined> => {
     const user = c.get("userPayload");
     if (!user) {
-        return getStringValue(c.env.PREFIX).trim().toLowerCase();
+        return trimLower(c.env.PREFIX);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
     if (typeof user_role?.prefix === "string") {
-        return user_role.prefix.trim().toLowerCase();
+        return trimLower(user_role.prefix);
     }
-    return getStringValue(c.env.PREFIX).trim().toLowerCase();
+    return trimLower(c.env.PREFIX);
 }
 
 export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<string[]> => {
@@ -775,29 +699,66 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
         return getDefaultDomains(c);
     }
     const user_role = await commonGetUserRole(c, user.user_id);
-    return user_role?.domains || getDefaultDomains(c);;
+    if (user_role?.domains && user_role.domains.length > 0) {
+        return normalizeDomains(user_role.domains);
+    }
+    return getDefaultDomains(c);
+}
+
+export function filterWebhooks(settings: WebhookSettings[], parsedEmail: ParsedEmailContext['parsedEmail'], to: string): WebhookSettings[] {
+    return settings.filter(webhook => {
+        try {
+            return compileWebhookFilter(webhook.filter)(parsedEmail, to);
+        } catch (error) {
+            console.error('Invalid webhook filter', error);
+            return false;
+        }
+    });
+}
+
+export function compileWebhookFilter(filter: unknown): (
+    parsedEmail: ParsedEmailContext['parsedEmail'],
+    to: string,
+) => boolean {
+    if (filter === undefined || filter === null) return () => true;
+    const headerFields = new Set<string>();
+    const match = compileFilter(filter, field => {
+        if (field.startsWith('header.')) headerFields.add(field);
+        return ['from', 'to', 'subject', 'text', 'html'].includes(field)
+            || /^header\.[a-zA-Z0-9!#$%&'*+.^_`|~-]+$/.test(field);
+    });
+    return (parsedEmail, to) => {
+        if (!parsedEmail) throw new Error('Email parsing unavailable for filter');
+        const headers = new Map<string, string[]>();
+        for (const field of headerFields) headers.set(field.slice(7).toLowerCase(), []);
+        for (const header of headerFields.size ? parsedEmail.headers || [] : []) {
+            headers.get(header.key.toLowerCase())?.push(header.value);
+        }
+        const values: FilterValues = {
+            from: parsedEmail.sender,
+            to,
+            subject: parsedEmail.subject,
+            text: parsedEmail.text,
+            html: parsedEmail.html,
+        };
+        for (const field of headerFields) {
+            values[field] = headers.get(field.slice(7).toLowerCase()) || [];
+        }
+        return match(values);
+    };
 }
 
 export async function sendWebhook(
     settings: WebhookSettings, formatMap: WebhookMail
 ): Promise<{ success: boolean, message?: string }> {
     // send webhook
-    let body = settings.body;
-    for (const key of Object.keys(formatMap)) {
-        body = body.replace(
-            new RegExp(`\\$\\{${key}\\}`, "g"),
-            JSON.stringify(
-                formatMap[key as keyof WebhookMail]
-            ).replace(/^"(.*)"$/, '$1')
-        );
-    }
+    const body = formatWebhookBody(settings.body, formatMap);
     const response = await fetch(settings.url, {
         method: settings.method,
         headers: JSON.parse(settings.headers),
         body: body
     });
     if (!response.ok) {
-        console.log("send webhook error", settings.url, settings.method, settings.headers, body);
         console.log("send webhook error", response.status, response.statusText);
         return { success: false, message: `send webhook error: ${response.status} ${response.statusText}` };
     }
@@ -808,7 +769,8 @@ export async function triggerWebhook(
     c: Context<HonoCustomType>,
     address: string,
     parsedEmailContext: ParsedEmailContext,
-    message_id: string | null
+    storedMailId: number | undefined,
+    aiExtract?: ExtractResult | null
 ): Promise<void> {
     if (!c.env.KV || !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
         return
@@ -836,22 +798,36 @@ export async function triggerWebhook(
     if (webhookList.length === 0) {
         return
     }
-    const mailId = await c.env.DB.prepare(
-        `SELECT id FROM raw_mails where address = ? and message_id = ?`
-    ).bind(address, message_id).first<string>("id");
-
     const parsedEmail = await commonParseMail(parsedEmailContext);
+    const matchingWebhooks = filterWebhooks(webhookList, parsedEmail, address);
+    if (matchingWebhooks.length === 0) return;
+    const mailRow = storedMailId ? await c.env.DB.prepare(
+        `SELECT id, address, created_at FROM raw_mails WHERE id = ? AND address = ?`
+    ).bind(storedMailId, address).first<{ id: number, address: string, created_at: string }>() : null;
+    const mailId = String(mailRow?.id || '');
+
+    const needsAttachments = matchingWebhooks.some(settings => settings.body.includes('${attachment'));
+    const attachments = needsAttachments
+        ? await getWebhookAttachments(c.env, mailRow, parsedEmail?.attachments) : [];
+    const usableAiExtract = aiExtract?.type !== "none" && aiExtract?.result
+        ? aiExtract
+        : null;
     const webhookMail = {
         id: mailId || "",
         url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
+        attachments,
         from: parsedEmail?.sender || "",
         to: address,
         subject: parsedEmail?.subject || "",
         raw: parsedEmailContext.rawEmail || "",
         parsedText: parsedEmail?.text || "",
         parsedHtml: parsedEmail?.html || "",
+        aiExtract: usableAiExtract,
+        aiExtractType: usableAiExtract?.type || "",
+        aiExtractResult: usableAiExtract?.result || "",
+        aiExtractResultText: usableAiExtract?.result_text || "",
     }
-    for (const settings of webhookList) {
+    for (const settings of matchingWebhooks) {
         const res = await sendWebhook(settings, webhookMail);
         if (!res.success) {
             console.error(res.message);

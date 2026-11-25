@@ -1,8 +1,16 @@
 
 # Configure Email Sending
 
+Receiving mail does not require a sending channel. To send mail from this project, configure at least one of the following methods. The methods can coexist; the system selects a channel for each request using the priority in the next section.
+
+| Method | Best for | Required configuration | Characteristics |
+|--------|----------|------------------------|-----------------|
+| Cloudflare `send_email` binding | Deployments already using Cloudflare Email Service that want fewer third-party dependencies | `SEND_MAIL` binding and a sender domain onboarded to Email Service; a non-empty `SEND_MAIL_DOMAINS` restricts the sender domains for the fallback channel only | Direct Worker integration; arbitrary-recipient sending requires Workers Paid |
+| Resend API | Quickly adopting a managed sending service | `RESEND_TOKEN` or a domain-specific `RESEND_TOKEN_<DOMAIN>`, plus a sending domain verified in Resend | Simple setup; quotas and restrictions depend on the Resend plan |
+| SMTP | Existing SMTP services or self-managed sending infrastructure | `SMTP_CONFIG` | Most customizable; you maintain the service, credentials, and connectivity |
+
 ::: tip Recommended
-Use Cloudflare `send_email` binding as the default send channel. Bind `SEND_MAIL` and finish Email Routing onboarding, then the Worker can send to any external address directly.
+Use Cloudflare `send_email` binding as the default send channel. On Workers Paid, bind `SEND_MAIL` and onboard the sender domain to Email Service, then allowed sender domains can send to any external address directly. With Email Routing only, you can send free of charge only to verified destination addresses in the account.
 
 Workers Paid includes 3,000 messages/month, then $0.35 per 1,000 messages.
 :::
@@ -16,7 +24,7 @@ Each `/api/send_mail` request matches channels in order; **the first hit sends**
 | 1 | `SEND_MAIL` bound **AND** recipient in `verifiedAddressList` | Cloudflare binding (compat mode) | No |
 | 2 | `RESEND_TOKEN` or `RESEND_TOKEN_<DOMAIN>` set | Resend API | Yes |
 | 3 | `SMTP_CONFIG` has entry for current domain | worker-mailer SMTP | Yes |
-| 4 | `SEND_MAIL` bound (none of the above) | **Cloudflare binding (recommended primary)** | Yes |
+| 4 | `SEND_MAIL` bound and sender domain allowed by `SEND_MAIL_DOMAINS`, or the list is unset/empty (none of the above) | **Cloudflare binding (recommended primary)** | Yes |
 | — | None of the above | Throws | — |
 
 > [!NOTE]
@@ -38,15 +46,21 @@ send_email = [
 
 After the following steps, you can send to any external address directly:
 
-1. Enable Email Routing on the domain in the Cloudflare Dashboard and complete onboarding
+1. Onboard the sender domain in Email Service in the Cloudflare Dashboard (arbitrary-recipient sending requires Workers Paid)
 2. Add the `send_email` binding shown above to `wrangler.toml`
 3. Deploy the Worker
 
-No additional env var is required.
+No additional env var is required by default. To restrict the fallback channel, set `SEND_MAIL_DOMAINS` to a valid JSON array such as `["example.com"]`. A non-empty array allows only the listed sender domains; leaving it unset or empty allows all domains. An invalid JSON value is parsed as an empty list and therefore also allows all domains, so do not use a bare value such as `example.com`.
 
 ## Send Emails Using Resend
 
 Register at `https://resend.com/domains` and add DNS records according to the instructions.
+
+> [!WARNING] DNS record proxy status on Cloudflare
+> Resend domain verification CNAME records **must be set to DNS-only** (gray cloud) in
+> the Cloudflare DNS dashboard. Proxied (orange cloud) records will prevent Resend from
+> completing verification, and a single failed attempt can take several hours before
+> Retry becomes available. See [#515](https://github.com/dreamhunter2333/cloudflare_temp_email/issues/515).
 
 Create an `api key` on the `API KEYS` page.
 
@@ -144,12 +158,31 @@ cd worker
 wrangler secret put SMTP_CONFIG
 ```
 
+## User Accounts, Mailboxes, Email Addresses, and Send Permission
+
+These concepts are related, but they identify different objects:
+
+| Concept | Description |
+|---------|-------------|
+| User account | Signs in to the user center and can link and manage multiple mailboxes. The account email is not automatically a sending or receiving address |
+| Mailbox | The user-facing object that contains an inbox, sent mail, sending capability, and mailbox settings |
+| Email address | The concrete value that identifies a mailbox, such as `name@example.com`. The current mailbox is authenticated by its Address JWT |
+| Send permission and balance | Permission and balance records in `address_sender` are managed independently **per email address**; user roles configured by `NO_LIMIT_SEND_ROLE` can bypass address balance checks |
+
+Multiple email addresses bound to the same user account therefore do not share send permission or balance. To request permission for an address:
+
+1. Switch to the mailbox that needs to send mail
+2. Open the **Send Mail** page
+3. Click **Request Access**
+
+The request affects only the address selected at that time. After switching to another address, check that address's own balance and request permission separately if needed. An email address can also hold send permission without being bound to a user account.
+
 ## Send Balance Mechanism
 
-Users need a send balance to send emails. The balance mechanism works as follows:
+An email address needs its own send balance to send emails. The balance mechanism works as follows:
 
 1. **Auto-initialize Default Quota**: When `DEFAULT_SEND_BALANCE > 0`, the system automatically initializes the default quota when the user opens the send page or calls the send-mail API for the first time
-2. **Manual Request**: If `DEFAULT_SEND_BALANCE = 0`, users can still click "Request Send Permission" in the frontend to create a pending send-access record for admins to review
+2. **Manual Request**: If `DEFAULT_SEND_BALANCE = 0`, switch to the target email address in the frontend and click **Request Access** to create a pending send-access record for the current address
 3. **Unlimited Sending**: The following methods can bypass balance checks:
    - Add the address to the "No Limit Send Address List" in the admin console
    - Configure the `NO_LIMIT_SEND_ROLE` environment variable to specify roles that can send without limits

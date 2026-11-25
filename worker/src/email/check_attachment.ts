@@ -1,5 +1,5 @@
 import { getBooleanValue } from "../utils";
-import { commonParseMail } from "../common";
+import { commonParseMail } from "../utils/mail_parser";
 import { createMimeMessage } from "mimetext";
 
 export const remove_attachment_if_need = async (
@@ -22,6 +22,7 @@ export const remove_attachment_if_need = async (
     const msg = createMimeMessage();
     if (parsedEmail?.headers) {
         for (const header of parsedEmail.headers) {
+            if (['content-type', 'content-transfer-encoding'].includes(header.key.toLowerCase())) continue;
             try {
                 msg.setHeader(header["key"], header["value"]);
             } catch (error) {
@@ -47,5 +48,13 @@ export const remove_attachment_if_need = async (
             data: parsedEmail.text
         });
     }
-    parsedEmailContext.rawEmail = msg.asRaw();
+    const fromHeaders = (parsedEmail.headers || []).filter(header => header.key.toLowerCase() === 'from');
+    parsedEmailContext.rawEmail = msg.asRaw().replace(
+        /^From:.*\r?\n/m,
+        () => fromHeaders.map(header => `From: ${header.value}\r\n`).join('')
+    );
+    parsedEmailContext.parsedEmail = {
+        ...parsedEmail,
+        attachments: [],
+    };
 }

@@ -1,11 +1,19 @@
 import { LocaleMessages } from "./type";
 
 const messages: LocaleMessages = {
+    InvalidStatisticsRangeMsg: "Choose a valid date range of up to 30 days ending today or earlier",
+    InvalidStatisticsGranularityMsg: "Statistics are available by day",
+    InvalidRequestBodyMsg: "Invalid request body",
+    InvalidWebhookFilterMsg: "Invalid filter",
+    WebhookFilterEvaluationFailedMsg: "Unable to evaluate filter; check whether the email can be parsed",
+    InvalidMailIdMsg: "Invalid mail ID",
+    MailNotFoundMsg: "Mail not found",
     CustomAuthPasswordMsg: "You have enabled the private site password, please provide the password",
     UserTokenExpiredMsg: "Your token has expired, please login again",
     UserAcceesTokenExpiredMsg: "Your access token has expired, please refresh the page",
     UserRoleIsNotAdminMsg: "Your user role is not admin, no access to visit this page",
     NeedAdminPasswordMsg: "You need to provide the admin password to access this page",
+    AdminApiIpNotAllowedMsg: "Your IP address isn't on the admin whitelist",
 
     KVNotAvailableMsg: "KV is not available, please contact the administrator",
     DBNotAvailableMsg: "DB is not available, please contact the administrator",
@@ -17,9 +25,15 @@ const messages: LocaleMessages = {
     NewAddressDisabledMsg: "New address is disabled, please contact the administrator",
     NewAddressAnonymousDisabledMsg: "New address for anonymous user is disabled, please contact the administrator",
     FailedCreateAddressMsg: "Failed to create address",
+    InvalidExpiresAtMsg: "Invalid expiration time: must be a valid future date/time",
+    AddressExpiryDisabledMsg: "Address expiration is disabled",
     InvalidAddressMsg: "Invalid address",
     InvalidAddressCredentialMsg: "Invalid address credential",
     UserDeleteEmailDisabledMsg: "User delete address/email is disabled, please contact the administrator",
+
+    RedeemCodeUnavailableMsg: "The redemption code is invalid, used, or expired",
+    RedeemCodeInvalidMsg: "Invalid redemption code configuration",
+    RedeemRoleConflictMsg: "The user already has a different role",
 
     UserNotFoundMsg: "User not found",
     UserAlreadyExistsMsg: "User already exists, please login",
@@ -83,6 +97,7 @@ const messages: LocaleMessages = {
     EnableSendMailForDomainMsg: "Please enable SEND_MAIL for this domain first",
     InvalidCleanupConfigMsg: "Invalid cleanType or cleanDays",
     InvalidCleanTypeMsg: "Invalid cleanType",
+    CleanupFailedMsg: "Cleanup failed. Check your cleanup settings; inactive-address cleanup is unavailable when address activity updates are disabled.",
     EnableKVForMailVerifyMsg: "Please enable KV first if you want to enable mail verify",
     VerifyMailDomainInvalidMsg: "VerifyMailSender domain must be in",
     InvalidMaxAddressCountMsg: "Invalid maxAddressCount",
@@ -174,6 +189,12 @@ const messages: LocaleMessages = {
     TgNoPermissionViewMailMsg: "No permission to view this mail",
     TgBotTokenRequiredMsg: "TELEGRAM_BOT_TOKEN is required",
     TgLangFeatureDisabledMsg: "Language setting feature is disabled. System default language is used.",
+    TgAiExtractResultMsg: "AI extracted",
+    TgAiExtractAuthCodeMsg: "Verification code",
+    TgAiExtractAuthLinkMsg: "Verification link",
+    TgAiExtractServiceLinkMsg: "Service link",
+    TgAiExtractSubscriptionLinkMsg: "Subscription link",
+    TgAiExtractOtherLinkMsg: "Other link",
 }
 
 export default messages;

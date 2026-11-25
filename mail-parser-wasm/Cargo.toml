@@ -1,13 +1,16 @@
 [package]
 name = "mail-parser-wasm"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 description = "A simple mail parser for wasm"
 license = "MIT"
+repository = "https://github.com/dreamhunter2333/cloudflare_temp_email"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-mail-parser = "0.9.4"
-wasm-bindgen = "0.2.99"
+mail-parser = { version = "0.11.9", features = ["full_encoding"] }
+wasm-bindgen = "0.2.129"
+# The proc macro runs on the host, but its lookup tables must work on wasm32.
+hashify = { version = "0.2.9", features = ["force-32bit"] }

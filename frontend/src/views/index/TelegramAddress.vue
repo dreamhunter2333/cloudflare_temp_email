@@ -138,7 +138,7 @@ onMounted(async () => {
                 </div>
             </n-tab-pane>
             <n-tab-pane name="bind" :tab="t('bind')">
-                <Login :newAddressPath="newAddressPath" :bindUserAddress="bindAddress" />
+                <Login :newAddressPath="newAddressPath" :bindUserAddress="bindAddress" :enable-expiry="false" />
             </n-tab-pane>
         </n-tabs>
     </div>

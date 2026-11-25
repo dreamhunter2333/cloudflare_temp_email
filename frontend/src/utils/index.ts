@@ -19,7 +19,8 @@ export const getRouterPathWithLang = (path: string, lang: string) => {
     return getPathWithLocale(path, normalizedLang);
 }
 
-export const utcToLocalDate = (utcDate: string, useUTCDate: boolean) => {
+export const utcToLocalDate = (utcDate: string | null | undefined, useUTCDate: boolean) => {
+    if (!utcDate) return '';
     const utcDateString = `${utcDate} UTC`;
     if (useUTCDate) {
         return utcDateString;
@@ -35,3 +36,37 @@ export const utcToLocalDate = (utcDate: string, useUTCDate: boolean) => {
     }
     return utcDateString;
 }
+
+export const EXPIRY_PRESET_SECONDS: Record<string, number> = {
+    '1h': 3600,
+    '24h': 86400,
+    '3d': 259200,
+    '7d': 604800,
+    '30d': 2592000,
+};
+
+export const resolveExpiryPayload = (
+    expiryMode: string,
+    customExpiresAt: number | null | undefined,
+    nowMs: number = Date.now(),
+): { expiresAt?: string } | null => {
+    if (expiryMode === 'custom') {
+        if (
+            typeof customExpiresAt !== 'number'
+            || !Number.isFinite(customExpiresAt)
+            || Math.floor(customExpiresAt / 1000) <= Math.floor(nowMs / 1000)
+        ) {
+            return null;
+        }
+        const date = new Date(customExpiresAt);
+        if (Number.isNaN(date.getTime())) {
+            return null;
+        }
+        return { expiresAt: date.toISOString() };
+    }
+    const seconds = Object.hasOwn(EXPIRY_PRESET_SECONDS, expiryMode)
+        ? EXPIRY_PRESET_SECONDS[expiryMode]
+        : undefined;
+    if (seconds === undefined) return {};
+    return { expiresAt: new Date(nowMs + seconds * 1000).toISOString() };
+};

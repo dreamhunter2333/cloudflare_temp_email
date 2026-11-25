@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import { getJsonSetting, getStringValue, getUserRoles } from '../utils';
+import { getJsonSetting, getMailDomain, getStringValue, getUserRoles, includesDomain } from '../utils';
 import { UserOauth2Settings } from '../models';
 import { CONSTANTS } from '../constants';
 
@@ -107,8 +107,8 @@ export default {
             return c.text(msgs.Oauth2FailedGetUserEmailMsg, 400);
         }
         // check email in mail allow list
-        const mailDomain = email.split("@")[1];
-        if (setting.enableMailAllowList && !setting.mailAllowList?.includes(mailDomain)) {
+        const mailDomain = getMailDomain(email);
+        if (setting.enableMailAllowList && !includesDomain(setting.mailAllowList, mailDomain)) {
             return c.text(`${msgs.UserMailDomainMustInMsg} ${JSON.stringify(setting.mailAllowList, null, 2)}`, 400)
         }
         // insert or update user

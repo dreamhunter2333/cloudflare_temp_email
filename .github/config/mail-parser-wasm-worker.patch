@@ -1,8 +1,8 @@
-diff --git a/worker/src/common.ts b/worker/src/common.ts
+diff --git a/worker/src/utils/mail_parser.ts b/worker/src/utils/mail_parser.ts
 index 9b758f0..e2150b5 100644
---- a/worker/src/common.ts
-+++ b/worker/src/common.ts
-@@ -469,29 +469,29 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
+--- a/worker/src/utils/mail_parser.ts
++++ b/worker/src/utils/mail_parser.ts
+@@ -17,29 +17,29 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
      }
      const raw_mail = parsedEmailContext.rawEmail;
      // NOTE: WASM parse email

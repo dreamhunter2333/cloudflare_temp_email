@@ -27,6 +27,7 @@
    | ----------------------- | --------------------------------------------------------------------------------------------------------------- |
    | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare 账户 ID, [参考文档](https://developers.cloudflare.com/workers/wrangler/ci-cd/#cloudflare-account-id) |
    | `CLOUDFLARE_API_TOKEN`  | Cloudflare API Token, [参考文档](https://developers.cloudflare.com/workers/wrangler/ci-cd/#api-token)           |
+   | `UPSTREAM_SYNC_TOKEN`  | (可选) 仅用于 `Upstream Sync`。使用仅授权自己 Fork 的 Fine-grained PAT，授予 `Contents: Read and write` 和 `Workflows: Read and write`；未配置时使用默认 `GITHUB_TOKEN`，详见[自动更新配置](./auto-update.md) |
 
 - worker 后端 `secrets`
 
@@ -44,7 +45,7 @@
 
    | 名称               | 说明                                                                                                                                                                                      |
    | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-   | `FRONTEND_ENV`     | `Deploy Frontend` workflow 使用的前端配置文件，请复制 `frontend/.env.example` 的内容，[并参考此处修改](/zh/guide/cli/pages.html)。如果是前后端分离直连 Worker，`VITE_API_BASE` 应填写后端 Worker API 根地址，并且以 `https://` 开头、末尾不要带 `/`。地址配置错误时，常见现象是前端报 `map` 错误或接口返回 `405` |
+   | `FRONTEND_ENV`     | `Deploy Frontend` workflow 使用的前端配置文件，请复制 `frontend/.env.example` 的内容，并参考 [前端变量说明](/zh/guide/frontend-vars) 修改 |
    | `FRONTEND_NAME`    | 你在 Cloudflare Pages 创建的项目名称，可通过 [用户界面](https://temp-mail-docs.awsl.uk/zh/guide/ui/pages.html) 或者 [命令行](https://temp-mail-docs.awsl.uk/zh/guide/cli/pages.html) 创建 |
    | `FRONTEND_BRANCH`  | (可选) pages 部署的分支，可不配置，默认 `production`                                                                                                                                      |
    | `PAGE_TOML`        | (可选) 仅供 `Deploy Frontend with page function` workflow 使用。通过 page functions 转发后端请求时需要配置，请复制 `pages/wrangler.toml` 的内容，并根据实际情况修改 `service` 字段为你的 worker 后端名称。这个 workflow 会以 Pages 模式构建前端并走同域请求，因此不会读取 `FRONTEND_ENV` |
@@ -71,3 +72,5 @@
 
 1. 打开仓库的 `Actions` 页面，找到 `Upstream Sync`，点击 `enable workflow` 启用 `workflow`
 2. 如果 `Upstream Sync` 运行失败，到仓库主页点击 `Sync` 手动同步即可
+
+（可选）配置 `UPSTREAM_SYNC_TOKEN` 可自动同步包含 workflow 变更的提交；未配置时仍使用默认 Token。所需权限和配置步骤见[自动更新配置](./auto-update.md)。

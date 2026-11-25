@@ -28,7 +28,7 @@ cd worker
 pnpm add mail-parser-wasm-worker
 ```
 
-Edit `worker/src/common.ts`, uncomment this code to use mail-parser-wasm-worker to parse emails
+Edit `worker/src/utils/mail_parser.ts`, uncomment this code to use mail-parser-wasm-worker to parse emails
 
 ```ts
 export const commonParseMail = async (raw_mail: string | undefined | null): Promise<{

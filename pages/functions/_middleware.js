@@ -5,6 +5,7 @@ const API_PATHS = [
     "/admin/",
     "/telegram/",
     "/external/",
+    "/redeem_api/",
 ];
 
 export async function onRequest(context) {

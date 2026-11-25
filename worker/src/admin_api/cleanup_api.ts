@@ -98,7 +98,10 @@ export default {
         const msgs = i18n.getMessagesbyContext(c);
         const { cleanType, cleanDays } = await c.req.json();
         try {
-            await cleanup(c, cleanType, cleanDays);
+            const success = await cleanup(c, cleanType, cleanDays);
+            if (!success) {
+                return c.text(msgs.CleanupFailedMsg, 500);
+            }
         } catch (error) {
             console.error(error);
             return c.text(`${msgs.OperationFailedMsg}: ${(error as Error).message}`, 500)

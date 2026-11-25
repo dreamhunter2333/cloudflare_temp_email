@@ -1,5 +1,5 @@
 import type { APIRequestContext } from '@playwright/test';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import WebSocket from 'ws';
 
 export const WORKER_URL = process.env.WORKER_URL!;
@@ -7,7 +7,9 @@ export const WORKER_URL_SUBDOMAIN = process.env.WORKER_URL_SUBDOMAIN || '';
 export const WORKER_URL_ENV_OFF = process.env.WORKER_URL_ENV_OFF || '';
 export const WORKER_GZIP_URL = process.env.WORKER_GZIP_URL || '';
 export const WORKER_URL_SEND_MAIL_DOMAIN = process.env.WORKER_URL_SEND_MAIL_DOMAIN || '';
+export const WORKER_URL_SITE_PASSWORD = process.env.WORKER_URL_SITE_PASSWORD || '';
 export const FRONTEND_URL = process.env.FRONTEND_URL!;
+export const FRONTEND_URL_ENV_OFF = process.env.FRONTEND_URL_ENV_OFF || '';
 export const MAILPIT_API = process.env.MAILPIT_API!;
 export const TEST_DOMAIN = 'test.example.com';
 
@@ -20,17 +22,18 @@ export function hashPassword(password: string): string {
 
 /**
  * Create a new email address via the worker API.
- * Appends a timestamp suffix to avoid UNIQUE constraint collisions
+ * Appends a random suffix to avoid UNIQUE constraint collisions
  * with persistent D1 data from previous test runs.
  * Returns the JWT and full address string.
  */
 export async function createTestAddress(
   ctx: APIRequestContext,
   name: string,
-  domain: string = TEST_DOMAIN
+  domain: string = TEST_DOMAIN,
+  workerUrl: string = WORKER_URL,
 ): Promise<{ jwt: string; address: string; address_id: number }> {
-  const uniqueName = `${name}${Date.now()}`;
-  const res = await ctx.post(`${WORKER_URL}/api/new_address`, {
+  const uniqueName = `${name}${randomBytes(6).toString('hex')}`;
+  const res = await ctx.post(`${workerUrl}/api/new_address`, {
     data: { name: uniqueName, domain },
   });
   if (!res.ok()) {
@@ -75,7 +78,7 @@ export async function seedTestMail(
     `--${boundary}--`,
   ].join('\r\n');
 
-  const res = await ctx.post(`${WORKER_URL}/admin/test/receive_mail`, {
+  const res = await ctx.post(`${WORKER_URL}/__test/receive_mail`, {
     data: { from, to: address, raw },
   });
   if (!res.ok()) {
@@ -164,14 +167,20 @@ export function onMailpitMessage(
     ws.on('open', () => readyResolve());
 
     ws.on('message', (data: WebSocket.Data) => {
-      try {
-        const event = JSON.parse(data.toString());
-        if (event.Type === 'new' && predicate(event.Data)) {
-          clearTimeout(timer);
-          ws.close();
-          if (!settled) { settled = true; resolve(event.Data); }
-        }
-      } catch { /* ignore parse errors */ }
+      // Mailpit may batch multiple newline-separated events in one message.
+      for (const line of data.toString().split('\n')) {
+        if (settled) return;
+        try {
+          const event = JSON.parse(line);
+          if (event.Type === 'new' && predicate(event.Data)) {
+            clearTimeout(timer);
+            settled = true;
+            ws.close();
+            resolve(event.Data);
+            return;
+          }
+        } catch { /* ignore malformed events without dropping the remaining ones */ }
+      }
     });
 
     ws.on('close', () => {

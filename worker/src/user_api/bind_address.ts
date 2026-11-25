@@ -1,10 +1,29 @@
 import { Context } from 'hono';
-import { Jwt } from 'hono/utils/jwt'
+import { createAddressToken } from '../address_auth';
 
 import { isAddressCountLimitReached } from "../utils"
 import { unbindTelegramByAddress } from '../telegram_api/common';
 import i18n from '../i18n';
-import { updateAddressUpdatedAt, commonGetUserRole, hideObjectFields } from '../common';
+import { updateAddressUpdatedAt, commonGetUserRole, handleListQuery, hideObjectFields } from '../common';
+import { isAddressExpired } from '../utils/address_expiry';
+
+export const getBindedAddressById = async (
+    c: Context<HonoCustomType>,
+    user_id: number | string,
+    address_id: number | string
+): Promise<string | null> => {
+    if (!user_id || !address_id) {
+        return null;
+    }
+    const address = await c.env.DB.prepare(
+        `SELECT a.* FROM users_address ua`
+        + ` JOIN address a ON a.id = ua.address_id`
+        + ` WHERE ua.user_id = ? AND ua.address_id = ?`
+    ).bind(user_id, address_id).first<{ name: string; expires_at?: string | null }>();
+    if (!address) return null;
+    if (isAddressExpired(c, address.expires_at)) return null;
+    return address.name;
+}
 
 const UserBindAddressModule = {
     bind: async (c: Context<HonoCustomType>) => {
@@ -21,10 +40,13 @@ const UserBindAddressModule = {
             return c.text(msgs.NoAddressOrUserTokenMsg, 400)
         }
         // check if address exists
-        const db_address_id = await c.env.DB.prepare(
-            `SELECT id FROM address where id = ?`
-        ).bind(address_id).first("id");
-        if (!db_address_id) {
+        const addressRow = await c.env.DB.prepare(
+            `SELECT * FROM address where id = ?`
+        ).bind(address_id).first<{ id: number; expires_at?: string | null }>();
+        if (!addressRow) {
+            return c.text(msgs.AddressNotFoundMsg, 400)
+        }
+        if (isAddressExpired(c, addressRow.expires_at)) {
             return c.text(msgs.AddressNotFoundMsg, 400)
         }
         // check if user exists
@@ -97,16 +119,32 @@ const UserBindAddressModule = {
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
-        const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);
-        return c.json({
-            results: results,
-        });
-    },
-    getBindedAddressListById: async (
-        c: Context<HonoCustomType>, user_id: number | string
-    ): Promise<string[]> => {
-        const bindedAddressList = await UserBindAddressModule.getBindedAddressesById(c, user_id);
-        return bindedAddressList.map((item) => item.name);
+        const { limit, offset, query } = c.req.query();
+        const params = [String(user_id)];
+        const addressQuery = query?.trim();
+        if (addressQuery && (addressQuery.length > 100 || /[%_]/.test(addressQuery))) {
+            return c.text(i18n.getMessagesbyContext(c).InvalidInputMsg, 400);
+        }
+        if (addressQuery) {
+            params.push(addressQuery);
+        }
+        const fromQuery = ` FROM address a`
+            + ` JOIN users_address ua ON ua.address_id = a.id`
+            + ` WHERE ua.user_id = ?`
+            + (addressQuery ? ` AND instr(lower(a.name), lower(?)) > 0` : ``);
+        return await handleListQuery(
+            c,
+            `SELECT a.*,`
+                + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
+                + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
+                + fromQuery,
+            `SELECT COUNT(*) AS count${fromQuery}`,
+            params,
+            limit ?? 20,
+            offset ?? 0,
+            'a.id DESC',
+            ['password'],
+        );
     },
     getBindedAddressesById: async (
         c: Context<HonoCustomType>, user_id: number | string
@@ -150,21 +188,11 @@ const UserBindAddressModule = {
         if (!address_id || !user_id) {
             return c.text(msgs.InvalidAddressOrUserTokenMsg, 400)
         }
-        // check users_address if address binded
-        const db_user_id = await c.env.DB.prepare(
-            `SELECT user_id FROM users_address WHERE address_id = ? and user_id = ?`
-        ).bind(address_id, user_id).first("user_id");
-        if (!db_user_id) {
+        const name = await getBindedAddressById(c, user_id, address_id);
+        if (!name) {
             return c.text(msgs.AddressNotBindedMsg, 400)
         }
-        // generate jwt
-        const name = await c.env.DB.prepare(
-            `SELECT name FROM address WHERE id = ? `
-        ).bind(address_id).first("name");
-        const jwt = await Jwt.sign({
-            address: name,
-            address_id: address_id
-        }, c.env.JWT_SECRET, "HS256")
+        const jwt = await createAddressToken(c, name, Number(address_id));
         return c.json({
             jwt: jwt
         })
@@ -174,10 +202,15 @@ const UserBindAddressModule = {
         const { user_id } = c.get("userPayload");
         const { address_id, target_user_email } = await c.req.json();
         // check if address exists
-        const address = await c.env.DB.prepare(
-            `SELECT name FROM address where id = ?`
-        ).bind(address_id).first<string>("name");
+        const addressRow = await c.env.DB.prepare(
+            `SELECT * FROM address where id = ?`
+        ).bind(address_id).first<{ name: string; expires_at?: string | null }>();
+        const address = addressRow?.name;
+        const expiresAt = addressRow?.expires_at ?? null;
         if (!address) {
+            return c.text(msgs.AddressNotFoundMsg, 400)
+        }
+        if (isAddressExpired(c, expiresAt)) {
             return c.text(msgs.AddressNotFoundMsg, 400)
         }
         // check if user exists
@@ -222,9 +255,10 @@ const UserBindAddressModule = {
             `DELETE FROM address WHERE id = ? `
         ).bind(address_id).run();
         // new address
-        const { success: newAddressSuccess } = await c.env.DB.prepare(
-            `INSERT INTO address(name) VALUES(?)`
-        ).bind(address).run();
+        const { success: newAddressSuccess } = await (expiresAt === null
+            ? c.env.DB.prepare(`INSERT INTO address(name) VALUES(?)`).bind(address)
+            : c.env.DB.prepare(`INSERT INTO address(name, expires_at) VALUES(?, ?)`).bind(address, expiresAt)
+        ).run();
         if (!newAddressSuccess) {
             throw new Error(msgs.FailedCreateAddressMsg)
         }

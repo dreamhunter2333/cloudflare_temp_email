@@ -1,0 +1,89 @@
+name: WASM CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mail-parser-wasm/**'
+      - 'worker/src/utils/mail_parser.ts'
+      - '.github/config/mail-parser-wasm-worker.patch'
+      - 'e2e/wasm/**'
+      - 'e2e/package-lock.json'
+      - 'e2e/package.json'
+      - '.github/workflows/mail_parser_wasm*.yml'
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - name: Install wasm-pack
+        run: |
+          archive=wasm-pack-v0.14.0-x86_64-unknown-linux-musl
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://github.com/wasm-bindgen/wasm-pack/releases/download/v0.14.0/$archive.tar.gz" \
+            -o "$RUNNER_TEMP/$archive.tar.gz"
+          echo "278a8d668085821f4d1a637bd864f1713f872b0ae3a118c77562a308c0abfe8d  $RUNNER_TEMP/$archive.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/$archive.tar.gz" -C "$RUNNER_TEMP" "$archive/wasm-pack"
+          echo "$RUNNER_TEMP/$archive" >> "$GITHUB_PATH"
+
+      - name: Build npm packages
+        run: bash e2e/wasm/scripts/build.sh
+
+      - name: Validate release versions
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const version = process.env.GITHUB_REF_NAME.replace(/^mail-parser-wasm-v/, '');
+          assert.match(version, /^\d+\.\d+\.\d+$/);
+          for (const name of ['pkg', 'worker']) {
+            assert.equal(JSON.parse(fs.readFileSync(`mail-parser-wasm/${name}/package.json`)).version, version);
+          }
+          JS
+
+      - name: Install dependencies
+        run: |
+          pnpm --dir worker install --frozen-lockfile
+          npm --prefix e2e ci
+
+      - name: Run package E2E tests
+        env:
+          NODE_OPTIONS: --experimental-wasm-modules
+        run: cd e2e && npx playwright test --config wasm/playwright.config.ts
+
+      - name: Upload npm packages
+        uses: actions/upload-artifact@v6
+        with:
+          name: wasm-packages
+          path: mail-parser-wasm/target/test-packages/*.tgz
+          if-no-files-found: error
+
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report-wasm
+          path: |
+            e2e/test-results/
+            e2e/playwright-report-wasm/
+          retention-days: 30

@@ -39,10 +39,14 @@ PREFIX = "tmp"
 # MAX_ADDRESS_LEN = 30
 # Disable custom email address name, if set true, users cannot input custom email name, will auto generate
 # DISABLE_CUSTOM_ADDRESS_NAME = true
+# Disable address activity keep-alive updates and built-in manual/scheduled cleanup by inactivity. Defaults to false.
+# DISABLE_ADDRESS_UPDATED_AT = true
 # IF YOU WANT TO MAKE YOUR SITE PRIVATE, UNCOMMENT THE FOLLOWING LINES
 # PASSWORDS = ["123", "456"]
 # For admin panel
 # ADMIN_PASSWORDS = ["123", "456"]
+# Restrict all /admin/* APIs to exact client IPv4 or IPv6 addresses
+# ADMIN_API_IP_WHITELIST = ["203.0.113.10", "2001:db8::1"]
 # warning: no password or user check for admin portal
 # DISABLE_ADMIN_PASSWORD_CHECK = false
 # ADMIN CONTACT, CAN BE ANY STRING
@@ -69,18 +73,31 @@ DOMAINS = ["xxx.xxx1" , "xxx.xxx2"] # all domain names
 # ]
 JWT_SECRET = "xxx"
 BLACK_LIST = ""
+# Disable the user system and hide its frontend entries
+# DISABLE_USER_SYSTEM = true
 # Allow users to create email addresses
 ENABLE_USER_CREATE_EMAIL = true
 # Disable anonymous user create email, if set true, users can only create email addresses after logging in
 # DISABLE_ANONYMOUS_USER_CREATE_EMAIL = true
 # Allow users to delete messages
 ENABLE_USER_DELETE_EMAIL = true
+# Enable the redemption code page and APIs
+# ENABLE_REDEEM_CODE = true
+# Optional external link for obtaining redemption codes
+# REDEEM_CODE_URL = "https://example.com/redeem-codes"
+# Track read and unread mail. Run the database migration before enabling.
+# ENABLE_MAIL_READ_STATUS = true
+# Support optional address expiration time on creation and cron cleanup. Run the v0.0.11 database migration before enabling.
+# ENABLE_ADDRESS_EXPIRY = true
 # Allow automatic replies to emails
 ENABLE_AUTO_REPLY = false
 # Allow webhook
 # ENABLE_WEBHOOK = true
 # Enable address password feature, if set true, will generate password for new address and support password login and change
 # ENABLE_ADDRESS_PASSWORD = false
+# Show only password login and issue renewable 30-day mailbox sessions (requires ENABLE_ADDRESS_PASSWORD).
+# Legacy credentials, login links, and API access remain supported.
+# ADDRESS_PASSWORD_LOGIN_ONLY = false
 # Show AI Agent mailbox connection info in the address credential modal
 # ENABLE_AGENT_EMAIL_INFO = true
 # Show SMTP/IMAP client connection info in the address credential modal
@@ -93,6 +110,7 @@ ENABLE_AUTO_REPLY = false
 # Footer text
 # COPYRIGHT = "Dream Hunter"
 # DISABLE_SHOW_GITHUB = true
+# DISABLE_SHOW_GITHUB_FOR_USER = true
 # Status monitoring page URL
 # STATUS_URL = "https://status.example.com"
 # default send balance, auto initialized when users open settings or send mail; if not set, it will be 0
@@ -112,7 +130,7 @@ ENABLE_AUTO_REPLY = false
 # TG_ALLOW_USER_LANG = true
 # enable sending email attachments via Telegram push (50MB per file limit)
 # ENABLE_TG_PUSH_ATTACHMENT = true
-# global forward address list, if set, all emails will be forwarded to these addresses
+# Global external-only forwarding via Cloudflare; does not use internal mailbox delivery
 # FORWARD_ADDRESS_LIST = ["xxx@xxx.com"]
 # subdomain forward address list, if set, subdomain emails will be forwarded to these addresses
 # SUBDOMAIN_FORWARD_ADDRESS_LIST = """
@@ -123,11 +141,13 @@ ENABLE_AUTO_REPLY = false
 # """
 # Frontend URL
 # FRONTEND_URL = "https://xxxx.xxx"
+# Backend public URL for signed webhook attachment links
+# BACKEND_URL = "https://temp-email-api.example.com"
 # Enable check junk mail
 # ENABLE_CHECK_JUNK_MAIL = false
-# junk mail check list, if status exists and status is not pass, will be marked as junk mail
-# JUNK_MAIL_CHECK_LIST = = ["spf", "dkim", "dmarc"]
-# junk mail force check pass list, if no status or status is not pass, will be marked as junk mail
+# junk mail check list: reject registered failure/error results; none and SPF/DKIM neutral are treated as absent
+# JUNK_MAIL_CHECK_LIST = ["spf", "dkim", "dmarc"]
+# junk mail force pass list: every configured method must explicitly return pass
 # JUNK_MAIL_FORCE_PASS_LIST = ["spf", "dkim", "dmarc"]
 # remove attachment if size exceed 2MB, mail maybe mising some information due to parsing
 # REMOVE_EXCEED_SIZE_ATTACHMENT = true
@@ -135,10 +155,17 @@ ENABLE_AUTO_REPLY = false
 # REMOVE_ALL_ATTACHMENT = true
 # enable gzip compressed email storage in raw_blob column (run db_migration first)
 # ENABLE_MAIL_GZIP = true
-# AI email extraction, automatically extract verification codes, auth links, etc.
+# Per-run limit for built-in mail, sent-mail, and address cleanup tasks. Defaults to 3000, maximum 5000.
+# CLEANUP_BATCH_SIZE = 3000
+# Email extraction, automatically extract verification codes, auth links, etc.
 # ENABLE_AI_EMAIL_EXTRACT = true
-# AI model name, choose from https://developers.cloudflare.com/workers-ai/models/#text-generation
-# AI_EXTRACT_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+# Extraction mode: "local" (default, built-in rules, verification codes only, mail never sent to AI)
+# or "ai" (prefer Workers AI for codes and links; allowlist misses fall back to local code extraction)
+# AI_EXTRACT_MODE = "local"
+# AI model name, choose from https://developers.cloudflare.com/workers-ai/features/json-mode/#supported-models
+# Recommended JSON Mode model: "@cf/meta/llama-3.1-8b-instruct-fast"
+# Note: "@cf/meta/llama-3.1-8b-instruct" was deprecated by Cloudflare on 2026-05-30
+# AI_EXTRACT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast"
 # Calling other woker to process email
 # ENABLE_ANOTHER_WORKER = false
 # ANOTHER_WORKER_LIST = """

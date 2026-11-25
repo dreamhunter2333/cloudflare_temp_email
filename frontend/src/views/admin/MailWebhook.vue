@@ -23,8 +23,14 @@ const testSettings = async (webhookSettings: any) => {
     })
 }
 
+const checkFilter = async (filter: any) => {
+    return await api.fetch(`/admin/mail_webhook/check_filter`, {
+        method: 'POST',
+        body: JSON.stringify(filter),
+    })
+}
 </script>
 
 <template>
-    <WebhookComponent :fetchData="fetchData" :saveSettings="saveSettings" :testSettings="testSettings" />
+    <WebhookComponent :fetchData="fetchData" :saveSettings="saveSettings" :testSettings="testSettings" :checkFilter="checkFilter" />
 </template>

@@ -68,24 +68,34 @@ const generate = async () => {
         const arrayBuffer = await response.arrayBuffer();
         var zip = new JSZip();
         await zip.loadAsync(arrayBuffer);
-        let target_path = ""
-        const directory = zip.folder("assets");
-        if (directory) {
-            for (const [relativePath, zipEntry] of Object.entries(directory.files)) {
-                console.log(relativePath);
-                if (relativePath.startsWith("assets/index-") && relativePath.endsWith(".js")){
-                    let content = await zipEntry.async("string");
-                    content = content.replaceAll("https://temp-email-api.xxx.xxx", normalizedDomain);
-                    target_path = relativePath;
-                    zip.file(relativePath, content);
-                    break;
-                }
-            }
-        }
-        if (!target_path) {
-            errorMessage.value = "Could not find the frontend entry file. Generation failed"
+        const indexEntry = zip.file("index.html");
+        if (!indexEntry) {
+            errorMessage.value = "Could not find index.html. Generation failed"
             return
         }
+        const content = await indexEntry.async("string");
+        const configPattern = /(<script id="app-config" type="application\/json">)([\s\S]*?)(<\/script>)/;
+        const configMatch = content.match(configPattern);
+        if (!configMatch) {
+            errorMessage.value = "Could not find app-config. Generation failed"
+            return
+        }
+        let appConfig = {};
+        try {
+            appConfig = JSON.parse(configMatch[2]);
+        } catch {
+            errorMessage.value = "Invalid app-config. Generation failed"
+            return
+        }
+        if (!appConfig || typeof appConfig !== "object" || Array.isArray(appConfig)) {
+            errorMessage.value = "Invalid app-config. Generation failed"
+            return
+        }
+        appConfig.API_BASE = normalizedDomain;
+        zip.file("index.html", content.replace(
+            configPattern,
+            (_, openTag, _config, closeTag) => `${openTag}${JSON.stringify(appConfig)}${closeTag}`
+        ));
         const blob = await zip.generateAsync({ type: "blob" });
         const url = window.URL.createObjectURL(blob);
         errorMessage.value = ""
@@ -133,11 +143,20 @@ const generate = async () => {
     > [!NOTE]
     > You can also deploy manually. Download the zip from here: [frontend.zip](https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest/download/frontend.zip)
     >
-    > Modify the index-xxx.js file in the archive, where xx is a random string
-    >
-    > Search for `https://temp-email-api.xxx.xxx` and replace it with your worker's backend API root URL, then deploy the new zip file. If you replace it with the frontend Pages domain, common symptoms are the `map` error or `405` responses from API requests
+    > Extract the archive and edit `app-config` in `index.html`. When finished, compress all files again and upload the archive. Do not include the outer directory in the archive.
     >
     > If you entered the wrong address the first time and still see errors after redeploying, test in an incognito window or clear browser cache so the browser stops using the old frontend assets.
+
+    ```html
+    <script id="app-config" type="application/json">
+    {
+      "API_BASE": "https://temp-email-api.example.com",
+      "DEFAULT_LANG": "en"
+    }
+    </script>
+    ```
+
+    `API_BASE` is the backend API root URL without a trailing `/`; `DEFAULT_LANG` supports `zh`, `en`, `es`, `pt-BR`, `ja`, and `de`. You can also set `CF_WEB_ANALY_TOKEN`, `IS_TELEGRAM`, `GOOGLE_AD_CLIENT`, and `GOOGLE_AD_SLOT`; see [Frontend Variables](/en/guide/frontend-vars) for their purpose and values. Fields present in `app-config` override the corresponding settings built into JavaScript, while omitted fields keep their existing settings.
 
 4. Select `Pages`, click `Create Pages`, modify the name, upload the downloaded zip package
 

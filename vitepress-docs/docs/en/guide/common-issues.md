@@ -59,5 +59,6 @@
 
 | Issue                                                      | Solution                                                                                     |
 | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `Upstream Sync` reports `workflow scope or permission to merge` | The token lacks permission to sync workflow files. Configure `UPSTREAM_SYNC_TOKEN` with `Contents: Read and write` and `Workflows: Read and write` for your fork; see [auto-update configuration](/en/guide/actions/auto-update). Alternatively, use `Sync fork` on the repository homepage to sync manually |
 | After Github Action deployment, CF always shows preview branch | Go to CF pages settings to confirm that the frontend branch matches the Github Action frontend deployment branch |
 | Use GitHub Actions auto-update while forwarding backend requests through Page Functions | Enable the `Deploy Frontend with page function` workflow and configure the `PAGE_TOML` secret. Copy `pages/wrangler.toml` into `PAGE_TOML`, then change `service` to your Worker backend name. This workflow uses same-origin requests and does not need `FRONTEND_ENV` |
