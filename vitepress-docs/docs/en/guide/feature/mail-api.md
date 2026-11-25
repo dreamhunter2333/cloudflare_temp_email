@@ -35,6 +35,77 @@ res = requests.get(
 
 **Note**: `/api/mails` returns raw RFC822 data by design (for example `source`/`raw`), and it does not guarantee parsed fields such as `subject`, `text`, or `html`. Parse the raw source on the client side (for example with `mail-parser-wasm` or `postal-mime`) if you need readable message content.
 
+## Reading a Mailbox by Address
+
+`GET /open_api/mailbox` needs no mailbox JWT: given an email address it reads that inbox and extracts verification codes, which makes it convenient for polling from scripts (auto sign-up, auto login and similar flows).
+
+Authorization is resolved in this order (any one match is accepted):
+
+1. When `MAILBOX_QUERY_KEY` is set, the request must pass `?key=<key>` or the `x-mailbox-key` header;
+2. When `MAILBOX_QUERY_PUBLIC=true`, anonymous access is allowed;
+3. When the site password `PASSWORDS` is set, the request must pass the `x-custom-auth` header;
+4. When none of the above is configured, the endpoint is disabled and returns 403.
+
+Supported query parameters:
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `address` | required | Email address, case insensitive |
+| `limit` | `10` | Number of mails to return, 1–50 |
+| `offset` | `0` | Pagination offset |
+| `id` | empty | Mail ID, returns only that mail (including body) |
+| `code_only` | `false` | Only return mails a code was extracted from |
+| `include_body` | `false` | Include plain text body in `text` (truncated to 4000 characters) |
+| `include_html` | `false` | With `include_body`, include HTML body (truncated to 20000 characters) |
+| `format` | `json` | `json`; `text` returns the code as plain text only; `html` returns a simple browser-friendly page |
+
+```bash
+# Read the code from the newest mail (plain text, empty string when nothing matched)
+curl "https://<your-worker-address>/open_api/mailbox?address=xxx@awsl.uk&key=<key>&code_only=true&limit=1&format=text"
+```
+
+```python
+import requests
+
+res = requests.get(
+    "https://<your-worker-address>/open_api/mailbox",
+    params={
+        "address": "xxx@awsl.uk",
+        "key": "<key>",  # if MAILBOX_QUERY_KEY is not used and the site password is enabled, send header x-custom-auth instead
+        "code_only": "true",
+        "limit": 1,
+    },
+    timeout=10,
+)
+data = res.json()
+print(data["code"])  # code from the newest mail that contains one, null when nothing matched
+```
+
+Example JSON response (`count` is the total number of mails for that address and is only meaningful on the first page):
+
+```json
+{
+  "address": "xxx@awsl.uk",
+  "count": 2,
+  "code": "483920",
+  "mails": [
+    {
+      "id": 1,
+      "from": "noreply@service.com",
+      "subject": "Your verification code is 483920",
+      "created_at": "2026-11-25 10:00:00",
+      "code": "483920"
+    }
+  ]
+}
+```
+
+Mails are returned newest first (by descending ID); `code` is the newest extracted code among the returned mails. An unknown address returns 404, an invalid address returns 400.
+
+::: warning
+With `MAILBOX_QUERY_PUBLIC` enabled, anyone who knows the email address can read that inbox. Use it only in trusted environments; prefer `MAILBOX_QUERY_KEY` in production.
+:::
+
 ## Admin Mail API
 
 Supports `address` filter

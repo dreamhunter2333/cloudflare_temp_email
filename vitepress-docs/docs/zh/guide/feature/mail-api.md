@@ -35,6 +35,77 @@ res = requests.get(
 
 **注意**：`/api/mails` 按设计返回的是原始 RFC822 数据（如 `source`/`raw`），不保证直接包含 `subject`、`text`、`html` 等已解析字段。若要直接读取正文，请在客户端侧解析 `raw`（例如 `mail-parser-wasm`、`postal-mime`）。
 
+## 按邮箱地址直接取码
+
+`GET /open_api/mailbox` 不需要邮箱 JWT，只要邮箱地址就能读取该地址的收件并自动提取验证码，适合脚本轮询取码（例如自动注册、自动登录流程）。
+
+鉴权按以下顺序生效（满足任意一条即可）：
+
+1. 配置 `MAILBOX_QUERY_KEY` 后，请求必须带 `?key=<密钥>` 或 `x-mailbox-key` 请求头；
+2. 配置 `MAILBOX_QUERY_PUBLIC=true` 时允许匿名访问；
+3. 配置站点密码 `PASSWORDS` 时，请求必须带 `x-custom-auth` 请求头；
+4. 以上都未配置时该接口关闭，返回 403。
+
+支持以下查询参数：
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `address` | 必填 | 邮箱地址，大小写不敏感 |
+| `limit` | `10` | 返回邮件数量，范围 1–50 |
+| `offset` | `0` | 分页偏移 |
+| `id` | 空 | 指定邮件 ID，只返回该封邮件（包含正文） |
+| `code_only` | `false` | 只返回成功提取到验证码的邮件 |
+| `include_body` | `false` | 返回纯文本正文 `text`（截断 4000 字符） |
+| `include_html` | `false` | 配合 `include_body` 返回 HTML 正文（截断 20000 字符） |
+| `format` | `json` | `json`；`text` 只返回验证码纯文本；`html` 返回可直接在浏览器打开的简易页面 |
+
+```bash
+# 取最新一封邮件里的验证码（纯文本，未提取到时为空字符串）
+curl "https://<你的worker地址>/open_api/mailbox?address=xxx@awsl.uk&key=<密钥>&code_only=true&limit=1&format=text"
+```
+
+```python
+import requests
+
+res = requests.get(
+    "https://<你的worker地址>/open_api/mailbox",
+    params={
+        "address": "xxx@awsl.uk",
+        "key": "<密钥>",  # 未开启 MAILBOX_QUERY_KEY 且使用站点密码时，改用 header x-custom-auth
+        "code_only": "true",
+        "limit": 1,
+    },
+    timeout=10,
+)
+data = res.json()
+print(data["code"])  # 最新一封包含验证码的邮件中的验证码，未提取到时为 null
+```
+
+JSON 响应示例（`count` 为该地址的邮件总数，仅第一页有意义）：
+
+```json
+{
+  "address": "xxx@awsl.uk",
+  "count": 2,
+  "code": "483920",
+  "mails": [
+    {
+      "id": 1,
+      "from": "noreply@service.com",
+      "subject": "Your verification code is 483920",
+      "created_at": "2026-11-25 10:00:00",
+      "code": "483920"
+    }
+  ]
+}
+```
+
+邮件按 ID 倒序返回（最新在前）；`code` 取返回列表中最新的验证码。地址不存在返回 404，地址格式不合法返回 400。
+
+::: warning
+开启 `MAILBOX_QUERY_PUBLIC` 后，任何知道邮箱地址的人都能读取该邮箱的邮件，请只在可信环境使用；生产环境推荐使用 `MAILBOX_QUERY_KEY`。
+:::
+
 ## admin 邮件 API
 
 支持 `address` 过滤

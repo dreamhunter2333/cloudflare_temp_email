@@ -5,6 +5,7 @@ import { addressJwtAuth } from './address_auth';
 
 import { api as commonApi } from './commom_api';
 import { api as openAuthApi } from './open_api/auth';
+import { api as openMailboxApi } from './open_api/mailbox';
 import { api as mailsApi } from './mails_api'
 import { api as userApi } from './user_api';
 import { api as adminApi } from './admin_api';
@@ -293,6 +294,7 @@ app.use('/admin/*', async (c, next) => {
 
 app.route('/', commonApi)
 app.route('/', openAuthApi)
+app.route('/', openMailboxApi)
 app.route('/', mailsApi)
 app.route('/', userApi)
 app.route('/', adminApi)

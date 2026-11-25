@@ -60,6 +60,8 @@
 | `ENABLE_ADDRESS_PASSWORD`             | 文本/JSON | 否       | 启用邮箱地址密码功能，启用后创建新地址时会自动生成密码，并支持密码登录和修改                                                      | `false`         | `true`                                    |
 | `ADDRESS_PASSWORD_LOGIN_ONLY`         | 文本/JSON | 否       | 仅在 `ENABLE_ADDRESS_PASSWORD=true` 时生效；登录页仅显示密码登录，各创建、登录及授权入口签发可续期的 30 天邮箱 JWT。旧凭据、登录链接和 API 访问仍兼容。见[邮箱会话](./feature/mail-api#邮箱密码登录-jwt-的鉴权与续期) | `false` | `true` |
 | `ENABLE_AGENT_EMAIL_INFO`             | 文本/JSON | 否       | 是否在前端“地址凭证与连接方式”弹窗中展示 AI Agent 接入信息（Address JWT、parsed-mail API、skill 链接）                             | `false`         | `true`                                    |
+| `MAILBOX_QUERY_KEY`                   | 文本      | 否       | 为 `GET /open_api/mailbox` 设置访问密钥，请求需带 `?key=<密钥>` 或 `x-mailbox-key` 请求头；未设置时依次回退到 `MAILBOX_QUERY_PUBLIC` 与站点密码 `PASSWORDS`。见[按邮箱地址直接取码](./feature/mail-api#按邮箱地址直接取码) | 空，不使用密钥 | `a1b2c3d4e5f6` |
+| `MAILBOX_QUERY_PUBLIC`                | 文本/JSON | 否       | 设为 `true` 时允许匿名访问 `GET /open_api/mailbox`；任何知道邮箱地址的人都能读取该邮箱的邮件，请谨慎开启。未设置 `MAILBOX_QUERY_KEY` 时才生效 | `false`         | `true`                                    |
 | `SMTP_IMAP_PROXY_CONFIG`              | JSON      | 否       | 在前端“地址凭证与连接方式”弹窗中展示 SMTP/IMAP 代理连接信息；仅用于展示给用户，不会启动代理服务，代理服务仍需单独部署               | 空，不展示      | 见下方示例                                |
 | `SEND_MAIL_DOMAINS`                   | JSON      | 否       | 限制 `SEND_MAIL` binding 可用于哪些发件域名                                                                                        | `[]`，允许所有域名 | `["example.com", "mail.example.com"]`   |
 

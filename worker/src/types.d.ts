@@ -128,6 +128,9 @@ type Bindings = {
     ENABLE_MAIL_READ_STATUS: string | boolean | undefined
     ENABLE_ADDRESS_EXPIRY: string | boolean | undefined
     CLEANUP_BATCH_SIZE: string | number | undefined
+    // fork: address based mailbox read api (/open_api/mailbox)
+    MAILBOX_QUERY_KEY: string | undefined
+    MAILBOX_QUERY_PUBLIC: string | boolean | undefined
 }
 
 type JwtType = 'address_credential_login' | 'address_password_login'
