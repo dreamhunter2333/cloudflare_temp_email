@@ -123,6 +123,14 @@ type Bindings = {
     AI_EXTRACT_MODE: string | undefined
     AI_EXTRACT_MODEL: string | undefined
 
+    ENABLE_MAIL_PROCESSING?: string | boolean
+    MAIL_PROCESSING_PROVIDER?: string
+    MAIL_PROCESSING_MODEL?: string
+    MAIL_PROCESSING_BASE_URL?: string
+    MAIL_PROCESSING_API_KEY?: string
+    MAIL_PROCESSING_SUMMARY_PROMPT?: string
+    MAIL_PROCESSING_TRANSLATION_PROMPT?: string
+
     // gzip compression for raw_mails
     ENABLE_MAIL_GZIP: string | boolean | undefined
     ENABLE_MAIL_READ_STATUS: string | boolean | undefined

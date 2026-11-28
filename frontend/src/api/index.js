@@ -170,6 +170,7 @@ const getSettings = async () => {
             address: res["address"],
             auto_reply: res["auto_reply"],
             send_balance: res["send_balance"],
+            enableMailProcessing: res["enableMailProcessing"],
         };
     } finally {
         settings.value.fetched = true;

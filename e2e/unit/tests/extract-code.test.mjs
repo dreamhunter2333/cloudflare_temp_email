@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { extractCode, joinSubjectAndBody } from '../../../worker/src/email/extract_code.ts';
-import { ExtractMode, resolveExtractMode } from '../../../worker/src/email/extract_mode.ts';
+import { extractCode, joinSubjectAndBody } from '../../../worker/src/mail_ai_processing/extract_code.ts';
+import { ExtractMode, resolveExtractMode } from '../../../worker/src/mail_ai_processing/extract_mode.ts';
 
 // Messages marked "2FHey" are adapted from https://github.com/SoFriendly/2fhey tests (CC0-1.0).
 const codeCases = [

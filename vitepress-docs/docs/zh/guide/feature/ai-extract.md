@@ -110,3 +110,22 @@ admin*@company.com
 - `user@example.com`（精确匹配）
 - 所有 `@mydomain.com` 的邮箱（如 `test@mydomain.com`、`admin@mydomain.com`）
 - 所有 `admin` 开头的 `@company.com` 邮箱（如 `admin@company.com`、`admin123@company.com`）
+
+## 按需摘要和翻译 {#mail-processing}
+
+设置 `ENABLE_MAIL_PROCESSING = true` 并配置有效的 `MAIL_PROCESSING_PROVIDER` 后，邮件操作栏会显示「摘要」和「翻译」。摘要可关闭；翻译会在阅读区替换标题和正文。提示词要求模型保留 HTML 排版和链接，实际结果以模型输出为准。点击「查看原文」即可恢复。默认跟随界面语言；展开邮箱设置底部的「邮件 AI 助手」可另选翻译目标语言，仅保存在当前浏览器。打开邮件不会调用模型，不保存结果、不修改原文，也无需数据库迁移。
+
+| 接入方式 | 配置值 | 所需配置 |
+| --- | --- | --- |
+| Workers AI | `workers-ai` | 给 Worker 添加 `AI` 绑定，默认模型为 `@cf/meta/llama-3.1-8b-instruct-fast`。 |
+| OpenAI Chat Completions | `openai-chat` | 设置 `MAIL_PROCESSING_MODEL` 和 `MAIL_PROCESSING_API_KEY` Secret。 |
+| OpenAI Responses | `openai-responses` | 设置 `MAIL_PROCESSING_MODEL` 和 `MAIL_PROCESSING_API_KEY` Secret。 |
+| Claude Messages | `claude-messages` | 设置 `MAIL_PROCESSING_MODEL` 和 `MAIL_PROCESSING_API_KEY` Secret。 |
+
+`ENABLE_MAIL_PROCESSING` 只控制站点提供的 AI 摘要和翻译服务，默认关闭，不影响 `ENABLE_AI_EMAIL_EXTRACT`。外部服务可通过 `MAIL_PROCESSING_BASE_URL` 指定 HTTPS API 前缀，例如 `https://api.openai.com/v1`；后端负责追加接口路径。
+
+可在 Worker 设置 `MAIL_PROCESSING_SUMMARY_PROMPT` 和 `MAIL_PROCESSING_TRANSLATION_PROMPT`，分别替换两种操作的默认风格指令。实际操作和目标语言仍以请求为准。
+
+邮箱用户点击后，浏览器将已解析的主题和正文交给 Worker，再由 Worker 调用站点配置的模型。HTML 翻译会发送清理过的 HTML，其中可能包含链接和内嵌内容；不发送原始邮件或单独的附件。超过 12,000 字符的模型输入会被拒绝。公开部署建议启用地址白名单和 Worker 限流；AI 请求不计入现有的 IP 共享日配额。
+
+站点模型共用后台 **AI 提取设置** 的地址白名单。未启用白名单时，所有邮箱可使用站点模型；启用白名单时，只有命中的邮箱才会看到 AI 操作并能使用站点模型。站点模型和提示词通过 Worker 配置。

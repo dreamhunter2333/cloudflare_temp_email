@@ -20,6 +20,13 @@ Unless an entry or its notes describe a different fallback, a `Text/JSON` boolea
 | `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | No       | Whether to allow users to create mailboxes                             | `false`              | `true` |
 | `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | No       | Whether to allow users to delete emails                                | `false`              | `true` |
 | `ENABLE_MAIL_READ_STATUS`  | Text/JSON   | No       | Enables read/unread mail state. Upgrade the database schema before enabling | `false` | `true` |
+| `ENABLE_MAIL_PROCESSING`   | Text/JSON   | No       | Enable on-demand summaries and translation via the [site AI service](./feature/ai-extract#mail-processing), independently of automatic extraction | `false` | `true` |
+| `MAIL_PROCESSING_PROVIDER` | Text        | When enabled | Site-model provider for on-demand summaries and translation | None | `workers-ai` |
+| `MAIL_PROCESSING_MODEL`    | Text        | For external APIs | Model name for on-demand mail processing | Workers AI default only | `@cf/meta/llama-3.1-8b-instruct-fast` |
+| `MAIL_PROCESSING_BASE_URL` | Text        | No       | Optional HTTPS API prefix for the selected external provider | Provider default | `https://api.openai.com/v1` |
+| `MAIL_PROCESSING_API_KEY`  | Secret      | For external APIs | API key for the configured provider | None | Set as a Worker secret |
+| `MAIL_PROCESSING_SUMMARY_PROMPT` | Text | No | Custom instructions for summaries | Built-in instructions | `Highlight deadlines.` |
+| `MAIL_PROCESSING_TRANSLATION_PROMPT` | Text | No | Custom instructions for translations | Built-in instructions | `Preserve paragraph breaks.` |
 | `ENABLE_ADDRESS_EXPIRY`    | Text/JSON   | No       | Enables optional per-address expiration (`expiresAt`), expiry enforcement, and cron cleanup. Upgrade database to `v0.0.11` before enabling; disabling pauses enforcement and cleanup without erasing saved deadlines | `false` | `true` |
 | `ENABLE_REDEEM_CODE`       | Text/JSON   | No       | Enables the redemption page, public redemption APIs, and Admin redemption management | `false` | `true` |
 | `REDEEM_CODE_URL`          | Text        | No       | External URL for obtaining redemption codes                           | Empty; link hidden   | `https://example.com/redeem-codes` |
