@@ -96,4 +96,57 @@ test.describe('Address Expiration UI', () => {
     expect(typeof bodies[1].expiresAt).toBe('string');
     expect(Date.parse(String(bodies[1].expiresAt))).toBeGreaterThan(Date.now());
   });
+
+  test('shows Expired (Pending Deletion) indicator for expired mailboxes in Mailboxes table', async ({ page }) => {
+    await page.route('**/admin/address*', route => route.fulfill({
+      json: {
+        results: [
+          {
+            id: 101,
+            name: 'expired-box@test.example.com',
+            created_at: '2020-01-01 00:00:00',
+            updated_at: '2020-01-01 00:00:00',
+            expires_at: '2020-01-01 00:00:00',
+            mail_count: 0,
+            send_count: 0,
+          },
+          {
+            id: 102,
+            name: 'active-box@test.example.com',
+            created_at: '2026-01-01 00:00:00',
+            updated_at: '2026-01-01 00:00:00',
+            expires_at: '2099-01-01 00:00:00',
+            mail_count: 0,
+            send_count: 0,
+          },
+          {
+            id: 103,
+            name: 'permanent-box@test.example.com',
+            created_at: '2026-01-01 00:00:00',
+            updated_at: '2026-01-01 00:00:00',
+            expires_at: null,
+            mail_count: 0,
+            send_count: 0,
+          },
+        ],
+        count: 3,
+      },
+    }));
+
+    await page.addInitScript(() => {
+      localStorage.setItem('adminAuth', 'e2e-admin-pass');
+      sessionStorage.setItem('adminTab', 'account');
+    });
+    await page.goto(`${FRONTEND_URL}/en/admin`);
+
+    const expiredRow = page.locator('tr', { hasText: 'expired-box@test.example.com' });
+    await expect(expiredRow.getByText('Expired (Pending Deletion)', { exact: true })).toBeVisible();
+
+    const activeRow = page.locator('tr', { hasText: 'active-box@test.example.com' });
+    await expect(activeRow.getByText('Expired (Pending Deletion)', { exact: true })).toHaveCount(0);
+
+    const permanentRow = page.locator('tr', { hasText: 'permanent-box@test.example.com' });
+    await expect(permanentRow.getByText('Never', { exact: true })).toBeVisible();
+    await expect(permanentRow.getByText('Expired (Pending Deletion)', { exact: true })).toHaveCount(0);
+  });
 });

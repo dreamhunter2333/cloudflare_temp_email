@@ -6,6 +6,7 @@ import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../../store'
 import { api } from '../../api'
 import { hashPassword, utcToLocalDate } from '../../utils'
+import { renderAddressExpiryCell, useNowMs } from '../../utils/address-expiry-cell'
 import { NButton, NMenu } from 'naive-ui';
 import { MenuFilled } from '@vicons/material'
 import AddressCredentialModal from '../../components/AddressCredentialModal.vue'
@@ -18,6 +19,7 @@ const {
 const message = useMessage()
 
 const { t } = useScopedI18n('views.admin.Account')
+const nowMs = useNowMs()
 
 const showEmailCredential = ref(false)
 const curEmailCredential = ref("")
@@ -293,7 +295,7 @@ const columns = computed(() => [
         title: t('expires_at'),
         key: "expires_at",
         render(row) {
-            return row.expires_at ? utcToLocalDate(row.expires_at, useUTCDate.value) : t('neverExpires');
+            return renderAddressExpiryCell(row.expires_at, useUTCDate.value, t, nowMs.value);
         }
     }] : []),
     {

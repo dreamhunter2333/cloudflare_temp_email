@@ -4,7 +4,8 @@ import { createApp, defineComponent, h, nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { resolveExpiryPayload } from '../index'
+import { isAddressExpiredAt, resolveExpiryPayload, utcToLocalDate } from '../index'
+import { renderAddressExpiryCell, useNowMs } from '../address-expiry-cell'
 import { I18N_MESSAGES } from '../../i18n/messages'
 
 const mockApiFetch = vi.fn()
@@ -201,5 +202,71 @@ describe('BatchCreate expiry validation', () => {
     expect(mockApiFetch).toHaveBeenCalledTimes(1)
     expect(JSON.parse(mockApiFetch.mock.calls[0][1].body).expiresAt).toBe(new Date(deadline).toISOString())
     app.unmount()
+  })
+})
+
+describe('isAddressExpiredAt & renderAddressExpiryCell', () => {
+  it('parses SQLite UTC and ISO timestamps against nowMs', () => {
+    const nowMs = Date.parse('2026-11-22T10:00:00.000Z')
+    expect(isAddressExpiredAt(null, nowMs)).toBe(false)
+    expect(isAddressExpiredAt(undefined, nowMs)).toBe(false)
+    expect(isAddressExpiredAt('2026-11-22 10:00:00', nowMs)).toBe(true)
+    expect(isAddressExpiredAt('2026-11-22 09:59:59', nowMs)).toBe(true)
+    expect(isAddressExpiredAt('2026-11-22 10:00:01', nowMs)).toBe(false)
+    expect(isAddressExpiredAt('2020-01-01T00:00:00.000Z', nowMs)).toBe(true)
+    expect(isAddressExpiredAt('2099-01-01T00:00:00.000Z', nowMs)).toBe(false)
+  })
+
+  it('renders neverExpires, plain formatted date, and Expired (Pending Deletion) tag', () => {
+    const t = (key: string) => ({
+      neverExpires: 'Never',
+      expiredPendingDeletion: 'Expired (Pending Deletion)',
+    }[key] ?? key)
+
+    expect(renderAddressExpiryCell(null, true, t)).toBe('Never')
+    expect(renderAddressExpiryCell('2099-01-01 00:00:00', true, t)).toBe(
+      utcToLocalDate('2099-01-01 00:00:00', true),
+    )
+
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const app = createApp({
+      render: () => renderAddressExpiryCell('2020-01-01 00:00:00', true, t),
+    })
+    app.mount(container)
+    expect(container.textContent).toContain('Expired (Pending Deletion)')
+    expect(container.textContent).toContain('2020-01-01 00:00:00 UTC')
+    app.unmount()
+    container.remove()
+  })
+
+  it('updates status automatically when the expiry deadline passes without replacing the row', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-22T10:00:00Z'))
+    const row = { expires_at: '2026-11-22 10:00:05' }
+    const t = (key: string) => ({
+      neverExpires: 'Never',
+      expiredPendingDeletion: 'Expired (Pending Deletion)',
+    }[key] ?? key)
+
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    const app = createApp({
+      setup() {
+        const nowMs = useNowMs(1_000)
+        return () => renderAddressExpiryCell(row.expires_at, true, t, nowMs.value)
+      },
+    })
+    app.mount(container)
+    expect(container.textContent).toBe('2026-11-22 10:00:05 UTC')
+
+    vi.advanceTimersByTime(6_000)
+    await nextTick()
+    expect(container.textContent).toContain('Expired (Pending Deletion)')
+    expect(container.textContent).toContain('2026-11-22 10:00:05 UTC')
+
+    app.unmount()
+    container.remove()
+    vi.useRealTimers()
   })
 })
