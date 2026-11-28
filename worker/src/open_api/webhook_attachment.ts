@@ -43,7 +43,7 @@ export const getWebhookAttachment = async (
     );
     if (!valid) return c.text('Not Found', 404);
 
-    const rawEmail = await resolveRawEmail(mail);
+    const rawEmail = await resolveRawEmail(c.env.DB, mail);
     const parsedEmail = await commonParseMail({ rawEmail });
     const attachment = parsedEmail?.attachments?.[index];
     if (!attachment) return c.text('Not Found', 404);

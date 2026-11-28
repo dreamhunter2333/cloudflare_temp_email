@@ -53,7 +53,7 @@ async function checkWebhookFilter(c: Context<HonoCustomType>): Promise<Response>
         `SELECT * FROM raw_mails ORDER BY RANDOM() LIMIT 1`
     ).first<RawMailRow>();
     if (!mailRow) return c.text(msgs.MailNotFoundMsg, 404);
-    const raw = await resolveRawEmail(mailRow);
+    const raw = await resolveRawEmail(c.env.DB, mailRow);
     const parsedEmail = await commonParseMail({ rawEmail: raw });
     try {
         return c.json({ success: true, matched: match(parsedEmail, mailRow.address ?? '') });
@@ -81,7 +81,7 @@ async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response
     if (requestedMailId !== undefined && !mailRow) {
         return c.text(msgs.MailNotFoundMsg, 404);
     }
-    const raw = mailRow ? await resolveRawEmail(mailRow) : "";
+    const raw = mailRow ? await resolveRawEmail(c.env.DB, mailRow) : "";
     const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
     const parsedEmail = await commonParseMail(parsedEmailContext);
     const res = await sendWebhook(settings, {

@@ -45,7 +45,7 @@ const getMail = async (c: Context<HonoCustomType>) => {
         `SELECT * FROM raw_mails where id = ? and address = ?`
     ).bind(mail_id, address).first();
     if (!result) return c.json(null);
-    return c.json(await resolveRawEmailRow(result));
+    return c.json(await resolveRawEmailRow(c.env.DB, result));
 };
 
 const deleteMail = async (c: Context<HonoCustomType>) => {

@@ -4,21 +4,40 @@ import { createMimeMessage } from "mimetext";
 import { compressText } from "../gzip";
 import { getBooleanValue } from "../utils";
 
-let rawMailTableColumns: Set<string> | undefined;
+// D1 limits each string, BLOB and row to 2,000,000 bytes. Larger mail is split
+// into raw_mail_chunks rows; this size leaves room for the other columns.
+export const RAW_MAIL_CHUNK_BYTES = 1_000_000;
+
+// Cached per D1 binding: a deploy that only changes bindings may reuse this isolate with another database
+const rawMailTableColumns = new WeakMap<D1Database, Set<string>>();
+const rawMailChunksReady = new WeakSet<D1Database>();
 
 const getRawMailTableColumns = async (
     env: Bindings, requiredColumns: string[]
 ): Promise<Set<string>> => {
-    const cachedColumns = rawMailTableColumns;
+    const cachedColumns = rawMailTableColumns.get(env.DB);
     if (cachedColumns && requiredColumns.every(column => cachedColumns.has(column))) {
         return cachedColumns;
     }
     const tableInfo = await env.DB.prepare(`PRAGMA table_info(raw_mails)`).all<{ name: string }>();
     const columns = new Set(tableInfo.results.map(column => column.name));
     if (requiredColumns.every(column => columns.has(column))) {
-        rawMailTableColumns = columns;
+        rawMailTableColumns.set(env.DB, columns);
     }
     return columns;
+}
+
+/**
+ * The migration adds raw_chunk_key before it creates raw_mail_chunks,
+ * so chunked writes wait until both exist.
+ */
+const canStoreChunks = async (env: Bindings): Promise<boolean> => {
+    if (rawMailChunksReady.has(env.DB)) return true;
+    if (!(await getRawMailTableColumns(env, ['raw_chunk_key'])).has('raw_chunk_key')) return false;
+    const { results } = await env.DB.prepare(`PRAGMA table_info(raw_mail_chunks)`).all();
+    if (results.length === 0) return false;
+    rawMailChunksReady.add(env.DB);
+    return true;
 }
 
 export const storeRawMail = async (
@@ -48,25 +67,72 @@ export const storeRawMail = async (
         }
     }
 
-    const storeUnreadStatus = readStatusEnabled && tableColumns.has('is_unread');
-    if (rawBlob) {
-        if (!storeUnreadStatus) {
-            return env.DB.prepare(
-                `INSERT INTO raw_mails (source, address, raw_blob, message_id) VALUES (?, ?, ?, ?)`
-            ).bind(source, address, rawBlob, messageId).run();
-        }
-        return env.DB.prepare(
-            `INSERT INTO raw_mails (source, address, raw_blob, message_id, is_unread) VALUES (?, ?, ?, ?, 1)`
-        ).bind(source, address, rawBlob, messageId).run();
+    const columns = ['source', 'address', 'message_id'];
+    const values: unknown[] = [source, address, messageId];
+    if (readStatusEnabled && tableColumns.has('is_unread')) {
+        columns.push('is_unread');
+        values.push(1);
     }
-    if (!storeUnreadStatus) {
-        return env.DB.prepare(
-            `INSERT INTO raw_mails (source, address, raw, message_id) VALUES (?, ?, ?, ?)`
-        ).bind(source, address, raw, messageId).run();
+    const content = rawBlob ?? raw;
+    // Before the database is migrated, large mail is stored in one row as before
+    const chunks = exceedsChunkSize(content) && await canStoreChunks(env)
+        ? splitRawMail(content, RAW_MAIL_CHUNK_BYTES)
+        : undefined;
+    if (!chunks) {
+        columns.push(rawBlob ? 'raw_blob' : 'raw');
+        values.push(content);
+        return insertRawMail(env, columns, values).run();
     }
+
+    // Write the mail row and its chunks in one batch, so a failure stores neither
+    const chunkKey = crypto.randomUUID();
+    columns.push('raw_chunk_key');
+    values.push(chunkKey);
+    const [result] = await env.DB.batch([
+        insertRawMail(env, columns, values),
+        ...chunks.map((chunk, seq) => env.DB.prepare(
+            `INSERT INTO raw_mail_chunks (chunk_key, seq, data) VALUES (?, ?, ?)`
+        ).bind(chunkKey, seq, chunk)),
+    ]);
+    return result;
+}
+
+const insertRawMail = (env: Bindings, columns: string[], values: unknown[]): D1PreparedStatement => {
     return env.DB.prepare(
-        `INSERT INTO raw_mails (source, address, raw, message_id, is_unread) VALUES (?, ?, ?, ?, 1)`
-    ).bind(source, address, raw, messageId).run();
+        `INSERT INTO raw_mails (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`
+    ).bind(...values);
+}
+
+const exceedsChunkSize = (content: string | ArrayBuffer): boolean => {
+    if (typeof content !== 'string') return content.byteLength > RAW_MAIL_CHUNK_BYTES;
+    // A UTF-16 code unit takes at most 3 bytes in UTF-8, so short text needs no encoding
+    if (content.length * 3 <= RAW_MAIL_CHUNK_BYTES) return false;
+    return new TextEncoder().encode(content).byteLength > RAW_MAIL_CHUNK_BYTES;
+}
+
+/**
+ * Split stored mail content into pieces of at most maxBytes.
+ * Text is split between characters and stays text; gzip data stays binary.
+ */
+export const splitRawMail = (
+    content: string | ArrayBuffer, maxBytes: number
+): (string | ArrayBuffer)[] => {
+    const chunks: (string | ArrayBuffer)[] = [];
+    if (typeof content !== 'string') {
+        for (let start = 0; start < content.byteLength; start += maxBytes) {
+            chunks.push(content.slice(start, start + maxBytes));
+        }
+        return chunks;
+    }
+    const encoder = new TextEncoder();
+    const buffer = new Uint8Array(maxBytes);
+    for (let start = 0; start < content.length;) {
+        // encodeInto stops before a character that does not fit, so no character is cut
+        const { read } = encoder.encodeInto(content.substring(start, start + maxBytes), buffer);
+        chunks.push(content.substring(start, start + read));
+        start += read;
+    }
+    return chunks;
 }
 
 export const deleteRawMail = async (

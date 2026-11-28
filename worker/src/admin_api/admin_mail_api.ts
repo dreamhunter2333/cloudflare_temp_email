@@ -31,7 +31,7 @@ export default {
             `SELECT * FROM raw_mails WHERE id = ?`
         ).bind(id).first();
         if (!result) return c.json(null);
-        return c.json(await resolveRawEmailRow(result));
+        return c.json(await resolveRawEmailRow(c.env.DB, result));
     },
     deleteMail: async (c: Context<HonoCustomType>) => {
         const { id } = c.req.param();

@@ -215,6 +215,7 @@ export type RawMailRow = {
     address?: string;
     raw?: string;
     raw_blob?: unknown;
+    raw_chunk_key?: string | null;
     metadata?: string;
     is_unread?: number | null;
     created_at?: string;

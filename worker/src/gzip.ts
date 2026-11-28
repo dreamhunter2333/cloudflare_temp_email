@@ -5,6 +5,8 @@
 
 import { RawMailRow } from "./models";
 
+type RawMailChunk = { seq: number; data: string | ArrayLike<number> };
+
 export async function compressText(text: string): Promise<ArrayBuffer> {
     const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'));
     return new Response(stream).arrayBuffer();
@@ -15,10 +17,60 @@ export async function decompressBlob(buffer: ArrayBuffer): Promise<string> {
     return new Response(stream).text();
 }
 
+// A list reads the chunks of this many mails per D1 batch, which counts as one query
+// against the per-invocation limit, while bounding how much chunk data is held at once.
+const CHUNKED_MAILS_PER_BATCH = 10;
+
+async function loadRawMailChunks(db: D1Database, chunkKeys: string[]): Promise<Map<string, RawMailChunk[]>> {
+    if (chunkKeys.length === 0) return new Map();
+    const results = await db.batch<RawMailChunk>(chunkKeys.map(chunkKey => db.prepare(
+        `SELECT seq, data FROM raw_mail_chunks WHERE chunk_key = ? ORDER BY seq`
+    ).bind(chunkKey)));
+    return new Map(chunkKeys.map((chunkKey, index) => [chunkKey, results[index].results]));
+}
+
 /**
- * Resolve the raw email text from either raw_blob (gzip) or raw (plaintext) field.
+ * Join the chunks of a large mail: text chunks hold plaintext, BLOB chunks hold gzip data.
  */
-export async function resolveRawEmail(row: RawMailRow): Promise<string> {
+async function joinRawMailChunks(chunks: RawMailChunk[]): Promise<string> {
+    if (chunks.length === 0 || chunks.some((chunk, index) => chunk.seq !== index)) {
+        throw new Error("raw mail chunks are missing or out of order");
+    }
+    const textChunks = chunks.filter(chunk => typeof chunk.data === 'string');
+    if (textChunks.length === chunks.length) {
+        return textChunks.map(chunk => chunk.data).join('');
+    }
+    if (textChunks.length > 0) {
+        throw new Error("raw mail chunks mix text and binary data");
+    }
+    // D1 returns BLOB as Array<number>
+    const parts = chunks.map(chunk => new Uint8Array(chunk.data as ArrayLike<number>));
+    const bytes = new Uint8Array(parts.reduce((size, part) => size + part.byteLength, 0));
+    let offset = 0;
+    for (const part of parts) {
+        bytes.set(part, offset);
+        offset += part.byteLength;
+    }
+    return decompressBlob(bytes.buffer);
+}
+
+/**
+ * Resolve the raw email text from raw_mail_chunks, raw_blob (gzip) or raw (plaintext).
+ */
+export async function resolveRawEmail(db: D1Database, row: RawMailRow): Promise<string> {
+    const chunks = row.raw_chunk_key ? await loadRawMailChunks(db, [row.raw_chunk_key]) : undefined;
+    return resolveLoadedRawEmail(row, chunks);
+}
+
+async function resolveLoadedRawEmail(row: RawMailRow, chunks?: Map<string, RawMailChunk[]>): Promise<string> {
+    if (row.raw_chunk_key) {
+        try {
+            return await joinRawMailChunks(chunks?.get(row.raw_chunk_key) ?? []);
+        } catch (e) {
+            console.error(`failed to read the chunks of mail ${row.id}`, e);
+            return row.raw ?? '';
+        }
+    }
     if (row.raw_blob) {
         try {
             // D1 returns BLOB as Array<number>, convert to ArrayBuffer for decompression
@@ -32,17 +84,36 @@ export async function resolveRawEmail(row: RawMailRow): Promise<string> {
 }
 
 /**
- * Resolve a single row: decompress raw_blob if present, strip raw_blob from result.
+ * Resolve a single row: read chunks or decompress raw_blob, strip storage fields from result.
  */
-export async function resolveRawEmailRow(row: RawMailRow): Promise<RawMailRow> {
-    const raw = await resolveRawEmail(row);
-    const { raw_blob: _, ...rest } = row;
+export async function resolveRawEmailRow(db: D1Database, row: RawMailRow): Promise<RawMailRow> {
+    return withRaw(row, await resolveRawEmail(db, row));
+}
+
+function withRaw(row: RawMailRow, raw: string): RawMailRow {
+    const { raw_blob: _, raw_chunk_key: __, ...rest } = row;
     return { ...rest, raw };
 }
 
 /**
- * Batch resolve raw emails for list queries using Promise.all.
+ * Resolve raw emails for list queries in order, reading chunks for a group of
+ * chunked mails in one batch and decompressing one mail at a time.
  */
-export async function resolveRawEmailList(rows: RawMailRow[]): Promise<RawMailRow[]> {
-    return Promise.all(rows.map(row => resolveRawEmailRow(row)));
+export async function resolveRawEmailList(db: D1Database, rows: RawMailRow[]): Promise<RawMailRow[]> {
+    const resolved: RawMailRow[] = [];
+    let group: RawMailRow[] = [];
+    let chunkKeys: string[] = [];
+    const resolveGroup = async () => {
+        const chunks = await loadRawMailChunks(db, chunkKeys);
+        for (const row of group) resolved.push(withRaw(row, await resolveLoadedRawEmail(row, chunks)));
+        group = [];
+        chunkKeys = [];
+    };
+    for (const row of rows) {
+        group.push(row);
+        if (row.raw_chunk_key) chunkKeys.push(row.raw_chunk_key);
+        if (chunkKeys.length === CHUNKED_MAILS_PER_BATCH) await resolveGroup();
+    }
+    await resolveGroup();
+    return resolved;
 }
