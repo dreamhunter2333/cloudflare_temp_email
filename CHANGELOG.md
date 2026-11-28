@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |SMTP 代理| 发信时携带 `basic_password` 作为 `x-custom-auth`，修复 Worker 设置 `PASSWORDS` 后 SMTP 发信返回 401 的问题
+
 ### Improvements
 
 - feat: |邮箱| 在管理后台 `Mailbox Management -> Mailboxes` 和用户邮箱列表中为已过期但尚未被定时任务删除的邮箱显示 `已过期（待删除）` 状态标签

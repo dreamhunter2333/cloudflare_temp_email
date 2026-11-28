@@ -14,6 +14,8 @@
 
 ### Bug Fixes
 
+- fix: |SMTP Proxy| Send `basic_password` as `x-custom-auth` when sending mail, so SMTP sends no longer fail with 401 when the worker sets `PASSWORDS`
+
 ### Improvements
 
 - feat: |Mailbox| Display an `Expired (Pending Deletion)` status tag in Admin `Mailbox Management -> Mailboxes` and user mailbox lists for expired mailboxes awaiting scheduled or manual cleanup

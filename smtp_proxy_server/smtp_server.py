@@ -116,7 +116,8 @@ class CustomSMTPHandler:
             res = httpx.post(
                 f"{settings.proxy_url}/external/api/send_mail",
                 json=send_body, headers={
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "x-custom-auth": settings.basic_password,
                 }
             )
             if res.status_code != 200:
