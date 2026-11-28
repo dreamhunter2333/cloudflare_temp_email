@@ -14,6 +14,7 @@
 
 ### Bug Fixes
 
+- fix: |邮箱| 补齐管理后台和用户邮箱列表中过期时间列的西班牙语、巴西葡萄牙语、日语和德语文案
 - fix: |SMTP 代理| 发信时携带 `basic_password` 作为 `x-custom-auth`，修复 Worker 设置 `PASSWORDS` 后 SMTP 发信返回 401 的问题
 
 ### Improvements
