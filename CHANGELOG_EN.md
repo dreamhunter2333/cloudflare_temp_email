@@ -14,6 +14,7 @@
 
 ### Bug Fixes
 
+- fix: |Mailbox| Translate the mailbox expiry column in the admin and user lists into Spanish, Brazilian Portuguese, Japanese, and German
 - fix: |SMTP Proxy| Send `basic_password` as `x-custom-auth` when sending mail, so SMTP sends no longer fail with 401 when the worker sets `PASSWORDS`
 
 ### Improvements
